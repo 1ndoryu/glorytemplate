@@ -79,6 +79,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-64:** Completada 2026-03-18. Correcciones ortograficas (~100 tildes faltantes) en 20 archivos React/TS de texto UI visible al usuario.
 - **183A-29+183A-66:** Completadas 2026-03-18. Algoritmo colecciones incorpora likes directos (colecciones_likes) en score. Branch autenticado: pesos 0.55 tag + 0.10 likes + 0.20 frescura + 0.15 items. No autenticado: ordena por total_likes DESC. Documentacion en algoritmo/colecciones-relevancia-2026-03-18.md con plan fase-2 clicks/busquedas.
 - **183A-71:** Completada 2026-03-18. Click en nombre sample abre panel lateral (no detalles). FeedSamples pasaba onClickTitulo={undefined}; corregido a feed.manejarClickTitulo cuando panel habilitado. Comentarios protectores en TarjetaSample y FeedSamples.
+- **183A-31:** Completada 2026-03-18. Cache 30min/10min en `secciones()` de CancionesController (Redis+transients fallback), elimina 8+ queries en serie al cargar la página de música.
 - **183A-70:** Completada 2026-03-18. `tamano="ninguno"` en botones `tarjetaColeccionMenuContenedor` (fix especificidad CSS padding). Tarjeta compacta `panelDetalleTarjetaMini` en `PanelColeccionSamples`.
 - **183A-72:** Completada 2026-03-18. Unificación paneles sugerencias/detalle: `abrirSugerencias` ahora abre `modo:'detalle'` en vez de `modo:'sugerencias'`. `PanelDetalleSample` añadido `panelColeccionPortada` con fallback `obtenerImagenColorPorTexto`. Similares escalados de 4 a 12.
 
@@ -86,10 +87,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
-
-## 183A-31
-
-La pagina de musica carga lento a veces, revisar y optimizar.
 
 ## 183A-40
 
