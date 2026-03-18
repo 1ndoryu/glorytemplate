@@ -74,6 +74,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-56:** Completada 2026-03-18. Cola IA limitada a 400 items/día con gap mínimo de 216s entre items (transients de contador diario + timestamp último item).
 - **183A-60:** Completada 2026-03-18. Botón play/preview en tarjetaColeccionMenuContenedor.
 - **183A-30+183A-25:** Completadas 2026-03-18. Cache feed: stale-while-revalidate extendido a pag2/3 (TTL 1h), precalentamiento de pag2/3 en background tras pag1 fresh, documentacion arquitectura cache + plan 50ms.
+- **183A-67:** Completada 2026-03-18. Feed personalizado ahora incluye imagen_coleccion_propietario (portada coleccion del creador). Extraido como metodo publico sqlImagenColeccionPropietario() en NormalizadorSample.
 
 ## Tareas pendientes
 
@@ -106,10 +107,6 @@ tambien que aparezca un reproductor cuando se reproduzca un sample en android, q
 ## 183A-66
 
 No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en click, busquedas, likes, etc. para ordenar las colecciones, revisar y optimizar. 
-
-## 183A-67
-
-Parece ser que en el feed sample con el orndamiento inteligente, los smaples no aparecen con la portada de su coleccion de quien la subio, sino con la imagen temporal de colors. En recientes si, no se si ps por la cache. Esto esta relacionado con 183A-25 y 183A-30, revisar y corregir para que los samples siempre muestren la portada de su coleccion, o al menos que se actualice rapido despues de mostrar la imagen temporal.
 
 ## 183A-68
 
@@ -146,5 +143,4 @@ panelColeccionPortada tambien de aparecer con los detalles del sample caund osbr
 ## Tarea final cuando completes todo
 
 1. rehacer el instalador de la aplicación de escritorio 
-2. generar el apk para probar en un dispositivo real
-3. indicarme donde estan los archivos.
+3. indicarme donde esta en lnuevo instalador
