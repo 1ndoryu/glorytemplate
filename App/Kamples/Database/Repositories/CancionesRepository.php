@@ -73,6 +73,19 @@ class CancionesRepository extends BaseRepository
     }
 
     /**
+     * [183A-58] Buscar canción por slug con info completa: artista, reacción usuario, sample adjunto.
+     * Usa buildSelectBase para incluir reaccion_usuario (liked) del usuario autenticado.
+     */
+    public static function buscarPorSlugConUsuario(string $slug, ?int $userId): ?array
+    {
+        $base = self::buildSelectBase($userId);
+        return static::consultarUno(
+            "{$base} WHERE c." . CancionesCols::SLUG . " = :slug",
+            ['slug' => $slug]
+        );
+    }
+
+    /**
      * Canción con info de artista principal.
      */
     public static function buscarConArtista(int $id): ?array
@@ -450,7 +463,21 @@ class CancionesRepository extends BaseRepository
                 ) DESC";
                 break;
             case 'tendencia':
-                $order = "ORDER BY c." . CancionesCols::TOTAL_LIKES . " DESC, c." . CancionesCols::TOTAL_SAMPLEADA . " DESC";
+                /* [183A-58] Tendencias: likes + bonus sample adjunto + bonus youtube.
+                 * score = total_likes + (sample_adjunto ? 5) + (youtube_id ? 2) + total_sampleada * 0.5 */
+                $ts2 = SamplesCols::TABLA;
+                $eActivo2 = SamplesEnums::ESTADO_ACTIVO;
+                $order = "ORDER BY (
+                    c." . CancionesCols::TOTAL_LIKES . "
+                    + (CASE WHEN EXISTS (
+                        SELECT 1 FROM {$ts2} s2
+                        WHERE s2." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
+                          AND s2." . SamplesCols::ESTADO . " = '{$eActivo2}'
+                          AND s2." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
+                    ) THEN 5 ELSE 0 END)
+                    + (CASE WHEN c." . CancionesCols::YOUTUBE_ID . " IS NOT NULL THEN 2 ELSE 0 END)
+                    + c." . CancionesCols::TOTAL_SAMPLEADA . " * 0.5
+                ) DESC";
                 break;
             default: /* top */
                 $order = "ORDER BY c." . CancionesCols::TOTAL_SAMPLEADA . " DESC";

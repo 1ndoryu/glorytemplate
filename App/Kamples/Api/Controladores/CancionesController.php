@@ -215,6 +215,7 @@ class CancionesController
     /**
      * GET /canciones/{slug} — Detalle canción con relaciones sample.
      *
+     * [183A-58] Usa buscarPorSlugConUsuario para incluir reaccion_usuario (liked).
      * Retorna: canción, artistas (principal+featuring+producers),
      * samples que usa (samplesDe) y dónde fue sampleada (sampleadaEn).
      */
@@ -222,7 +223,8 @@ class CancionesController
     {
         try {
             $slug = (string) $request->get_param('slug');
-            $cancion = CancionesRepository::buscarPorSlug($slug);
+            $userId = UsuarioHelper::obtenerIdPg();
+            $cancion = CancionesRepository::buscarPorSlugConUsuario($slug, $userId);
 
             if (!$cancion) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Canción no encontrada'], 404);
