@@ -25,6 +25,8 @@ interface TarjetaColeccionProps {
     esSubcoleccion?: boolean;
     /** QL118: Modo de visualización (cuadrícula o lista) */
     vista?: VistaColecciones;
+    /** [173A-7] Nombre de la coleccion padre, visible en la meta si la coleccion es hija */
+    parentNombre?: string | null;
     onEditar?: (coleccion: Coleccion) => void;
     onEliminar?: (coleccion: Coleccion) => void;
     className?: string;
@@ -34,6 +36,7 @@ export const TarjetaColeccion = ({
     coleccion,
     esSubcoleccion = false,
     vista = 'cuadricula',
+    parentNombre = null,
     onEditar,
     onEliminar,
     className = '',
@@ -152,6 +155,8 @@ export const TarjetaColeccion = ({
                     <span className="tarjetaColeccionMeta">
                         {coleccion.totalSamples} sample{coleccion.totalSamples !== 1 ? 's' : ''}
                         {coleccion.usuario && ` · @${coleccion.usuario.username}`}
+                        {/* [173A-7] Nombre del padre para subcolecciones */}
+                        {parentNombre && ` · en ${parentNombre}`}
                     </span>
                 </div>
             </EnlaceNavegacion>

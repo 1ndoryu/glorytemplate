@@ -5,7 +5,7 @@
  * Lógica extraída a useLibreriaIsland (SRP).
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown, Bookmark, LayoutGrid, List, ListTree } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { Badge } from '@app/components/ui/Badge';
@@ -35,7 +35,7 @@ const OPCIONES_ORDEN: { id: OrdenColecciones; etiqueta: string }[] = [
 
 export const LibreriaIsland = (): JSX.Element => {
     const {
-        colecciones, coleccionesEnArbol, coleccionesPublicas, coleccionesGuardadas, cargando,
+        colecciones, coleccionesEnArbol, coleccionesPublicas, coleccionesGuardadas, coleccionesPlanas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
         tagsFrecuentes, tagActivo, setTagActivo,
@@ -45,6 +45,15 @@ export const LibreriaIsland = (): JSX.Element => {
     } = useLibreriaIsland();
     const usuario = useAuthStore(s => s.usuario);
     const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
+
+    /* [173A-7] Mapa id->nombre para encontrar el nombre del padre de subcolecciones */
+    const mapaColecciones = useMemo(() => {
+        const mapa = new Map<number, string>();
+        for (const col of coleccionesPlanas) mapa.set(col.id, col.nombre);
+        for (const col of coleccionesPublicas) mapa.set(col.id, col.nombre);
+        for (const col of coleccionesGuardadas) mapa.set(col.id, col.nombre);
+        return mapa;
+    }, [coleccionesPlanas, coleccionesPublicas, coleccionesGuardadas]);
 
     useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
 
@@ -176,6 +185,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                     return (
                                         <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
                                             esSubcoleccion={col.parentId !== null}
+                                            parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
                                             onEditar={(esPropia || esAdmin) ? manejarEditarColeccion : undefined}
                                             onEliminar={(esPropia || esAdmin) ? manejarEliminarColeccion : undefined}
                                         />
@@ -195,6 +205,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                 {coleccionesGuardadas.map(col => (
                                     <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
                                         esSubcoleccion={col.parentId !== null}
+                                        parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
                                     />
                                 ))}
                             </div>
@@ -218,6 +229,7 @@ export const LibreriaIsland = (): JSX.Element => {
                             {(vista === 'arbol' ? coleccionesEnArbol : colecciones).map(col => (
                                 <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
                                     esSubcoleccion={col.parentId !== null}
+                                    parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
                                     onEditar={manejarEditarColeccion}
                                     onEliminar={manejarEliminarColeccion}
                                 />

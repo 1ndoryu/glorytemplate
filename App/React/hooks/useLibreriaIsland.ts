@@ -329,6 +329,8 @@ export function useLibreriaIsland() {
 
     return {
         colecciones: coleccionesFiltradas, coleccionesEnArbol, coleccionesPublicas: publicasFiltradas,
+        /* [173A-7] Exponer planas para construir mapa id->nombre en el island */
+        coleccionesPlanas,
         coleccionesGuardadas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
