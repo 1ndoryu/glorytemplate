@@ -6,6 +6,7 @@
  * El boton esta FUERA del <a> para evitar navegacion accidental al hacer click.
  */
 
+import { useRef, useCallback } from 'react';
 import { Globe, Lock, MoreVertical, FolderTree, Play, Pause, Loader2, Heart, Bookmark } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import type { VistaColecciones } from '@app/hooks/useLibreriaIsland';
@@ -73,8 +74,40 @@ export const TarjetaColeccion = ({
             ? <Pause size={18} />
             : <Play size={18} />;
 
+    /* [183A-34] Long-press para menu contextual en movil (patron TarjetaSample) */
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const touchMovido = useRef(false);
+
+    const iniciarLongPress = useCallback((e: React.TouchEvent) => {
+        touchMovido.current = false;
+        const touch = e.touches[0];
+        longPressTimer.current = setTimeout(() => {
+            if (touchMovido.current) return;
+            const fake = {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                preventDefault: () => {},
+                stopPropagation: () => {},
+            } as unknown as React.MouseEvent;
+            abrirMenu(fake);
+        }, 500);
+    }, [abrirMenu]);
+
+    const cancelarLongPress = useCallback(() => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    }, []);
+
     return (
-        <div className={clases}>
+        <div
+            className={clases}
+            onContextMenu={abrirMenu}
+            onTouchStart={iniciarLongPress}
+            onTouchEnd={cancelarLongPress}
+            onTouchMove={() => { touchMovido.current = true; cancelarLongPress(); }}
+        >
             <EnlaceNavegacion href={`/coleccion/${coleccion.slug ?? coleccion.id}/`} className="tarjetaColeccionEnlace">
                 <div className="tarjetaColeccionPortada">
                     <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
