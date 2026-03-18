@@ -29,21 +29,14 @@ Ubicacion: `App/docs (ignorar)/`
 ## Historial compactado
 - **QK1-QK105:** Sprint QK completo.
 - **QL1-QL136 + QL136-CAP:** Sprint QL completo.
-- Detalle en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
+- **183A-9, 173A-7:** Completadas 2026-03-18. Detalle en `App/Agente/completados/tareas-2026-03-18.md`.
+- Detalle anterior en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 ## Tareas pendientes
 
 ## 173A-1 
 
-Scaffold móvil Capacitor para correr la app desde Android Studio sin reintroducir Android en Tauri.
-
-**Resultado:** `mobile/` creado como proyecto nativo separado con Capacitor, `mobile/android/` generado, scripts `android:sync`, `android:open` y `android:run` listos. La carga actual se hace por URL web real porque la base `Glory/assets/react` sigue siendo un build de WordPress/islas y no una SPA standalone.
-
-**Ajuste 2026-03-17:** wrapper Android cambiado a `gradle-8.2.1-bin.zip` y `android:open` separado de `android:sync` para no repetir descargas y sincronizaciones pesadas al abrir Android Studio.
-
-**Lección:** para una APK completamente autónoma habrá que extraer una entrada móvil propia; mientras tanto, Android Studio ya puede usarse sobre el shell nativo separado.
-
-Nota: ya se instalo
+Scaffold móvil Capacitor — ya instalado y funcional. Ver completados QL136-CAP en `tareas-2026-03-17.md`.
 
 
 ## 173A-2
@@ -68,7 +61,7 @@ tambien implica que en la pagina de detalles de ese sample, haya un boton especi
 
 ## 173A-6
 
-Intenta bajar la primera pagina a 30 ms, no se, alguna tecnica o algo que haga que la primera carga sea ligera y despues de fondo cargue el resto, hay un md sobre esto
+Intenta bajar la primera pagina a 50 ms, no se, alguna tecnica o algo que haga que la primera carga sea ligera y despues de fondo cargue el resto, hay un md sobre esto, se necesitan mas optimizaciones para poder escalar a 1.000.000 samples 
 
 PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate> ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"
 Ejecutando benchmark: userId=1 perPage=30
@@ -135,10 +128,10 @@ Samples: 984 | pgvector: SI | Pipeline: NO
 Feed pag1: 259ms | pag2: 170ms | pag3: 162ms | promedio: 197ms | cache: 1ms
 Perfil: 56ms | Conteo: 4ms
 
-## 173A-7
-
-El nombre de las colecciones, si es una hija que aparezca el nombre de la coleccion padre en tarjetaColeccionMeta. 
-
 ## 173A-8
 
 Ya hice el build de la app con android studio, las notificaciones deben funcionar, aparecer sin que la app este abierta, falta usar el logo de kamples en la app, y en las notificaciones, el loggin de google tiene que funcionar. 
+
+## 183A-10
+
+El agente cometio el error de hacer commit sin pull request y se salto pasos del flujo. Ajustar .github\instructions\test.instructions.md para reforzar que se cumpla el flujo. 
