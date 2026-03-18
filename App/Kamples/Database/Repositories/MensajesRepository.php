@@ -90,20 +90,73 @@ class MensajesRepository extends BaseRepository
     }
 
     /*
-     * Listar mensajes paginados de una conversación (normalizados a camelCase).
+     * [183A-62] Listar mensajes de una conversación con paginación por cursor.
+     * Sin cursor: retorna los N más recientes (ORDER DESC → revertir a ASC en PHP).
+     * Con cursor (antesDeId): retorna N mensajes anteriores al cursor.
+     * Siempre devuelve en orden cronológico ASC para el frontend.
      */
-    public static function listarDeConversacion(int $convId, int $limit, int $offset): array
+    public static function listarDeConversacion(int $convId, int $limit, int $offset, ?int $antesDeId = null): array
     {
         $tabla = MensajesCols::TABLA;
+        $colId = MensajesCols::ID;
+        $colConv = MensajesCols::CONVERSACION_ID;
+        $colCreado = MensajesCols::CREATED_AT;
 
-        return static::consultar(
-            "SELECT " . MensajesCols::ID . ", " . MensajesCols::CONVERSACION_ID . " as \"conversacionId\", " . MensajesCols::AUTOR_ID . " as \"remitenteId\",
-                    " . MensajesCols::CONTENIDO . ", " . MensajesCols::TIPO . ", " . MensajesCols::MEDIA_URL . " as \"mediaUrl\", " . MensajesCols::MEDIA_METADATA . " as \"mediaMetadata\",
-                    " . MensajesCols::LEIDO . ", " . MensajesCols::CREATED_AT . " as \"creadoAt\"
-             FROM {$tabla} WHERE " . MensajesCols::CONVERSACION_ID . " = :convId
-             ORDER BY " . MensajesCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
-            ['convId' => $convId, 'limit' => $limit, 'offset' => $offset]
+        $campos = "{$colId}, {$colConv} as \"conversacionId\", "
+            . MensajesCols::AUTOR_ID . " as \"remitenteId\", "
+            . MensajesCols::CONTENIDO . ", " . MensajesCols::TIPO . ", "
+            . MensajesCols::MEDIA_URL . " as \"mediaUrl\", "
+            . MensajesCols::MEDIA_METADATA . " as \"mediaMetadata\", "
+            . MensajesCols::LEIDO . ", {$colCreado} as \"creadoAt\"";
+
+        $params = ['convId' => $convId, 'limit' => $limit];
+
+        if ($antesDeId !== null) {
+            /* Cursor: mensajes con id < antesDeId, los más recientes antes del cursor */
+            $params['antesDeId'] = $antesDeId;
+            $sql = "SELECT {$campos} FROM {$tabla}
+                    WHERE {$colConv} = :convId AND {$colId} < :antesDeId
+                    ORDER BY {$colId} DESC LIMIT :limit";
+        } else {
+            /* Sin cursor: los N más recientes */
+            $sql = "SELECT {$campos} FROM {$tabla}
+                    WHERE {$colConv} = :convId
+                    ORDER BY {$colId} DESC LIMIT :limit";
+        }
+
+        $resultados = static::consultar($sql, $params);
+        /* Revertir para que el frontend los reciba en orden ASC (cronológico) */
+        return array_reverse($resultados);
+    }
+
+    /*
+     * [183A-62] Contar total de mensajes en una conversación.
+     */
+    public static function contarDeConversacion(int $convId): int
+    {
+        $tabla = MensajesCols::TABLA;
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla} WHERE " . MensajesCols::CONVERSACION_ID . " = :convId",
+            ['convId' => $convId]
         );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * [183A-62] Verificar si existen mensajes anteriores a un ID dado en la conversación.
+     */
+    public static function existenAnteriores(int $convId, int $antesDeId): bool
+    {
+        $tabla = MensajesCols::TABLA;
+        $row = static::consultarUno(
+            "SELECT EXISTS(
+                SELECT 1 FROM {$tabla}
+                WHERE " . MensajesCols::CONVERSACION_ID . " = :convId
+                  AND " . MensajesCols::ID . " < :antesDeId
+            ) as existe",
+            ['convId' => $convId, 'antesDeId' => $antesDeId]
+        );
+        return (bool) ($row['existe'] ?? false);
     }
 
     /*

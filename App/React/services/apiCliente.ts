@@ -16,6 +16,8 @@ export interface RespuestaApi<T> {
     status: number;
     /* Preservado cuando el servidor retorna un total de pagiación en la raiz */
     total?: number;
+    /* [183A-62] Indica si hay más registros anteriores (cursor pagination) */
+    hayMas?: boolean;
     /* QK66: Conteo de registros por estado (admin tables) */
     estadosCuenta?: Record<string, number>;
 }
@@ -179,6 +181,7 @@ export const apiPeticion = async <T>(
             error: null,
             status: response.status,
             ...(typeof json.total === 'number' ? { total: json.total } : {}),
+            ...(typeof json.hayMas === 'boolean' ? { hayMas: json.hayMas } : {}),
             ...(json.estadosCuenta && typeof json.estadosCuenta === 'object'
                 ? { estadosCuenta: json.estadosCuenta as Record<string, number> }
                 : {}),

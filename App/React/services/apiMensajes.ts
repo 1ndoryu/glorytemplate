@@ -20,13 +20,17 @@ export const obtenerConversaciones = async (): Promise<RespuestaApi<Conversacion
     }
 };
 
-/* Obtener mensajes de una conversación */
+/* [183A-62] Obtener mensajes de una conversación (cursor-based).
+ * Sin antesDeId: retorna los 50 más recientes.
+ * Con antesDeId: retorna 50 mensajes anteriores al cursor. */
 export const obtenerMensajes = async (
     conversacionId: number,
-    pagina = 1
+    antesDeId?: number
 ): Promise<RespuestaApi<Mensaje[]>> => {
     try {
-        return await apiGet<Mensaje[]>(`/mensajes/${conversacionId}`, { page: pagina });
+        const params: Record<string, number> = {};
+        if (antesDeId && antesDeId > 0) params.antes_de_id = antesDeId;
+        return await apiGet<Mensaje[]>(`/mensajes/${conversacionId}`, params);
     } catch (err) {
         log.error('Error obteniendo mensajes', err);
         return { ok: false, data: [], error: 'Error de red', status: 500 };

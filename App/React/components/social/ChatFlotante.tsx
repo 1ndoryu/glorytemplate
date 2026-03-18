@@ -19,6 +19,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     const {
         mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
         archivoStaging,
+        cargandoMas, manejarScroll,
         mensajesRef, inputRef, archivoRef,
         cerrarChat, minimizarChat, restaurarChat,
         manejarEnviar, manejarArchivo, enviarArchivoStaging, cancelarStaging, manejarKeyDown,
@@ -83,7 +84,12 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                 </div>
             </div>
 
-            <div className="chatFlotanteMensajes" ref={mensajesRef}>
+            <div className="chatFlotanteMensajes" ref={mensajesRef} onScroll={manejarScroll}>
+                {cargandoMas && (
+                    <div className="chatFlotanteVacio">
+                        <Loader2 size={16} className="adminSpinner" />
+                    </div>
+                )}
                 {cargando ? (
                     <div className="chatFlotanteVacio">
                         <Loader2 size={20} className="adminSpinner" />

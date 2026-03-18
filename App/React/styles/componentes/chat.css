@@ -71,6 +71,18 @@
     border-radius: var(--radioFull);
 }
 
+/* [183A-62] Spinner al cargar mensajes más antiguos */
+.chatCargandoMas {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioSm);
+}
+
+.chatSpinner {
+    animation: spin 1s linear infinite;
+    color: var(--textoTerciario);
+}
+
 /* Separador de fecha */
 .chatGrupoFecha {
     display: flex;

@@ -1,10 +1,10 @@
 /*
  * Isla: ChatIsland — Kamples (Fase 5.2)
- * Conversación individual con soporte multimedia.
- * Lógica extraída a useChatIsland (SRP).
+ * [183A-62] Conversación individual con cursor-based pagination.
+ * Scroll arriba carga mensajes más antiguos. Lógica en useChatIsland.
  */
 
-import { ArrowLeft, Send, Circle, Paperclip } from 'lucide-react';
+import { ArrowLeft, Send, Circle, Paperclip, Loader2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatIsland } from '@app/hooks/useChatIsland';
@@ -24,6 +24,7 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
     const {
         gruposMensajes, textoMensaje, setTextoMensaje,
         enviando, cargando, conversacion, miId, mensajes,
+        cargandoMas, manejarScroll,
         mensajesRef, inputRef, archivoRef,
         navegar, manejarEnviar, manejarArchivo, manejarKeyDown,
     } = useChatIsland({ conversacionId: propId });
@@ -51,7 +52,12 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
                 )}
             </div>
 
-            <div className="chatMensajes" ref={mensajesRef}>
+            <div className="chatMensajes" ref={mensajesRef} onScroll={manejarScroll}>
+                {cargandoMas && (
+                    <div className="chatCargandoMas">
+                        <Loader2 size={18} className="chatSpinner" />
+                    </div>
+                )}
                 {cargando ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
                         {Array.from({ length: 4 }).map((_, i) => (

@@ -48,8 +48,8 @@ class MensajesController
             'callback'            => [self::class, 'obtenerMensajes'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             'args'                => [
-                'conversacionId' => ['required' => true, 'type' => 'integer'],
-                'page'           => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'conversacionId'  => ['required' => true, 'type' => 'integer'],
+                'antes_de_id'     => ['required' => false, 'type' => 'integer', 'default' => 0],
             ],
         ]);
 
@@ -139,9 +139,8 @@ class MensajesController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $conversacionId = (int) $request->get_param('conversacionId');
-        $page = max(1, (int) $request->get_param('page'));
+        $antesDeId = (int) $request->get_param('antes_de_id');
         $perPage = 50;
-        $offset = ($page - 1) * $perPage;
 
         $conv = ConversacionesRepository::verificarParticipacion($conversacionId, $userId);
 
@@ -155,7 +154,10 @@ class MensajesController
             return new \WP_REST_Response(['code' => 'usuario_bloqueado', 'message' => 'Conversación no disponible'], 403);
         }
 
-        $mensajes = MensajesRepository::listarDeConversacion($conversacionId, $perPage, $offset);
+        /* [183A-62] Cursor-based: sin antes_de_id → últimos N; con cursor → N anteriores */
+        $cursor = $antesDeId > 0 ? $antesDeId : null;
+        $mensajes = MensajesRepository::listarDeConversacion($conversacionId, $perPage, 0, $cursor);
+        $total = MensajesRepository::contarDeConversacion($conversacionId);
 
         /* Parsear mediaMetadata JSONB en cada mensaje */
         foreach ($mensajes as &$msg) {
@@ -165,7 +167,19 @@ class MensajesController
         }
         unset($msg);
 
-        return new \WP_REST_Response(['data' => $mensajes], 200);
+        /* [183A-62] hayMas=true si el primer mensaje devuelto no es el primer mensaje de la conversación */
+        $primerIdDevuelto = !empty($mensajes) ? (int) $mensajes[0]['id'] : null;
+        $hayMas = $primerIdDevuelto !== null && $primerIdDevuelto > 1;
+        /* Para ser más preciso, verificar si hay mensajes con id menor al primero devuelto */
+        if ($primerIdDevuelto !== null) {
+            $hayMas = MensajesRepository::existenAnteriores($conversacionId, $primerIdDevuelto);
+        }
+
+        return new \WP_REST_Response([
+            'data' => $mensajes,
+            'total' => $total,
+            'hayMas' => $hayMas,
+        ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en MensajesController::obtenerMensajes', [
                 'error' => $e->getMessage(),

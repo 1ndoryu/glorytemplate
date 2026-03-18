@@ -1,6 +1,7 @@
 /*
  * Hook: useChatIsland — Kamples
- * Lógica de conversación individual: cargar mensajes, enviar, multimedia.
+ * [183A-62] Lógica de conversación individual: cargar mensajes con cursor-based pagination.
+ * Carga inicial: últimos 50 mensajes. Scroll arriba: cargar más antiguos.
  * Cleanup con activo=false en carga de mensajes.
  */
 
@@ -64,10 +65,15 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
     const [enviando, setEnviando] = useState(false);
     const [cargando, setCargando] = useState(true);
     const [conversacion, setConversacion] = useState<Conversacion | null>(null);
+    /* [183A-62] Estado de paginación por cursor */
+    const [hayMas, setHayMas] = useState(false);
+    const [cargandoMas, setCargandoMas] = useState(false);
 
     const mensajesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const archivoRef = useRef<HTMLInputElement>(null);
+    /* [183A-62] Flag para evitar auto-scroll al cargar mensajes antiguos */
+    const cargandoAntiguosRef = useRef(false);
 
     const miId = usuario?.id ?? 1;
 
@@ -81,7 +87,7 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
               return idx >= 0 && partes[idx + 1] ? parseInt(partes[idx + 1], 10) : null;
           })();
 
-    /* Cargar conversación y mensajes — con cleanup */
+    /* Cargar conversación y mensajes más recientes — con cleanup */
     useEffect(() => {
         if (!conversacionId) return;
         let activo = true;
@@ -108,7 +114,10 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
                 const convActiva = convs.find(c => c.id === conversacionId) ?? null;
                 setConversacion(convActiva);
 
-                if (respMsgs.ok && respMsgs.data) setMensajes(respMsgs.data);
+                if (respMsgs.ok && respMsgs.data) {
+                    setMensajes(respMsgs.data);
+                    setHayMas(respMsgs.hayMas ?? false);
+                }
 
                 /* Fire-and-forget: marcar leida no bloquea la UI */
                 if (convActiva && convActiva.noLeidos > 0) {
@@ -125,12 +134,64 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
         return () => { activo = false; };
     }, [conversacionId, setMensajes, setConversaciones]);
 
-    /* Auto-scroll al final */
+    /* Auto-scroll al final solo al cargar inicial o enviar mensaje (no al cargar antiguos) */
     useEffect(() => {
+        if (cargandoAntiguosRef.current) return;
         if (mensajesRef.current) {
             mensajesRef.current.scrollTop = mensajesRef.current.scrollHeight;
         }
     }, [mensajes]);
+
+    /* [183A-62] Cargar mensajes más antiguos (scroll hacia arriba) */
+    const cargarMasAntiguos = useCallback(async () => {
+        if (!conversacionId || cargandoMas || !hayMas || mensajes.length === 0) return;
+
+        const primerMensajeId = mensajes[0]?.id;
+        if (!primerMensajeId) return;
+
+        setCargandoMas(true);
+        cargandoAntiguosRef.current = true;
+
+        /* Guardar scroll height para mantener posición después de prepend */
+        const contenedor = mensajesRef.current;
+        const scrollHeightAntes = contenedor?.scrollHeight ?? 0;
+
+        try {
+            const resp = await obtenerMensajes(conversacionId, primerMensajeId);
+            if (resp.ok && resp.data && resp.data.length > 0) {
+                /* Prepend: mensajes antiguos + mensajes actuales */
+                const actuales = useMensajesStore.getState().mensajes;
+                setMensajes([...resp.data, ...actuales]);
+                setHayMas(resp.hayMas ?? false);
+
+                /* Restaurar posición de scroll para que no salte */
+                requestAnimationFrame(() => {
+                    if (contenedor) {
+                        const scrollHeightDespues = contenedor.scrollHeight;
+                        contenedor.scrollTop = scrollHeightDespues - scrollHeightAntes;
+                    }
+                    cargandoAntiguosRef.current = false;
+                });
+                return;
+            }
+            setHayMas(false);
+        } catch {
+            /* Error silencioso al cargar más */
+        } finally {
+            setCargandoMas(false);
+            cargandoAntiguosRef.current = false;
+        }
+    }, [conversacionId, cargandoMas, hayMas, mensajes, setMensajes]);
+
+    /* [183A-62] Detectar scroll arriba para cargar más */
+    const manejarScroll = useCallback(() => {
+        const contenedor = mensajesRef.current;
+        if (!contenedor || cargandoMas || !hayMas) return;
+        /* Cuando el scroll está cerca del tope (< 100px), cargar más */
+        if (contenedor.scrollTop < 100) {
+            cargarMasAntiguos();
+        }
+    }, [cargarMasAntiguos, cargandoMas, hayMas]);
 
     const manejarEnviar = useCallback(async () => {
         if (!textoMensaje.trim() || !conversacionId || enviando) return;
@@ -210,6 +271,7 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
     return {
         mensajes, gruposMensajes, textoMensaje, setTextoMensaje,
         enviando, cargando, conversacion, miId,
+        hayMas, cargandoMas, manejarScroll,
         mensajesRef, inputRef, archivoRef,
         navegar, manejarEnviar, manejarArchivo, manejarKeyDown,
     };

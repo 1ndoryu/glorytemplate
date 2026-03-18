@@ -1,7 +1,7 @@
 /*
  * Hook: useVentanaChat — Kamples
- * Lógica de ventana de chat flotante: mensajes, envío, multimedia.
- * Cleanup con activo=false en carga + refs para scroll/focus.
+ * [183A-62] Lógica de ventana de chat flotante: mensajes con cursor pagination, 
+ * envío, multimedia, WebSocket. Scroll arriba carga mensajes más antiguos.
  */
 
 import {useState, useRef, useCallback, useEffect} from 'react';
@@ -32,6 +32,9 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
     const [enviando, setEnviando] = useState(false);
     const [cargando, setCargando] = useState(true);
     const [menuAbierto, setMenuAbierto] = useState(false);
+    /* [183A-62] Estado de paginación por cursor */
+    const [hayMas, setHayMas] = useState(false);
+    const [cargandoMas, setCargandoMas] = useState(false);
 
     /* QQ52: Staging de multimedia — preview antes de enviar */
     const [archivoStaging, setArchivoStaging] = useState<{
@@ -43,10 +46,12 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
     const mensajesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const archivoRef = useRef<HTMLInputElement>(null);
+    /* [183A-62] Flag para evitar auto-scroll al cargar mensajes antiguos */
+    const cargandoAntiguosRef = useRef(false);
 
     const miId = usuario?.id ?? 1;
 
-    /* Cargar mensajes al abrir — con cleanup + marcar leída (QQ69) */
+    /* Cargar mensajes más recientes al abrir — con cleanup + marcar leída (QQ69) */
     useEffect(() => {
         let activo = true;
         setCargando(true);
@@ -56,6 +61,7 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
                 if (activo && resp.ok && resp.data) {
                     /* QQ69: Marcar conversacion leida al abrir ventana flotante */
                     setMensajes(resp.data);
+                    setHayMas(resp.hayMas ?? false);
                     useMensajesStore.getState().marcarConversacionLeida(chat.conversacionId);
                     marcarConversacionLeida(chat.conversacionId);
                 }
@@ -71,8 +77,9 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
         };
     }, [chat.conversacionId]);
 
-    /* Auto-scroll al fondo */
+    /* Auto-scroll al fondo (solo si no se están cargando mensajes antiguos) */
     useEffect(() => {
+        if (cargandoAntiguosRef.current) return;
         if (mensajesRef.current) {
             mensajesRef.current.scrollTop = mensajesRef.current.scrollHeight;
         }
@@ -100,9 +107,8 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
 
     /*
      * QK58/QK68: Polling de mensajes como fallback.
-     * Con WebSocket activo: polling cada 30s (backup).
-     * Sin WebSocket: polling cada 5s (modo original).
-     * Detenido si la ventana está minimizada.
+     * [183A-62] Adaptado a cursor-based: polling obtiene los últimos 50 y fusiona
+     * con mensajes antiguos ya cargados. No reemplaza todo el array.
      */
     useEffect(() => {
         if (chat.minimizado) return;
@@ -115,13 +121,24 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
             try {
                 const resp = await obtenerMensajes(chat.conversacionId);
                 if (resp.ok && resp.data) {
-                    const nuevosMensajes = resp.data;
+                    const nuevos = resp.data;
                     setMensajes(prev => {
-                        /* Solo actualizar si hay mensajes nuevos (evita re-render innecesario) */
-                        if (nuevosMensajes.length !== prev.length) return nuevosMensajes;
-                        const ultimoLocal = prev[prev.length - 1]?.id ?? 0;
-                        const ultimoRemoto = nuevosMensajes[nuevosMensajes.length - 1]?.id ?? 0;
-                        return ultimoRemoto !== ultimoLocal ? nuevosMensajes : prev;
+                        if (nuevos.length === 0) return prev;
+                        /* Obtener el ID más pequeño que ya teníamos (mensajes antiguos cargados por scroll) */
+                        const idMinPrev = prev.length > 0 ? prev[0].id : Infinity;
+                        const idMinNuevos = nuevos[0]?.id ?? Infinity;
+                        /* Si tenemos mensajes más antiguos que los últimos 50, conservarlos */
+                        const antiguos = idMinPrev < idMinNuevos
+                            ? prev.filter(m => m.id < idMinNuevos)
+                            : [];
+                        const fusionados = [...antiguos, ...nuevos];
+                        /* Solo actualizar si realmente cambió algo */
+                        if (fusionados.length === prev.length) {
+                            const ultimoFusion = fusionados[fusionados.length - 1]?.id ?? 0;
+                            const ultimoPrev = prev[prev.length - 1]?.id ?? 0;
+                            if (ultimoFusion === ultimoPrev) return prev;
+                        }
+                        return fusionados;
                     });
                     /* Marcar leidos silenciosamente */
                     useMensajesStore.getState().marcarConversacionLeida(chat.conversacionId);
@@ -144,6 +161,52 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
             return () => clearTimeout(timer);
         }
     }, [chat.minimizado]);
+
+    /* [183A-62] Cargar mensajes más antiguos (scroll hacia arriba) */
+    const cargarMasAntiguos = useCallback(async () => {
+        if (cargandoMas || !hayMas || mensajes.length === 0) return;
+
+        const primerMensajeId = mensajes[0]?.id;
+        if (!primerMensajeId) return;
+
+        setCargandoMas(true);
+        cargandoAntiguosRef.current = true;
+
+        const contenedor = mensajesRef.current;
+        const scrollHeightAntes = contenedor?.scrollHeight ?? 0;
+
+        try {
+            const resp = await obtenerMensajes(chat.conversacionId, primerMensajeId);
+            if (resp.ok && resp.data && resp.data.length > 0) {
+                setMensajes(prev => [...resp.data!, ...prev]);
+                setHayMas(resp.hayMas ?? false);
+
+                requestAnimationFrame(() => {
+                    if (contenedor) {
+                        const scrollHeightDespues = contenedor.scrollHeight;
+                        contenedor.scrollTop = scrollHeightDespues - scrollHeightAntes;
+                    }
+                    cargandoAntiguosRef.current = false;
+                });
+                return;
+            }
+            setHayMas(false);
+        } catch {
+            /* Error silencioso */
+        } finally {
+            setCargandoMas(false);
+            cargandoAntiguosRef.current = false;
+        }
+    }, [chat.conversacionId, cargandoMas, hayMas, mensajes]);
+
+    /* [183A-62] Detectar scroll arriba para cargar más */
+    const manejarScroll = useCallback(() => {
+        const contenedor = mensajesRef.current;
+        if (!contenedor || cargandoMas || !hayMas) return;
+        if (contenedor.scrollTop < 100) {
+            cargarMasAntiguos();
+        }
+    }, [cargarMasAntiguos, cargandoMas, hayMas]);
 
     const manejarEnviar = useCallback(async () => {
         if (!texto.trim() || enviando) return;
@@ -270,6 +333,9 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
         menuAbierto,
         miId,
         archivoStaging,
+        hayMas,
+        cargandoMas,
+        manejarScroll,
         mensajesRef,
         inputRef,
         archivoRef,
