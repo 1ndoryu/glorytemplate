@@ -30,7 +30,7 @@ Ubicacion: `App/docs (ignorar)/`
 - `roadmap/lecciones.md` -- Gotchas historicos por dominio
 - `roadmap/arquitectura.md` -- Vision y stack original
 
-## Historial compactado
+## Historial compactado 
 - **QK1-QK105:** Sprint QK completo.
 - **QL1-QL136 + QL136-CAP:** Sprint QL completo.
 - **183A-9, 173A-7, 183A-10:** Completadas 2026-03-18.
@@ -87,16 +87,70 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-72:** Completada 2026-03-18. Unificación paneles sugerencias/detalle.
 - **183A-49:** Completada 2026-03-18. Notificaciones descriptivas + imagen actorAvatarUrl en FCM + follow deep link + reproductor Media Session ya activo en WebView.
 - **183A-68:** Completada 2026-03-18. Benchmark algoritmo extendido a 11 steps (similares, secciones musica, más ideas colección grande) + endpoint POST /admin/procesos/benchmark + UI en tab Procesos del panel admin.
+- **183A-73:** Completada 2026-03-18. Descarga de samples nativa en Capacitor Android: `descargarArchivo.ts` detecta plataforma → web usa `<a download>`, nativo usa fetch → base64 → `Filesystem.writeFile(Cache)` → `Share.share`. Instalados `@capacitor/filesystem@6.0.4` + `@capacitor/share@6.0.4` + `cap sync` registró plugins Android. tsconfig actualizado con paths. file_paths.xml actualizado.
 
 ## Tareas pendientes
 
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
 
+NOTA: ya se resolvio lo de las imagenes de portdas en el feed, dejarlo asi.
 
-## 183A-73
+## 183A-74
 
-No funciona descargar samples desde la app, documentate bien en internet sobre esto, es una tarea que has fallado antes.
+Tirar hacia arriba para recargar en las publicaciones y lista de samples funciona mal o sea, debería activarse solo cuando se esta arriba el scroll, no cuando se esta bajando y despues se quiere subir, por cierto, es raro en la web movil si funciona en la lista de samples pero en la apk ese gesto no funciona, si funciona en las publicaciones. 
+
+## 183A-75
+
+| >> Secciones pagina Musica (sin cache) <<          |   894.8ms | 
+tarda demasiado, optimizar, revisar que tenga cache, revisar queries, revisar indices, revisar que no haga N+1 queries, revisar que no haga operaciones costosas en PHP, etc. 
+
+## 183A-76
+
+quita los svg de aca
+
+<div class="configMovilContenido"><div class="configSeccion"><label class="configLabel"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> Email</label><span class="configSubtexto">andoryyu@gmail.com</span><button class="botonBase varianteSecundario tamanoSm">Cambiar email</button></div><div class="configSeccion"><label class="configLabel"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Contraseña</label><button class="botonBase varianteSecundario tamanoSm">Cambiar contraseña</button></div><div class="configSeccion"><label class="configLabel configLabelPeligro">Zona de peligro</label><button class="botonBase varianteSecundario tamanoMd">Eliminar cuenta</button></div></div> 
+
+## 183A-77
+
+la busqueda no funciona, la del landing sin logearse, redirige a descubrir pero sin busqueda ni nada ni nada en la url 
+
+## 183A-78
+
+He intentado iniciar sesion y falla, dice "Ha fallado la comprobación de la cookie", despues recargue y estaba logeada, intentar que esto no vuelva a suceder. 
+
+## 183A-79
+
+No me sale la info de la coleccion en el panel lateral cuando abre, la de los samples, habiamos dicho anteriormente esto, aparecia pero despues de commbinar los panles ya no aparece, tiene que aparecer arriba de panelDetalleSimilares
+
+## 183A-80
+
+Se requiere reducir mas el tiempo de carga del feed (360 ms), optimizaciones, revision profunda a que parte de las peticiones tarda mas, revisar indices, revisar queries, revisar que no haga operaciones costosas en PHP, revisar que no haga N+1 queries, revisar mecanismos nuevos para evitar que cuando hayan mas y mas samples la web se ponga mas lenta. 
+
++----------------------------------------------------+----------+
+| Componente                                         | Tiempo   |
++----------------------------------------------------+----------+
+| PerfilUsuario::construir (sin cache)               |    40.1ms |
+| Conteo samples activos (SQL COUNT)                 |     2.9ms |
+| Verificacion pgvector                              |    26.9ms |
+| SQL gen: Comportamiento (0.27)                     |     0.2ms |
+| SQL gen: Contexto (0.15)                           |     0.0ms |
+| SQL gen: Tendencias (0.12)                         |     0.0ms |
+| SQL gen: Grafo Social (0.1)                        |     0.0ms |
+| SQL gen: Similitud pgvector (0.28)                 |     2.8ms |
+| >> FEED pag1 sin cache fresco <<                   |     2.1ms |
+| >> FEED pag2 sin cache <<                          |   366.4ms |
+| >> FEED pag3 sin cache <<                          |   287.1ms |
+| Feed pag3 cache hit                                |     3.2ms |
+| >> samplesSimilares "Te podria gustar" (12) <<     |    38.1ms |
+| >> Secciones pagina Musica (sin cache) <<          |   894.8ms |
+| >> Mas Ideas coleccion >= 200 samples <<           |    45.8ms |
++----------------------------------------------------+----------+
+| PROMEDIO feed sin cache (3 pags)                   |   218.5ms |
++----------------------------------------------------+----------+
+
+
+
 
 ## Tarea final cuando completes todo
 
