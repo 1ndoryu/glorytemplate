@@ -1,4 +1,7 @@
 <?php
+/* glory-sentinel-disable-file limite-lineas — Controller REST con múltiples endpoints de perfil
+ * (GET publicó, GET /me, PUT /me, POST avatar, DELETE avatar, POST follow, DELETE follow, GET follows).
+ * La separación por archivo aumentaría la fragmentación sin beneficio real de cohesión. */
 
 /**
  * PerfilController — Endpoints de perfil de usuario.
@@ -356,6 +359,17 @@ class PerfilController
         }
 
         UsuariosExtRepository::actualizarPerfil($campos, $params);
+
+        /* [183A-27] Si cambió el username, sincronizar también WP user_login via Repository.
+         * wp_update_user() NO actualiza user_login, se hace en UsuariosExtRepository::sincronizarUserLogin.
+         * El fallback de AuthController (183A-20) queda como seguro para datos legacy. */
+        if (isset($body['username'])) {
+            $nuevoUserLogin = sanitize_user($body['username']);
+            $sincronizado = UsuariosExtRepository::sincronizarUserLogin($wpUserId, $nuevoUserLogin);
+            if (!$sincronizado) {
+                KamplesLogger::error('PerfilController: fallo sincronizar user_login en WP', ['wpUserId' => $wpUserId]);
+            }
+        }
 
         /* Devolver el perfil actualizado completo */
         $wpUser = AuthMiddleware::obtenerUsuarioActual();

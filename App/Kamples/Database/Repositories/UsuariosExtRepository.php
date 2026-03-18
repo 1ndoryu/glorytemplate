@@ -1018,4 +1018,26 @@ class UsuariosExtRepository extends BaseRepository
             ['email' => $nuevoEmail, 'wpId' => $wpUserId]
         );
     }
+
+    /* [183A-27] Sincronizar user_login en WP cuando cambia el username en PG.
+     * Sin esta sincronizacion el login quedaba desincronizado obligando al fallback de 183A-20.
+     * Usa la API de wpdb directamente sobre la tabla users de WP (permitido en repositorios).
+     * Invalida cache de WP para que las funciones de sesion lean el valor actualizado.
+     */
+    public static function sincronizarUserLogin(int $wpUserId, string $nuevoLogin): bool
+    {
+        global $wpdb;
+        $resultado = $wpdb->update(
+            $wpdb->users,
+            ['user_login' => $nuevoLogin],
+            ['ID' => $wpUserId],
+            ['%s'],
+            ['%d']
+        );
+        if ($resultado !== false) {
+            wp_cache_delete($wpUserId, 'users');
+            wp_cache_delete($wpUserId, 'user_meta');
+        }
+        return $resultado !== false;
+    }
 }
