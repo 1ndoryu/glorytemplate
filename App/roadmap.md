@@ -48,6 +48,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-41, 183A-42, 183A-43, 183A-37:** Completadas 2026-03-18. Modal login APK restaura sesión desde token nativo. SHA-1 debug. Push notifications: service account + tabla fcm_tokens + FcmController fix (`obtenerActual()` → `obtenerPorWpId()`) + verificado E2E con notificación en bandeja Android.
 - **183A-44:** Completada 2026-03-18. Fix React error #310: `useLayoutEffect` después de returns condicionales en `MenuContextual.tsx`.
 - **183A-45:** Completada 2026-03-18. Icono de notificación push actualizado al favicon real de Kamples.
+- **183A-35:** Completada 2026-03-18. Buscador landing pública usa SPA nav en vez de `window.location.href`.
 
 ## Tareas pendientes
 
@@ -105,9 +106,6 @@ tambien falta uno al lado del boton de 3 puntos dentro de la cancion
 
 Que dar click derecho a una coleccion abra su menu contextual.
 
-## 183A-35
-
-El buscador en el landing deslogeada no funciona y recarga la pagina, cosa que no deebería de pasar. 
 
 ## 183A-36
 
