@@ -3,6 +3,11 @@
  * Estilos para el modal de lista de seguidores.
  */
 
+/* [183A-57] Padding reducido en el cuerpo del modal de seguidores */
+.modalSeguidores .modalCuerpo {
+    padding: var(--espacioXs);
+}
+
 .seguidoresLista {
     max-height: 400px;
     overflow-y: auto;

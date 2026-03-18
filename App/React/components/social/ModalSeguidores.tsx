@@ -32,7 +32,7 @@ export const ModalSeguidores = (): JSX.Element | null => {
     if (!abierto) return null;
 
     return (
-        <Modal abierto={abierto} onCerrar={cerrar} titulo={`Seguidores (${total})`} tamano="pequeno">
+        <Modal abierto={abierto} onCerrar={cerrar} titulo={`Seguidores (${total})`} tamano="pequeno" className="modalSeguidores">
             <div className="seguidoresLista" ref={listaRef} onScroll={onScroll}>
                 {seguidores.length === 0 && !cargando && (
                     <div className="seguidoresVacio">
