@@ -187,6 +187,19 @@ export const TarjetaColeccion = ({
                         <PanelRight size={16} />
                     </BotonBase>
                 )}
+                {/* [183A-60] Play rápido desde el menú (misma acción que preview de portada) */}
+                {coleccion.totalSamples > 0 && (
+                    <BotonBase variante="ghost"
+                        className={`tarjetaColeccionMenuBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
+                        onClick={manejarPreview}
+                        type="button"
+                        aria-label={esPreviewActiva ? 'Detener preview' : 'Reproducir colección'}
+                        disabled={cargandoPreview}
+                    >
+                        {cargandoPreview ? <Loader2 size={16} className="tarjetaColeccionSpinner" /> :
+                            esPreviewActiva ? <Pause size={16} /> : <Play size={16} />}
+                    </BotonBase>
+                )}
                 <BotonBase variante="ghost"
                     className="tarjetaColeccionMenuBtn"
                     onClick={abrirMenu}
