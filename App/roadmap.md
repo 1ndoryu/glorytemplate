@@ -88,6 +88,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-49:** Completada 2026-03-18. Notificaciones descriptivas + imagen actorAvatarUrl en FCM + follow deep link + reproductor Media Session ya activo en WebView.
 - **183A-68:** Completada 2026-03-18. Benchmark algoritmo extendido a 11 steps (similares, secciones musica, más ideas colección grande) + endpoint POST /admin/procesos/benchmark + UI en tab Procesos del panel admin.
 - **183A-73:** Completada 2026-03-18. Descarga de samples nativa en Capacitor Android: `descargarArchivo.ts` detecta plataforma → web usa `<a download>`, nativo usa fetch → base64 → `Filesystem.writeFile(Cache)` → `Share.share`. Instalados `@capacitor/filesystem@6.0.4` + `@capacitor/share@6.0.4` + `cap sync` registró plugins Android. tsconfig actualizado con paths. file_paths.xml actualizado.
+- **183A-79+183A-76:** Completadas 2026-03-18. 183A-79: `panelColeccionPortada` ahora usa `detalle?.coleccionOriginal ?? sample.coleccionOriginal` — info de colección aparece en panel lateral. 183A-76: removidos iconos SVG (Mail, Lock) de los labels Email/Contraseña en ConfiguracionSecciones.
 
 ## Tareas pendientes
 
@@ -105,12 +106,6 @@ Tirar hacia arriba para recargar en las publicaciones y lista de samples funcion
 | >> Secciones pagina Musica (sin cache) <<          |   894.8ms | 
 tarda demasiado, optimizar, revisar que tenga cache, revisar queries, revisar indices, revisar que no haga N+1 queries, revisar que no haga operaciones costosas en PHP, etc. 
 
-## 183A-76
-
-quita los svg de aca
-
-<div class="configMovilContenido"><div class="configSeccion"><label class="configLabel"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> Email</label><span class="configSubtexto">andoryyu@gmail.com</span><button class="botonBase varianteSecundario tamanoSm">Cambiar email</button></div><div class="configSeccion"><label class="configLabel"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Contraseña</label><button class="botonBase varianteSecundario tamanoSm">Cambiar contraseña</button></div><div class="configSeccion"><label class="configLabel configLabelPeligro">Zona de peligro</label><button class="botonBase varianteSecundario tamanoMd">Eliminar cuenta</button></div></div> 
-
 ## 183A-77
 
 la busqueda no funciona, la del landing sin logearse, redirige a descubrir pero sin busqueda ni nada ni nada en la url 
@@ -118,10 +113,6 @@ la busqueda no funciona, la del landing sin logearse, redirige a descubrir pero 
 ## 183A-78
 
 He intentado iniciar sesion y falla, dice "Ha fallado la comprobación de la cookie", despues recargue y estaba logeada, intentar que esto no vuelva a suceder. 
-
-## 183A-79
-
-No me sale la info de la coleccion en el panel lateral cuando abre, la de los samples, habiamos dicho anteriormente esto, aparecia pero despues de commbinar los panles ya no aparece, tiene que aparecer arriba de panelDetalleSimilares
 
 ## 183A-80
 
@@ -149,7 +140,9 @@ Se requiere reducir mas el tiempo de carga del feed (360 ms), optimizaciones, re
 | PROMEDIO feed sin cache (3 pags)                   |   218.5ms |
 +----------------------------------------------------+----------+
 
+## 183A-81
 
+Mejorar la busqueda, por ejemplo, si busco lick en vez de kick, muestre kick, no se que nombre tiene esto pero funciona en youtube y aqui no se ha implementado, la busqueda no tiene que ser asi tan cerrada, los usuarios a veces escribien mal las palabras. 
 
 
 ## Tarea final cuando completes todo
