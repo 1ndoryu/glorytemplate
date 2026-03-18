@@ -63,6 +63,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-62:** Completada 2026-03-18. Paginación por cursor en mensajes — carga últimos primero, scroll arriba carga antiguos.
 - **183A-57:** Completada 2026-03-18. Padding reducido en modalCuerpo de seguidores.
 - **183A-58:** Completada 2026-03-18. Like canción sincronizado en detalle + tendencias priorizan samples/youtube.
+- **183A-64:** Completada 2026-03-18. Seguridad endpoint DMCA: rate limiting + eliminar auto-desactivación de samples.
 
 ## Tareas pendientes
 
@@ -155,10 +156,6 @@ tarjetaColeccionMenuContenedor el contador de descargas sigue siendo 30 en vez d
 ## 183A-63
 
 Sigue el problema en la apk que cada vez que abro la apk, el modal de login aparece auqnue ya iniciado sesion, si le doy a la x se cierra y todo funciona normal. 
-
-## 183A-64
-
-Corregir errores de seguridad en paginas de politica y privacidad. 
 
 ## 183A-65
 
