@@ -101,16 +101,13 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-92:** Completada 2026-03-19. Descarga APK guarda en Documents/Kamples/ en vez de abrir Share sheet. Toast de confirmación.
 - **183A-88:** Completada 2026-03-19. Imágenes colecciones optimizadas con ImgOptimizada (Photon CDN) en FilaColecciones, ColeccionDetalle, ModalSeleccion, PanelSugerencias.
 - **183A-77:** Completada 2026-03-19. Navegación SPA preserva query string — búsqueda landing ahora pasa ?buscar= a /descubrir/.
+- **183A-78:** Completada 2026-03-19. Login omite X-WP-Nonce — fix "cookie check failed" con cookies stale de sesión anterior.
 
 ## Tareas pendientes
 
 ## 183A-74
 
 Tirar hacia arriba para recargar en las publicaciones y lista de samples funciona mal o sea, debería activarse solo cuando se esta arriba el scroll, no cuando se esta bajando y despues se quiere subir, por cierto, es raro en la web movil si funciona en la lista de samples pero en la apk ese gesto no funciona, si funciona en las publicaciones. 
-
-## 183A-78
-
-He intentado iniciar sesion y falla, dice "Ha fallado la comprobación de la cookie", despues recargue y estaba logeada, intentar que esto no vuelva a suceder. 
 
 ## 183A-84
 
@@ -147,7 +144,19 @@ falta un tab en el perfil del usuario que solamente pueda ver el de ganancias, l
 
 Agregaras datos de prueba para el usuario 1 simulando ventas de samples publicados, una configu para agregar gmail de paypal para retirar ganancias y verificar las compras de samples guarden toda la informacion necesaria, valor, quien lo compro, a quien lo compro, cual sample, etc, esto esto para que se pueda manejar bien las ganancias de los usuarios, se va a cobrar 20% de comisión por venta. 
 
-Hay un error, un usuario publico un sample con un precio y sale "Este sample no tiene precio de venta" y 
+Hay un error, un usuario publico un sample con un precio y sale "Este sample no tiene precio de venta" al dar a comprar 
+
+## 183A-97
+
+https://kamples.com/admin/panel/ en la lista de usuarios, a dar click un nombre de usuario o la foto de perfil que abra en otra pestaña el perfil de usuario. 
+
+## 183A-98
+
+Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo. 
+
+## 183A-99
+
+
 
 ## Tarea final cuando completes todo
 
