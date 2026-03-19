@@ -46,11 +46,9 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array→{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
 - **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-*" retornan mock local sin petición HTTP. 193A-14: ws/ticket devuelve 401 correctamente — error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
 
+- **183A-111 (2026-03-19):** Plan i18n Kamples completo. Ver `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
+
 ## Tareas pendientes
-
-## 183A-111
-
-Planificar que se pueda cambiar el idioma a ingles de kamples y que se adapte segun el idioma del navegador, la forma mas eficiente y menos costosa, y completa
 
 ## 183A-114
 
