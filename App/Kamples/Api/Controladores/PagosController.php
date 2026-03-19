@@ -336,7 +336,7 @@ class PagosController
                     'descargasDia'     => -1,
                     'subidasMes'       => -1,
                     'transferenciaGb'  => 50,
-                    'revenueShare'     => '80/20',
+                    'revenueShare'     => '100/0',
                 ],
             ],
         ], 200);
