@@ -71,10 +71,10 @@ export const ModalArticulo = (): JSX.Element | null => {
 /* Componente interno para aislar hooks del contenido editable */
 const ContenidoEditor = (): JSX.Element => {
     const {
-        titulo, contenido, extracto, categoria, portadaPreviewUrl,
+        titulo, contenido, extracto, categoria, estado, portadaPreviewUrl,
         vistaHtml, publicando, editandoId, adjuntos,
         modalAdjuntarAbierto,
-        setTitulo, setContenido, setExtracto, setCategoria,
+        setTitulo, setContenido, setExtracto, setCategoria, setEstado,
         toggleVistaHtml, agregarAdjunto, quitarAdjunto,
         toggleDescargaAdjunto, setModalAdjuntar,
         editorRef, inputPortadaRef,
@@ -97,23 +97,37 @@ const ContenidoEditor = (): JSX.Element => {
             />
 
             {/* [183A-110-C] Categoría con estilo editarGrupo (label + select) */}
-            <div className="editorArticuloCategoriaGrupo">
-                <span className="editorArticuloCategoriaLabel">Categoría</span>
-                <SelectorBase
-                    className="editorArticuloCategoriaSelect"
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value as CategoriaArticulo)}
-                >
-                    {gruposCategorias.map(g => (
-                        <optgroup key={g.grupo} label={g.grupo}>
-                            {g.categorias.map(cat => (
-                                <option key={cat} value={cat}>
-                                    {obtenerEtiquetaCategoria(cat)}
-                                </option>
-                            ))}
-                        </optgroup>
-                    ))}
-                </SelectorBase>
+            {/* [183A-110-E] Fila de dos selectores: categoría y estado */}
+            <div className="editorArticuloCamposGrupo">
+                <div className="editorArticuloCategoriaGrupo">
+                    <span className="editorArticuloCategoriaLabel">Categoría</span>
+                    <SelectorBase
+                        className="editorArticuloCategoriaSelect"
+                        value={categoria}
+                        onChange={(e) => setCategoria(e.target.value as CategoriaArticulo)}
+                    >
+                        {gruposCategorias.map(g => (
+                            <optgroup key={g.grupo} label={g.grupo}>
+                                {g.categorias.map(cat => (
+                                    <option key={cat} value={cat}>
+                                        {obtenerEtiquetaCategoria(cat)}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </SelectorBase>
+                </div>
+                <div className="editorArticuloCategoriaGrupo">
+                    <span className="editorArticuloCategoriaLabel">Estado</span>
+                    <SelectorBase
+                        className="editorArticuloCategoriaSelect"
+                        value={estado}
+                        onChange={(e) => setEstado(e.target.value as 'borrador' | 'publicado')}
+                    >
+                        <option value="publicado">Publicar</option>
+                        <option value="borrador">Guardar borrador</option>
+                    </SelectorBase>
+                </div>
             </div>
 
             {/* Portada */}
@@ -270,7 +284,9 @@ const ContenidoEditor = (): JSX.Element => {
                     onClick={publicar}
                     cargando={publicando}
                 >
-                    {editandoId ? 'Actualizar artículo' : 'Publicar artículo'}
+                    {editandoId
+                        ? 'Actualizar artículo'
+                        : estado === 'borrador' ? 'Guardar borrador' : 'Publicar artículo'}
                 </BotonBase>
             </div>
 

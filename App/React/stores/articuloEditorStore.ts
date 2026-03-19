@@ -19,6 +19,8 @@ interface EstadoArticuloEditor {
     contenido: string;
     extracto: string;
     categoria: CategoriaArticulo;
+    /* [183A-110-E] Estado del artículo: publicado lo envía a moderación, borrador lo guarda solo en localStorage */
+    estado: 'borrador' | 'publicado';
     portada: File | null;
     portadaPreviewUrl: string | null;
     adjuntos: AdjuntoArticulo[];
@@ -44,6 +46,7 @@ interface EstadoArticuloEditor {
     setContenido: (v: string) => void;
     setExtracto: (v: string) => void;
     setCategoria: (v: CategoriaArticulo) => void;
+    setEstado: (v: 'borrador' | 'publicado') => void;
     setPortada: (file: File | null) => void;
     agregarAdjunto: (adjunto: AdjuntoArticulo) => void;
     quitarAdjunto: (index: number) => void;
@@ -60,6 +63,7 @@ const estadoInicial = {
     contenido: '',
     extracto: '',
     categoria: 'inspiracion' as CategoriaArticulo,
+    estado: 'publicado' as 'borrador' | 'publicado',
     portada: null,
     portadaPreviewUrl: null,
     adjuntos: [] as AdjuntoArticulo[],
@@ -79,6 +83,7 @@ function restaurarBorrador(): Partial<typeof estadoInicial> {
             contenido: datos.contenido || '',
             extracto: datos.extracto || '',
             categoria: datos.categoria || 'inspiracion',
+            estado: datos.estado || 'publicado',
             adjuntos: Array.isArray(datos.adjuntos) ? datos.adjuntos : [],
         };
     } catch {
@@ -120,6 +125,7 @@ export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
     setContenido: (v) => set({ contenido: v }),
     setExtracto: (v) => set({ extracto: v }),
     setCategoria: (v) => set({ categoria: v }),
+    setEstado: (v) => set({ estado: v }),
 
     setPortada: (file) => {
         set((prev) => {
@@ -171,6 +177,7 @@ useArticuloEditorStore.subscribe((state) => {
                 contenido: state.contenido,
                 extracto: state.extracto,
                 categoria: state.categoria,
+                estado: state.estado,
                 adjuntos: state.adjuntos,
             };
             localStorage.setItem(CLAVE_BORRADOR, JSON.stringify(borrador));

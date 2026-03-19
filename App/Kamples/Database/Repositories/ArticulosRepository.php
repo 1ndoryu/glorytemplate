@@ -305,16 +305,24 @@ class ArticulosRepository extends BaseRepository
     }
 
     /* Artículos del autor (para su perfil/dashboard) incluye borradores */
-    public static function listarPorAutor(int $autorId, int $limit = 20, int $offset = 0): array
+    public static function listarPorAutor(int $autorId, int $limit = 20, int $offset = 0, ?string $moderacionEstado = null): array
     {
         $t = ArticulosCols::TABLA;
+        $where = ArticulosCols::AUTOR_ID . " = :autorId AND " . ArticulosCols::ELIMINADO_EN . " IS NULL";
+        $params = ['autorId' => $autorId, 'limit' => $limit, 'offset' => $offset];
+
+        /* [183A-110-E] Filtro por estado de moderación para Mis artículos */
+        if ($moderacionEstado !== null) {
+            $where .= ' AND ' . ArticulosCols::MODERACION_ESTADO . ' = :moderacion_estado';
+            $params['moderacion_estado'] = $moderacionEstado;
+        }
+
         return static::consultar(
             "SELECT * FROM {$t}
-             WHERE " . ArticulosCols::AUTOR_ID . " = :autorId 
-               AND " . ArticulosCols::ELIMINADO_EN . " IS NULL
+             WHERE {$where}
              ORDER BY " . ArticulosCols::CREATED_AT . " DESC
              LIMIT :limit OFFSET :offset",
-            ['autorId' => $autorId, 'limit' => $limit, 'offset' => $offset]
+            $params
         );
     }
 

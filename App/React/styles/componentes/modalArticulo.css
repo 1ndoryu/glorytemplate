@@ -6,16 +6,16 @@
  * [183A-110-D] Sin botón X — cierre por click fuera o Escape.
  */
 
-/* [183A-110-C] Override para modal más ancho */
+/* [183A-110-C/E] Override para modal más ancho y alto */
 .editorArticuloModal {
-    max-width: 800px;
+    max-width: 980px;
 }
 
 .editorArticuloContenedor {
     display: flex;
     flex-direction: column;
     gap: var(--espacioMd);
-    max-height: 80vh;
+    max-height: 88vh;
     overflow-y: auto;
     position: relative;
 }
@@ -43,6 +43,18 @@
     display: flex;
     flex-direction: column;
     gap: var(--espacioXs);
+}
+
+/* [183A-110-E] Fila de dos selectores: categoría y estado */
+.editorArticuloCamposGrupo {
+    display: flex;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.editorArticuloCamposGrupo .editorArticuloCategoriaGrupo {
+    flex: 1;
+    min-width: 160px;
 }
 
 .editorArticuloCategoriaLabel {

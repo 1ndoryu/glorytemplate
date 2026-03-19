@@ -47,6 +47,8 @@ const normalizarResumen = (raw: Record<string, unknown>): ArticuloResumen => ({
     totalLikes: (raw.total_likes ?? raw.totalLikes ?? 0) as number,
     totalComentarios: (raw.total_comentarios ?? raw.totalComentarios ?? 0) as number,
     publicadoEn: (raw.publicado_en ?? raw.publicadoEn ?? null) as string | null,
+    /* [183A-110-E] moderacionEstado incluido para vista Mis artículos */
+    moderacionEstado: ((raw.moderacion_estado ?? raw.moderacionEstado) ?? undefined) as ArticuloResumen['moderacionEstado'],
     autor: raw.username ? {
         id: (raw.autor_id ?? raw.autorId ?? 0) as number,
         username: raw.username as string,
@@ -106,10 +108,13 @@ export const obtenerCategorias = async (): Promise<RespuestaApi<Record<string, s
 export const listarMisArticulos = async (params?: {
     pagina?: number;
     limite?: number;
+    /* [183A-110-E] Filtro por estado de moderación — muestra publicados/pendiente/rechazados */
+    moderacionEstado?: 'aprobado' | 'pendiente' | 'rechazado';
 }): Promise<RespuestaApi<RespuestaListarArticulos>> => {
     const res = await apiGet<Record<string, unknown>>('articulos/mis-articulos', {
         pagina: params?.pagina,
         limite: params?.limite,
+        moderacion_estado: params?.moderacionEstado,
     });
     if (!res.ok || !res.data) return res as unknown as RespuestaApi<RespuestaListarArticulos>;
 

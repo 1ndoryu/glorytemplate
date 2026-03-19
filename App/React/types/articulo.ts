@@ -73,4 +73,6 @@ export interface ArticuloResumen {
     publicadoEn: string | null;
     autor: UsuarioResumen;
     liked?: boolean;
+    /* [183A-110-E] Estado de moderación — presente en Mis artículos para mostrar badges */
+    moderacionEstado?: ModeracionEstadoArticulo;
 }

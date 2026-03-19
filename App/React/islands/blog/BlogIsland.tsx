@@ -1,12 +1,13 @@
 /*
- * BlogIsland.tsx — Kamples (183A-109 + 183A-110-A + 183A-110-B)
+ * BlogIsland.tsx — Kamples (183A-109 + 183A-110-A + 183A-110-B + 183A-110-E)
  * Listado público de artículos del blog.
  * Grid 4 columnas centrado, filtro por categoría con scroll horizontal.
  * [183A-110-B] Categorías arrastrables con mouse y touch (Capacitor).
+ * [183A-110-E] Modo "Mis artículos" con filtro por estado de moderación.
  */
 
 import { useState, useCallback } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, User } from 'lucide-react';
 import { useBlog } from '@app/hooks/useBlog';
 import { TarjetaArticulo, obtenerEtiquetaCategoria } from '@app/components/blog/TarjetaArticulo';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -15,6 +16,7 @@ import type { MenuItemDef } from '@app/components/ui';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
 import { useArrastrarScroll } from '@app/hooks/useArrastrarScroll';
+import { useAuthStore } from '@app/stores/authStore';
 import type { CategoriaArticulo } from '@app/types';
 import '@app/styles/componentes/blog.css';
 
@@ -47,9 +49,39 @@ const gruposCategorias: { grupo: string; categorias: CategoriaArticulo[] }[] = [
     },
 ];
 
+/* Etiquetas de estado para la sub-fila de Mis artículos */
+const ESTADOS_MIS_ARTICULOS: { label: string; valor: 'aprobado' | 'pendiente' | 'rechazado' | 'borrador' }[] = [
+    { label: 'Publicados', valor: 'aprobado' },
+    { label: 'Pendiente', valor: 'pendiente' },
+    { label: 'Rechazados', valor: 'rechazado' },
+    { label: 'Borradores', valor: 'borrador' },
+];
+
 export const BlogIsland: React.FC = () => {
-    const { articulos, cargando, hayMas, categoria, cambiarCategoria, cargarMas, darLike } = useBlog();
+    const {
+        articulos, cargando, hayMas, categoria, cambiarCategoria, cargarMas, darLike,
+        misArticulosActivo, activarMisArticulos, cambiarEstadoFiltro, borradorLocal,
+    } = useBlog();
     const navegar = useNavigationStore(s => s.navegar);
+    const autenticado = useAuthStore(s => s.autenticado);
+
+    /* [183A-110-E] Estado local para la sub-fila de mis artículos */
+    const [estadoMisArticulos, setEstadoMisArticulos] = useState<'aprobado' | 'pendiente' | 'rechazado' | 'borrador'>('aprobado');
+
+    const handleMisArticulos = useCallback(() => {
+        activarMisArticulos();
+        setEstadoMisArticulos('aprobado');
+    }, [activarMisArticulos]);
+
+    const handleCambiarEstado = useCallback((valor: 'aprobado' | 'pendiente' | 'rechazado' | 'borrador') => {
+        setEstadoMisArticulos(valor);
+        if (valor !== 'borrador') {
+            cambiarEstadoFiltro(valor);
+        } else {
+            /* Borradores son solo locales — cargamos con aprobado para no más items del servidor */
+            cambiarEstadoFiltro(undefined);
+        }
+    }, [cambiarEstadoFiltro]);
 
     /* [183A-110-B] Drag-to-scroll para categorías (mouse + touch Capacitor) */
     const categoriasRef = useArrastrarScroll<HTMLDivElement>();
@@ -92,14 +124,14 @@ export const BlogIsland: React.FC = () => {
     return (
         <div className="blogContenedor">
             <div className="blogCabecera">
-                <h1 className="blogTitulo">Blog</h1>
+                {/* [183A-110-E] blogTitulo ocultado por tarea */}
 
                 {/* [183A-110-B] Filtros con drag-to-scroll */}
                 <div className="blogCategorias" ref={categoriasRef}>
                     <BotonBase
-                        variante={!categoria ? 'primario' : 'ghost'}
+                        variante={!categoria && !misArticulosActivo ? 'primario' : 'ghost'}
                         tamano="sm"
-                        className={`blogCategoriaBtn ${!categoria ? 'blogCategoriaBtnActivo' : ''}`}
+                        className={`blogCategoriaBtn ${!categoria && !misArticulosActivo ? 'blogCategoriaBtnActivo' : ''}`}
                         onClick={() => cambiarCategoria(undefined)}
                     >
                         Todos
@@ -119,11 +151,54 @@ export const BlogIsland: React.FC = () => {
                             ))}
                         </div>
                     ))}
+                    {/* [183A-110-E] Botón "Mis artículos" — solo para usuarios autenticados */}
+                    {autenticado && (
+                        <BotonBase
+                            variante={misArticulosActivo ? 'primario' : 'ghost'}
+                            tamano="sm"
+                            className={`blogCategoriaBtn blogCategoriaBtnMios ${misArticulosActivo ? 'blogCategoriaBtnActivo' : ''}`}
+                            onClick={handleMisArticulos}
+                        >
+                            <User size={13} />
+                            Mis artículos
+                        </BotonBase>
+                    )}
                 </div>
+
+                {/* [183A-110-E] Sub-fila de estado cuando Mis artículos está activo */}
+                {misArticulosActivo && (
+                    <div className="blogSubCategorias">
+                        {ESTADOS_MIS_ARTICULOS.map(({ label, valor }) => (
+                            <BotonBase
+                                key={valor}
+                                variante={estadoMisArticulos === valor ? 'primario' : 'ghost'}
+                                tamano="sm"
+                                className={`blogCategoriaBtn blogSubCategoriaBtn ${estadoMisArticulos === valor ? 'blogCategoriaBtnActivo' : ''}`}
+                                onClick={() => handleCambiarEstado(valor)}
+                            >
+                                {label}
+                            </BotonBase>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Contenido */}
-            {cargando && articulos.length === 0 ? (
+            {/* [183A-110-E] Vista de borradores — muestra solo borrador local */}
+            {misArticulosActivo && estadoMisArticulos === 'borrador' ? (
+                borradorLocal ? (
+                    <div className="blogBorradoresContenedor">
+                        <div className="blogBorradorCard">
+                            <span className="blogBorradorBadge">Borrador local</span>
+                            <p className="blogBorradorTitulo">{(borradorLocal as { titulo?: string }).titulo || 'Sin título'}</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="blogVacio">
+                        <BookOpen size={48} />
+                        <p className="blogVacioTexto">No tienes borradores guardados.</p>
+                    </div>
+                )
+            ) : cargando && articulos.length === 0 ? (
                 <div className="blogSkeleton">
                     {Array.from({ length: 8 }).map((_, i) => (
                         <div key={i} className="blogSkeletonItem" />
@@ -133,9 +208,11 @@ export const BlogIsland: React.FC = () => {
                 <div className="blogVacio">
                     <BookOpen size={48} />
                     <p className="blogVacioTexto">
-                        {categoria
-                            ? `No hay artículos en ${obtenerEtiquetaCategoria(categoria)} todavía.`
-                            : 'No hay artículos publicados todavía.'}
+                        {misArticulosActivo
+                            ? 'No tienes artículos en este estado todavía.'
+                            : categoria
+                                ? `No hay artículos en ${obtenerEtiquetaCategoria(categoria)} todavía.`
+                                : 'No hay artículos publicados todavía.'}
                     </p>
                 </div>
             ) : (

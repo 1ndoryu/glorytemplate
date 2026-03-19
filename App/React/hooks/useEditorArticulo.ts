@@ -26,6 +26,14 @@ export const useEditorArticulo = () => {
     }, [store.titulo, store.contenido, store.extracto, store.vistaHtml]);
 
     const publicar = useCallback(async () => {
+        /* [183A-110-E] Si el usuario elige borrador, solo cerrar el modal.
+         * El contenido ya está persistido en localStorage automáticamente. */
+        if (store.estado === 'borrador') {
+            toast.exito('Borrador guardado');
+            store.cerrar();
+            return;
+        }
+
         const error = validar();
         if (error) {
             toast.error(error);

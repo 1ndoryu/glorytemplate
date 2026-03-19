@@ -170,3 +170,54 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* [183A-110-E] Sub-fila de estados para Mis artículos */
+.blogSubCategorias {
+    display: flex;
+    gap: var(--espacioXs);
+    overflow-x: auto;
+    padding-bottom: var(--espacioXs);
+    scrollbar-width: none;
+}
+
+.blogSubCategorias::-webkit-scrollbar {
+    display: none;
+}
+
+/* Botón "Mis artículos" con icono */
+.blogCategoriaBtnMios {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXxs, 4px);
+    margin-left: var(--espacioSm);
+}
+
+/* Vista borradores locales */
+.blogBorradoresContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.blogBorradorCard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    padding: var(--espacioMd);
+    border: 1px dashed var(--bordeSutil);
+    border-radius: var(--radioMd);
+    background-color: var(--fondoElevado1);
+}
+
+.blogBorradorBadge {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.blogBorradorTitulo {
+    font-size: var(--fuenteMd);
+    color: var(--textoPrimario);
+    font-weight: var(--pesoMedio);
+}

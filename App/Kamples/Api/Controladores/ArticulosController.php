@@ -174,14 +174,22 @@ class ArticulosController
     }
 
     /* GET /articulos/mis-articulos — Artículos del usuario autenticado */
+    /* GET /articulos/mis-articulos — Artículos del usuario autenticado con filtro opcional de estado */
     public static function misArticulos(WP_REST_Request $request): WP_REST_Response
     {
         try {
             $userId = get_current_user_id();
-            $articulos = ArticulosRepository::listarPorAutor($userId);
+            /* [183A-110-E] Filtro opcional por estado de moderación — whitelist via enum */
+            $moderacionEstado = sanitize_text_field($request->get_param('moderacion_estado') ?? '');
+            $estadoFiltro = null;
+            if (!empty($moderacionEstado) && in_array($moderacionEstado, ArticulosEnums::TODOS_MODERACION_ESTADO, true)) {
+                $estadoFiltro = $moderacionEstado;
+            }
+            $articulos = ArticulosRepository::listarPorAutor($userId, 50, 0, $estadoFiltro);
             return new WP_REST_Response([
-                'ok'   => true,
-                'data' => array_map([self::class, 'normalizarArticulo'], $articulos),
+                'ok'      => true,
+                'data'    => ['articulos' => array_map([self::class, 'normalizarArticulo'], $articulos)],
+                'hay_mas' => false,
             ]);
         } catch (\Throwable $e) {
             KamplesLogger::error('ArticulosController::misArticulos', ['error' => $e->getMessage()]);
