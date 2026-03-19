@@ -109,6 +109,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-97+183A-101:** Completadas 2026-03-19. Click nombre/avatar en panel admin/moderación abre perfil en nueva pestaña.
 - **183A-107+183A-103+183A-105+183A-102:** Completadas 2026-03-19. Estilos tabGanancias, chatFlotante flex-column staging, tarjetaColeccion centrado bottom, ImgOptimizada en posts.
 - **183A-106:** Completada 2026-03-19. Descargas gratis via código admin-generado. "Compartir gratis" en menú contextual copia URL con ?codigoGratis=XXX. Usuarios autenticados reclaman inmediatamente; anónimos guardan en localStorage y reclaman al autenticarse. Endpoints de descarga aceptan codigoGratis y saltan restricciones si el código fue reclamado. Migration v066.
+- **183A-110:** Completada 2026-03-19. Seguridad 183A-106: expiración 1 año (v067), nombre_item almacenado, rate limiting 30/min en /verificar, HTTP 410 vs 404 (expirado vs inválido), compensación 50 créditos al reclamar expirado (idempotente), ModalCodigoExpirado sin cabecera, admin "Invalidar enlace gratis" en menú contextual sample/colección.
 
 ## Tareas pendientes
 
@@ -170,7 +171,9 @@ creo que la mejor decisión es que cualquiera pueda publicar articulos pero todo
 
 esto inplica, no haremos una tab extra en el panel del admin, se usara el sistema de moderacion que ya existe para aprobar o rechazar articulos, los articulos deben estar optimizados para seo lo que se pueda 
 
-la tarjeta de vista de los artiticulo debe ser similar a la de colecciones, con imagen un poco mas pequeña, titulo mas largo (asegurarse de que en las colecciones haya cantidad de texto maxima para los titulos), y un descripcion corta que se puede personalizar, un boton de 3 puntos, se puede dar like y comentar articulos, las categorías vamos a dejarlas pre hechas, vamos a inspirarnos splice, tiene Inspiration
+la tarjeta de vista de los artiticulo debe ser similar a la de colecciones, con imagen un poco mas pequeña, titulo mas largo (asegurarse de que en las colecciones haya cantidad de texto maxima para los titulos), y un descripcion corta que se puede personalizar, un boton de 3 puntos, se puede dar like y comentar articulos, las categorías vamos a dejarlas pre hechas, vamos a inspirarnos splice, tiene, por defecto en español
+
+Inspiration
 Mastering
 Mixing
 Music Promotion
@@ -191,11 +194,43 @@ Pro Tools
 Studio One
 All DAWs
 
-## 183A-110
+Free Drops
+Free MIDI
+Free Plugins
+Free Presets
+Free Project Files
+Free Sounds
+All Free Content
 
-Auditoría de seguridad estricta y profunda para ## 183A-106, y un boton para invalidr en los samples compartido un enlace de descarga gratis, vencimiento de 1 año para los enlaces compartido gratis, pero abriran un modal despues de registrarse con algo de "Lo siento, el contenido que intentas descargar es antiguo, y hace tiempo que se elimino por alguna extraña razón pero, recibiste 50 créditos gratis de compensación, esto te puede gustar y un bton de ver recomendaciones y que lleve a una busqueda del contenido que se intento descargar, o sea el nombre" Agregar un todo de que esto se debe testear por un humano para ver como se ve el modal, ya hay un componente de modal, no pongas titulo al modal (sin cabezera me refiero)
+Artist Interviews
+Features
+News
+All Stories
 
+## 183A-110-A 
 
+el grid de articulos sera 
+
+Sera un grid de 4 columnas centrado, con
+
+width: min(100%, var(--landingAnchoMaximo));
+padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) 0;
+
+separado cada sesiones de categoría
+
+esto implica que a dar click a la categoría cargue la pagina de categoría con todos los articulos de esa categoría 
+
+## 183A-111
+
+Planificar que se pueda cambiar el idioma a ingles de kamples y que se adapte segun el idioma del navegador, la forma mas eficiente y menos costosa, y completa
+
+## 183A-112 
+
+Al intentar compartir gratis dice
+
+Error al generar enlace de descarga gratis, esto pasaba antes de que hicieras 183A-110
+y codigoGratisrep me reporta errores el ide 
+tambien veo errores en useCodigosGratis.ts
 
 ## Tarea final cuando completes todo
 
