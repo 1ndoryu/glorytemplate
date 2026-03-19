@@ -90,7 +90,7 @@ const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview, s
                 picos={picos}
                 tamano="sm"
                 interactivo={false}
-                colorNoReproducido="var(--bordeSutil, #333)"
+                colorNoReproducido="rgba(255,255,255,0.25)"
                 colorReproducido="var(--acento, #4a665b)"
                 className="dupWaveform"
             />
