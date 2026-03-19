@@ -48,10 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-93
-
-El modal de busqueda tarda demasiado en aparecer, parece que necesita optimización profunda. No confundir con la busqueda de samples normal en el feed o general, al escribir algo en la busqueda aparece un modal busquedaRapidaDropdown, bueno, la busqueda del feed se actualiza mas rapido y eso que es mas compleja. Se puede implementar cache global por 6 horas y que esto no sobrecargue el sistema.
-
 ## 183A-94
 
 Agregar una opción en los menu contextual de los samples para decargar en svg las waveform, necesito esto, que se descarguen en color blanco. 
