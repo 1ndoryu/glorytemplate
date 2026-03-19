@@ -38,13 +38,6 @@
     color: var(--textoTerciario);
 }
 
-/* [183A-110-C] Categoría con estilo editarGrupo */
-.editorArticuloCategoriaGrupo {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
-
 /* [183A-110-E] Fila de dos selectores: categoría y estado */
 .editorArticuloCamposGrupo {
     display: flex;
@@ -52,33 +45,10 @@
     flex-wrap: wrap;
 }
 
-.editorArticuloCamposGrupo .editorArticuloCategoriaGrupo {
+/* Los SelectorMenu dentro de la fila crecen por igual */
+.editorArticuloCamposGrupo > * {
     flex: 1;
     min-width: 160px;
-}
-
-.editorArticuloCategoriaLabel {
-    font-size: var(--fuenteSm);
-    color: var(--textoSecundario);
-    font-weight: var(--pesoSemibold);
-}
-
-.editorArticuloCategoriaSelect {
-    padding: var(--espacioXs) var(--espacioSm);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioSm);
-    background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteSm);
-    font-family: inherit;
-    outline: none;
-    cursor: pointer;
-    max-width: 250px;
-    transition: border-color var(--transicionRapida);
-}
-
-.editorArticuloCategoriaSelect:focus {
-    border-color: var(--acento);
 }
 
 /* Extracto */

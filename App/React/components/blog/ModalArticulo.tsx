@@ -13,7 +13,7 @@ import {
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Input } from '@app/components/ui/Input';
-import { SelectorBase } from '@app/components/ui/SelectorBase';
+import { SelectorMenu, type OpcionSelector } from '@app/components/ui/SelectorMenu';
 import { Textarea } from '@app/components/ui/Textarea';
 import { ModalAdjuntarContenido } from '@app/components/blog/ModalAdjuntarContenido';
 import { ListaAdjuntos } from '@app/components/blog/ListaAdjuntos';
@@ -24,33 +24,20 @@ import { obtenerEtiquetaCategoria } from '@app/components/blog/TarjetaArticulo';
 import type { CategoriaArticulo } from '@app/types';
 import '@app/styles/componentes/modalArticulo.css';
 
-/* Grupos de categorías — mismos que BlogIsland */
-const gruposCategorias: { grupo: string; categorias: CategoriaArticulo[] }[] = [
-    {
-        grupo: 'Tips',
-        categorias: [
-            'inspiracion', 'mastering', 'mezcla', 'promocion-musical',
-            'teoria-musical', 'grabacion', 'sampling', 'diseno-sonoro', 'herramientas',
-        ],
-    },
-    {
-        grupo: 'DAWs',
-        categorias: [
-            'ableton-live', 'bitwig-studio', 'cubase', 'fl-studio',
-            'garageband', 'logic-pro', 'pro-tools', 'studio-one',
-        ],
-    },
-    {
-        grupo: 'Gratis',
-        categorias: [
-            'drops-gratis', 'midi-gratis', 'plugins-gratis',
-            'presets-gratis', 'proyectos-gratis', 'sonidos-gratis',
-        ],
-    },
-    {
-        grupo: 'Historias',
-        categorias: ['entrevistas', 'destacados', 'noticias'],
-    },
+/* Opciones planas para SelectorMenu — mismas categorías que BlogIsland */
+const OPCIONES_CATEGORIA: OpcionSelector[] = [
+    'inspiracion', 'mastering', 'mezcla', 'promocion-musical',
+    'teoria-musical', 'grabacion', 'sampling', 'diseno-sonoro', 'herramientas',
+    'ableton-live', 'bitwig-studio', 'cubase', 'fl-studio',
+    'garageband', 'logic-pro', 'pro-tools', 'studio-one',
+    'drops-gratis', 'midi-gratis', 'plugins-gratis',
+    'presets-gratis', 'proyectos-gratis', 'sonidos-gratis',
+    'entrevistas', 'destacados', 'noticias',
+].map(cat => ({ valor: cat, etiqueta: obtenerEtiquetaCategoria(cat as CategoriaArticulo) }));
+
+const OPCIONES_ESTADO: OpcionSelector[] = [
+    { valor: 'publicado', etiqueta: 'Publicar' },
+    { valor: 'borrador', etiqueta: 'Guardar borrador' },
 ];
 
 export const ModalArticulo = (): JSX.Element | null => {
@@ -96,38 +83,20 @@ const ContenidoEditor = (): JSX.Element => {
                 maxLength={200}
             />
 
-            {/* [183A-110-C] Categoría con estilo editarGrupo (label + select) */}
-            {/* [183A-110-E] Fila de dos selectores: categoría y estado */}
+            {/* [193A-corrección] Ambos selectores usan SelectorMenu (igual que edición de samples) */}
             <div className="editorArticuloCamposGrupo">
-                <div className="editorArticuloCategoriaGrupo">
-                    <span className="editorArticuloCategoriaLabel">Categoría</span>
-                    <SelectorBase
-                        className="editorArticuloCategoriaSelect"
-                        value={categoria}
-                        onChange={(e) => setCategoria(e.target.value as CategoriaArticulo)}
-                    >
-                        {gruposCategorias.map(g => (
-                            <optgroup key={g.grupo} label={g.grupo}>
-                                {g.categorias.map(cat => (
-                                    <option key={cat} value={cat}>
-                                        {obtenerEtiquetaCategoria(cat)}
-                                    </option>
-                                ))}
-                            </optgroup>
-                        ))}
-                    </SelectorBase>
-                </div>
-                <div className="editorArticuloCategoriaGrupo">
-                    <span className="editorArticuloCategoriaLabel">Estado</span>
-                    <SelectorBase
-                        className="editorArticuloCategoriaSelect"
-                        value={estado}
-                        onChange={(e) => setEstado(e.target.value as 'borrador' | 'publicado')}
-                    >
-                        <option value="publicado">Publicar</option>
-                        <option value="borrador">Guardar borrador</option>
-                    </SelectorBase>
-                </div>
+                <SelectorMenu
+                    etiqueta="Categoría"
+                    opciones={OPCIONES_CATEGORIA}
+                    valor={categoria}
+                    onChange={(v) => setCategoria(v as CategoriaArticulo)}
+                />
+                <SelectorMenu
+                    etiqueta="Estado"
+                    opciones={OPCIONES_ESTADO}
+                    valor={estado}
+                    onChange={(v) => setEstado(v as 'borrador' | 'publicado')}
+                />
             </div>
 
             {/* Portada */}
