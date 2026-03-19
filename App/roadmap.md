@@ -147,10 +147,13 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-41
+## 193A-42
 
-.badgeDebugScoreTooltip Se ve cortado por el smaple de abajo, no se ve completo
+¿por que estos samples fueron guardados asi como indicas? 
 
+"Estos samples tienen metadata `carpeta_primaria: "General"` y `carpeta_secundaria: "General"` pero "
+
+Esto se tiene que corregir, si esta metadata fue generada por IA, solo debe tener relavancia cuando se suben sin sync pero si la subida es mediante el sync, la carpeeta tiene que ser la verdadera, no la que propuso IA, remplanteate el md de colision-carpetas-sync y busca si se guarda las carpetas reales la data, sino se guarda entonces corrige y haz qeu se guarda corrige en base a la verdadera informacion, no en base a lo que imagino lo que era la ia una capera primera y secundaria
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
