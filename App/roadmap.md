@@ -107,6 +107,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-100:** Completada 2026-03-19. Revisión sistema comentarios: orden raíz por likes, respuestas 3er nivel flat, imágenes fullscreen via VisorImagen, WebSocket real-time.
 - **183A-99:** Completada 2026-03-19. Premium sin comisión (100/0). Free/Pro mantienen 80/20.
 - **183A-97+183A-101:** Completadas 2026-03-19. Click nombre/avatar en panel admin/moderación abre perfil en nueva pestaña.
+- **183A-107+183A-103+183A-105+183A-102:** Completadas 2026-03-19. Estilos tabGanancias, chatFlotante flex-column staging, tarjetaColeccion centrado bottom, ImgOptimizada en posts.
 
 ## Tareas pendientes
 
@@ -145,36 +146,22 @@ Dice error de red al descargar en la apk,  "183A-92"
 
 Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo. 
 
-## 183A-102
-
-Las imagenes de los post de comunidad no de estan optimizando con el componente que hicimos, 
-
-## 183A-103
-
-chatFlotanteStagingPreview se ve mal, para que se vea bien, el boton de adjunto, input y envio tienen que ir en su propio div y estar debajo, y asi chatFlotanteInput tendria que estar en flex column 
-
-## 183A-105
-
-tarjetaColeccionMenuContenedor en grid debe estar centrado y en la parte inferior de la imagen, centrado en la imagen pero abajo, en lista esta bien asi como esta.
-
 ## 183A-106
 
 Descargas gratis a través de un codigo, la ideas un boton en el menu contextual en los samples y colecciones que solo pueda ver yo como admin, "compartir gratis", eso generara un enlace unico con un codigo que si el usuario lo usa, descarga el contenido. Lo puede usar una sola vez en su cuenta. La cuestion es que generalmente van a ser usuarios que no estan registrados asi que el enlace debe guardar en su navegador que recibiran determinada cosa gratis y al registrarse la tienen, asi si van a una coleccion, descargan el zip gratis si el enlace era una coleccion gratis. 
-
-## 183A-107
-
-agrega estos estilos a tabGananciasContenedor, a tabGananciasResumen y tabGananciasTransacciones
-
-padding: var(--espacioLg);
-border: 1px solid var(--bordeSutil);
-border-radius: var(--radioMd);
 
 ## 183A-108
 
 Me preocupa algo en particular, anteriormente se hizo algo que sacaba del algoritmo los samples que se reproducian y no tenian accion alguna del usuario, estos samples aun deben aparecer en la busqueda. 
 
+## 183A-109 (En planificación)
+
+Nueva pagina de blog, ira en landing publico y logeado, una tab de blog. 
+
+esto incluye poder publicar articulos, esto es algo avanzado y complicado 
+
 ## Tarea final cuando completes todo
 
 1. rehacer el instalador de la aplicación de escritorio 
 3. indicarme donde esta en nuevo instalador
-4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir pero que aperezca cada vez que recargue de actualizar. 
+4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar en github a traves de un token, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir pero que aperezca cada vez que recargue de actualizar. 
