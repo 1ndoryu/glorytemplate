@@ -36,6 +36,12 @@ class MotorRecomendacion
 {
     private static ?array $pesos = null;
     private static ?bool $pgvectorDisponible = null;
+    /* [183A-89] Filosofía de cache del feed: para usuarios activos escuchando
+     * samples, el feed debe actualizarse cada 5 minutos para maximizar el
+     * descubrimiento. El stale-while-revalidate (6h) garantiza respuesta
+     * instantánea mientras se recalcula en background. Recálculo completo
+     * (con pgvector/embeddings) ocurre cada 1h de actividad (ver frecuencia
+     * en algoritmoPesos.php). PerfilUsuario: 30min (ya alineado). */
     private const CACHE_TTL = 300; /* 5 minutos — pagina 1 */
     private const CACHE_TTL_PAGINADOS = 900; /* 15 minutos — paginas subsecuentes */
     private const CACHE_PREFIX = 'kamples_feed_';
@@ -373,7 +379,16 @@ class MotorRecomendacion
         $sVerif = SamplesCols::VERIFICADO;
         $multiplicadorVerificado = "(CASE WHEN s.{$sVerif} = true THEN {$boostVerificado} ELSE 1 END)";
 
-        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado}";
+        /* [183A-90] Reducción para samples sin metadata IA procesada.
+         * embedding IS NOT NULL = IA completó análisis → factor 1.0 (sin cambio).
+         * embedding IS NULL = aún sin procesar → factor configurable (default 0.5).
+         * No es exclusión: siguen en el feed, pero con menor score.
+         * Cuando la IA los procese, el embedding se llena y el factor desaparece. */
+        $sEmbed = SamplesCols::EMBEDDING;
+        $reduccionIA = (float) ($params['metadata_ia_reduccion'] ?? 0.5);
+        $multiplicadorIA = "(CASE WHEN s.{$sEmbed} IS NOT NULL THEN 1 ELSE {$reduccionIA} END)";
+
+        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA}";
 
         /* Diversidad por creador como penalización suave */
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);

@@ -34,6 +34,7 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioCache;
 
 class ColeccionesController
 {
@@ -416,6 +417,18 @@ class ColeccionesController
         $perPage = \max(1, (int) $request->get_param('per_page'));
         $offset = ($page - 1) * $perPage;
 
+        /* [183A-89] Cache 1 día para Más Ideas: el contenido de las colecciones
+         * cambia poco (los samples nuevos son raros), no vale recalcular 65ms
+         * en cada request. Se invalida automáticamente tras 24h. */
+        $claveCache = "masideas_col{$colId}_p{$page}_pp{$perPage}";
+        $cached = ServicioCache::obtener($claveCache);
+        if ($cached !== false) {
+            $decoded = \is_string($cached) ? \json_decode($cached, true) : $cached;
+            if (\is_array($decoded)) {
+                return new \WP_REST_Response($decoded, 200);
+            }
+        }
+
         /* Obtener contexto de la colección (tags, bpm, keys de sus samples) */
         $contextoCols = ColeccionSamplesRepository::contextoParaSugerencias($colId);
 
@@ -453,10 +466,14 @@ class ColeccionesController
             $topTags, $avgBpm, $dominantKey, $idsExcluir, $perPage, $offset
         );
 
-        return new \WP_REST_Response([
+        $respuesta = [
             'data' => NormalizadorSample::normalizarLista($samples),
             'contexto' => ['topTags' => $topTags, 'avgBpm' => $avgBpm, 'dominantKey' => $dominantKey],
-        ], 200);
+        ];
+
+        ServicioCache::guardar($claveCache, \json_encode($respuesta), 86400);
+
+        return new \WP_REST_Response($respuesta, 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::sugerencias', [
                 'error' => $e->getMessage(),

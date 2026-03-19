@@ -327,12 +327,14 @@ class CancionesController
             $userId = UsuarioHelper::obtenerIdPg();
 
             /* [183A-31] Cache por usuario (personalizado) o anonimo (compartido).
-             * TTL menor para auth porque "Para Ti" es heuristico semi-personal.
-             * La llave incluye por_seccion para no mezclar respuestas de distinto tamano. */
+             * [183A-89] TTLs revisados: secciones cambian poco (nuevas canciones son raras),
+             * no es relevante que esté actualizado siempre. El contenido de samples
+             * en cada canción incluso se podría cachear 1 semana.
+             * Auth: 1h (personalizado "Para Ti"), Anon: 24h (compartido, estático). */
             $claveCache = $userId
                 ? "secciones_canciones_u{$userId}_ps{$porSeccion}"
                 : "secciones_canciones_anon_ps{$porSeccion}";
-            $ttl = $userId ? 600 : 1800; /* 10 min auth / 30 min anon */
+            $ttl = $userId ? 3600 : 86400; /* 1h auth / 24h anon */
 
             $cached = \App\Kamples\Services\ServicioCache::obtener($claveCache);
             if ($cached !== false) {

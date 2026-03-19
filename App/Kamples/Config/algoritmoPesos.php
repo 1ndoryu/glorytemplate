@@ -173,6 +173,13 @@ return [
         /* C178: Boost multiplicativo para samples verificados por humano */
         'verificado_boost'     => 1.15,
 
+        /* [183A-90] Reducción de visibilidad para samples sin metadata IA procesada.
+         * Samples con embedding (IA completa) reciben factor 1.0 (sin cambio).
+         * Samples sin embedding reciben este factor (< 1.0 = menos visibilidad).
+         * No es exclusión: siguen apareciendo, solo con menor probabilidad.
+         * Cuando se procesen, el factor desaparece automáticamente. */
+        'metadata_ia_reduccion' => 0.5,
+
         /* Diversidad: máximo de samples del mismo creador en un feed */
         'max_por_creador'      => 3,
 
