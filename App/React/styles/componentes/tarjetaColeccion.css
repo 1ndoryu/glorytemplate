@@ -63,11 +63,12 @@
 .tarjetaColeccion:hover .tarjetaColeccionPortada img {
     filter: brightness(0.72);
 }
-/* C141: Botón 3 puntos — esquina superior derecha sobre la imagen */
+/* C141: Botón 3 puntos — [183A-105] centrado en la parte inferior de la imagen (modo grid) */
 .tarjetaColeccionMenuContenedor {
     position: absolute;
-    top: var(--espacioXs);
-    right: var(--espacioXs);
+    bottom: var(--espacioSm);
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 5;
     display: flex;
     align-items: center;

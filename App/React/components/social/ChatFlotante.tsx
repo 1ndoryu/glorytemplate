@@ -128,16 +128,19 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                 <Input ref={archivoRef} type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
                     onChange={manejarArchivo} style={{ display: 'none' }} />
-                <BotonBase variante="ghost" className="chatFlotanteAdjuntarBtn" onClick={() => archivoRef.current?.click()}
-                    type="button" aria-label="Adjuntar archivo" disabled={enviando}>
-                    <Paperclip size={14} />
-                </BotonBase>
-                <CampoTexto ref={inputRef}  placeholder="Escribe..." value={texto}
-                    onChange={e => setTexto(e.target.value)} onKeyDown={manejarKeyDown} disabled={enviando} />
-                <BotonBase variante="ghost" tamano="ninguno" className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
-                    onClick={manejarEnviar} disabled={!texto.trim() || enviando} type="button" aria-label="Enviar">
-                    <Send size={14} />
-                </BotonBase>
+                {/* [183A-103] Fila de controles: adjuntar + input + enviar en su propio div */}
+                <div className="chatFlotanteInputFila">
+                    <BotonBase variante="ghost" className="chatFlotanteAdjuntarBtn" onClick={() => archivoRef.current?.click()}
+                        type="button" aria-label="Adjuntar archivo" disabled={enviando}>
+                        <Paperclip size={14} />
+                    </BotonBase>
+                    <CampoTexto ref={inputRef}  placeholder="Escribe..." value={texto}
+                        onChange={e => setTexto(e.target.value)} onKeyDown={manejarKeyDown} disabled={enviando} />
+                    <BotonBase variante="ghost" tamano="ninguno" className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
+                        onClick={manejarEnviar} disabled={!texto.trim() || enviando} type="button" aria-label="Enviar">
+                        <Send size={14} />
+                    </BotonBase>
+                </div>
             </div>
         </div>
     );

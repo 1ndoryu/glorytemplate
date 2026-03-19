@@ -140,11 +140,18 @@
 /* Input de mensaje */
 .chatFlotanteInput {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--espacioXs);
     padding: var(--espacioSm);
     border-top: 1px solid var(--bordeSutil);
     flex-shrink: 0;
+}
+
+/* [183A-103] Fila inferior: adjuntar + texto + enviar */
+.chatFlotanteInputFila {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
 }
 
 .chatFlotanteInput input {
@@ -282,11 +289,14 @@
     border-radius: var(--radioMd);
     margin-bottom: var(--espacioXs);
     width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
 }
 
 .chatFlotanteStagingImagen {
-    width: 48px;
-    height: 48px;
+    width: 126px;
+    height: 126px;
     object-fit: cover;
     border-radius: var(--radioSm);
     flex-shrink: 0;

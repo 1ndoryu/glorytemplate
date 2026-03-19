@@ -11,6 +11,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { EnlaceNavegacion } from '@app/components/ui/EnlaceNavegacion';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { ComentarioPreview } from '@app/components/social/ComentarioPreview';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import { useAuthStore } from '@app/stores/authStore';
@@ -190,7 +191,7 @@ export const TarjetaPublicacion = ({
                             }}
                             aria-label="Ver imagen"
                         >
-                            <img src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
+                            <ImgOptimizada src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
                         </a>
                     ))}
                 </div>
@@ -228,7 +229,7 @@ export const TarjetaPublicacion = ({
                                     }}
                                     aria-label="Ver imagen"
                                 >
-                                    <img src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
+                                    <ImgOptimizada src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
                                 </a>
                             ))}
                         </div>
