@@ -104,12 +104,13 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-78:** Completada 2026-03-19. Login omite X-WP-Nonce — fix "cookie check failed" con cookies stale de sesión anterior.
 - **183A-96:** Completada 2026-03-19. Fix bug precio compra, tab ganancias, PayPal config, revenue share 80/20, auditoría integridad (5 bugs críticos corregidos: mismatch revenue display, estado dual, race conditions webhook/compra doble).
 - **183A-104:** Completada 2026-03-19. Ocultar perfilContenedorInterno y perfilSeccionPublicar en tab ganancias.
+- **183A-100:** Completada 2026-03-19. Revisión sistema comentarios: orden raíz por likes, respuestas 3er nivel flat, imágenes fullscreen via VisorImagen, WebSocket real-time.
 
 ## Tareas pendientes
 
 ## 183A-74
 
-Tirar hacia arriba para recargar en las publicaciones y lista de samples funciona mal o sea, debería activarse solo cuando se esta arriba el scroll, no cuando se esta bajando y despues se quiere subir, por cierto, es raro en la web movil si funciona en la lista de samples pero en la apk ese gesto no funciona, si funciona en las publicaciones. 
+Tirar hacia abajo para recargar en las publicaciones y lista de samples funciona mal o sea, debería activarse solo cuando se esta arriba el scroll, no cuando se esta bajando y despues se quiere subir, por cierto, es raro en la web movil si funciona en la lista de samples pero en la apk ese gesto no funciona, si funciona en las publicaciones. 
 
 ## 183A-84
 
@@ -171,6 +172,14 @@ Las imagenes de los post de comunidad no de estan optimizando con el componente 
 ## 183A-103
 
 chatFlotanteStagingPreview se ve mal, para que se vea bien, el boton de adjunto, input y envio tienen que ir en su propio div y estar debajo, y asi chatFlotanteInput tendria que estar en flex column 
+
+## 183A-105
+
+tarjetaColeccionMenuContenedor en grid debe estar centrado y en la parte inferior de la imagen, centrado en la imagen pero abajo, en lista esta bien asi como esta.
+
+## 183A-106
+
+Descargas gratis a través de un codigo, la ideas un boton en el menu contextual en los samples y colecciones que solo pueda ver yo como admin, "compartir gratis", eso generara un enlace unico con un codigo que si el usuario lo usa, descarga el contenido. Lo puede usar una sola vez en su cuenta. La cuestion es que generalmente van a ser usuarios que no estan registrados asi que el enlace debe guardar en su navegador que recibiran determinada cosa gratis y al registrarse la tienen, asi si van a una coleccion, descargan el zip gratis si el enlace era una coleccion gratis. 
 
 ## Tarea final cuando completes todo
 
