@@ -74,7 +74,7 @@ export const listarArticulos = async (params: {
     pagina?: number;
     limite?: number;
 }): Promise<RespuestaApi<RespuestaListarArticulos>> => {
-    const res = await apiGet<Record<string, unknown>>('articulos', {
+    const res = await apiGet<Record<string, unknown>>('/articulos', {
         categoria: params.categoria,
         pagina: params.pagina,
         limite: params.limite,
@@ -94,13 +94,13 @@ export const listarArticulos = async (params: {
 };
 
 export const obtenerArticulo = async (slug: string): Promise<RespuestaApi<Articulo>> => {
-    const res = await apiGet<Record<string, unknown>>(`articulos/${encodeURIComponent(slug)}`);
+    const res = await apiGet<Record<string, unknown>>(`/articulos/${encodeURIComponent(slug)}`);
     if (!res.ok || !res.data) return res as unknown as RespuestaApi<Articulo>;
     return { ...res, data: normalizarArticulo(res.data) };
 };
 
 export const obtenerCategorias = async (): Promise<RespuestaApi<Record<string, string[]>>> => {
-    return apiGet<Record<string, string[]>>('articulos/categorias');
+    return apiGet<Record<string, string[]>>('/articulos/categorias');
 };
 
 /* ── Mis artículos ── */
@@ -111,7 +111,7 @@ export const listarMisArticulos = async (params?: {
     /* [183A-110-E] Filtro por estado de moderación — muestra publicados/pendiente/rechazados */
     moderacionEstado?: 'aprobado' | 'pendiente' | 'rechazado';
 }): Promise<RespuestaApi<RespuestaListarArticulos>> => {
-    const res = await apiGet<Record<string, unknown>>('articulos/mis-articulos', {
+    const res = await apiGet<Record<string, unknown>>('/articulos/mis-articulos', {
         pagina: params?.pagina,
         limite: params?.limite,
         moderacion_estado: params?.moderacionEstado,
@@ -151,7 +151,7 @@ export const crearArticulo = async (datos: DatosCrearArticulo): Promise<Respuest
     if (datos.embeds) fd.append('embeds', datos.embeds);
     if (datos.descargaPublica !== undefined) fd.append('descarga_publica', String(datos.descargaPublica));
 
-    const res = await apiPostFormData<Record<string, unknown>>('articulos', fd);
+    const res = await apiPostFormData<Record<string, unknown>>('/articulos', fd);
     if (!res.ok || !res.data) return res as unknown as RespuestaApi<Articulo>;
     return { ...res, data: normalizarArticulo(res.data) };
 };
@@ -168,17 +168,17 @@ export const actualizarArticulo = async (
     if (datos.embeds !== undefined) body.embeds = datos.embeds;
     if (datos.descargaPublica !== undefined) body.descarga_publica = datos.descargaPublica;
 
-    const res = await apiPut<Record<string, unknown>>(`articulos/${id}`, body);
+    const res = await apiPut<Record<string, unknown>>(`/articulos/${id}`, body);
     if (!res.ok || !res.data) return res as unknown as RespuestaApi<Articulo>;
     return { ...res, data: normalizarArticulo(res.data) };
 };
 
 export const eliminarArticulo = async (id: number): Promise<RespuestaApi<{ eliminado: boolean }>> => {
-    return apiDelete<{ eliminado: boolean }>(`articulos/${id}`);
+    return apiDelete<{ eliminado: boolean }>(`/articulos/${id}`);
 };
 
 /* ── Like ── */
 
 export const toggleLikeArticulo = async (id: number): Promise<RespuestaApi<{ liked: boolean; total: number }>> => {
-    return apiPost<{ liked: boolean; total: number }>(`articulos/${id}/like`);
+    return apiPost<{ liked: boolean; total: number }>(`/articulos/${id}/like`);
 };

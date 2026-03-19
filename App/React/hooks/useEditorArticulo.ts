@@ -5,7 +5,7 @@
  * limpiar store tras publicar exitoso.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { crearArticulo, actualizarArticulo } from '@app/services/apiArticulos';
 import { toast } from '@app/stores/toastStore';
@@ -15,6 +15,15 @@ export const useEditorArticulo = () => {
     const store = useArticuloEditorStore();
     const inputPortadaRef = useRef<HTMLInputElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
+
+    /* [193A-8] Inicializar contenido del editor via ref al abrir el modal.
+     * Sin dangerouslySetInnerHTML para evitar que el cursor se resetee en cada keystroke.
+     * sentinel-disable-next-line innerHTML — contenido propio del usuario (borrador localStorage). */
+    useEffect(() => {
+        if (editorRef.current && store.abierto) {
+            editorRef.current.innerHTML = store.contenido;
+        }
+    }, [store.abierto]);
 
     const validar = useCallback((): string | null => {
         if (!store.titulo.trim()) return 'El título es obligatorio';

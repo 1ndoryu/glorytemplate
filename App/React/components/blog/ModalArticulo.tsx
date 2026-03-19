@@ -203,6 +203,8 @@ const ContenidoEditor = (): JSX.Element => {
             </div>
 
             {/* Área de contenido */}
+            {/* [193A-8] dangerouslySetInnerHTML eliminado para evitar reset del cursor.
+             * El contenido se inicializa via ref en useEditorArticulo. */}
             {vistaHtml ? (
                 <Textarea
                     className="editorArticuloHtml"
@@ -221,7 +223,6 @@ const ContenidoEditor = (): JSX.Element => {
                             setContenido(editorRef.current.innerHTML);
                         }
                     }}
-                    dangerouslySetInnerHTML={{ __html: contenido }}
                 />
             )}
 

@@ -31,9 +31,9 @@
     will-change: transform, opacity;
 }
 
-/* Tamaño grande (override, mismos 600px por defecto) */
+/* [193A-8] Tamaño grande — para editores como ModalArticulo */
 .modalContenedor.modalGrande {
-    max-width: 600px;
+    max-width: 980px;
 }
 
 /* Tamaño pequeño */
