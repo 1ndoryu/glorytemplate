@@ -105,6 +105,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-96:** Completada 2026-03-19. Fix bug precio compra, tab ganancias, PayPal config, revenue share 80/20, auditoría integridad (5 bugs críticos corregidos: mismatch revenue display, estado dual, race conditions webhook/compra doble).
 - **183A-104:** Completada 2026-03-19. Ocultar perfilContenedorInterno y perfilSeccionPublicar en tab ganancias.
 - **183A-100:** Completada 2026-03-19. Revisión sistema comentarios: orden raíz por likes, respuestas 3er nivel flat, imágenes fullscreen via VisorImagen, WebSocket real-time.
+- **183A-99:** Completada 2026-03-19. Premium sin comisión (100/0). Free/Pro mantienen 80/20.
 
 ## Tareas pendientes
 
@@ -147,20 +148,6 @@ https://kamples.com/admin/panel/ en la lista de usuarios, a dar click un nombre 
 
 Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo. 
 
-## 183A-99
-
-Sobre si los usuarios premiun puedan vender, si, que puedan vender y todos tengan comision de 20%, excepto el premiun
-
-## 183A-100
-
-Cuando hago un comentario respondiendo otro comentario no aparece al momento sino despues de recargar, hacer una revision al sistema de comentarios, esto no se ha revisado desde que se creo. 
-
-Y abrir una imagen de un comentario debería abrirse asi como se abre a dar click a la imagen de un mensaje o publicacion
-
-los comentarios de 3 nivel deberían poder responderse pero no generar un 4 nivel sino ponerse debajo,
-
-le orden de las respuestas debe ser siempre por orden de fecha y los comentarios principales de primero los que tengan mas like. 
-
 ## 183A-101
 
 Al dar click al nombre o foto de perfil a los usuarios en el panl de moderacion https://kamples.com/admin/panel/, que abra el perfil en otra pestaña.
@@ -180,6 +167,14 @@ tarjetaColeccionMenuContenedor en grid debe estar centrado y en la parte inferio
 ## 183A-106
 
 Descargas gratis a través de un codigo, la ideas un boton en el menu contextual en los samples y colecciones que solo pueda ver yo como admin, "compartir gratis", eso generara un enlace unico con un codigo que si el usuario lo usa, descarga el contenido. Lo puede usar una sola vez en su cuenta. La cuestion es que generalmente van a ser usuarios que no estan registrados asi que el enlace debe guardar en su navegador que recibiran determinada cosa gratis y al registrarse la tienen, asi si van a una coleccion, descargan el zip gratis si el enlace era una coleccion gratis. 
+
+## 183A-107
+
+agrega estos estilos a tabGananciasContenedor, a tabGananciasResumen y tabGananciasTransacciones
+
+padding: var(--espacioLg);
+border: 1px solid var(--bordeSutil);
+border-radius: var(--radioMd);
 
 ## Tarea final cuando completes todo
 
