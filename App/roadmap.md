@@ -48,10 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 193A-7
-
-Cuidado con esto, tengo este proyecto en este repositorio que es una rama de glorytemplate pero tambien tengo https://github.com/1ndoryu/kamples-sync que es una copia de esta rama, lo que vamos a hacer es actualizar https://github.com/1ndoryu/kamples-sync con los ulitmos cambios de esta rama, o sea sin afectar esta rama de glorytemplate ni hacer nada raro. Revisasr que hay una licencia de codigo abierto de las mas restrintivas.
-
 ## 183A-93
 
 El modal de busqueda tarda demasiado en aparecer, parece que necesita optimización profunda. No confundir con la busqueda de samples normal en el feed o general, al escribir algo en la busqueda aparece un modal busquedaRapidaDropdown, bueno, la busqueda del feed se actualiza mas rapido y eso que es mas compleja. Se puede implementar cache global por 6 horas y que esto no sobrecargue el sistema.
@@ -137,6 +133,12 @@ en temp\apis.sh agrege 3 apis de groq,
 lo que vamos a hacer es aumentar la velocidad de la cola de ia, creo que actualmente hay un gap para la generacion metadata de los samples de 3 o 2 minutos, vamos a reducirlo a 1 minuto, pero vamos a incorporar un rotamiento de api, o sea, usa las 3 api para cada, 1 api por cada ejecucion y rota, asi se distribuye el gasto entre 3 personas y se evitan menos rate limits, es general para todos los procesamientos que usen IA, tienes que subir las 3 api al vps 
 
 verificar que solo haya gap para el procesamiento de audios y metadata de ia de esos audios, para cosas como comentarios, publicaciones de comunidad y moderacion para esas actividades no hay gap, pero igual usar la rotacion de api. 
+
+## 193A-44
+
+En https://kamples.com/descargas/ falta un filtro de "Mostrar solo me encantas" Esto sirve para la tab de me gusta para cuando se quiera ver solo los me encanta y ocultar temporalmente los que son me gusta.
+
+Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apaga, si se activa solo muestra "me encanta", esto puede ser global y mostrarse incluso en el feed
 
 
 
