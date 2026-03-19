@@ -11,6 +11,7 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Config\Schema\_generated\ArticulosCols;
 use App\Config\Schema\_generated\ArticulosEnums;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Servicios\ServicioMedia;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -35,6 +36,12 @@ class ArticulosEscrituraController
             $extracto = sanitize_text_field(trim($request->get_param('extracto') ?? ''));
             $categoria = sanitize_text_field($request->get_param('categoria') ?? 'inspiracion');
             $portadaUrl = esc_url_raw($request->get_param('portada_url') ?? '');
+
+            /* [193A-16] Si viene archivo portada en FormData, subirlo y obtener URL */
+            if (empty($portadaUrl) && !empty($_FILES['portada']['tmp_name'])) {
+                $portadaUrl = self::procesarPortada($_FILES['portada'], $userId) ?? '';
+            }
+
             $embeds = $request->get_param('embeds') ?? '[]';
             $descargaPublica = (bool)($request->get_param('descarga_publica') ?? false);
 
@@ -169,6 +176,67 @@ class ArticulosEscrituraController
         } catch (\Throwable $e) {
             KamplesLogger::error('ArticulosEscrituraController::eliminar', ['error' => $e->getMessage()]);
             return new WP_REST_Response(['ok' => false, 'error' => 'Error al eliminar artículo'], 500);
+        }
+    }
+
+    /* [193A-16] Subir imagen de portada recibida como File en FormData.
+     * Retorna URL pública o null si falla. No lanza excepciones. */
+    private static function procesarPortada(array $archivo, int $userId): ?string
+    {
+        try {
+            if ($archivo['size'] > 5 * 1024 * 1024) {
+                KamplesLogger::warning('[193A-16] Portada artículo excede 5MB', ['size' => $archivo['size']]);
+                return null;
+            }
+
+            $mime = \mime_content_type($archivo['tmp_name']) ?: '';
+            if (!\in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+                KamplesLogger::warning('[193A-16] MIME portada artículo inválido', ['mime' => $mime]);
+                return null;
+            }
+
+            if (!\function_exists('wp_handle_upload')) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+            }
+
+            $anio = \date('Y');
+            $mes = \date('m');
+            $subDir = "kamples/{$userId}/{$anio}/{$mes}";
+            $uploadDir = \wp_upload_dir();
+            $dirDest = $uploadDir['basedir'] . '/' . $subDir;
+            if (!\file_exists($dirDest)) {
+                \wp_mkdir_p($dirDest);
+            }
+
+            $filtroDir = function ($paths) use ($subDir) {
+                $paths['subdir'] = '/' . $subDir;
+                $paths['path']   = $paths['basedir'] . '/' . $subDir;
+                $paths['url']    = $paths['baseurl'] . '/' . $subDir;
+                return $paths;
+            };
+
+            \add_filter('upload_dir', $filtroDir);
+            $subido = \wp_handle_upload($archivo, [
+                'test_form' => false,
+                'mimes' => ['jpg|jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'],
+            ]);
+            \remove_filter('upload_dir', $filtroDir);
+
+            if (isset($subido['error'])) {
+                KamplesLogger::warning('[193A-16] Error wp_handle_upload portada artículo', ['error' => $subido['error']]);
+                return null;
+            }
+
+            ServicioMedia::optimizarImagen(
+                $subido['file'],
+                ServicioMedia::CALIDAD_PUBLICACION,
+                ServicioMedia::DIMENSION_PUBLICACION
+            );
+
+            return $subido['url'];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[193A-16] procesarPortada excepción', ['error' => $e->getMessage()]);
+            return null;
         }
     }
 
