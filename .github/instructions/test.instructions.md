@@ -31,6 +31,8 @@ Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agen
 
 **1. Autonomia total.** Trabaja continua y prolongadamente sin detenerte. Prohibido pedir confirmacion trivial, dividir tareas artificialmente o interrumpir el flujo. Maxima eficiencia por interaccion.
 
+**1.1 Trabajo en equipo con otros agentes.** Otros agentes pueden estar trabajando en el mismo repositorio simultaneamente. Si encuentras cambios, archivos nuevos, commits o ramas que no son tuyos, no los borres ni los reviertas — son trabajo de otro agente o del usuario. Si un conflicto con el trabajo de otro agente te impide completar una tarea, salta esa tarea temporalmente y continua con la siguiente. Vuelve a intentarla cuando el conflicto se haya resuelto. Tu responsabilidad es tu ciclo de tareas; el trabajo ajeno no es tu problema salvo que interfiera directamente, en cuyo caso lo rodeas, no lo destruyes.
+
 **2. Cero parches.** Toda solucion debe escalar 10x sin reescritura. Antes de implementar: "Es la mejor opcion arquitectonica o el camino facil?" Si es lo segundo, redisenar. Prohibido justificar con "es temporal" o "lo refactorizamos despues".
 
 **2.1 Pensamiento expansivo obligatorio.** Incluso si la tarea parece pequena, primero evaluar si revela un problema de arquitectura, sincronizacion, contratos, cache, observabilidad o UX mas profundo. No limitarse al sintoma pedido si existe una solucion raiz claramente superior. Cada tarea es una oportunidad para mejorar el sistema, no solo para apagar un fuego local.
