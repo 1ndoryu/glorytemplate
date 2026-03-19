@@ -46,7 +46,7 @@ export const obtenerSeguidores = async (
 
 /* Tipos de contenido que soportan likes y comentarios */
 export type TipoLikeable = 'sample' | 'publicacion' | 'cancion' | 'relacion';
-export type TipoComentable = 'sample' | 'publicacion' | 'cancion' | 'relacion';
+export type TipoComentable = 'sample' | 'publicacion' | 'cancion' | 'relacion' | 'articulo';
 
 /* Likes / Reacciones */
 

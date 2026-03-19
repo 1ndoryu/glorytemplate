@@ -1,7 +1,7 @@
 # Plan: Sistema de Blog — 183A-109 + 183A-110-A
 
 **Fecha inicio:** 2026-03-19
-**Estado:** En progreso — Fase 4 completa
+**Estado:** Completa — Fase 5 completa
 
 ## Visión general
 Blog completo: publicar artículos con rich text (bold, imágenes), embeber samples/colecciones, descarga pública togglable, moderación vía sistema existente, categorías pre-definidas, SEO optimizado, tarjetas estilo colección.
@@ -52,11 +52,15 @@ Blog completo: publicar artículos con rich text (bold, imágenes), embeber samp
 - [x] Ruta /blog en MAPA_RUTAS de LayoutPrincipal
 - [x] Notificación al autor en rechazo de artículo
 
-### Fase 5 — Navegación e integración
-- [ ] Tab blog en sidebar (público y privado)
-- [ ] Like y comentarios en artículos (reusar sistema existente)
-- [ ] Menú 3 puntos en tarjeta artículo
-- [ ] Landing público: sección blog
+### Fase 5 — Navegación e integración ← COMPLETADA
+- [x] Tab blog en sidebar (ya existía desde Fase 2)
+- [x] Like y comentarios en artículos (useComentarios tipo='articulo', ListaComentarios, toggle)
+- [x] Menú 3 puntos en tarjeta artículo (MenuContextual con copiar enlace + ver artículo)
+- [x] Landing público: sección blog (CTA "Explorar blog" en LandingPublica)
+- [x] Migración v069 para CHECK constraint comentarios.tipo
+- [x] Ruta REST comentarios acepta tipo 'articulo'
+- [x] Schema + Enums actualizados manualmente (sin schema:generate)
+- [x] schema.ts actualizado con tipo 'articulo'
 
 ## Categorías pre-definidas (español por defecto)
 **Tips y tutoriales:** Inspiración, Mastering, Mezcla, Promoción Musical, Teoría Musical, Grabación, Sampling, Diseño Sonoro, Herramientas

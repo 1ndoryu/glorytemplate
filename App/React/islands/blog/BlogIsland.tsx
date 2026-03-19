@@ -4,10 +4,15 @@
  * Grid 4 columnas centrado, filtro por categoría con scroll horizontal.
  */
 
+import { useState, useCallback } from 'react';
 import { BookOpen } from 'lucide-react';
 import { useBlog } from '@app/hooks/useBlog';
 import { TarjetaArticulo, obtenerEtiquetaCategoria } from '@app/components/blog/TarjetaArticulo';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { MenuContextual } from '@app/components/ui';
+import type { MenuItemDef } from '@app/components/ui';
+import { useNavigationStore } from '@/core/router';
+import { toast } from '@app/stores/toastStore';
 import type { CategoriaArticulo } from '@app/types';
 import '@app/styles/componentes/blog.css';
 
@@ -42,6 +47,42 @@ const gruposCategorias: { grupo: string; categorias: CategoriaArticulo[] }[] = [
 
 export const BlogIsland: React.FC = () => {
     const { articulos, cargando, hayMas, categoria, cambiarCategoria, cargarMas, darLike } = useBlog();
+    const navegar = useNavigationStore(s => s.navegar);
+
+    /* [183A-109 Fase 5] Menú contextual de 3 puntos en tarjetas */
+    const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number; articuloId: number | null }>({
+        abierto: false, x: 0, y: 0, articuloId: null,
+    });
+
+    const abrirMenu = useCallback((id: number, e: React.MouseEvent) => {
+        setMenu({ abierto: true, x: e.clientX, y: e.clientY, articuloId: id });
+    }, []);
+
+    const cerrarMenu = useCallback(() => {
+        setMenu(prev => ({ ...prev, abierto: false, articuloId: null }));
+    }, []);
+
+    const articuloMenu = menu.articuloId ? articulos.find(a => a.id === menu.articuloId) : null;
+
+    const itemsMenu: MenuItemDef[] = articuloMenu ? [
+        {
+            id: 'compartir',
+            etiqueta: 'Copiar enlace',
+            onClick: () => {
+                navigator.clipboard.writeText(`${window.location.origin}/blog/${articuloMenu.slug}/`);
+                toast.exito('Enlace copiado');
+                cerrarMenu();
+            },
+        },
+        {
+            id: 'ver',
+            etiqueta: 'Ver artículo',
+            onClick: () => {
+                navegar(`/blog/${articuloMenu.slug}/`);
+                cerrarMenu();
+            },
+        },
+    ] : [];
 
     return (
         <div className="blogContenedor">
@@ -100,6 +141,7 @@ export const BlogIsland: React.FC = () => {
                                 key={articulo.id}
                                 articulo={articulo}
                                 onLike={darLike}
+                                onMenu={abrirMenu}
                             />
                         ))}
                     </div>
@@ -117,6 +159,16 @@ export const BlogIsland: React.FC = () => {
                     )}
                 </>
             )}
+
+            {/* [183A-109 Fase 5] Menú contextual para tarjetas de artículo */}
+            <MenuContextual
+                abierto={menu.abierto}
+                onCerrar={cerrarMenu}
+                items={itemsMenu}
+                x={menu.x}
+                y={menu.y}
+                alinearDerecha
+            />
         </div>
     );
 };

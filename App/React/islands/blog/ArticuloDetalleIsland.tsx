@@ -4,13 +4,17 @@
  * Recibe slug como prop desde pages.php (ruta dinámica).
  */
 
+import { useState, useCallback } from 'react';
 import { ArrowLeft, Heart, MessageCircle } from 'lucide-react';
 import { useArticuloDetalle } from '@app/hooks/useArticuloDetalle';
+import { useComentarios } from '@app/hooks/useComentarios';
 import { obtenerEtiquetaCategoria } from '@app/components/blog/TarjetaArticulo';
+import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { EnlaceNavegacion } from '@app/components/ui/EnlaceNavegacion';
 import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Avatar } from '@app/components/ui/Avatar';
+import { useNavigationStore } from '@/core/router';
 import '@app/styles/componentes/articuloDetalle.css';
 
 interface ArticuloDetalleIslandProps {
@@ -25,6 +29,25 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
     const slug = slugProp || slugDeUrl;
 
     const { articulo, cargando, error, darLike } = useArticuloDetalle(slug);
+    const navegar = useNavigationStore(s => s.navegar);
+
+    /* [183A-109 Fase 5] Comentarios en artículos */
+    const [comentariosVisibles, setComentariosVisibles] = useState(false);
+    const seccionComentarios = useComentarios({
+        tipo: 'articulo',
+        targetId: articulo?.id ?? 0,
+        cargarAlAbrir: true,
+    });
+
+    const manejarToggleComentarios = useCallback(() => {
+        setComentariosVisibles(prev => {
+            const siguiente = !prev;
+            if (siguiente && seccionComentarios.comentarios.length === 0) {
+                seccionComentarios.cargar(1);
+            }
+            return siguiente;
+        });
+    }, [seccionComentarios]);
 
     if (cargando) {
         return (
@@ -136,11 +159,34 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                     soloIcono
                     className="tarjetaArticuloAccionBtn"
                     aria-label="Comentarios"
+                    onClick={manejarToggleComentarios}
                 >
                     <MessageCircle size={18} />
                     {articulo.totalComentarios > 0 && <span>{articulo.totalComentarios}</span>}
                 </BotonBase>
             </div>
+
+            {/* [183A-109 Fase 5] Sección de comentarios */}
+            {comentariosVisibles && (
+                <ListaComentarios
+                    comentarios={seccionComentarios.comentarios}
+                    cargando={seccionComentarios.cargando}
+                    onEnviar={seccionComentarios.enviar}
+                    onEnviarMultimedia={seccionComentarios.enviarMultimedia}
+                    onClickAutor={(u) => navegar(`/perfil/${u}/`)}
+                    onCargarMas={seccionComentarios.cargarMas}
+                    hayMasPaginas={seccionComentarios.hayMas}
+                    onEditar={seccionComentarios.editar}
+                    onEliminar={seccionComentarios.eliminar}
+                    onReportar={seccionComentarios.reportar}
+                    onToggleLike={seccionComentarios.toggleLike}
+                    onCargarRespuestas={seccionComentarios.cargarRespuestas}
+                    editandoId={seccionComentarios.editandoId}
+                    setEditandoId={seccionComentarios.setEditandoId}
+                    respondendoAId={seccionComentarios.respondendoAId}
+                    setRespondendoAId={seccionComentarios.setRespondendoAId}
+                />
+            )}
         </div>
     );
 };

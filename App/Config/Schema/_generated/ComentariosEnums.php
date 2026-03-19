@@ -12,8 +12,9 @@ final class ComentariosEnums
     const TIPO_PUBLICACION = 'publicacion';
     const TIPO_CANCION = 'cancion';
     const TIPO_RELACION = 'relacion';
+    const TIPO_ARTICULO = 'articulo';
 
-    const TODOS_TIPO = [self::TIPO_SAMPLE, self::TIPO_PUBLICACION, self::TIPO_CANCION, self::TIPO_RELACION];
+    const TODOS_TIPO = [self::TIPO_SAMPLE, self::TIPO_PUBLICACION, self::TIPO_CANCION, self::TIPO_RELACION, self::TIPO_ARTICULO];
 
     /* Valores para columna "tipo_contenido" */
     const TIPO_CONTENIDO_TEXTO = 'texto';

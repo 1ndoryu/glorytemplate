@@ -154,17 +154,20 @@ Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revis
 
 Me preocupa algo en particular, anteriormente se hizo algo que sacaba del algoritmo los samples que se reproducian y no tenian accion alguna del usuario, estos samples aun deben aparecer en la busqueda. 
 
-## 183A-109 (Fases 1-3 completadas, pendiente Fases 4-5)
-
-**Completado:** Backend (schema, migración, repos, controllers) + Frontend lectura (BlogIsland, ArticuloDetalleIsland, TarjetaArticulo, CSS, navegación sidebar, servicio API, hooks, tipos) + Editor de artículos (articuloEditorStore, useEditorArticulo, ModalArticulo con rich text/toolbar/portada/categorías/extracto, Textarea UI component, TopBar menú contextual crear publicación vs artículo, ModalArticulo en LayoutPrincipal). 
-
-**Pendiente:**
-- Fase 4: Moderación + SEO (integrar AdminModeracionController, DynamicSeoResolver, sitemap)
-- Fase 5: Like/comentarios integración completa, embeds samples/colecciones, menú 3 puntos, landing público sección blog
-
 ## 183A-110-A (Completada — incluida en 183A-109 Fase 2)
 
 Grid de 4 columnas centrado implementado en BlogIsland.
+
+## 183A-110-B 
+
+blogCategorias debería poder arrastrarse con el mouse y el dedo en la apk, en http://glory.local/blog/ falta la tab blog, y la rutas para la aplicaicon. En modo dev inyecta contenido de prueba. 
+
+## 183A-110-C 
+
+El modal de escribir articulo sin titulo por favor (sin cabecera), el select de contenedorCampoTexto editorArticuloCategoriaSelect tiene ser como el select de editarFormulario de los samples. Debe haber un boton para adjuntar un sample o una coleccion editorArticuloToolbar, abre un modal para selecionar y buscar, simular al modal de busqueda rapida, el modal a cerrarse no tiene que perder el contenido, ni tampoco perderse al recargar la pagina. editorArticuloToggle no es necesario, la seleccion de descarga publica algo que tiene que funcionar individualmente para cada adjunto de coleccion o sample, los sampled adjuntos tienen que verse como se ven en feed de sampled, y las colecciones como se ve coleccionHeader
+
+el modal tiene que ser mas ancho
+
 
 ## 183A-111
 

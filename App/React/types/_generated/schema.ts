@@ -180,7 +180,7 @@ export interface IColeccionSamples {
 export interface IComentarios {
   id: number
   autorId: number
-  tipo: 'sample' | 'publicacion' | 'cancion' | 'relacion'
+  tipo: 'sample' | 'publicacion' | 'cancion' | 'relacion' | 'articulo'
   targetId: number
   contenido: string | null
   createdAt: string
@@ -1114,6 +1114,7 @@ export const ComentariosEnums = {
   TIPO_PUBLICACION: 'publicacion',
   TIPO_CANCION: 'cancion',
   TIPO_RELACION: 'relacion',
+  TIPO_ARTICULO: 'articulo',
   TIPO_CONTENIDO_TEXTO: 'texto',
   TIPO_CONTENIDO_IMAGEN: 'imagen',
   TIPO_CONTENIDO_AUDIO: 'audio',
