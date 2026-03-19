@@ -14,7 +14,7 @@ import { useCodigoGratisStore } from '@app/stores/codigoGratisStore';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useNavigationStore } from '@/core/router/navigationStore';
-import '../styles/componentes/modalCodigoExpirado.css';
+import '../../styles/componentes/modalCodigoExpirado.css';
 
 export const ModalCodigoExpirado = (): JSX.Element | null => {
     const infoExpirado = useCodigoGratisStore((s) => s.infoExpirado);
