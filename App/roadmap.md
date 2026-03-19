@@ -102,6 +102,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-88:** Completada 2026-03-19. Imágenes colecciones optimizadas con ImgOptimizada (Photon CDN) en FilaColecciones, ColeccionDetalle, ModalSeleccion, PanelSugerencias.
 - **183A-77:** Completada 2026-03-19. Navegación SPA preserva query string — búsqueda landing ahora pasa ?buscar= a /descubrir/.
 - **183A-78:** Completada 2026-03-19. Login omite X-WP-Nonce — fix "cookie check failed" con cookies stale de sesión anterior.
+- **183A-96:** Completada 2026-03-19. Fix bug precio compra, tab ganancias, PayPal config, revenue share 80/20, auditoría integridad (5 bugs críticos corregidos: mismatch revenue display, estado dual, race conditions webhook/compra doble).
 
 ## Tareas pendientes
 
@@ -135,16 +136,6 @@ Agregar una opción en los menu contextual de los samples para decargar en svg l
 ## 183A-95
 
 Dice error de red al descargar en la apk,  "183A-92"
-
-## 183A-96
-
-El sistema de compra de samples no se ha auditado bien
-
-falta un tab en el perfil del usuario que solamente pueda ver el de ganancias, la agregaremos pero la agregaremos con un estadoVacio de "Esto estará disponible pronto para que generes gancias a partir de tus samples y contribucciones", mientras tanto yo ocmo admin podre ver el panel para testarearlo antes de que todos los usuarios puedan. 
-
-Agregaras datos de prueba para el usuario 1 simulando ventas de samples publicados, una configu para agregar gmail de paypal para retirar ganancias y verificar las compras de samples guarden toda la informacion necesaria, valor, quien lo compro, a quien lo compro, cual sample, etc, esto esto para que se pueda manejar bien las ganancias de los usuarios, se va a cobrar 20% de comisión por venta. 
-
-Hay un error, un usuario publico un sample con un precio y sale "Este sample no tiene precio de venta" al dar a comprar 
 
 ## 183A-97
 
