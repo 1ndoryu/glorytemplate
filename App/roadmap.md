@@ -44,7 +44,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
 - **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creación corregidos. 2026-03-19.
 - **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array→{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
-- **193A-16:** Portada artículo no se subía — backend ignoraba el File en FormData. Agregado `procesarPortada()` con wp_handle_upload + ServicioMedia optimización. 2026-03-19.
+- **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-*" retornan mock local sin petición HTTP. 193A-14: ws/ticket devuelve 401 correctamente — error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
 
 ## Tareas pendientes
 
@@ -146,28 +146,16 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
-## 193A-13 (prioritario)
 
-en modo dev, solo espero que en modo produccion o pase lo mismo!!!
-apiCliente.ts:134  GET http://glory.local/wp-json/kamples/v1/articulos/dev-articulo-mezcla 404 (Not Found)
-apiCliente.ts:134  GET http://glory.local/wp-json/kamples/v1/articulos/dev-articulo-mezcla 404 (Not Found)
+## 193A-20
 
-## 193A-14 (prioritario)
+Cuando se publica un articulo no hay forma de editarlo, falta el boton de 3 puntos en la pagina individual en caso de que seas el autor
 
-ESTO PUEDE QUE TENGA QUE VER CON LA PENULTIMA TAREA
+quita el padding de articuloDetalleCategoria, y la lista de articulos en el boton de 3 puntos falta el editar, debe abrir el mismo modal con el que se publica. 
 
-main-D9yMEjua.js:891 
- GET https://kamples.com/wp-json/kamples/v1/ws/ticket net::ERR_CONNECTION_CLOSED
+## 193A-21
 
-main-D9yMEjua.js:891 [Kamples] 03:31:18 [ERROR] ApiCliente: GET /ws/ticket → fallo TypeError: Failed to fetch
-    at _n (main-D9yMEjua.js:891:4100)
-    at ye (main-D9yMEjua.js:891:5393)
-    at Px (main-D9yMEjua.js:905:32538)
-    at main-D9yMEjua.js:905:33260
-
-## 193A-17 
-
-https://kamples.com/wp-content/uploads/kamples/3/2026/03/VygLX7q_waveform.json?v=acb7b775ac928f287576b28ad15a68604fac337cf5d85532dd1e46c8bfbb87e1 las waveform debería cachearse por 1 mes al menos que cambien o algo, nunca cambian, lo que cambia es el audio y por lo tanto su waveform. 
+cuando voy a un post directamente https://kamples.com/post/12/ da 404
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
