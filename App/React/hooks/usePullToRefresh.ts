@@ -7,17 +7,22 @@
  * - El usuario arrastra hacia abajo; al superar el umbral, dispara refresco.
  * - Threshold alto (80px) y resistencia (0.4) evitan activacion accidental.
  * - El caller indica cuando termina el refresco para ocultar el indicador.
+ *
+ * [183A-74] Fix: obtenerScrollTop ya no usa Math.max de multiples fuentes.
+ * Si el elemento tiene scroll propio (scrollHeight > clientHeight), usa el.scrollTop.
+ * Si no, usa window.scrollY. Esto evita que se active al subir despues de bajar
+ * y corrige incompatibilidades con WebView (Capacitor/APK).
  */
 
 import { useRef, useCallback, useState, useEffect } from 'react';
 
+/* [183A-74] Determina el scroll top real del contexto. Si el elemento tiene
+ * overflow scrollable propio, usar su scrollTop. Si no, el scroll es del viewport. */
 function obtenerScrollTop(el: HTMLElement): number {
-    return Math.max(
-        el.scrollTop,
-        window.scrollY,
-        document.documentElement.scrollTop,
-        document.body.scrollTop,
-    );
+    if (el.scrollHeight > el.clientHeight + 1) {
+        return el.scrollTop;
+    }
+    return window.scrollY || document.documentElement.scrollTop || 0;
 }
 
 interface PullToRefreshOpciones {
@@ -72,6 +77,14 @@ export function usePullToRefresh({
 
         const alMoverTouch = (e: TouchEvent) => {
             if (!arrastrando.current) return;
+            /* [183A-74] Re-verificar scroll en cada movimiento. Si el contenido
+             * ya no está en top (por inercia de scroll o rebote), cancelar el gesto. */
+            if (obtenerScrollTop(el) > 5) {
+                arrastrando.current = false;
+                distanciaRef.current = 0;
+                setDistanciaArrastre(0);
+                return;
+            }
             const delta = (e.touches[0].clientY - touchStartY.current) * resistencia;
             if (delta <= 0) {
                 distanciaRef.current = 0;
