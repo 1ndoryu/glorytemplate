@@ -19,6 +19,10 @@
 
 .tarjetaSample:hover {
     background-color: var(--fondoElevado2);
+    /* [193A-41] Elevar z-index en hover para que el tooltip de debug score
+     * se muestre por encima del sample de abajo. */
+    z-index: 1;
+    position: relative;
 }
 
 .tarjetaSampleActiva {
@@ -73,12 +77,15 @@
 }
 
 /* Contenido central */
+/* [193A-41] overflow: visible para que el tooltip de BadgeDebugScore
+ * no quede cortado por el contenedor. Los hijos (.tarjetaTitulo,
+ * .tarjetaCreador, .tarjetaMeta) ya manejan su propio overflow. */
 .tarjetaContenido {
     display: flex;
     flex-direction: column;
     gap: var(--espacioXs);
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .tarjetaCabecera {
