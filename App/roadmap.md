@@ -147,12 +147,6 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-35
-
-La busqueda, funciona mal
-
-por ejemplo busco "Tommy Wright III" no encuentra nada pero si hay samples que tienen esa tag en la metadata ia, hay que mejorar para que se enriquezca de todas las metadatas que tenga el sample (evitar informacion privada o confidencial), y tambien es importante saber que no toda la informacion de un sample es igual de importante que otra, o esa, hay que tener criterio, crea una documetacion de esto de que cosa toma en cuenta la busqueda y que faltaría. 
-
 ## 193A-36 
 
 si voy a blog, las tabs de la pagina desaparecen :/ pero el problema es que cuando voy a blog, en vez de ir a https://kamples.com/?tab=blog  va a /blog, igualmente blog deberia tenga las tabs de inicio que son Inicio y Blog unicamente (cuando se esta logeado)
