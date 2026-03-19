@@ -1,7 +1,15 @@
 /*
- * modalArticulo.css — Kamples (183A-109 Fase 3)
+ * modalArticulo.css — Kamples (183A-109 Fase 3 + 183A-110-C + 183A-110-D)
  * Estilos del editor de artículos del blog.
+ * [183A-110-C] Modal más ancho, adjuntos sample/colección,
+ * categoría tipo editarGrupo.
+ * [183A-110-D] Sin botón X — cierre por click fuera o Escape.
  */
+
+/* [183A-110-C] Override para modal más ancho */
+.editorArticuloModal {
+    max-width: 800px;
+}
 
 .editorArticuloContenedor {
     display: flex;
@@ -9,6 +17,7 @@
     gap: var(--espacioMd);
     max-height: 80vh;
     overflow-y: auto;
+    position: relative;
 }
 
 /* Título del artículo */
@@ -27,6 +36,37 @@
 
 .editorArticuloTitulo::placeholder {
     color: var(--textoTerciario);
+}
+
+/* [183A-110-C] Categoría con estilo editarGrupo */
+.editorArticuloCategoriaGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.editorArticuloCategoriaLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoSemibold);
+}
+
+.editorArticuloCategoriaSelect {
+    padding: var(--espacioXs) var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    max-width: 250px;
+    transition: border-color var(--transicionRapida);
+}
+
+.editorArticuloCategoriaSelect:focus {
+    border-color: var(--acento);
 }
 
 /* Extracto */
@@ -58,25 +98,6 @@
 
 .editorArticuloCharCountLimite {
     color: var(--error);
-}
-
-/* Selector de categoría */
-.editorArticuloCategoriaSelect {
-    padding: var(--espacioXs) var(--espacioSm);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioSm);
-    background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteSm);
-    font-family: inherit;
-    outline: none;
-    cursor: pointer;
-    max-width: 250px;
-    transition: border-color var(--transicionRapida);
-}
-
-.editorArticuloCategoriaSelect:focus {
-    border-color: var(--acento);
 }
 
 /* Portada */
@@ -207,25 +228,147 @@
     border-color: var(--acento);
 }
 
-/* Opciones extra (descarga pública, embeds) */
-.editorArticuloOpciones {
+/* [183A-110-C] Lista de adjuntos (samples y colecciones) */
+.editorArticuloAdjuntos {
     display: flex;
     flex-direction: column;
     gap: var(--espacioSm);
 }
 
-.editorArticuloToggle {
+.editorArticuloAdjuntosLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoSemibold);
+}
+
+/* Adjunto sample — imita tarjetaSample del feed */
+.adjuntoSample {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    font-size: var(--fuenteSm);
-    color: var(--textoSecundario);
-    cursor: pointer;
+    padding: var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    background-color: var(--fondoElevado1);
+    transition: border-color var(--transicionRapida);
 }
 
-.editorArticuloToggleCheck {
-    width: 16px;
-    height: 16px;
+.adjuntoSample:hover {
+    border-color: var(--bordeActivo);
+}
+
+.adjuntoSampleImg {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radioSm);
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: var(--fondoElevado2);
+}
+
+.adjuntoSampleImgVacia {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radioSm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--fondoElevado2);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.adjuntoInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.adjuntoTitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    font-weight: var(--pesoMedio);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.adjuntoCreador {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.adjuntoAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    flex-shrink: 0;
+}
+
+/* Adjunto colección — imita coleccionHeader */
+.adjuntoColeccion {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: var(--espacioSm);
+    align-items: center;
+    padding: var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    background-color: var(--fondoElevado1);
+    transition: border-color var(--transicionRapida);
+}
+
+.adjuntoColeccion:hover {
+    border-color: var(--bordeActivo);
+}
+
+.adjuntoColeccionImg {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radioSm);
+    object-fit: cover;
+    background-color: var(--fondoElevado2);
+}
+
+.adjuntoColeccionImgVacia {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radioSm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--fondoElevado2);
+    color: var(--textoTerciario);
+}
+
+.adjuntoColeccionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.adjuntoColeccionStats {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Toggle descarga individual por adjunto */
+.adjuntoDescarga {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.adjuntoDescargaCheck {
+    width: 14px;
+    height: 14px;
     border: 2px solid var(--bordeSutil);
     border-radius: 3px;
     display: flex;
@@ -235,7 +378,7 @@
     transition: all var(--transicionRapida);
 }
 
-.editorArticuloToggleActivo {
+.adjuntoDescargaCheckActivo {
     background-color: var(--acento);
     border-color: var(--acento);
     color: var(--blanco);
@@ -255,4 +398,118 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
+}
+
+/* [183A-110-C] Modal de adjuntar contenido */
+.adjuntarModalBusqueda {
+    padding: 0 var(--espacioMd);
+    margin-bottom: var(--espacioMd);
+}
+
+.adjuntarModalResultados {
+    display: flex;
+    flex-direction: column;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.adjuntarModalItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
+    width: 100%;
+    text-align: left;
+}
+
+.adjuntarModalItem:hover {
+    background-color: var(--fondoElevado1);
+}
+
+.adjuntarModalItemImg {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radioSm);
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: var(--fondoElevado2);
+}
+
+.adjuntarModalItemIcono {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radioSm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--fondoElevado2);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.adjuntarModalItemInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.adjuntarModalItemTitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.adjuntarModalItemSub {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.adjuntarModalItemCheck {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
+.adjuntarModalVacio {
+    padding: var(--espacioXl);
+    text-align: center;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+.adjuntarModalCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioLg);
+}
+
+.adjuntarModalSpinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .editorArticuloModal {
+        max-width: 100%;
+    }
+
+    .adjuntoColeccion {
+        grid-template-columns: 60px 1fr auto;
+    }
+
+    .adjuntoColeccionImg,
+    .adjuntoColeccionImgVacia {
+        width: 60px;
+        height: 60px;
+    }
 }

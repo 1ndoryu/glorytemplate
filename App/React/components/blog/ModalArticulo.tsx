@@ -1,19 +1,22 @@
 /*
- * Componente: ModalArticulo — Kamples (183A-109 Fase 3)
+ * Componente: ModalArticulo — Kamples (183A-109 Fase 3 + 183A-110-C)
  * Editor de artículos del blog con rich text (contentEditable).
- * Toolbar con formato básico, selector de categoría, portada, extracto.
- * Usa articuloEditorStore para estado y useEditorArticulo para lógica.
+ * [183A-110-C] Sin cabecera, modal más ancho, categoría tipo editarGrupo,
+ * botón adjuntar sample/colección, descarga pública por adjunto,
+ * adjuntos se renderizan como tarjeta sample / coleccionHeader.
  */
 
 import {
     Bold, Italic, Heading2, Heading3, Image, Link, Code, Quote,
-    List, ListOrdered, X, Upload, Eye, FileText, Check,
+    List, ListOrdered, X, Upload, Eye, FileText, Paperclip,
 } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Input } from '@app/components/ui/Input';
 import { SelectorBase } from '@app/components/ui/SelectorBase';
 import { Textarea } from '@app/components/ui/Textarea';
+import { ModalAdjuntarContenido } from '@app/components/blog/ModalAdjuntarContenido';
+import { ListaAdjuntos } from '@app/components/blog/ListaAdjuntos';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useEditorArticulo } from '@app/hooks/useEditorArticulo';
@@ -57,8 +60,9 @@ export const ModalArticulo = (): JSX.Element | null => {
 
     if (!abierto || !autenticado) return null;
 
+    /* [183A-110-C] Sin titulo (sin cabecera), modal más ancho */
     return (
-        <Modal abierto={abierto} onCerrar={cerrar} titulo="Escribir artículo" tamano="grande">
+        <Modal abierto={abierto} onCerrar={cerrar} tamano="grande" className="editorArticuloModal">
             <ContenidoEditor />
         </Modal>
     );
@@ -68,9 +72,11 @@ export const ModalArticulo = (): JSX.Element | null => {
 const ContenidoEditor = (): JSX.Element => {
     const {
         titulo, contenido, extracto, categoria, portadaPreviewUrl,
-        descargaPublica, vistaHtml, publicando, editandoId,
+        vistaHtml, publicando, editandoId, adjuntos,
+        modalAdjuntarAbierto,
         setTitulo, setContenido, setExtracto, setCategoria,
-        toggleDescargaPublica, toggleVistaHtml,
+        toggleVistaHtml, agregarAdjunto, quitarAdjunto,
+        toggleDescargaAdjunto, setModalAdjuntar,
         editorRef, inputPortadaRef,
         publicar, seleccionarPortada, manejarPortada, formatear, insertarImagen,
         setPortada,
@@ -78,6 +84,8 @@ const ContenidoEditor = (): JSX.Element => {
 
     return (
         <div className="editorArticuloContenedor">
+            {/* [183A-110-D] Sin botón X — el modal se cierra con click fuera o Escape */}
+
             {/* Título */}
             <Input
                 className="editorArticuloTitulo"
@@ -88,22 +96,25 @@ const ContenidoEditor = (): JSX.Element => {
                 maxLength={200}
             />
 
-            {/* Selector de categoría */}
-            <SelectorBase
-                className="editorArticuloCategoriaSelect"
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value as CategoriaArticulo)}
-            >
-                {gruposCategorias.map(g => (
-                    <optgroup key={g.grupo} label={g.grupo}>
-                        {g.categorias.map(cat => (
-                            <option key={cat} value={cat}>
-                                {obtenerEtiquetaCategoria(cat)}
-                            </option>
-                        ))}
-                    </optgroup>
-                ))}
-            </SelectorBase>
+            {/* [183A-110-C] Categoría con estilo editarGrupo (label + select) */}
+            <div className="editorArticuloCategoriaGrupo">
+                <span className="editorArticuloCategoriaLabel">Categoría</span>
+                <SelectorBase
+                    className="editorArticuloCategoriaSelect"
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value as CategoriaArticulo)}
+                >
+                    {gruposCategorias.map(g => (
+                        <optgroup key={g.grupo} label={g.grupo}>
+                            {g.categorias.map(cat => (
+                                <option key={cat} value={cat}>
+                                    {obtenerEtiquetaCategoria(cat)}
+                                </option>
+                            ))}
+                        </optgroup>
+                    ))}
+                </SelectorBase>
+            </div>
 
             {/* Portada */}
             <div className="editorArticuloPortada" onClick={seleccionarPortada}>
@@ -146,7 +157,7 @@ const ContenidoEditor = (): JSX.Element => {
                 style={{ display: 'none' }}
             />
 
-            {/* Toolbar */}
+            {/* Toolbar — [183A-110-C] Botón adjuntar sample/colección añadido */}
             <div className="editorArticuloToolbar">
                 <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => formatear('bold')} aria-label="Negrita">
                     <Bold size={16} />
@@ -198,6 +209,14 @@ const ContenidoEditor = (): JSX.Element => {
                 >
                     {vistaHtml ? <Eye size={16} /> : <FileText size={16} />}
                 </BotonBase>
+                <div className="editorArticuloToolbarSeparador" />
+                <BotonBase
+                    variante="ghost" tamano="sm" soloIcono
+                    onClick={() => setModalAdjuntar(true)}
+                    aria-label="Adjuntar sample o colección"
+                >
+                    <Paperclip size={16} />
+                </BotonBase>
             </div>
 
             {/* Área de contenido */}
@@ -235,15 +254,12 @@ const ContenidoEditor = (): JSX.Element => {
                 {extracto.length}/300
             </div>
 
-            {/* Opciones */}
-            <div className="editorArticuloOpciones">
-                <div className="editorArticuloToggle" onClick={toggleDescargaPublica}>
-                    <div className={`editorArticuloToggleCheck ${descargaPublica ? 'editorArticuloToggleActivo' : ''}`}>
-                        {descargaPublica && <Check size={12} />}
-                    </div>
-                    <span>Permitir descarga pública del contenido</span>
-                </div>
-            </div>
+            {/* [183A-110-C] Adjuntos — samples como tarjeta, colecciones como header */}
+            <ListaAdjuntos
+                adjuntos={adjuntos}
+                onQuitar={quitarAdjunto}
+                onToggleDescarga={toggleDescargaAdjunto}
+            />
 
             {/* Footer con botón de publicar */}
             <div className="editorArticuloFooter">
@@ -257,6 +273,14 @@ const ContenidoEditor = (): JSX.Element => {
                     {editandoId ? 'Actualizar artículo' : 'Publicar artículo'}
                 </BotonBase>
             </div>
+
+            {/* [183A-110-C] Modal de adjuntar contenido (samples/colecciones) */}
+            <ModalAdjuntarContenido
+                abierto={modalAdjuntarAbierto}
+                onCerrar={() => setModalAdjuntar(false)}
+                adjuntosActuales={adjuntos}
+                onAdjuntar={agregarAdjunto}
+            />
         </div>
     );
 };

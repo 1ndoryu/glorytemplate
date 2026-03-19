@@ -26,13 +26,15 @@
     color: var(--textoPrimario);
 }
 
-/* Navegación de categorías */
+/* [183A-110-B] Navegación de categorías con drag-to-scroll */
 .blogCategorias {
     display: flex;
     gap: var(--espacioXs);
     overflow-x: auto;
     padding-bottom: var(--espacioXs);
     scrollbar-width: none;
+    cursor: grab;
+    touch-action: pan-x;
 }
 
 .blogCategorias::-webkit-scrollbar {

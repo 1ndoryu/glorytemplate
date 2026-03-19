@@ -1,7 +1,8 @@
 /*
- * Hook: useBlog — Kamples (183A-109)
+ * Hook: useBlog — Kamples (183A-109 + 183A-110-B)
  * Lógica del listado de artículos del blog.
  * Carga artículos, filtra por categoría, paginación infinita.
+ * [183A-110-B] En modo dev, inyecta contenido de prueba si el API devuelve vacío.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -9,6 +10,33 @@ import { listarArticulos, toggleLikeArticulo } from '@app/services/apiArticulos'
 import type { ArticuloResumen, CategoriaArticulo } from '@app/types';
 
 const LIMITE = 20;
+
+/* [183A-110-B] Contenido de prueba para desarrollo.
+ * Solo se usa cuando GLORY_CONTEXT.devMode === true y no hay artículos reales. */
+function generarArticulosDev(): ArticuloResumen[] {
+    const categorias: CategoriaArticulo[] = [
+        'inspiracion', 'mezcla', 'fl-studio', 'sonidos-gratis',
+        'entrevistas', 'mastering', 'sampling', 'noticias',
+    ];
+    return categorias.map((cat, i) => ({
+        id: -(i + 1),
+        titulo: `[Dev] Artículo de prueba — ${cat}`,
+        slug: `dev-articulo-${cat}`,
+        extracto: `Este es un artículo de prueba para la categoría ${cat}. Solo visible en modo desarrollo.`,
+        portadaUrl: null,
+        categoria: cat,
+        totalLikes: Math.floor(Math.random() * 50),
+        totalComentarios: Math.floor(Math.random() * 10),
+        publicadoEn: new Date().toISOString(),
+        autor: { id: 1, username: 'dev', nombreVisible: 'Dev User', avatarUrl: null, verificado: false },
+        liked: false,
+    }));
+}
+
+function esDevMode(): boolean {
+    const ctx = (window as unknown as Record<string, { devMode?: boolean } | undefined>).GLORY_CONTEXT;
+    return ctx?.devMode === true;
+}
 
 export const useBlog = () => {
     const [articulos, setArticulos] = useState<ArticuloResumen[]>([]);
@@ -27,7 +55,17 @@ export const useBlog = () => {
         try {
             const res = await listarArticulos({ categoria: cat, pagina, limite: LIMITE });
             if (res.ok && res.data) {
-                setArticulos(prev => acumular ? [...prev, ...res.data!.articulos] : res.data!.articulos);
+                let articulosRecibidos = res.data.articulos;
+
+                /* [183A-110-B] En dev mode, si no hay artículos reales, inyectar mock */
+                if (articulosRecibidos.length === 0 && pagina === 1 && esDevMode()) {
+                    articulosRecibidos = generarArticulosDev();
+                    if (cat) {
+                        articulosRecibidos = articulosRecibidos.filter(a => a.categoria === cat);
+                    }
+                }
+
+                setArticulos(prev => acumular ? [...prev, ...articulosRecibidos] : articulosRecibidos);
                 setHayMas(res.data.hayMas);
                 paginaRef.current = pagina;
             }

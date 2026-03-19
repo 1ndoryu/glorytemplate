@@ -20,6 +20,21 @@ export type ModeracionEstadoArticulo = 'pendiente' | 'revision' | 'aprobado' | '
 export interface EmbedArticulo {
     tipo: 'sample' | 'coleccion';
     id: number;
+    descargaPublica?: boolean;
+}
+
+/* [183A-110-C] Adjunto con datos de visualización para el editor.
+ * Extiende EmbedArticulo con info necesaria para renderizar previews
+ * (tarjeta sample o cabecera colección) sin re-fetch. */
+export interface AdjuntoArticulo {
+    tipo: 'sample' | 'coleccion';
+    id: number;
+    titulo: string;
+    imagenUrl: string | null;
+    creadorNombre: string;
+    slug: string;
+    totalSamples?: number;
+    descargaPublica: boolean;
 }
 
 export interface Articulo {

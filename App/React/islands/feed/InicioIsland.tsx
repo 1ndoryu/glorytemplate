@@ -3,6 +3,7 @@
  * Feed principal con ordenamientos (Inteligente/Recientes/Destacados).
  * Usa FeedSamples centralizado para la lista de samples.
  * Si el usuario no está autenticado, muestra LandingPublica.
+ * [183A-110-D] Blog es un tab del inicio, no una página separada.
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -11,11 +12,13 @@ import { BotonBase } from '@app/components/ui';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { LandingPublica } from '@app/components/social/LandingPublica';
+import { BlogIsland } from '../blog/BlogIsland';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
@@ -28,21 +31,34 @@ import { ComunidadIsland } from '../comunidad/ComunidadIsland';
 import { useEsMovil } from '@app/hooks/useEsMovil';
 import '../../styles/componentes/inicio.css';
 
-const TABS_INICIO = [{ id: 'inicio', etiqueta: 'Inicio' }];
+/* [183A-110-D] Blog como tab del inicio en vez de página separada */
+const TABS_INICIO = [
+    { id: 'inicio', etiqueta: 'Inicio' },
+    { id: 'blog', etiqueta: 'Blog' },
+];
 
 export const InicioIsland = (): JSX.Element => {
     const autenticado = useAuthStore(s => s.autenticado);
     const cargando = useAuthStore(s => s.cargando);
     const esMovil = useEsMovil();
+    const tabActiva = useTabsTopBarStore(s => s.activa);
 
-    /* F11: El skeleton se muestra solo en la zona de contenido, no en toda la página.
-     * El layout (sidebar/topbar) ya está visible gracias a LayoutPrincipal. */
+    /* [183A-110-D] Registrar tabs antes de cualquier return condicional (regla de hooks).
+     * Para auth: se muestran en el TopBar. Para non-auth: se ignoran visualmente
+     * pero quedan registradas para consistencia. */
+    useTabsIsla('InicioIsland', TABS_INICIO, 'inicio');
+
     if (cargando) {
         return (
             <div className="inicioContenedor" id="seccionInicio">
                 <SkeletonFeed cantidad={8} />
             </div>
         );
+    }
+
+    /* [183A-110-D] Tab Blog activa → mostrar BlogIsland para usuarios autenticados */
+    if (autenticado && tabActiva === 'blog') {
+        return <BlogIsland />;
     }
 
     if (!autenticado) {
@@ -114,8 +130,8 @@ export const FeedUnificado = (): JSX.Element => {
         return undefined;
     }, [yaReproducidos, idsReproducidos]);
 
-    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
-    useTabsIsla('InicioIsland', TABS_INICIO, 'inicio');
+    /* [183A-110-D] useTabsIsla movido a InicioIsland para que funcione antes
+     * de los returns condicionales (auth, mobile, blog tab). */
 
     /* Habilitar panel lateral al estar en esta isla */
     const islaActual = useNavigationStore(s => s.islaActual);

@@ -1,12 +1,15 @@
 /*
- * Hook: useEditorArticulo — Kamples (183A-109 Fase 3)
+ * Hook: useEditorArticulo — Kamples (183A-109 Fase 3 + 183A-110-C)
  * Lógica del editor de artículos: publicar, actualizar, validar.
+ * [183A-110-C] Adjuntos reemplazan embeds, persistencia localStorage,
+ * limpiar store tras publicar exitoso.
  */
 
 import { useCallback, useRef } from 'react';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { crearArticulo, actualizarArticulo } from '@app/services/apiArticulos';
 import { toast } from '@app/stores/toastStore';
+import type { EmbedArticulo } from '@app/types';
 
 export const useEditorArticulo = () => {
     const store = useArticuloEditorStore();
@@ -32,41 +35,49 @@ export const useEditorArticulo = () => {
         store.setPublicando(true);
 
         try {
-            /* Obtener contenido HTML del editor contentEditable */
             const contenidoHtml = editorRef.current?.innerHTML ?? store.contenido;
 
+            /* [183A-110-C] Mapear adjuntos a EmbedArticulo para el backend */
+            const embeds: EmbedArticulo[] = store.adjuntos.map(a => ({
+                tipo: a.tipo,
+                id: a.id,
+                descargaPublica: a.descargaPublica,
+            }));
+            const embedsJson = embeds.length > 0 ? JSON.stringify(embeds) : undefined;
+
+            /* descargaPublica global = true si al menos 1 adjunto lo tiene */
+            const descargaPublica = store.adjuntos.some(a => a.descargaPublica);
+
             if (store.editandoId) {
-                /* Actualizar artículo existente */
                 const res = await actualizarArticulo(store.editandoId, {
                     titulo: store.titulo.trim(),
                     contenido: contenidoHtml,
                     extracto: store.extracto.trim(),
                     categoria: store.categoria,
-                    embeds: JSON.stringify(store.embeds),
-                    descargaPublica: store.descargaPublica,
+                    embeds: embedsJson,
+                    descargaPublica,
                 });
 
                 if (res.ok) {
                     toast.exito('Artículo actualizado');
-                    store.cerrar();
+                    store.limpiar();
                 } else {
                     toast.error(res.error ?? 'Error al actualizar');
                 }
             } else {
-                /* Crear nuevo artículo */
                 const res = await crearArticulo({
                     titulo: store.titulo.trim(),
                     contenido: contenidoHtml,
                     extracto: store.extracto.trim(),
                     categoria: store.categoria,
                     portada: store.portada ?? undefined,
-                    embeds: store.embeds.length > 0 ? JSON.stringify(store.embeds) : undefined,
-                    descargaPublica: store.descargaPublica,
+                    embeds: embedsJson,
+                    descargaPublica,
                 });
 
                 if (res.ok) {
                     toast.exito('Artículo enviado a moderación');
-                    store.cerrar();
+                    store.limpiar();
                 } else {
                     toast.error(res.error ?? 'Error al publicar');
                 }
@@ -76,7 +87,7 @@ export const useEditorArticulo = () => {
         } finally {
             store.setPublicando(false);
         }
-    }, [store, validar, toast]);
+    }, [store, validar]);
 
     const seleccionarPortada = useCallback(() => {
         inputPortadaRef.current?.click();
@@ -94,9 +105,8 @@ export const useEditorArticulo = () => {
             return;
         }
         store.setPortada(file);
-    }, [store, toast]);
+    }, [store]);
 
-    /* Comandos de formato para el editor rich text */
     const formatear = useCallback((comando: string, valor?: string) => {
         document.execCommand(comando, false, valor);
         editorRef.current?.focus();

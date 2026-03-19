@@ -68,6 +68,7 @@ export type {
     CategoriaArticulo,
     ModeracionEstadoArticulo,
     EmbedArticulo,
+    AdjuntoArticulo,
 } from './articulo';
 
 export type {

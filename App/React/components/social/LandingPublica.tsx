@@ -153,20 +153,8 @@ export const LandingPublica = (): JSX.Element => {
                 />
             </section>
 
-            {/* [183A-109 Fase 5] Sección de blog en landing pública */}
-            <section className="seccionSync seccionEstandar">
-                <div>
-                    <h2 className="titleSeccion">Blog de producción musical</h2>
-                    <span className="subtitleSeccion">Tips, tutoriales, entrevistas y recursos para productores</span>
-                </div>
-                <div className="landingHeroAcciones">
-                    <GloryLink href="/blog" className="landingHeroDescargarEnlace">
-                        <BotonBase variante="secundario" tamano="md">
-                            Explorar blog
-                        </BotonBase>
-                    </GloryLink>
-                </div>
-            </section>
+            {/* [183A-110-D] Blog section removida — blog ahora es link en NavPublico
+             * y tab en InicioIsland para usuarios autenticados. */}
 
             <footer className="landingFooter">
                 <p className="landingFooterTexto">

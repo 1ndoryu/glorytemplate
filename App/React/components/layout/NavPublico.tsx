@@ -1,8 +1,7 @@
 /*
- * Componente: NavPublico — Kamples (QQ82)
+ * Componente: NavPublico — Kamples (QQ82 + 183A-110-D)
  * Nav visible en todas las páginas para usuarios no autenticados.
- * Contiene: logo, enlaces públicos (Explorar, Música), botones de auth.
- * Reutiliza clases CSS de landingNav (landingPublica.css).
+ * Contiene: logo, enlaces públicos (Explorar, Colecciones, Música, Blog), botones de auth.
  */
 
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -24,6 +23,7 @@ export const NavPublico = (): JSX.Element => {
                     <GloryLink href="/descubrir/" className="navPublicoEnlace">Explorar</GloryLink>
                     <GloryLink href="/colecciones/" className="navPublicoEnlace">Colecciones</GloryLink>
                     <GloryLink href="/musica/" className="navPublicoEnlace">Música</GloryLink>
+                    <GloryLink href="/blog/" className="navPublicoEnlace">Blog</GloryLink>
                 </div>
             </div>
             <div className="navPublicoDerecha">

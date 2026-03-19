@@ -18,7 +18,6 @@ import {
     Bug,
     Bell,
     Mail,
-    BookOpen,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
@@ -44,12 +43,12 @@ export interface SidebarItemDef {
     accion?: 'modal-crear';
 }
 
-/* QK104+QK105: Items desktop — Inicio centrado (posicion 3 de 5) */
+/* QK104+QK105: Items desktop — Inicio centrado (posicion 3 de 5)
+ * [183A-110-D] Blog removido del sidebar — ahora es tab en Inicio */
 const itemsDesktop: SidebarItemDef[] = [
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
     { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
-    { id: 'blog', etiqueta: 'Blog', icono: <BookOpen size={20} />, ruta: '/blog' },
     { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
     { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
 ];

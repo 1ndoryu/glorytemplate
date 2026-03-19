@@ -1,7 +1,8 @@
 /*
- * BlogIsland.tsx — Kamples (183A-109 + 183A-110-A)
+ * BlogIsland.tsx — Kamples (183A-109 + 183A-110-A + 183A-110-B)
  * Listado público de artículos del blog.
  * Grid 4 columnas centrado, filtro por categoría con scroll horizontal.
+ * [183A-110-B] Categorías arrastrables con mouse y touch (Capacitor).
  */
 
 import { useState, useCallback } from 'react';
@@ -13,6 +14,7 @@ import { MenuContextual } from '@app/components/ui';
 import type { MenuItemDef } from '@app/components/ui';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
+import { useArrastrarScroll } from '@app/hooks/useArrastrarScroll';
 import type { CategoriaArticulo } from '@app/types';
 import '@app/styles/componentes/blog.css';
 
@@ -48,6 +50,9 @@ const gruposCategorias: { grupo: string; categorias: CategoriaArticulo[] }[] = [
 export const BlogIsland: React.FC = () => {
     const { articulos, cargando, hayMas, categoria, cambiarCategoria, cargarMas, darLike } = useBlog();
     const navegar = useNavigationStore(s => s.navegar);
+
+    /* [183A-110-B] Drag-to-scroll para categorías (mouse + touch Capacitor) */
+    const categoriasRef = useArrastrarScroll<HTMLDivElement>();
 
     /* [183A-109 Fase 5] Menú contextual de 3 puntos en tarjetas */
     const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number; articuloId: number | null }>({
@@ -89,8 +94,8 @@ export const BlogIsland: React.FC = () => {
             <div className="blogCabecera">
                 <h1 className="blogTitulo">Blog</h1>
 
-                {/* Filtros de categoría */}
-                <div className="blogCategorias">
+                {/* [183A-110-B] Filtros con drag-to-scroll */}
+                <div className="blogCategorias" ref={categoriasRef}>
                     <BotonBase
                         variante={!categoria ? 'primario' : 'ghost'}
                         tamano="sm"

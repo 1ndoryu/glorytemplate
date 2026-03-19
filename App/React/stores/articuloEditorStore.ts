@@ -1,12 +1,14 @@
 /*
- * Store: articuloEditorStore — Kamples (183A-109 Fase 3)
+ * Store: articuloEditorStore — Kamples (183A-109 Fase 3 + 183A-110-C)
  * Controla el modal del editor de artículos del blog.
- * Separado de crearModalStore porque el flujo de artículos es distinto
- * al de publicaciones sociales (rich text, categorías, portada, embeds).
+ * [183A-110-C] Adjuntos en vez de embeds, persistencia localStorage,
+ * cerrar sin perder contenido, descarga pública por adjunto.
  */
 
 import { create } from 'zustand';
-import type { CategoriaArticulo, EmbedArticulo } from '../types';
+import type { CategoriaArticulo, AdjuntoArticulo } from '../types';
+
+const CLAVE_BORRADOR = 'kamples_borrador_articulo';
 
 interface EstadoArticuloEditor {
     abierto: boolean;
@@ -19,12 +21,12 @@ interface EstadoArticuloEditor {
     categoria: CategoriaArticulo;
     portada: File | null;
     portadaPreviewUrl: string | null;
-    embeds: EmbedArticulo[];
-    descargaPublica: boolean;
+    adjuntos: AdjuntoArticulo[];
 
     /* UI */
     vistaHtml: boolean;
     publicando: boolean;
+    modalAdjuntarAbierto: boolean;
 
     /* Acciones */
     abrir: () => void;
@@ -34,20 +36,21 @@ interface EstadoArticuloEditor {
         extracto: string;
         categoria: CategoriaArticulo;
         portadaUrl: string | null;
-        embeds: EmbedArticulo[];
-        descargaPublica: boolean;
+        adjuntos: AdjuntoArticulo[];
     }) => void;
     cerrar: () => void;
+    limpiar: () => void;
     setTitulo: (v: string) => void;
     setContenido: (v: string) => void;
     setExtracto: (v: string) => void;
     setCategoria: (v: CategoriaArticulo) => void;
     setPortada: (file: File | null) => void;
-    agregarEmbed: (embed: EmbedArticulo) => void;
-    quitarEmbed: (index: number) => void;
-    toggleDescargaPublica: () => void;
+    agregarAdjunto: (adjunto: AdjuntoArticulo) => void;
+    quitarAdjunto: (index: number) => void;
+    toggleDescargaAdjunto: (index: number) => void;
     toggleVistaHtml: () => void;
     setPublicando: (v: boolean) => void;
+    setModalAdjuntar: (v: boolean) => void;
 }
 
 const estadoInicial = {
@@ -59,16 +62,38 @@ const estadoInicial = {
     categoria: 'inspiracion' as CategoriaArticulo,
     portada: null,
     portadaPreviewUrl: null,
-    embeds: [] as EmbedArticulo[],
-    descargaPublica: false,
+    adjuntos: [] as AdjuntoArticulo[],
     vistaHtml: false,
     publicando: false,
+    modalAdjuntarAbierto: false,
 };
+
+/* [183A-110-C] Restaura borrador del localStorage si existe */
+function restaurarBorrador(): Partial<typeof estadoInicial> {
+    try {
+        const raw = localStorage.getItem(CLAVE_BORRADOR);
+        if (!raw) return {};
+        const datos = JSON.parse(raw);
+        return {
+            titulo: datos.titulo || '',
+            contenido: datos.contenido || '',
+            extracto: datos.extracto || '',
+            categoria: datos.categoria || 'inspiracion',
+            adjuntos: Array.isArray(datos.adjuntos) ? datos.adjuntos : [],
+        };
+    } catch {
+        return {};
+    }
+}
 
 export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
     ...estadoInicial,
 
-    abrir: () => set({ ...estadoInicial, abierto: true }),
+    /* [183A-110-C] Restaura borrador al abrir — contenido no se pierde */
+    abrir: () => {
+        const borrador = restaurarBorrador();
+        set({ ...estadoInicial, ...borrador, abierto: true });
+    },
 
     abrirEdicion: (id, datos) => set({
         ...estadoInicial,
@@ -79,11 +104,17 @@ export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
         extracto: datos.extracto,
         categoria: datos.categoria,
         portadaPreviewUrl: datos.portadaUrl,
-        embeds: datos.embeds,
-        descargaPublica: datos.descargaPublica,
+        adjuntos: datos.adjuntos,
     }),
 
-    cerrar: () => set(estadoInicial),
+    /* [183A-110-C] Cerrar sin perder contenido — solo oculta el modal */
+    cerrar: () => set({ abierto: false, modalAdjuntarAbierto: false }),
+
+    /* Limpia todo y borra borrador de localStorage (usar tras publicar) */
+    limpiar: () => {
+        localStorage.removeItem(CLAVE_BORRADOR);
+        set(estadoInicial);
+    },
 
     setTitulo: (v) => set({ titulo: v }),
     setContenido: (v) => set({ contenido: v }),
@@ -91,7 +122,6 @@ export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
     setCategoria: (v) => set({ categoria: v }),
 
     setPortada: (file) => {
-        /* Liberar URL anterior si existe */
         set((prev) => {
             if (prev.portadaPreviewUrl && prev.portada) {
                 URL.revokeObjectURL(prev.portadaPreviewUrl);
@@ -103,16 +133,20 @@ export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
         });
     },
 
-    agregarEmbed: (embed) => set((prev) => ({
-        embeds: [...prev.embeds, embed],
+    agregarAdjunto: (adjunto) => set((prev) => {
+        /* No duplicar — mismo tipo+id ya existe */
+        if (prev.adjuntos.some(a => a.tipo === adjunto.tipo && a.id === adjunto.id)) return prev;
+        return { adjuntos: [...prev.adjuntos, adjunto] };
+    }),
+
+    quitarAdjunto: (index) => set((prev) => ({
+        adjuntos: prev.adjuntos.filter((_, i) => i !== index),
     })),
 
-    quitarEmbed: (index) => set((prev) => ({
-        embeds: prev.embeds.filter((_, i) => i !== index),
-    })),
-
-    toggleDescargaPublica: () => set((prev) => ({
-        descargaPublica: !prev.descargaPublica,
+    toggleDescargaAdjunto: (index) => set((prev) => ({
+        adjuntos: prev.adjuntos.map((a, i) =>
+            i === index ? { ...a, descargaPublica: !a.descargaPublica } : a
+        ),
     })),
 
     toggleVistaHtml: () => set((prev) => ({
@@ -120,4 +154,26 @@ export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
     })),
 
     setPublicando: (v) => set({ publicando: v }),
+    setModalAdjuntar: (v) => set({ modalAdjuntarAbierto: v }),
 }));
+
+/* [183A-110-C] Persistir borrador en localStorage al cambiar contenido.
+ * Debounced 500ms para no saturar escrituras. Solo campos de contenido. */
+let temporizadorGuardado: ReturnType<typeof setTimeout> | null = null;
+
+useArticuloEditorStore.subscribe((state) => {
+    if (temporizadorGuardado) clearTimeout(temporizadorGuardado);
+    temporizadorGuardado = setTimeout(() => {
+        const hayContenido = state.titulo || state.contenido || state.extracto || state.adjuntos.length > 0;
+        if (hayContenido && !state.editandoId) {
+            const borrador = {
+                titulo: state.titulo,
+                contenido: state.contenido,
+                extracto: state.extracto,
+                categoria: state.categoria,
+                adjuntos: state.adjuntos,
+            };
+            localStorage.setItem(CLAVE_BORRADOR, JSON.stringify(borrador));
+        }
+    }, 500);
+});
