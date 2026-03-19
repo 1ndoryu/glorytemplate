@@ -110,6 +110,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-107+183A-103+183A-105+183A-102:** Completadas 2026-03-19. Estilos tabGanancias, chatFlotante flex-column staging, tarjetaColeccion centrado bottom, ImgOptimizada en posts.
 - **183A-106:** Completada 2026-03-19. Descargas gratis via código admin-generado. "Compartir gratis" en menú contextual copia URL con ?codigoGratis=XXX. Usuarios autenticados reclaman inmediatamente; anónimos guardan en localStorage y reclaman al autenticarse. Endpoints de descarga aceptan codigoGratis y saltan restricciones si el código fue reclamado. Migration v066.
 - **183A-110:** Completada 2026-03-19. Seguridad 183A-106: expiración 1 año (v067), nombre_item almacenado, rate limiting 30/min en /verificar, HTTP 410 vs 404 (expirado vs inválido), compensación 50 créditos al reclamar expirado (idempotente), ModalCodigoExpirado sin cabecera, admin "Invalidar enlace gratis" en menú contextual sample/colección.
+- **183A-112:** Completada 2026-03-19. Fix "Error al generar enlace de descarga gratis" para colecciones. `buscarPorId()` no existe — reemplazado por `obtenerResumen()`. Errores IDE en CodigoGratisRepository son falsos positivos de pg_* stubs.
 
 ## Tareas pendientes
 
@@ -224,13 +225,9 @@ esto implica que a dar click a la categoría cargue la pagina de categoría con 
 
 Planificar que se pueda cambiar el idioma a ingles de kamples y que se adapte segun el idioma del navegador, la forma mas eficiente y menos costosa, y completa
 
-## 183A-112 
+## 183A-113
 
-Al intentar compartir gratis dice
-
-Error al generar enlace de descarga gratis, esto pasaba antes de que hicieras 183A-110
-y codigoGratisrep me reporta errores el ide 
-tambien veo errores en useCodigosGratis.ts
+En tarjetaColeccionMenuContenedor cuando un boton queda marcado se queda visible, no debería (en la vista grid solo deben verse con hover)
 
 ## Tarea final cuando completes todo
 
