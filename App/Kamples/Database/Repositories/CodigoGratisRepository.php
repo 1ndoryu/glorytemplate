@@ -4,14 +4,25 @@
  * Usa el userId de PG (obtenido via UsuarioHelper::obtenerIdPg()) de forma consistente
  * con el resto de repositorios del sistema.
  * [183A-110] Agrega: expires_at (1 año), nombre_item, buscarSiActivo(), invalidarPorTipoTarget(),
- * yaCompensadoPorExpiracion(), registrarCompensacion(). */
+ * yaCompensadoPorExpiracion(), registrarCompensacion().
+ * [193A-39] Reescrito: usaba PgDatabase (inexistente) con funciones pg_* nativas.
+ * Ahora extiende BaseRepository con PDO via PostgresService, consistente con el resto.
+ * Causa del 500 en /codigos-gratis/generar: Class "App\Kamples\Database\PgDatabase" not found. */
 
 namespace App\Kamples\Database\Repositories;
 
-use App\Kamples\Database\PgDatabase;
-
-class CodigoGratisRepository
+class CodigoGratisRepository extends BaseRepository
 {
+    protected static function tabla(): string
+    {
+        return 'codigos_descarga_gratis';
+    }
+
+    protected static function colId(): string
+    {
+        return 'id';
+    }
+
     /**
      * Inserta un nuevo codigo de descarga gratis.
      * [183A-110] Ahora acepta nombre_item para el modal de compensacion.
@@ -19,13 +30,17 @@ class CodigoGratisRepository
      */
     public static function crear(string $codigo, string $tipo, int $targetId, int $creadoPorId, string $nombreItem = ''): ?int
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'INSERT INTO codigos_descarga_gratis (codigo, tipo, target_id, creado_por_id, nombre_item)
-                VALUES ($1, $2, $3, $4, $5) RETURNING id';
-        $res = pg_query_params($db, $sql, [$codigo, $tipo, $targetId, $creadoPorId, $nombreItem]);
-        if (!$res) return null;
-        $row = pg_fetch_assoc($res);
-        return $row ? (int) $row['id'] : null;
+        return static::insertar(
+            'INSERT INTO codigos_descarga_gratis (codigo, tipo, target_id, creado_por_id, nombre_item)
+             VALUES (:codigo, :tipo, :targetId, :creadoPorId, :nombreItem) RETURNING id',
+            [
+                'codigo'      => $codigo,
+                'tipo'        => $tipo,
+                'targetId'    => $targetId,
+                'creadoPorId' => $creadoPorId,
+                'nombreItem'  => $nombreItem,
+            ]
+        );
     }
 
     /**
@@ -34,13 +49,11 @@ class CodigoGratisRepository
      */
     public static function buscarPorCodigo(string $codigo): ?array
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'SELECT * FROM codigos_descarga_gratis
-                WHERE codigo = $1 AND activo = TRUE AND expires_at > NOW()';
-        $res = pg_query_params($db, $sql, [$codigo]);
-        if (!$res) return null;
-        $row = pg_fetch_assoc($res);
-        return $row ?: null;
+        return static::consultarUno(
+            'SELECT * FROM codigos_descarga_gratis
+             WHERE codigo = :codigo AND activo = TRUE AND expires_at > NOW()',
+            ['codigo' => $codigo]
+        );
     }
 
     /**
@@ -50,12 +63,10 @@ class CodigoGratisRepository
      */
     public static function buscarSiActivo(string $codigo): ?array
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'SELECT * FROM codigos_descarga_gratis WHERE codigo = $1 AND activo = TRUE';
-        $res = pg_query_params($db, $sql, [$codigo]);
-        if (!$res) return null;
-        $row = pg_fetch_assoc($res);
-        return $row ?: null;
+        return static::consultarUno(
+            'SELECT * FROM codigos_descarga_gratis WHERE codigo = :codigo AND activo = TRUE',
+            ['codigo' => $codigo]
+        );
     }
 
     /**
@@ -64,12 +75,13 @@ class CodigoGratisRepository
      */
     public static function registrarUso(int $codigoId, int $usuarioId): bool
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'INSERT INTO codigos_gratis_usos (codigo_id, usuario_id)
-                VALUES ($1, $2)
-                ON CONFLICT (codigo_id, usuario_id) DO NOTHING';
-        $res = pg_query_params($db, $sql, [$codigoId, $usuarioId]);
-        return (bool) $res;
+        $filas = static::ejecutar(
+            'INSERT INTO codigos_gratis_usos (codigo_id, usuario_id)
+             VALUES (:codigoId, :usuarioId)
+             ON CONFLICT (codigo_id, usuario_id) DO NOTHING',
+            ['codigoId' => $codigoId, 'usuarioId' => $usuarioId]
+        );
+        return $filas >= 0;
     }
 
     /**
@@ -78,11 +90,12 @@ class CodigoGratisRepository
      */
     public static function yaCompensadoPorExpiracion(int $codigoId, int $usuarioId): bool
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'SELECT 1 FROM codigos_gratis_usos
-                WHERE codigo_id = $1 AND usuario_id = $2 AND expirado = TRUE';
-        $res = pg_query_params($db, $sql, [$codigoId, $usuarioId]);
-        return $res && pg_num_rows($res) > 0;
+        $row = static::consultarUno(
+            'SELECT 1 AS existe FROM codigos_gratis_usos
+             WHERE codigo_id = :codigoId AND usuario_id = :usuarioId AND expirado = TRUE',
+            ['codigoId' => $codigoId, 'usuarioId' => $usuarioId]
+        );
+        return $row !== null;
     }
 
     /**
@@ -91,12 +104,13 @@ class CodigoGratisRepository
      */
     public static function registrarCompensacion(int $codigoId, int $usuarioId): bool
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'INSERT INTO codigos_gratis_usos (codigo_id, usuario_id, expirado)
-                VALUES ($1, $2, TRUE)
-                ON CONFLICT (codigo_id, usuario_id) DO NOTHING';
-        $res = pg_query_params($db, $sql, [$codigoId, $usuarioId]);
-        return (bool) $res;
+        $filas = static::ejecutar(
+            'INSERT INTO codigos_gratis_usos (codigo_id, usuario_id, expirado)
+             VALUES (:codigoId, :usuarioId, TRUE)
+             ON CONFLICT (codigo_id, usuario_id) DO NOTHING',
+            ['codigoId' => $codigoId, 'usuarioId' => $usuarioId]
+        );
+        return $filas >= 0;
     }
 
     /**
@@ -105,19 +119,25 @@ class CodigoGratisRepository
      */
     public static function usuarioPuedeDescargar(string $codigo, string $tipo, int $targetId, int $usuarioId): bool
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'SELECT cdg.id
-                FROM codigos_descarga_gratis cdg
-                INNER JOIN codigos_gratis_usos cgu ON cgu.codigo_id = cdg.id
-                WHERE cdg.codigo = $1
-                  AND cdg.tipo = $2
-                  AND cdg.target_id = $3
-                  AND cgu.usuario_id = $4
-                  AND cgu.expirado = FALSE
-                  AND cdg.activo = TRUE
-                  AND cdg.expires_at > NOW()';
-        $res = pg_query_params($db, $sql, [$codigo, $tipo, $targetId, $usuarioId]);
-        return $res && pg_num_rows($res) > 0;
+        $row = static::consultarUno(
+            'SELECT cdg.id
+             FROM codigos_descarga_gratis cdg
+             INNER JOIN codigos_gratis_usos cgu ON cgu.codigo_id = cdg.id
+             WHERE cdg.codigo = :codigo
+               AND cdg.tipo = :tipo
+               AND cdg.target_id = :targetId
+               AND cgu.usuario_id = :usuarioId
+               AND cgu.expirado = FALSE
+               AND cdg.activo = TRUE
+               AND cdg.expires_at > NOW()',
+            [
+                'codigo'    => $codigo,
+                'tipo'      => $tipo,
+                'targetId'  => $targetId,
+                'usuarioId' => $usuarioId,
+            ]
+        );
+        return $row !== null;
     }
 
     /**
@@ -127,12 +147,12 @@ class CodigoGratisRepository
      */
     public static function invalidarPorTipoTarget(string $tipo, int $targetId): int
     {
-        $db = PgDatabase::obtenerConexion();
-        $sql = 'UPDATE codigos_descarga_gratis
-                SET activo = FALSE
-                WHERE tipo = $1 AND target_id = $2 AND activo = TRUE';
-        $res = pg_query_params($db, $sql, [$tipo, $targetId]);
-        if (!$res) return 0;
-        return (int) pg_affected_rows($res);
+        $filas = static::ejecutar(
+            'UPDATE codigos_descarga_gratis
+             SET activo = FALSE
+             WHERE tipo = :tipo AND target_id = :targetId AND activo = TRUE',
+            ['tipo' => $tipo, 'targetId' => $targetId]
+        );
+        return max($filas, 0);
     }
 }

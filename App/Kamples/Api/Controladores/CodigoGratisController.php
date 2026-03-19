@@ -98,7 +98,7 @@ class CodigoGratisController
             return new \WP_REST_Response(['ok' => true, 'codigo' => $codigo], 201);
 
         } catch (\Throwable $e) {
-            KamplesLogger::error('CodigoGratis::generar', $e->getMessage());
+            KamplesLogger::error('CodigoGratis::generar', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
@@ -148,7 +148,7 @@ class CodigoGratisController
             ]);
 
         } catch (\Throwable $e) {
-            KamplesLogger::error('CodigoGratis::verificar', $e->getMessage());
+            KamplesLogger::error('CodigoGratis::verificar', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
@@ -210,7 +210,7 @@ class CodigoGratisController
             ]);
 
         } catch (\Throwable $e) {
-            KamplesLogger::error('CodigoGratis::reclamar', $e->getMessage());
+            KamplesLogger::error('CodigoGratis::reclamar', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
@@ -241,7 +241,7 @@ class CodigoGratisController
             ]);
 
         } catch (\Throwable $e) {
-            KamplesLogger::error('CodigoGratis::invalidar', $e->getMessage());
+            KamplesLogger::error('CodigoGratis::invalidar', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
