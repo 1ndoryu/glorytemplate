@@ -1,9 +1,9 @@
 /*
- * [183A-73] Utilidad de descarga cross-platform para Kamples.
+ * [183A-73][183A-92] Utilidad de descarga cross-platform para Kamples.
  * En web: usa el patrón clásico <a download>.
- * En Capacitor (Android/iOS): hace fetch → base64 → Filesystem.writeFile (Cache) → Share.share.
- * No se usa Directory.Downloads porque en Android 11+ requiere WRITE_EXTERNAL_STORAGE.
- * Directory.Cache no requiere ningún permiso y Share permite al usuario guardar/compartir.
+ * En Capacitor (Android/iOS): fetch → base64 → Filesystem.writeFile(Documents).
+ * Directory.Documents no requiere permisos y es accesible desde el gestor de archivos.
+ * Ya no usa Share.share() — el usuario quiere "guardar", no "compartir".
  */
 
 import { esCapacitor } from './plataforma';
@@ -11,9 +11,10 @@ import { esCapacitor } from './plataforma';
 /**
  * Descarga un archivo dado su URL.
  * - En web: dispara <a href download>.
- * - En nativo (Capacitor): fetch → base64 → writeFile(Cache) → Share.
+ * - En nativo (Capacitor): fetch → base64 → writeFile(Documents).
+ * Retorna la URI del archivo guardado (nativo) o void (web).
  */
-export async function descargarArchivo(url: string, nombreArchivo: string): Promise<void> {
+export async function descargarArchivo(url: string, nombreArchivo: string): Promise<string | void> {
     if (!esCapacitor()) {
         /* Descarga web estándar */
         const a = document.createElement('a');
@@ -27,7 +28,6 @@ export async function descargarArchivo(url: string, nombreArchivo: string): Prom
 
     /* Descarga nativa en Capacitor (Android / iOS) */
     const { Filesystem, Directory } = await import('@capacitor/filesystem');
-    const { Share } = await import('@capacitor/share');
 
     /* Fetch del archivo */
     const respuesta = await fetch(url);
@@ -45,24 +45,20 @@ export async function descargarArchivo(url: string, nombreArchivo: string): Prom
     }
     const base64 = btoa(binario);
 
-    /* Escribir al cache (no requiere permisos en ninguna versión de Android) */
+    /* [183A-92] Guardar en Documents (accesible vía gestor de archivos, sin permisos).
+     * Subcarpeta Kamples/ para organización. */
+    await Filesystem.mkdir({
+        path: 'Kamples',
+        directory: Directory.Documents,
+        recursive: true,
+    }).catch(() => { /* ya existe — ignorar */ });
+
     const resultado = await Filesystem.writeFile({
-        path: nombreArchivo,
+        path: `Kamples/${nombreArchivo}`,
         data: base64,
-        directory: Directory.Cache,
+        directory: Directory.Documents,
         recursive: false,
     });
 
-    /* Obtener URI para compartir/guardar */
-    const uriInfo = await Filesystem.getUri({
-        path: nombreArchivo,
-        directory: Directory.Cache,
-    });
-
-    /* Invocar el diálogo nativo de share/guardar */
-    await Share.share({
-        title: nombreArchivo,
-        url: uriInfo.uri || resultado.uri,
-        dialogTitle: 'Guardar o compartir sample',
-    });
+    return resultado.uri;
 }

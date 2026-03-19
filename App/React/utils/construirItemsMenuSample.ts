@@ -60,13 +60,14 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
             onClick: () => d.navegar(rutaColeccionOriginal),
         }] : []),
         { id: 'coleccion', etiqueta: 'Añadir a colección', icono: ic(FolderPlus), onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
-        /* [183A-73] Descarga cross-platform: web usa <a>, nativo usa Filesystem+Share */
+        /* [183A-73][183A-92] Descarga cross-platform: web usa <a>, nativo guarda en Documentos */
         { id: 'descargar', etiqueta: 'Descargar archivo', icono: ic(Download), onClick: async () => {
             if (!requiereAuth()) return;
             try {
                 const resp = await descargarSample(s.id);
                 if (resp.ok && resp.data?.url) {
-                    await descargarArchivo(resp.data.url, resp.data.nombre || s.titulo || 'sample');
+                    const uri = await descargarArchivo(resp.data.url, resp.data.nombre || s.titulo || 'sample');
+                    if (uri) toast.exito('Sample guardado en Documentos/Kamples');
                 } else if (resp.status === 429 || resp.status === 403) {
                     toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
                 }

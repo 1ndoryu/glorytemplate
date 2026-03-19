@@ -105,8 +105,8 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
 
     /* ---- Callbacks de reacciones ---- */
 
-    /* [183A-73] Descarga con validacion de plan y feedback de error.
-     * En nativo (Capacitor Android) usa descargarArchivo → Filesystem + Share.
+    /* [183A-73][183A-92] Descarga con validacion de plan y feedback de error.
+     * En nativo (Capacitor Android) usa descargarArchivo → Filesystem.writeFile(Documents).
      * En web usa el patrón <a download>. */
     const manejarDescargar = useCallback(async () => {
         if (!sample) return;
@@ -114,7 +114,8 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
         if (resp.ok && resp.data?.url) {
             setDescargado(true);
             try {
-                await descargarArchivo(resp.data.url, resp.data.nombre || sample.titulo || 'sample');
+                const uri = await descargarArchivo(resp.data.url, resp.data.nombre || sample.titulo || 'sample');
+                if (uri) toast.exito('Sample guardado en Documentos/Kamples');
             } catch {
                 toast.error('Error al guardar el archivo');
             }
