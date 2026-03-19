@@ -14,6 +14,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigationStore } from '@/core/router';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import {
     useMenuContextualSample,
     EVENTO_SAMPLE_ELIMINADO,
@@ -481,6 +482,13 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         return samplesPostFiltro;
     }, [virtualizar, samplesPostFiltro, indiceInicio, maxRenderizados]);
 
+    /* [193A-23] Click en badge de tag desde TarjetaSample → búsqueda server-side.
+     * No usa manejarIncluirTag (filtro client-side) sino setBusqueda para que el
+     * proveedor recargue desde el servidor con ese tag como query FTS. */
+    const manejarBuscarTag = useCallback((tag: string) => {
+        useFiltrosStore.getState().setBusqueda(tag);
+    }, []);
+
     return {
         /* Estado de carga */
         cargando,
@@ -512,6 +520,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         setBpmRango,
         manejarIncluirTag,
         manejarExcluirTag,
+        manejarBuscarTag,
 
         /* Arrastre de tags */
         listaTagsRef,
