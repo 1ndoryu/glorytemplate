@@ -48,13 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-84
-
-Correo electronicos de bievenida, 
-verificar que el correo de cambio de contraseña funcione
-cambiar la contraseña del usuario de id 4 en el servidor a la que puse dentro de temp\contrasena.sh
-
-
 ## 183A-87
 
 En la aplicacion de escritorio al intentar suscribirse al premiun, al regresar, se deslogea bueno, no se exactamente, aparece el landing deslogeado, pero si cierro la aplicación y la vuelvo abrir, vuelvo a estar logeada. 
@@ -141,6 +134,12 @@ main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> cd "c:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs" ; .\target\release\coolify-manager.exe deploy --name kamples --update 
 
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
+
+## 193A-43 (en planificacion)
+
+en temp\apis.sh agrege 3 apis de groq, 
+lo que vamos a hacer es aumentar la velocidad de la cola de ia, creo que actualmente hay un gap para la generacion metadata de los samples de 3 o 2 minutos, vamos a reducirlo a 1 minuto, pero vamos a incorporar un rotamiento de api, o sea, usa las 3 api para cada, 1 api por cada ejecucion y rota, asi se distribuye el gasto entre 3 personas y se evitan menos rate limits, es general para todos los procesamientos que usen IA, tienes que subir las 3 api al vps 
+
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
