@@ -147,10 +147,6 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-36 
-
-si voy a blog, las tabs de la pagina desaparecen :/ pero el problema es que cuando voy a blog, en vez de ir a https://kamples.com/?tab=blog  va a /blog, igualmente blog deberia tenga las tabs de inicio que son Inicio y Blog unicamente (cuando se esta logeado)
-
 ## 193A-37
 
 otro problema, en el inicio cuando se hace una busqueda no hay una forma de quitarla y el usuario navegag por las colecciones con la busqueda activa, lo que hay que hacer es que cuando la tab sea coleccion, o musica, buscador aparezca al lado de navPublicoDerecha, todo a la derecha, con el valor de busqueda asi el usuario ve y puede editar, pero si esta en el home la ve en el landing (esto solo es para el landing deslogeado osea publica)
