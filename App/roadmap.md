@@ -43,6 +43,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-109 (Fases 1-5):** Sistema de blog completo — CRUD artículos, categorías, likes, moderación, feed. 2026-03-19.
 - **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
 - **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creación corregidos. 2026-03-19.
+- **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array→{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
 
 ## Tareas pendientes
 
@@ -122,10 +123,6 @@ En la apk no puedo hacer scroll horizontal en filaColecciones, arreglar sin dañ
 
 No he pensando ni he revisado esto. Si el servidor da 500 o error, por un momento es innacesible, kamples esta caido. ¿Que pasa con el sync? Lo mas logico es que la subida se pause 5 muntos, e intente la conexion, sino, vuelva a pausar y asi sucesivamente, hasta que el servidor vuelva a estar disponible. Esto hay que revisarlo bien porque hay que protejer que cuando el modo de borrar tras subida este activo, no haya perdida de datos.
 
-## 193A-9-D (Prioritario)
-
-El articulo dice que fue a moderación pero no me sale en panel admin en la tab de moderacion!
-
 ## 193A-10 
 
 Funcionalidad de volumenes en colecciones
@@ -167,7 +164,13 @@ main-D9yMEjua.js:891 [Kamples] 03:31:18 [ERROR] ApiCliente: GET /ws/ticket → f
     at Px (main-D9yMEjua.js:905:32538)
     at main-D9yMEjua.js:905:33260
 
+## 193A-16 (prioritario)
 
+Publique un articulo con imagen pero no aparece la imagen en la portada ni en la vista del articulo. 
+
+## 193A-17 
+
+https://kamples.com/wp-content/uploads/kamples/3/2026/03/VygLX7q_waveform.json?v=acb7b775ac928f287576b28ad15a68604fac337cf5d85532dd1e46c8bfbb87e1 las waveform debería cachearse por 1 mes al menos que cambien o algo, nunca cambian, lo que cambia es el audio y por lo tanto su waveform. 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
