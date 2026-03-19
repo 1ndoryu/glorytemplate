@@ -18,9 +18,10 @@ import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUAL
 import {
     Play, Eye, FolderPlus, Download, User, Link, Sparkles, PanelRight,
     ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2, FolderTree,
-    Search, Trash2, Flag, Gift, ShieldOff,
+    Search, Trash2, Flag, Gift, ShieldOff, AudioLines,
 } from 'lucide-react';
 import { generarCodigo, invalidarCodigo } from '@app/services/apiCodigosGratis';
+import { descargarWaveformSvg } from '@app/utils/descargarWaveformSvg';
 
 export interface DepsMenuSample {
     sample: SampleResumen;
@@ -77,6 +78,16 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
                 }
             } catch { toast.error('Error de red al descargar'); }
         }},
+        /* [183A-94] Descargar waveform como SVG blanco */
+        ...(s.rutaWaveform ? [{
+            id: 'descargar-svg',
+            etiqueta: 'Descargar waveform SVG',
+            icono: ic(AudioLines),
+            onClick: async () => {
+                const ok = await descargarWaveformSvg(s.rutaWaveform, s.titulo || 'waveform');
+                if (!ok) toast.error('No se pudo generar el SVG de la waveform');
+            },
+        }] : []),
         { id: 'creador', etiqueta: `Ir a ${s.creador.nombreVisible || s.creador.username}`, icono: ic(User), href: `/perfil/${s.creador.username}/`, onClick: () => d.navegar(`/perfil/${s.creador.username}/`) },
         { id: 'compartir', etiqueta: 'Copiar enlace', icono: ic(Link), onClick: () => d.copiarAlPortapapeles(`${window.location.origin}/sample/${s.slug}/`) },
         { id: 'sugerencias', etiqueta: 'También te podría gustar', icono: ic(Sparkles), onClick: () => d.abrirSugerencias(s) },
