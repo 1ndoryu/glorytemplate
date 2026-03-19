@@ -42,7 +42,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-97+183A-101+183A-107+183A-103+183A-105+183A-102+183A-106+183A-110+183A-112+183A-113:** Admin perfil links; estilos varios; descargas gratis con código; seguridad v067; fix colecciones gratis; hover like/guardar. 2026-03-19.
 - **183A-109 (Fases 1-5):** Sistema de blog completo — CRUD artículos, categorías, likes, moderación, feed. 2026-03-19.
 - **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
-- **193A-8+193A-9+193A-6:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok. 2026-03-19.
+- **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creación corregidos. 2026-03-19.
 
 ## Tareas pendientes
 
@@ -122,15 +122,9 @@ En la apk no puedo hacer scroll horizontal en filaColecciones, arreglar sin dañ
 
 No he pensando ni he revisado esto. Si el servidor da 500 o error, por un momento es innacesible, kamples esta caido. ¿Que pasa con el sync? Lo mas logico es que la subida se pause 5 muntos, e intente la conexion, sino, vuelva a pausar y asi sucesivamente, hasta que el servidor vuelva a estar disponible. Esto hay que revisarlo bien porque hay que protejer que cuando el modo de borrar tras subida este activo, no haya perdida de datos.
 
-## 193A-9-B (Prioritario)
+## 193A-9-D (Prioritario)
 
-Todos los articulos dicen "Artículo no encontrado"
-
-los articulos no tienen skeleton y tardan en cargar, optmizar
-
-dice Demasiados artículos. Intenta más tarde. y no he publicado nada
-/wp-json/kamples/v1/articulos:1  Failed to load resource: the server responded with a status of 429 ()
-
+El articulo dice que fue a moderación pero no me sale en panel admin en la tab de moderacion!
 
 ## 193A-10 
 
@@ -148,6 +142,30 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
+## 193A-12
+
+PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> cd "c:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs" ; .\target\release\coolify-manager.exe deploy --name kamples --update 
+
+tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
+
+## 193A-13 (prioritario)
+
+en modo dev, solo espero que en modo produccion o pase lo mismo!!!
+apiCliente.ts:134  GET http://glory.local/wp-json/kamples/v1/articulos/dev-articulo-mezcla 404 (Not Found)
+apiCliente.ts:134  GET http://glory.local/wp-json/kamples/v1/articulos/dev-articulo-mezcla 404 (Not Found)
+
+## 193A-14 (prioritario)
+
+ESTO PUEDE QUE TENGA QUE VER CON LA PENULTIMA TAREA
+
+main-D9yMEjua.js:891 
+ GET https://kamples.com/wp-json/kamples/v1/ws/ticket net::ERR_CONNECTION_CLOSED
+
+main-D9yMEjua.js:891 [Kamples] 03:31:18 [ERROR] ApiCliente: GET /ws/ticket → fallo TypeError: Failed to fetch
+    at _n (main-D9yMEjua.js:891:4100)
+    at ye (main-D9yMEjua.js:891:5393)
+    at Px (main-D9yMEjua.js:905:32538)
+    at main-D9yMEjua.js:905:33260
 
 
 
