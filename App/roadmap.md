@@ -100,16 +100,13 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-81:** Completada 2026-03-19. Fuzzy search con pg_trgm word_similarity() — typos ("hihatt"→"hihat", "snarre"→"snare") ahora encuentran resultados. Aplicado en listar() y feed(). Config fuzzy_boost=0.6.
 - **183A-92:** Completada 2026-03-19. Descarga APK guarda en Documents/Kamples/ en vez de abrir Share sheet. Toast de confirmación.
 - **183A-88:** Completada 2026-03-19. Imágenes colecciones optimizadas con ImgOptimizada (Photon CDN) en FilaColecciones, ColeccionDetalle, ModalSeleccion, PanelSugerencias.
+- **183A-77:** Completada 2026-03-19. Navegación SPA preserva query string — búsqueda landing ahora pasa ?buscar= a /descubrir/.
 
 ## Tareas pendientes
 
 ## 183A-74
 
 Tirar hacia arriba para recargar en las publicaciones y lista de samples funciona mal o sea, debería activarse solo cuando se esta arriba el scroll, no cuando se esta bajando y despues se quiere subir, por cierto, es raro en la web movil si funciona en la lista de samples pero en la apk ese gesto no funciona, si funciona en las publicaciones. 
-
-## 183A-77
-
-la busqueda no funciona, la del landing sin logearse, redirige a descubrir pero sin busqueda ni nada ni nada en la url 
 
 ## 183A-78
 
@@ -126,7 +123,7 @@ cambiar la contraseña del usuario de id 4 en el servidor a la que puse dentro d
 
 En la aplicacion de escritorio al intentar suscribirse al premiun, al regresar, se deslogea bueno, no se exactamente, aparece el landing deslogeado, pero si cierro la aplicación y la vuelvo abrir, vuelvo a estar logeada. 
 
-## 183A-84
+## 183A-(no se que numero va)
 
 Cuidado con esto, tengo este proyecto en este repositorio que es una rama de glorytemplate pero tambien tengo https://github.com/1ndoryu/kamples-sync que es una copia de esta rama, lo que vamos a hacer es actualizar https://github.com/1ndoryu/kamples-sync con los ulitmos cambios de esta rama, o sea sin afectar esta rama de glorytemplate ni hacer nada raro. Revisasr que hay una licencia de codigo abierto de las mas restrintivas.
 
@@ -138,8 +135,20 @@ El modal de busqueda tarda demasiado en aparecer, parece que necesita optimizaci
 
 Agregar una opción en los menu contextual de los samples para decargar en svg las waveform, necesito esto, que se descarguen en color blanco. 
 
+## 183A-95
+
+Dice error de red al descargar en la apk,  "183A-92"
+
+## 183A-96
+
+El sistema de compra de samples no se ha auditado bien
+
+falta un tab en el perfil del usuario que solamente pueda ver el de ganancias, la agregaremos pero la agregaremos con un estadoVacio de "Esto estará disponible pronto para que generes gancias a partir de tus samples y contribucciones", mientras tanto yo ocmo admin podre ver el panel para testarearlo antes de que todos los usuarios puedan. 
+
+Agregaras datos de prueba para el usuario 1 simulando ventas de samples publicados, una configu para agregar gmail de paypal para retirar ganancias y verificar las compras de samples guarden toda la informacion necesaria, valor, quien lo compro, 
+
 ## Tarea final cuando completes todo
 
 1. rehacer el instalador de la aplicación de escritorio 
 3. indicarme donde esta en nuevo instalador
-4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, 
+4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. 
