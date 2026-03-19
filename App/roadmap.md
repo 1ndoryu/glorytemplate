@@ -155,10 +155,6 @@ Cuando se de like aparece "Te mostraremos más samples como este."
 
 La alerta no aplica para los like de coleccionnes y publicaicones de comunidad.
 
-## 193A-33 
-
-El algoritmo tiene un sesgo de por ejemplo, si doy like a 5 samples que son kick, todos los samples que me mostrará son de kick, entiendo, el algoritmo funciona pero esto es molesto, basicamente no hay diversidad, si el usuario tambine le ha dado like a samples de guitarra y violin, no apareceran, tiene que haber alguna manera de balancear los gustos del usuario si que sea costoso computacionalmente.
-
 ## 193A-34
 
 parace que no se estan aplicando normalizacion para tarjetaMeta, veo vocals y luego veo vocal de tag en tarjetaMeta, esta mal, lo que si veo normalizado son las feedtag pero deberia la misma normalizacion, 
@@ -171,6 +167,15 @@ coherentemente tiene que contar como vocals tambien, su busco guitar, tambien cu
 La busqueda, funciona mal
 
 por ejemplo busco "Tommy Wright III" no encuentra nada pero si hay samples que tienen esa tag en la metadata ia, hay que mejorar para que se enriquezca de todas las metadatas que tenga el sample (evitar informacion privada o confidencial), y tambien es importante saber que no toda la informacion de un sample es igual de importante que otra, o esa, hay que tener criterio, crea una documetacion de esto de que cosa toma en cuenta la busqueda y que faltaría. 
+
+## 193A-36 
+
+si voy a blog, las tabs de la pagina desaparecen :/ pero el problema es que cuando voy a blog, en vez de ir a https://kamples.com/?tab=blog  va a /blog, igualmente blog deberia tenga las tabs de inicio que son Inicio y Blog unicamente (cuando se esta logeado)
+
+## 193A-37
+
+otro problema, en el inicio cuando se hace una busqueda no hay una forma de quitarla y el usuario navegag por las colecciones con la busqueda activa, lo que hay que hacer es que cuando la tab sea coleccion, o musica, buscador aparezca al lado de navPublicoDerecha, todo a la derecha, con el valor de busqueda asi el usuario ve y puede editar, pero si esta en el home la ve en el landing (esto solo es para el landing deslogeado osea publica)
+
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
