@@ -147,10 +147,6 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-26
-
-la waveform en la tab de duplicados sale de color negro en vez de blanco en el panel de admin
-
 ## 193A-27
 
 sobre cola
@@ -172,7 +168,7 @@ pero no los veo publicadados
 
 ## 193A-28
 
-La primera pagina de los samples siempre es la misma, no la veo cambiar, antes habia comentado que debe cargar cacheada primero para una carga rapida pero luego actualizarse
+La primera pagina de los samples siempre es la misma, no la veo cambiar, antes habia comentado que debe cargar cacheada primero para una carga rapida pero luego actualizarse con los datos reales pero esto no pasa, la primera pagina esta congelada y solo veo cosas interesantes en la segunda.
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
