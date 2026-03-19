@@ -111,14 +111,26 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         manejarSeek,
     } = useAudioPlayback({ sample, contexto, onPlay, onPause, onSeek });
 
-    /* Like / Reaccion */
+    /* Like / Reaccion
+     * [193A-32] Toast de feedback al dar like/dislike en samples.
+     * Solo aplica a samples (no colecciones ni publicaciones de comunidad).
+     * manejarLike (click directo): toggle — toast solo al dar like nuevo (no al quitar).
+     * manejarReaccion (tooltip): toast segun tipo de reaccion. */
     const manejarLike = useCallback((e: MouseEvent) => {
         e.stopPropagation();
+        if (!sample.liked && !sample.reaccion) {
+            toast.info('Te mostraremos más samples como este');
+        }
         onLike?.(sample.id);
-    }, [onLike, sample.id]);
+    }, [onLike, sample.id, sample.liked, sample.reaccion]);
 
     const manejarReaccion = useCallback((reaccion: TipoReaccion) => {
         onLike?.(sample.id, reaccion);
+        if (reaccion === 'dislike') {
+            toast.info('Te mostraremos menos samples como esto');
+        } else {
+            toast.info('Te mostraremos más samples como este');
+        }
     }, [onLike, sample.id]);
 
     const manejarQuitarReaccion = useCallback(() => {

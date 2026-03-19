@@ -30,14 +30,19 @@ export function useFeedLikes({ samples, setSamples, invalidarCache, onLike }: Us
         if (reaccion) {
             const eraPositivo = sampleRef?.reaccion === 'like' || sampleRef?.reaccion === 'encanta';
             const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setSamples(prev =>
-                prev.map(s =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s,
-                ),
-            );
+            /* [193A-32] Dislike oculta el sample del feed */
+            if (!esPositivo) {
+                setSamples(prev => prev.filter(s => s.id !== sampleId));
+            } else {
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setSamples(prev =>
+                    prev.map(s =>
+                        s.id === sampleId
+                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                            : s,
+                    ),
+                );
+            }
             invalidarCache();
             window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId, liked: esPositivo, reaccion } }));
             await darLike('sample', sampleId, reaccion);
@@ -76,6 +81,11 @@ export function useFeedLikes({ samples, setSamples, invalidarCache, onLike }: Us
     useEffect(() => {
         const manejar = (e: Event) => {
             const { sampleId, liked, reaccion: reac } = (e as CustomEvent<{ sampleId: number; liked: boolean; reaccion?: TipoReaccion | null }>).detail;
+            /* [193A-32] Dislike oculta el sample */
+            if (reac === 'dislike') {
+                setSamples(prev => prev.filter(s => s.id !== sampleId));
+                return;
+            }
             setSamples(prev => prev.map(s => {
                 if (s.id !== sampleId || s.liked === liked) return s;
                 return { ...s, liked, reaccion: reac ?? (liked ? 'like' : null) };

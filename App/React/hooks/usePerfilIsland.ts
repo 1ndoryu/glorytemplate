@@ -221,13 +221,18 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
             if (reaccion) {
                 const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
                 const esPositivo = reaccion !== 'dislike';
-                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                setSamplesPerfil(prev =>
-                    prev.map(s => s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s
-                    )
-                );
+                /* [193A-32] Dislike oculta el sample del listado */
+                if (!esPositivo) {
+                    setSamplesPerfil(prev => prev.filter(s => s.id !== sampleId));
+                } else {
+                    const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                    setSamplesPerfil(prev =>
+                        prev.map(s => s.id === sampleId
+                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                            : s
+                        )
+                    );
+                }
                 await darLike('sample', sampleId, reaccion);
             } else if (estabaLiked || reaccionAnterior) {
                 const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';

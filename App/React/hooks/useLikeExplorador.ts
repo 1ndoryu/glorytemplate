@@ -25,14 +25,19 @@ export function useLikeExplorador(
         if (reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
             const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setTodosSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s
-                )
-            );
+            /* [193A-32] Dislike oculta el sample del listado */
+            if (!esPositivo) {
+                setTodosSamples(prev => prev.filter(s => s.id !== sampleId));
+            } else {
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setTodosSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                            : s
+                    )
+                );
+            }
             try {
                 const resp = await darLike('sample', sampleId, reaccion);
                 if (!resp.ok) {
