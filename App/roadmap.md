@@ -147,64 +147,13 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-21
+## 193A-23 (Prioridad alta)
 
-cuando voy a un post directamente https://kamples.com/post/12/ da 404 (porque no son post son publicaciones, ejemplo https://kamples.com/publicacion/7/) sale post en las notificaciones cuando das click para ir. Revisar todos los enlaces de las notificaciones
+EL MECANISMO DE LOS TAGS SE DAÑO; LOS TAGS POR ALGUNA EXTRAÑA RAZON SOLO FILTRA Y EMPIEZAN A CARGAR PAGINAS Y PAGINAS VACIAS; ESTO NO TIENE SENTIDO; SE DICTO QUE CUANDO SE DE CLICK A UN TAG YA SEA EN LOS SAMPLES; EN FEEDTAG; EN CUALQUIER LUGAR; HAGA UNA BUSQUEDA; LA PARTICULARIDAD UNICA ES QUE SI UNA BUSQUEDA ES APARTIR DE UN TAG QUE SE CLICKEO; NO ABRE EL MODAL DE BUSQUEDA RAPIDA.
 
-## 193A-22 (Prioridad alta)
+## 193A-24 (Prioridad alta)
 
-Me empezo a salir esto, lo cerre inmediato, es el sync local, antes funcionaba bien y subía a producción.
-
-apiDesktopAdapter.ts:241  PUT http://localhost:1420/wp-json/kamples/v1/me/coleccionados/2551/carpeta 403 (Forbidden)
-window.fetch @ apiDesktopAdapter.ts:241
-moverSampleEnServidor @ syncWatcherSetup.ts:423
-moverSampleEnServidorPublico @ syncWatcherSetup.ts:455
-subirArchivo @ uploadQueueService.ts:1159
-syncLogger.ts:201 [Sync] Error moviendo sample en servidor: 2551 {code: 'no_autorizado', message: 'No tienes acceso a este sample.'}
-(anonymous) @ syncLogger.ts:201
-moverSampleEnServidor @ syncWatcherSetup.ts:434
-await in moverSampleEnServidor
-moverSampleEnServidorPublico @ syncWatcherSetup.ts:455
-subirArchivo @ uploadQueueService.ts:1159
-syncLogger.ts:201 [UploadQueue] Subido exitosamente: Kingpin Skinny Pimp - Y'all Ain't No Killaz 154bpm 04.wav → sample_id: 2551
-syncLogger.ts:290 [sync:uploadQueue] Archivo local borrado tras subida: Kingpin Skinny Pimp - Y'all Ain't No Killaz 154bpm 04.wav 
-syncLogger.ts:201 [UploadQueue] Archivo ya en cola, ignorando: 𝔐𝔢𝔪𝔭𝔥𝔦𝔰 𝔄𝔠𝔞𝔭𝔢𝔩𝔩𝔞𝔰 - Killa.wav
-syncLogger.ts:290 [sync:syncWatcher] Escaneo local completado {directoriosEscaneados: 158, audiosDetectados: 1214, encolados: 0, yaSincronizados: 0, staleLegacyLimpiados: 0, …}
-syncLogger.ts:290 [sync:watcher] Eliminación detectada (esperando 5000ms por posible move): C:\Users\Owner\OneDrive\Documentos\test\DOOMVIBE! DRUM KIT\ACAPELLAS\Kingpin Skinny Pimp - Y'all Ain't No Killaz 154bpm 04.wav 
-syncLogger.ts:201 [SyncCollection] Sample agregado a colección: 2552 → col: 41
-apiDesktopAdapter.ts:241  PUT http://localhost:1420/wp-json/kamples/v1/me/coleccionados/2552/carpeta 403 (Forbidden)
-window.fetch @ apiDesktopAdapter.ts:241
-moverSampleEnServidor @ syncWatcherSetup.ts:423
-moverSampleEnServidorPublico @ syncWatcherSetup.ts:455
-subirArchivo @ uploadQueueService.ts:1159
-await in subirArchivo
-procesarItemUpload @ uploadQueueService.ts:749
-procesarCola @ uploadQueueService.ts:722
-syncLogger.ts:201 [Sync] Error moviendo sample en servidor: 2552 {code: 'no_autorizado', message: 'No tienes acceso a este sample.'}
-(anonymous) @ syncLogger.ts:201
-moverSampleEnServidor @ syncWatcherSetup.ts:434
-await in moverSampleEnServidor
-moverSampleEnServidorPublico @ syncWatcherSetup.ts:455
-subirArchivo @ uploadQueueService.ts:1159
-await in subirArchivo
-procesarItemUpload @ uploadQueueService.ts:749
-procesarCola @ uploadQueueService.ts:722
-syncLogger.ts:201 [UploadQueue] Subido exitosamente: Killin' After Midnight 02 84.500.wav → sample_id: 2552
-syncLogger.ts:290 [sync:uploadQueue] Archivo local borrado tras subida: Killin' After Midnight 02 84.500.wav 
-syncLogger.ts:290 [sync:watcher] Eliminación detectada (esperando 5000ms por posible move): C:\Users\Owner\OneDrive\Documentos\test\DOOMVIBE! DRUM KIT\ACAPELLAS\Killin' After Midnight 02 84.500.wav 
-syncLogger.ts:290 [sync:watcher] Eliminación confirmada (no fue move): C:\Users\Owner\OneDrive\Documentos\test\DOOMVIBE! DRUM KIT\ACAPELLAS\Kingpin Skinny Pimp - Y'all Ain't No Killaz 154bpm 04.wav 
-syncLogger.ts:201 [SyncCollection] Sample agregado a colección: 2553 → col: 41
-apiDesktopAdapter.ts:241  PUT http://localhost:1420/wp-json/kamples/v1/me/coleccionados/2553/carpeta 403 (Forbidden)
-window.fetch @ apiDesktopAdapter.ts:241
-moverSampleEnServidor @ syncWatcherSetup.ts:423
-moverSampleEnServidorPublico @ syncWatcherSetup.ts:455
-subirArchivo @ uploadQueueService.ts:1159
-await in subirArchivo
-procesarItemUpload @ uploadQueueService.ts:749
-procesarCola @ uploadQueueService.ts:722
-syncLogger.ts:201 [Sync] Error moviendo sample en servidor: 2553 {code: 'no_autorizado', message: 'No tienes acceso a este sample.'}
-syncLogger.ts:201 [UploadQueue] Subido exitosamente: Kingpin Skinny Pimp - Y'all Ain't No Killaz 154bpm 03.wav → sample_id: 2553
-syncLogger.ts:290 [sync:uploadQueue] Archivo local borrado tras subida: Kingpin Skinny Pimp - Y'all Ain't No Killaz 154bpm 03.wav 
+Sobre apiDesktopAdapter.ts:241  PUT http://localhost:1420/wp-json/kamples/v1/me/coleccionados/2552/carpeta 403 (Forbidden) porque intenta hacer put alli y no a kamples.com??
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
