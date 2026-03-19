@@ -48,10 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-94
-
-Agregar una opción en los menu contextual de los samples para decargar en svg las waveform, necesito esto, que se descarguen en color blanco. 
-
 ## 183A-95
 
 Dice error de red al descargar en la apk,  "183A-92"
