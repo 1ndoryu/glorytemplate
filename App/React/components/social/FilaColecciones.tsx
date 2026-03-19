@@ -60,7 +60,7 @@ export const FilaColecciones = (): JSX.Element | null => {
                         className="filaColeccionImg"
                         src={col.imagenUrl || obtenerImagenColorPorTexto(col.nombre)}
                         alt=""
-                        w={80}
+                        w={200}
                         quality={75}
                     />
                     <div className="filaColeccionOverlay">
