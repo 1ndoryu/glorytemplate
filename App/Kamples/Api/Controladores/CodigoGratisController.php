@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /* [183A-106] Controlador para codigos de descarga gratuita.
  * Permite al admin generar codigos que dan acceso de descarga gratis a un sample/coleccion.

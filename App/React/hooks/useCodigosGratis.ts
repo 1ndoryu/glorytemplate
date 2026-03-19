@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Hook: useCodigosGratis â€” Kamples (183A-106)
  * Detecta el param ?codigoGratis= en la URL actual y lo gestiona:
  * - Si el usuario esta autenticado: llama a reclamar en backend + guarda en store.

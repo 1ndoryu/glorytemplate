@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Servicio: apiCodigosGratis â€” Kamples (183A-106)
  * Gestiona codigos de descarga gratuita generados por admin.
  * Flujo: admin genera codigo â†’ comparte URL â†’ usuario reclama â†’ descarga sin limite.
