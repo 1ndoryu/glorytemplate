@@ -1,0 +1,170 @@
+/*
+ * blog.css — Kamples (183A-109 + 183A-110-A)
+ * Layout del listado de artículos del blog.
+ * Grid 4 columnas centrado con secciones por categoría.
+ */
+
+.blogContenedor {
+    width: min(100%, var(--landingAnchoMaximo));
+    margin: 0 auto;
+    padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXl);
+}
+
+/* Cabecera con título y filtros */
+.blogCabecera {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.blogTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold, 700);
+    color: var(--textoPrimario);
+}
+
+/* Navegación de categorías */
+.blogCategorias {
+    display: flex;
+    gap: var(--espacioXs);
+    overflow-x: auto;
+    padding-bottom: var(--espacioXs);
+    scrollbar-width: none;
+}
+
+.blogCategorias::-webkit-scrollbar {
+    display: none;
+}
+
+.blogCategoriaGrupo {
+    display: flex;
+    gap: var(--espacioXs);
+    align-items: center;
+}
+
+.blogCategoriaGrupo + .blogCategoriaGrupo::before {
+    content: '';
+    width: 1px;
+    height: 16px;
+    background-color: var(--bordeSutil);
+    margin: 0 var(--espacioXs);
+    flex-shrink: 0;
+}
+
+.blogCategoriaBtn {
+    padding: var(--espacioXs) var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    background: none;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.blogCategoriaBtn:hover {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+}
+
+.blogCategoriaBtnActivo {
+    background-color: var(--acento);
+    border-color: var(--acento);
+    color: var(--blanco);
+}
+
+.blogCategoriaBtnActivo:hover {
+    background-color: var(--acento);
+    border-color: var(--acento);
+    color: var(--blanco);
+}
+
+/* Grid de artículos */
+.blogGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--espacioMd);
+}
+
+/* Sección por categoría */
+.blogSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.blogSeccionTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    text-transform: capitalize;
+}
+
+/* Estado vacío */
+.blogVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioXxl, 64px) 0;
+    color: var(--textoTerciario);
+    text-align: center;
+}
+
+.blogVacioTexto {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+}
+
+/* Loader - skeleton */
+.blogSkeleton {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--espacioMd);
+}
+
+.blogSkeletonItem {
+    aspect-ratio: 3 / 4;
+    background-color: var(--fondoElevado1);
+    border-radius: var(--radioMd);
+    animation: blogSkeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes blogSkeletonPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+/* Botón cargar más */
+.blogCargarMas {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioLg) 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .blogGrid,
+    .blogSkeleton {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .blogGrid,
+    .blogSkeleton {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .blogGrid,
+    .blogSkeleton {
+        grid-template-columns: 1fr;
+    }
+}

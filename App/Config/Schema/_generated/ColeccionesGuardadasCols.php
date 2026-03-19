@@ -14,6 +14,6 @@ final class ColeccionesGuardadasCols
     const COLECCION_ID = 'coleccion_id';
     const CREATED_AT = 'created_at';
 
-    /* Lista completa de columnas para validacion */
+    /* Lista completa de columnas para validación */
     const TODAS = ['id', 'usuario_id', 'coleccion_id', 'created_at'];
 }

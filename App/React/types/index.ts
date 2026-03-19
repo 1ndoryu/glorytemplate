@@ -63,6 +63,14 @@ export type {
 } from './coleccion';
 
 export type {
+    Articulo,
+    ArticuloResumen,
+    CategoriaArticulo,
+    ModeracionEstadoArticulo,
+    EmbedArticulo,
+} from './articulo';
+
+export type {
     Cancion,
     CancionResumen,
     ArtistaMusicale,

@@ -39,7 +39,9 @@ final class UsuariosExtDTO
         public readonly ?string $suspendidoHasta,
         public readonly ?string $suspensionRazon,
         public readonly ?string $marcadoEliminacionEn,
-        public readonly ?string $seraEliminadoEn
+        public readonly ?string $seraEliminadoEn,
+        public readonly ?string $registroIp,
+        public readonly ?string $paypalEmail
     ) {}
 
     /**
@@ -80,7 +82,9 @@ final class UsuariosExtDTO
             suspendidoHasta: isset($row['suspendido_hasta']) ? $row['suspendido_hasta'] : null,
             suspensionRazon: isset($row['suspension_razon']) ? $row['suspension_razon'] : null,
             marcadoEliminacionEn: isset($row['marcado_eliminacion_en']) ? $row['marcado_eliminacion_en'] : null,
-            seraEliminadoEn: isset($row['sera_eliminado_en']) ? $row['sera_eliminado_en'] : null
+            seraEliminadoEn: isset($row['sera_eliminado_en']) ? $row['sera_eliminado_en'] : null,
+            registroIp: isset($row['registro_ip']) ? $row['registro_ip'] : null,
+            paypalEmail: isset($row['paypal_email']) ? $row['paypal_email'] : null
         );
     }
 
@@ -129,6 +133,8 @@ final class UsuariosExtDTO
             'suspendido_hasta' => $this->suspendidoHasta,
             'suspension_razon' => $this->suspensionRazon,
             'marcado_eliminacion_en' => $this->marcadoEliminacionEn,
-            'sera_eliminado_en' => $this->seraEliminadoEn];
+            'sera_eliminado_en' => $this->seraEliminadoEn,
+            'registro_ip' => $this->registroIp,
+            'paypal_email' => $this->paypalEmail];
     }
 }

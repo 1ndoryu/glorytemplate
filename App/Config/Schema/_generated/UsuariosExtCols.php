@@ -41,9 +41,7 @@ final class UsuariosExtCols
     const SUSPENSION_RAZON = 'suspension_razon';
     const MARCADO_ELIMINACION_EN = 'marcado_eliminacion_en';
     const SERA_ELIMINADO_EN = 'sera_eliminado_en';
-    /* [183A-69] IP de registro para detectar cuentas múltiples desde la misma IP. */
     const REGISTRO_IP = 'registro_ip';
-    /* [183A-96] Email PayPal para retiros de ganancias. */
     const PAYPAL_EMAIL = 'paypal_email';
 
     /* Lista completa de columnas para validación */

@@ -179,6 +179,17 @@ PageManager::registrarRutaDinamica('artista', ':slug');
 PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');
 
+/* [183A-109] Blog — listado de artículos y detalle por slug */
+PageManager::reactPage('blog', 'BlogPageIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $idx = array_search('blog', $partes);
+    $slug = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
+    return ['slug' => sanitize_text_field($slug)];
+});
+
+PageManager::registrarRutaDinamica('blog', ':slug');
+
 /* Paginas legales */
 PageManager::reactPage('privacy', 'PrivacidadIsland');
 PageManager::reactPage('terms', 'TerminosIsland');

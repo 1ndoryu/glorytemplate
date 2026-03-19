@@ -21,6 +21,33 @@ export interface IAlgoritmoEstado {
   versionPerfil: number
 }
 
+export interface IArticulosLikes {
+  usuarioId: number
+  articuloId: number
+  createdAt: string
+}
+
+export interface IArticulos {
+  id: number
+  autorId: number
+  titulo: string
+  slug: string
+  contenido: string
+  extracto: string
+  portadaUrl: string | null
+  categoria: 'inspiracion' | 'mastering' | 'mezcla' | 'promocion-musical' | 'teoria-musical' | 'grabacion' | 'sampling' | 'diseno-sonoro' | 'herramientas' | 'ableton-live' | 'bitwig-studio' | 'cubase' | 'fl-studio' | 'garageband' | 'logic-pro' | 'pro-tools' | 'studio-one' | 'drops-gratis' | 'midi-gratis' | 'plugins-gratis' | 'presets-gratis' | 'proyectos-gratis' | 'sonidos-gratis' | 'entrevistas' | 'destacados' | 'noticias'
+  embeds: Record<string, unknown>
+  descargaPublica: boolean
+  totalLikes: number
+  totalComentarios: number
+  moderacionEstado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado'
+  moderacionRazon: string | null
+  createdAt: string
+  updatedAt: string
+  publicadoEn: string | null
+  eliminadoEn: string | null
+}
+
 export interface IArtistasMusicales {
   id: number
   nombre: string
@@ -112,6 +139,20 @@ export interface IColaProcesamientoIa {
   createdAt: string
 }
 
+export interface IColeccionesGuardadas {
+  id: unknown
+  usuarioId: number
+  coleccionId: number
+  createdAt: string
+}
+
+export interface IColeccionesLikes {
+  id: number
+  usuarioId: number
+  coleccionId: number
+  createdAt: string
+}
+
 export interface IColecciones {
   id: number
   usuarioId: number
@@ -178,6 +219,7 @@ export interface IContribucionesPendientes {
 
 export interface IConversaciones {
   id: number
+  aceptada: boolean
   ultimoMensajeAt: string
   createdAt: string
 }
@@ -260,6 +302,17 @@ export interface IPublicaciones {
   moderacionRazon: string | null
   updatedAt: string
   eliminadoEn: string | null
+}
+
+export interface IPushSubscriptions {
+  id: number
+  usuarioId: number
+  endpoint: string
+  auth: string
+  plataforma: string
+  activa: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 export interface IRelacionesSample {
@@ -392,7 +445,7 @@ export interface ISuscripciones {
 export interface ISyncChangelog {
   id: number
   usuarioId: number
-  tipo: 'sample_added' | 'sample_removed' | 'sample_updated' | 'collection_created' | 'collection_renamed' | 'collection_deleted'
+  tipo: 'sample_added' | 'sample_removed' | 'sample_updated' | 'collection_created' | 'collection_renamed' | 'collection_deleted' | 'collection_merged'
   entidadId: number
   metadata: Record<string, unknown>
   createdAt: string
@@ -446,6 +499,7 @@ export interface IUsuariosExt {
   suspensionRazon: string | null
   marcadoEliminacionEn: string | null
   seraEliminadoEn: string | null
+  registroIp: string | null
   paypalEmail: string | null
 }
 
@@ -469,6 +523,35 @@ export const AlgoritmoEstadoCols = {
   ULTIMO_PRECISO: 'ultimo_preciso',
   ULTIMA_ACTIVIDAD: 'ultima_actividad',
   VERSION_PERFIL: 'version_perfil'
+} as const
+
+export const ArticulosLikesCols = {
+  TABLA: 'articulos_likes',
+  USUARIO_ID: 'usuario_id',
+  ARTICULO_ID: 'articulo_id',
+  CREATED_AT: 'created_at'
+} as const
+
+export const ArticulosCols = {
+  TABLA: 'articulos',
+  ID: 'id',
+  AUTOR_ID: 'autor_id',
+  TITULO: 'titulo',
+  SLUG: 'slug',
+  CONTENIDO: 'contenido',
+  EXTRACTO: 'extracto',
+  PORTADA_URL: 'portada_url',
+  CATEGORIA: 'categoria',
+  EMBEDS: 'embeds',
+  DESCARGA_PUBLICA: 'descarga_publica',
+  TOTAL_LIKES: 'total_likes',
+  TOTAL_COMENTARIOS: 'total_comentarios',
+  MODERACION_ESTADO: 'moderacion_estado',
+  MODERACION_RAZON: 'moderacion_razon',
+  CREATED_AT: 'created_at',
+  UPDATED_AT: 'updated_at',
+  PUBLICADO_EN: 'publicado_en',
+  ELIMINADO_EN: 'eliminado_en'
 } as const
 
 export const ArtistasMusicalesCols = {
@@ -565,6 +648,22 @@ export const ColaProcesamientoIaCols = {
   PROXIMO_INTENTO: 'proximo_intento',
   METADATA: 'metadata',
   PROCESADO_AT: 'procesado_at',
+  CREATED_AT: 'created_at'
+} as const
+
+export const ColeccionesGuardadasCols = {
+  TABLA: 'colecciones_guardadas',
+  ID: 'id',
+  USUARIO_ID: 'usuario_id',
+  COLECCION_ID: 'coleccion_id',
+  CREATED_AT: 'created_at'
+} as const
+
+export const ColeccionesLikesCols = {
+  TABLA: 'colecciones_likes',
+  ID: 'id',
+  USUARIO_ID: 'usuario_id',
+  COLECCION_ID: 'coleccion_id',
   CREATED_AT: 'created_at'
 } as const
 
@@ -729,6 +828,18 @@ export const PublicacionesCols = {
   MODERACION_RAZON: 'moderacion_razon',
   UPDATED_AT: 'updated_at',
   ELIMINADO_EN: 'eliminado_en'
+} as const
+
+export const PushSubscriptionsCols = {
+  TABLA: 'push_subscriptions',
+  ID: 'id',
+  USUARIO_ID: 'usuario_id',
+  ENDPOINT: 'endpoint',
+  AUTH: 'auth',
+  PLATAFORMA: 'plataforma',
+  ACTIVA: 'activa',
+  CREATED_AT: 'created_at',
+  UPDATED_AT: 'updated_at'
 } as const
 
 export const RelacionesSampleCols = {
@@ -924,10 +1035,45 @@ export const UsuariosExtCols = {
   SUSPENDIDO_HASTA: 'suspendido_hasta',
   SUSPENSION_RAZON: 'suspension_razon',
   MARCADO_ELIMINACION_EN: 'marcado_eliminacion_en',
-  SERA_ELIMINADO_EN: 'sera_eliminado_en'
+  SERA_ELIMINADO_EN: 'sera_eliminado_en',
+  REGISTRO_IP: 'registro_ip',
+  PAYPAL_EMAIL: 'paypal_email'
 } as const
 
 /* Constantes de valores enum/check (mirror de PHP) */
+export const ArticulosEnums = {
+  CATEGORIA_INSPIRACION: 'inspiracion',
+  CATEGORIA_MASTERING: 'mastering',
+  CATEGORIA_MEZCLA: 'mezcla',
+  CATEGORIA_PROMOCION_MUSICAL: 'promocion-musical',
+  CATEGORIA_TEORIA_MUSICAL: 'teoria-musical',
+  CATEGORIA_GRABACION: 'grabacion',
+  CATEGORIA_SAMPLING: 'sampling',
+  CATEGORIA_DISENO_SONORO: 'diseno-sonoro',
+  CATEGORIA_HERRAMIENTAS: 'herramientas',
+  CATEGORIA_ABLETON_LIVE: 'ableton-live',
+  CATEGORIA_BITWIG_STUDIO: 'bitwig-studio',
+  CATEGORIA_CUBASE: 'cubase',
+  CATEGORIA_FL_STUDIO: 'fl-studio',
+  CATEGORIA_GARAGEBAND: 'garageband',
+  CATEGORIA_LOGIC_PRO: 'logic-pro',
+  CATEGORIA_PRO_TOOLS: 'pro-tools',
+  CATEGORIA_STUDIO_ONE: 'studio-one',
+  CATEGORIA_DROPS_GRATIS: 'drops-gratis',
+  CATEGORIA_MIDI_GRATIS: 'midi-gratis',
+  CATEGORIA_PLUGINS_GRATIS: 'plugins-gratis',
+  CATEGORIA_PRESETS_GRATIS: 'presets-gratis',
+  CATEGORIA_PROYECTOS_GRATIS: 'proyectos-gratis',
+  CATEGORIA_SONIDOS_GRATIS: 'sonidos-gratis',
+  CATEGORIA_ENTREVISTAS: 'entrevistas',
+  CATEGORIA_DESTACADOS: 'destacados',
+  CATEGORIA_NOTICIAS: 'noticias',
+  MODERACION_ESTADO_PENDIENTE: 'pendiente',
+  MODERACION_ESTADO_REVISION: 'revision',
+  MODERACION_ESTADO_APROBADO: 'aprobado',
+  MODERACION_ESTADO_RECHAZADO: 'rechazado'
+} as const
+
 export const CancionesArtistasEnums = {
   ROL_PRINCIPAL: 'principal',
   ROL_FEATURING: 'featuring',
@@ -1111,7 +1257,8 @@ export const SyncChangelogEnums = {
   TIPO_SAMPLE_UPDATED: 'sample_updated',
   TIPO_COLLECTION_CREATED: 'collection_created',
   TIPO_COLLECTION_RENAMED: 'collection_renamed',
-  TIPO_COLLECTION_DELETED: 'collection_deleted'
+  TIPO_COLLECTION_DELETED: 'collection_deleted',
+  TIPO_COLLECTION_MERGED: 'collection_merged'
 } as const
 
 export const TransaccionesEnums = {

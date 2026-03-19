@@ -1,16 +1,15 @@
 <?php
 
 /* ARCHIVO AUTO-GENERADO por Glory Schema Generator — NO EDITAR */
-/* Fuente: App/Config/Schema/ConversacionesSchema.php */
+/* Fuente: App/Config/Schema/ArticulosLikesSchema.php */
 
 namespace App\Config\Schema\_generated;
 
-final class ConversacionesDTO
+final class ArticulosLikesDTO
 {
     public function __construct(
-        public readonly int $id,
-        public readonly bool $aceptada,
-        public readonly string $ultimoMensajeAt,
+        public readonly int $usuarioId,
+        public readonly int $articuloId,
         public readonly string $createdAt
     ) {}
 
@@ -21,9 +20,8 @@ final class ConversacionesDTO
     public static function desdeRow(array $row): self
     {
         return new self(
-            id: (int) ($row['id'] ?? throw new \Glory\Exception\SchemaException("Columna 'id' ausente en conversaciones", 'conversaciones', 'id')),
-            aceptada: (bool) ($row['aceptada'] ?? 'FALSE'),
-            ultimoMensajeAt: ($row['ultimo_mensaje_at'] ?? date('Y-m-d H:i:s')),
+            usuarioId: (int) ($row['usuario_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'usuario_id' ausente en articulos_likes", 'articulos_likes', 'usuario_id')),
+            articuloId: (int) ($row['articulo_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'articulo_id' ausente en articulos_likes", 'articulos_likes', 'articulo_id')),
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
     }
@@ -42,9 +40,8 @@ final class ConversacionesDTO
     public function aArrayDB(): array
     {
         return [
-            'id' => $this->id,
-            'aceptada' => $this->aceptada,
-            'ultimo_mensaje_at' => $this->ultimoMensajeAt,
+            'usuario_id' => $this->usuarioId,
+            'articulo_id' => $this->articuloId,
             'created_at' => $this->createdAt];
     }
 }
