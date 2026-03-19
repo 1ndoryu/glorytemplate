@@ -44,6 +44,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
 - **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creación corregidos. 2026-03-19.
 - **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array→{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
+- **193A-16:** Portada artículo no se subía — backend ignoraba el File en FormData. Agregado `procesarPortada()` con wp_handle_upload + ServicioMedia optimización. 2026-03-19.
 
 ## Tareas pendientes
 
@@ -163,10 +164,6 @@ main-D9yMEjua.js:891 [Kamples] 03:31:18 [ERROR] ApiCliente: GET /ws/ticket → f
     at ye (main-D9yMEjua.js:891:5393)
     at Px (main-D9yMEjua.js:905:32538)
     at main-D9yMEjua.js:905:33260
-
-## 193A-16 (prioritario)
-
-Publique un articulo con imagen pero no aparece la imagen en la portada ni en la vista del articulo. 
 
 ## 193A-17 
 
