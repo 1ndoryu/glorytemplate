@@ -140,6 +140,9 @@ class KamplesInit
              * 10.8.0.2 es la IP Vite bind en VPN/red local. */
             'http://10.0.2.2:1420',
             'http://10.8.0.2:1420',
+            /* [183A-95] Capacitor Android: origin depende de versión/configuración */
+            'capacitor://localhost',
+            'http://localhost',
         ];
 
         /* Headers CORS permitidos. X-Kamples-Auth es el fallback de Authorization

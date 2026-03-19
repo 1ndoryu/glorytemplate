@@ -104,6 +104,9 @@ class DescargasStreamController
             'https://tauri.localhost',
             'http://10.0.2.2:1420',
             'http://10.8.0.2:1420',
+            /* [183A-95] Capacitor Android: origin depende de versión/configuración */
+            'capacitor://localhost',
+            'http://localhost',
         ];
         if (\in_array($origin, $origenesPermitidos, true)) {
             \header('Access-Control-Allow-Origin: ' . $origin);

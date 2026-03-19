@@ -1,12 +1,25 @@
 /*
- * [183A-73][183A-92] Utilidad de descarga cross-platform para Kamples.
+ * [183A-73][183A-92][183A-95] Utilidad de descarga cross-platform para Kamples.
  * En web: usa el patrón clásico <a download>.
- * En Capacitor (Android/iOS): fetch → base64 → Filesystem.writeFile(Documents).
+ * En Capacitor (Android/iOS): fetch → base64 chunked → Filesystem.writeFile(Documents).
  * Directory.Documents no requiere permisos y es accesible desde el gestor de archivos.
- * Ya no usa Share.share() — el usuario quiere "guardar", no "compartir".
  */
 
 import { esCapacitor } from './plataforma';
+
+/* [183A-95] Convierte ArrayBuffer a base64 en chunks para evitar
+ * stack overflow en btoa() con archivos grandes (WAV 5-20MB).
+ * String.fromCharCode.apply con slices de 8KB es seguro en WebViews Android. */
+function arrayBufferABase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    const tamanoChunk = 8192;
+    let binario = '';
+    for (let i = 0; i < bytes.length; i += tamanoChunk) {
+        const chunk = bytes.subarray(i, Math.min(i + tamanoChunk, bytes.length));
+        binario += String.fromCharCode.apply(null, chunk as unknown as number[]);
+    }
+    return btoa(binario);
+}
 
 /**
  * Descarga un archivo dado su URL.
@@ -29,21 +42,24 @@ export async function descargarArchivo(url: string, nombreArchivo: string): Prom
     /* Descarga nativa en Capacitor (Android / iOS) */
     const { Filesystem, Directory } = await import('@capacitor/filesystem');
 
-    /* Fetch del archivo */
-    const respuesta = await fetch(url);
-    if (!respuesta.ok) {
-        throw new Error(`Error al descargar archivo: ${respuesta.status}`);
-    }
+    /* Fetch del archivo — usar XMLHttpRequest con blob para evitar que el
+     * WebView Android intercepte Content-Disposition: attachment */
+    const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.response as ArrayBuffer);
+            } else {
+                reject(new Error(`Error al descargar archivo: ${xhr.status}`));
+            }
+        };
+        xhr.onerror = () => reject(new Error('Error de red al descargar'));
+        xhr.send();
+    });
 
-    const buffer = await respuesta.arrayBuffer();
-
-    /* Convertir ArrayBuffer a base64 */
-    const bytes = new Uint8Array(buffer);
-    let binario = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binario += String.fromCharCode(bytes[i]);
-    }
-    const base64 = btoa(binario);
+    const base64 = arrayBufferABase64(buffer);
 
     /* [183A-92] Guardar en Documents (accesible vía gestor de archivos, sin permisos).
      * Subcarpeta Kamples/ para organización. */
