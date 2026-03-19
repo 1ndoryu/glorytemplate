@@ -48,10 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-95
-
-Dice error de red al descargar en la apk,  "183A-92"
-
 ## 183A-98
 
 Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo, corregir cualquier problema.
@@ -132,6 +128,13 @@ En https://kamples.com/descargas/ falta un filtro de "Mostrar solo me encantas" 
 
 Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apaga, si se activa solo muestra "me encanta", esto puede ser global y mostrarse incluso en el feed
 
+## 193A-45
+
+No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los articulos, e admin puede y debería elimianr cualquier articulo
+
+## 193A-46 (urgente)
+
+Cuando voy a https://kamples.com/perfil/Wandorius/ aparece Contenido no disponible, este es un error recurrente y frecuente
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
