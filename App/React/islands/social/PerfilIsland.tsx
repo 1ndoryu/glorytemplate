@@ -100,6 +100,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
 
     return (
         <div className="perfilContenedor">
+            {/* [183A-104] Ocultar header y publicar en tab ganancias */}
+            {tabActiva !== 'ganancias' && (<>
             <div className="perfilContenedorInterno">
                 <div className="perfilPortada">
                     {/* Portada: usa portadaUrl o fallback a imagen de colors/ */}
@@ -198,6 +200,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     />
                 </div>
             )}
+            </>)}
             {/* Tabs se renderizan en el TopBar */}
 
             <div className="perfilContenidoTab">
