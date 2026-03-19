@@ -52,6 +52,7 @@
 }
 
 /* Extracto */
+/* [193A-9] Extracto se auto-ajusta en altura */
 .editorArticuloExtracto {
     width: 100%;
     padding: var(--espacioSm) 0;
@@ -64,7 +65,7 @@
     line-height: 1.4;
     resize: none;
     min-height: 40px;
-    max-height: 80px;
+    field-sizing: content;
 }
 
 .editorArticuloExtracto::placeholder {
@@ -141,10 +142,10 @@
     flex-shrink: 0;
 }
 
-/* Área de contenido editable */
+/* [193A-9] Contenido más alto para más espacio de escritura */
 .editorArticuloContenido {
-    min-height: 200px;
-    max-height: 400px;
+    min-height: 350px;
+    max-height: 60vh;
     overflow-y: auto;
     padding: var(--espacioMd);
     border: 1px solid var(--bordeSutil);

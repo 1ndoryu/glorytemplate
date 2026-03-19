@@ -94,10 +94,17 @@ function restaurarBorrador(): Partial<typeof estadoInicial> {
 export const useArticuloEditorStore = create<EstadoArticuloEditor>((set) => ({
     ...estadoInicial,
 
-    /* [183A-110-C] Restaura borrador al abrir — contenido no se pierde */
+    /* [183A-110-C] Restaura borrador al abrir — contenido no se pierde.
+     * [193A-9] Preservar portada/portadaPreviewUrl si ya existen (no se pueden serializar). */
     abrir: () => {
         const borrador = restaurarBorrador();
-        set({ ...estadoInicial, ...borrador, abierto: true });
+        set((prev) => ({
+            ...estadoInicial,
+            ...borrador,
+            abierto: true,
+            portada: prev.portada,
+            portadaPreviewUrl: prev.portadaPreviewUrl,
+        }));
     },
 
     abrirEdicion: (id, datos) => set({
