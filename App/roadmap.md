@@ -176,6 +176,16 @@ si voy a blog, las tabs de la pagina desaparecen :/ pero el problema es que cuan
 
 otro problema, en el inicio cuando se hace una busqueda no hay una forma de quitarla y el usuario navegag por las colecciones con la busqueda activa, lo que hay que hacer es que cuando la tab sea coleccion, o musica, buscador aparezca al lado de navPublicoDerecha, todo a la derecha, con el valor de busqueda asi el usuario ve y puede editar, pero si esta en el home la ve en el landing (esto solo es para el landing deslogeado osea publica)
 
+## 193A-38
+
+no veo el supuesto BadgeDebugScore que se supone que debe estar al lado del nombre
+
+## 193A-39
+
+/wp-json/kamples/v1/codigos-gratis/generar:1  Failed to load resource: the server responded with a status of 500 ()
+
+todo este sistema de codigo-gratis necesita una auditoria profunda para ver si funciona bien. 
+
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
