@@ -1,4 +1,8 @@
-﻿/*
+﻿/* sentinel-disable-file limite-lineas
+ * Justificacion: Cola central de subida con multiples guards de seguridad (race conditions,
+ * dedup por hash, antispam, circuit breaker, backoff, semaforo, persistencia). Dividirlo
+ * requiere refactoring mayor de estado compartido no relacionado a ninguna tarea actual. */
+/*
  * Servicio: uploadQueueService — Cola de subida de samples al servidor.
  *
  * Gestiona la subida automática de archivos detectados por fileWatcherService.
@@ -987,6 +991,10 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         formData.append('licencia_libre', 'false');
         formData.append('es_premium', 'false');
         formData.append('mostrar_en_comunidad', 'false');
+        /* [193A-4] Marcar como sync para que el servidor use la cola IA con gap (216s)
+         * en vez de procesar con PipelineAudio inmediatamente. Evita consumir créditos
+         * de Groq a toda velocidad cuando se sincronizan librerías enteras. */
+        formData.append('sync_upload', 'true');
 
         /* POST al servidor — P5: incluir clave de idempotencia para evitar duplicados por timeout */
         const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/upload`, {

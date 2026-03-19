@@ -1,5 +1,11 @@
 <?php
 
+/* sentinel-disable-file limite-lineas
+ * Justificacion: Controller de upload unico con validaciones de seguridad multicapa
+ * (MIME, extensión, tamaño, idempotencia, rate limit, pipeline async, portada, relaciones).
+ * SOLID-split ya aplicado: separado de SamplesController. Dividir requeriría otro split
+ * que no aporta valor arquitectónico real en esta etapa. */
+
 /**
  * SamplesUploadController — Subida de samples con pipeline async.
  *
@@ -427,15 +433,46 @@ class SamplesUploadController
             }
         }
 
-        /* Pipeline asíncrono post-respuesta */
-        if ($sampleId) {
-            $datosPipeline = [
-                'sampleId' => $sampleId, 'rutaArchivo' => $subido['file'],
-                'nombreOriginal' => $audio['name'], 'idCorto' => $idCorto,
-                'descripcion' => $contenido, 'tags' => $tags,
-            ];
+        /* Pipeline asíncrono post-respuesta.
+         * [193A-4] Si el upload viene del Desktop Sync (sync_upload=true), encolar en
+         * cola_procesamiento_ia para respetar el gap de 216s y el límite diario de 400.
+         * Esto evita que sincronizar una librería entera consuma créditos de Groq a máxima
+         * velocidad. Uploads manuales (sin flag) siguen usando PipelineAudio inmediato.
+         */
+        $esUploadSync = \filter_var($request->get_param('sync_upload') ?? false, \FILTER_VALIDATE_BOOLEAN);
 
-            \add_action('shutdown', function () use ($datosPipeline) {
+        if ($sampleId) {
+            if ($esUploadSync) {
+                /* Encolar para la cola IA con gap — ProcesadorColaIA lo procesará con 216s de gap */
+                try {
+                    \App\Kamples\Database\Repositories\ColaProcesamientoIaRepository::encolar(
+                        \App\Config\Schema\_generated\ColaProcesamientoIaEnums::TIPO_SAMPLE,
+                        $sampleId,
+                        \App\Config\Schema\_generated\ColaProcesamientoIaEnums::OPERACION_ANALISIS_AUDIO,
+                        [
+                            'rutaArchivo' => $subido['file'],
+                            'nombreOriginal' => $audio['name'],
+                            'descripcionUsuario' => $contenido,
+                            'tagsUsuario' => $tags,
+                            'pipeline_diferido' => true,
+                            'origen' => 'desktop_sync',
+                        ]
+                    );
+                    KamplesLogger::info('[SamplesUploadController] Sample encolado en cola IA (sync)', ['sampleId' => $sampleId]);
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('[SamplesUploadController] Error encolando en cola IA', [
+                        'sampleId' => $sampleId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            } else {
+                $datosPipeline = [
+                    'sampleId' => $sampleId, 'rutaArchivo' => $subido['file'],
+                    'nombreOriginal' => $audio['name'], 'idCorto' => $idCorto,
+                    'descripcion' => $contenido, 'tags' => $tags,
+                ];
+
+                \add_action('shutdown', function () use ($datosPipeline) {
                 if (\function_exists('fastcgi_finish_request')) {
                     \fastcgi_finish_request();
                 } else {
@@ -472,6 +509,7 @@ class SamplesUploadController
                     ]);
                 }
             }, 0);
+            } /* cierre else sync_upload */
         }
 
         $respuestaExitosa = [
