@@ -4,9 +4,9 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { Link2, Trash2, Flag, Edit3, Combine, Gift } from 'lucide-react';
+import { Link2, Trash2, Flag, Edit3, Combine, Gift, ShieldOff } from 'lucide-react';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
-import { generarCodigo } from '@app/services/apiCodigosGratis';
+import { generarCodigo, invalidarCodigo } from '@app/services/apiCodigosGratis';
 import { toast } from '@app/stores/toastStore';
 import type { Coleccion } from '@app/types';
 import type { UsuarioAutenticado } from '@app/types';
@@ -100,7 +100,6 @@ export function useColeccionDetalleMenu({
                 id: 'compartir-gratis',
                 etiqueta: 'Compartir gratis',
                 icono: <Gift size={16} />,
-                separadorDespues: true,
                 onClick: async () => {
                     cerrarMenuColeccion();
                     const resp = await generarCodigo('coleccion', coleccion.id);
@@ -112,6 +111,26 @@ export function useColeccionDetalleMenu({
                     } else {
                         toast.error('Error al generar enlace de descarga gratis');
                     }
+                },
+            });
+
+            /* [183A-110] Admin: invalidar todos los codigos activos de esta coleccion */
+            items.push({
+                id: 'invalidar-enlace',
+                etiqueta: 'Invalidar enlace gratis',
+                icono: <ShieldOff size={16} />,
+                separadorDespues: true,
+                onClick: () => {
+                    cerrarMenuColeccion();
+                    toast.confirmar('¿Invalidar todos los enlaces de descarga gratis de esta colección?', async () => {
+                        const resp = await invalidarCodigo('coleccion', coleccion.id);
+                        if (resp.ok) {
+                            const n = resp.data?.invalidados ?? 0;
+                            toast.exito(n > 0 ? `${n} enlace(s) invalidado(s)` : 'No había enlaces activos');
+                        } else {
+                            toast.error('Error al invalidar enlace');
+                        }
+                    });
                 },
             });
         }

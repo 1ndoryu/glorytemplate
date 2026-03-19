@@ -18,9 +18,9 @@ import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUAL
 import {
     Play, Eye, FolderPlus, Download, User, Link, Sparkles, PanelRight,
     ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2, FolderTree,
-    Search, Trash2, Flag, Gift,
+    Search, Trash2, Flag, Gift, ShieldOff,
 } from 'lucide-react';
-import { generarCodigo } from '@app/services/apiCodigosGratis';
+import { generarCodigo, invalidarCodigo } from '@app/services/apiCodigosGratis';
 
 export interface DepsMenuSample {
     sample: SampleResumen;
@@ -123,7 +123,7 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
 
     /* [183A-106] Admin: generar enlace de descarga gratis — copia URL al portapapeles */
     if (d.esAdmin)
-        items.push({ id: 'compartir-gratis', etiqueta: 'Compartir gratis', icono: ic(Gift), separadorDespues: true, onClick: async () => {
+        items.push({ id: 'compartir-gratis', etiqueta: 'Compartir gratis', icono: ic(Gift), onClick: async () => {
             const resp = await generarCodigo('sample', s.id);
             if (resp.ok && resp.data?.codigo) {
                 const url = `${window.location.origin}/sample/${s.slug}/?codigoGratis=${resp.data.codigo}`;
@@ -132,6 +132,20 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
             } else {
                 toast.error('Error al generar enlace de descarga gratis');
             }
+        }});
+
+    /* [183A-110] Admin: invalidar todos los codigos activos de este sample */
+    if (d.esAdmin)
+        items.push({ id: 'invalidar-enlace', etiqueta: 'Invalidar enlace gratis', icono: ic(ShieldOff), separadorDespues: true, onClick: async () => {
+            toast.confirmar('¿Invalidar todos los enlaces de descarga gratis de este sample?', async () => {
+                const resp = await invalidarCodigo('sample', s.id);
+                if (resp.ok) {
+                    const n = resp.data?.invalidados ?? 0;
+                    toast.exito(n > 0 ? `${n} enlace(s) invalidado(s)` : 'No había enlaces activos');
+                } else {
+                    toast.error('Error al invalidar enlace');
+                }
+            });
         }});
 
     if (d.puedeEliminar)

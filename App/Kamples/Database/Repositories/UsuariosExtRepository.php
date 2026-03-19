@@ -364,12 +364,21 @@ class UsuariosExtRepository extends BaseRepository
      */
     public static function incrementarCreditosBonus(int $userId): void
     {
+        static::agregarCreditosBonus($userId, 1);
+    }
+
+    /*
+     * [183A-110] Agregar N créditos bonus a un usuario.
+     * Usado para compensación por códigos de descarga expirados (50 créditos) y otros bonos.
+     */
+    public static function agregarCreditosBonus(int $userId, int $cantidad): void
+    {
         $tabla = UsuariosExtCols::TABLA;
 
         static::ejecutar(
             "UPDATE {$tabla} SET " . UsuariosExtCols::CREDITOS_BONUS . " = "
-            . UsuariosExtCols::CREDITOS_BONUS . " + 1 WHERE " . UsuariosExtCols::ID . " = :userId",
-            ['userId' => $userId]
+            . UsuariosExtCols::CREDITOS_BONUS . " + :cantidad WHERE " . UsuariosExtCols::ID . " = :userId",
+            ['cantidad' => $cantidad, 'userId' => $userId]
         );
     }
 

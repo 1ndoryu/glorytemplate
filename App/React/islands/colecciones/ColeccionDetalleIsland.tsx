@@ -26,6 +26,7 @@ import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { FiltroSubcolecciones } from '@app/components/colecciones/FiltroSubcolecciones';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
+import { ModalCodigoExpirado } from '@app/components/ui/ModalCodigoExpirado';
 import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
 import { useCodigosGratis } from '@app/hooks/useCodigosGratis';
 import type { SampleResumen } from '@app/types';
@@ -333,6 +334,8 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                     coleccion={coleccion}
                 />
             )}
+            {/* [183A-110] Modal de compensación por código de descarga expirado */}
+            <ModalCodigoExpirado />
         </div>
     );
 };

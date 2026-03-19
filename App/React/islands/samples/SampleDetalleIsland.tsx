@@ -30,6 +30,7 @@ import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
+import { ModalCodigoExpirado } from '@app/components/ui/ModalCodigoExpirado';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useSampleDetalle } from '@app/hooks/useSampleDetalle';
 import { useSampleAudio } from '@app/hooks/useSampleAudio';
@@ -273,6 +274,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 onCerrar={menu.cerrarInspeccion}
                 sample={menu.sampleInspeccion}
             />
+            {/* [183A-110] Modal de compensación por código de descarga expirado */}
+            <ModalCodigoExpirado />
         </div>
     );
 };

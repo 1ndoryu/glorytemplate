@@ -1,0 +1,36 @@
+/* [183A-110] ModalCodigoExpirado — estilos del cuerpo del modal de compensacion.
+ * Sin cabecera intencionalmente. Fondo suave de calidad para no parecer un error. */
+
+.modalCodigoExpiradoCuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg) var(--espacioMd) var(--espacioMd);
+}
+
+.modalCodigoExpiradoTexto {
+    font-size: var(--textoBase);
+    color: var(--textoSecundario);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.modalCodigoExpiradoTexto strong {
+    color: var(--textoPrincipal);
+}
+
+.modalCodigoExpiradoNombre {
+    font-size: var(--textoPequeno);
+    color: var(--textoTerciario);
+    margin: 0;
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoSutil);
+    border-radius: var(--radioSm);
+}
+
+.modalCodigoExpiradoAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
