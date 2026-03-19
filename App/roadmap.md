@@ -169,6 +169,10 @@ padding: var(--espacioLg);
 border: 1px solid var(--bordeSutil);
 border-radius: var(--radioMd);
 
+## 183A-108
+
+Me preocupa algo en particular, anteriormente se hizo algo que sacaba del algoritmo los samples que se reproducian y no tenian accion alguna del usuario, estos samples aun deben aparecer en la busqueda. 
+
 ## Tarea final cuando completes todo
 
 1. rehacer el instalador de la aplicación de escritorio 
