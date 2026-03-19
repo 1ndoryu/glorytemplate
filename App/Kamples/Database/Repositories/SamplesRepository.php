@@ -1309,22 +1309,33 @@ class SamplesRepository extends BaseRepository
 
     /*
      * Verificar que un sample pertenece al usuario (es creador o lo descargó).
+     * Si el usuario es el creador, no se filtra por estado (puede ser procesandose, pendiente, etc.).
+     * Si el usuario lo descargó, el sample debe estar activo.
      */
     public static function esColeccionadoPorUsuario(int $sampleId, int $userId): bool
     {
         $ts = SamplesCols::TABLA;
         $td = DescargasCols::TABLA;
 
-        $sql = "SELECT 1 FROM {$ts} s"
-             . " LEFT JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
-             . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
-             . " WHERE s." . SamplesCols::ID . " = :sid"
-             . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
-             . " AND (d." . DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)"
-             . " LIMIT 1";
+        /* Caso 1: el usuario es el creador (sin importar el estado) */
+        $sqlCreador = "SELECT 1 FROM {$ts} s"
+                    . " WHERE s." . SamplesCols::ID . " = :sid"
+                    . " AND s." . SamplesCols::CREADOR_ID . " = :uid"
+                    . " LIMIT 1";
 
-        $row = static::consultarUno($sql, ['sid' => $sampleId, 'uid' => $userId, 'uid2' => $userId]);
-        return $row !== null;
+        if (static::consultarUno($sqlCreador, ['sid' => $sampleId, 'uid' => $userId]) !== null) {
+            return true;
+        }
+
+        /* Caso 2: el usuario lo descargó y el sample está activo */
+        $sqlDescarga = "SELECT 1 FROM {$ts} s"
+                     . " JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+                     . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
+                     . " WHERE s." . SamplesCols::ID . " = :sid"
+                     . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+                     . " LIMIT 1";
+
+        return static::consultarUno($sqlDescarga, ['sid' => $sampleId, 'uid' => $userId]) !== null;
     }
 
     /*
