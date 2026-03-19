@@ -240,16 +240,6 @@
     color: var(--error);
 }
 
-/* QQ16: Boton comprar ($) para samples con precio */
-.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionComprar {
-    color: var(--acento);
-}
-
-.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionComprar:hover {
-    color: var(--blanco);
-    background: var(--acento);
-}
-
 /* QQ16: Boton Solo Pro (Crown) para samples premium sin precio */
 .tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionPro {
     color: var(--advertencia);

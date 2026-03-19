@@ -35,6 +35,7 @@ export interface Usuario {
     creadoAt: string;
     actualizadoAt: string;
     generosPreferidos: string[];
+    paypalEmail: string | null;
 }
 
 /* Version resumida para tarjetas, listas y relaciones */

@@ -15,6 +15,7 @@ import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { ModalPapelera } from '@app/components/social/ModalPapelera';
+import { TabGanancias } from '@app/components/social/TabGanancias';
 import { SkeletonPerfil, SkeletonFeed } from '@app/components/skeletons';
 import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -201,6 +202,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
 
             <div className="perfilContenidoTab">
                 {tabActiva === 'samples' && renderizarListaSamples(samplesPerfil, 'No ha subido samples aún', <Music size={40} />)}
+                {/* [183A-96] Tab de ganancias — solo visible para propietario */}
+                {tabActiva === 'ganancias' && esPropietario && <TabGanancias />}
                 {tabActiva === 'publicaciones' && (
                     <div className="perfilPublicaciones">
                         {cargandoTab ? (

@@ -191,11 +191,11 @@
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
-    background-color: var(--fondoElevado2);
     border-radius: var(--radioFull);
     padding: var(--espacioXs) var(--espacioSm);
     margin: var(--espacioXs) 0;
     max-width: 280px;
+    border: 1px solid var(--bordeSutil);
 }
 
 .comentarioAudioBtn {
@@ -454,6 +454,8 @@
     color: var(--textoPrimario);
     font-family: var(--fuentePrincipal);
     font-size: var(--fuenteSm);
+    padding: 0;
+    padding-left: 10px !important;
 }
 
 .comentarioRespuestaInput input::placeholder {

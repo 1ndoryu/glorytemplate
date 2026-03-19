@@ -1,0 +1,92 @@
+/* [183A-96] TabGanancias — estilos para la pestaña de ganancias en perfil */
+
+.tabGananciasContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.tabGananciasResumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--espacioMd);
+}
+
+.tabGananciasStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioLg);
+    background: var(--fondoElevado);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--borde);
+    color: var(--textoSecundario);
+}
+
+.tabGananciasStatLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+.tabGananciasStatValor {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.tabGananciasTransacciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.tabGananciasTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin-bottom: var(--espacioXs);
+}
+
+.tabGananciasFila {
+    display: grid;
+    grid-template-columns: 120px 1fr 100px 80px;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoElevado);
+    border-radius: var(--radioSm);
+    align-items: center;
+    font-size: var(--fuenteSm);
+}
+
+.tabGananciasFecha {
+    color: var(--textoSecundario);
+}
+
+.tabGananciasSample {
+    color: var(--textoPrimario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tabGananciasComprador {
+    color: var(--textoSecundario);
+}
+
+.tabGananciasNeto {
+    font-weight: var(--pesoSemibold);
+    color: var(--acentoPrimario);
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    .tabGananciasFila {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--espacioXs);
+    }
+
+    .tabGananciasComprador {
+        display: none;
+    }
+}

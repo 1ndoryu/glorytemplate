@@ -158,6 +158,17 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
                             </div>
                         )}
                     </div>
+                    {/* [183A-96] PayPal email para retiros de ganancias */}
+                    <div className="configSeccion">
+                        <label className="configLabel">PayPal para retiros</label>
+                        <span className="configSubtexto">Email de PayPal donde recibirás tus ganancias por venta de samples.</span>
+                        <div className="configFormInline">
+                            <CampoTexto type="email" variante="desnudo" className="configInput" value={h.paypalEmail} onChange={e => h.setPaypalEmail(e.target.value)} placeholder="tu-email@paypal.com" />
+                            <BotonBase variante="primario" tamano="sm" onClick={h.manejarGuardarPaypal} disabled={h.guardandoPaypal}>
+                                {h.guardandoPaypal ? 'Guardando...' : 'Guardar'}
+                            </BotonBase>
+                        </div>
+                    </div>
                     <div className="configSeccion">
                         <label className="configLabel configLabelPeligro">Zona de peligro</label>
                         <BotonBase variante="secundario" tamano="md" onClick={() => console.info('TO-DO: Eliminar cuenta')}>Eliminar cuenta</BotonBase>

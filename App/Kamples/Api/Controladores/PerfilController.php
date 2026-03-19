@@ -255,6 +255,8 @@ class PerfilController
             'limiteMensajes'   => (int) ($datos['limite_mensajes'] ?? -1),
             'sitioWeb'         => $datos[UsuariosExtCols::SITIO_WEB] ?? null,
             'generosPreferidos' => self::decodificarGeneros($datos[UsuariosExtCols::GENEROS_FAVORITOS] ?? '[]'),
+            /* [183A-96] PayPal email para retiros de ganancias */
+            'paypalEmail'      => $datos[UsuariosExtCols::PAYPAL_EMAIL] ?? null,
         ];
     }
 
@@ -352,6 +354,20 @@ class PerfilController
             $campos[] = UsuariosExtCols::GENEROS_FAVORITOS . ' = :generos';
             $generosJson = json_encode($generosValidos, JSON_UNESCAPED_UNICODE);
             $params['generos'] = $generosJson !== false ? $generosJson : '[]';
+        }
+        /* [183A-96] PayPal email para retiros de ganancias */
+        if (isset($body['paypalEmail'])) {
+            $paypalEmail = trim($body['paypalEmail']);
+            if ($paypalEmail === '') {
+                $campos[] = UsuariosExtCols::PAYPAL_EMAIL . ' = :paypalEmail';
+                $params['paypalEmail'] = null;
+            } else {
+                if (!is_email($paypalEmail)) {
+                    return new \WP_REST_Response(['ok' => false, 'error' => 'El email de PayPal no es válido.'], 400);
+                }
+                $campos[] = UsuariosExtCols::PAYPAL_EMAIL . ' = :paypalEmail';
+                $params['paypalEmail'] = sanitize_email($paypalEmail);
+            }
         }
 
         if (empty($campos)) {

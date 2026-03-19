@@ -29,10 +29,9 @@ import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('PerfilIsland');
 
-const TABS_PERFIL = [
-    { id: 'publicaciones', etiqueta: 'Publicaciones' },
-    { id: 'samples', etiqueta: 'Samples' }
-];
+/* [183A-96] Tabs base + tab de ganancias solo para propietario */
+const TABS_BASE = [{ id: 'publicaciones', etiqueta: 'Publicaciones' }, { id: 'samples', etiqueta: 'Samples' }];
+const TABS_CON_GANANCIAS = [...TABS_BASE, { id: 'ganancias', etiqueta: 'Ganancias' }];
 
 interface PerfilParams {
     usernameProp?: string;
@@ -73,7 +72,10 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
     const usuarioAuth = useAuthStore(s => s.usuario);
     const authCargando = useAuthStore(s => s.cargando);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
-    useTabsIsla('PerfilIsland', TABS_PERFIL, 'publicaciones');
+
+    /* [183A-96] tabs con ganancias solo para propietario — re-registra al cambiar */
+    const esPropietarioTemprano = !!(usuarioAuth && usuario && usuarioAuth.username === usuario.username);
+    useTabsIsla('PerfilIsland', esPropietarioTemprano ? TABS_CON_GANANCIAS : TABS_BASE, 'publicaciones');
     const navegar = useNavigationStore(s => s.navegar);
     const rutaActualRaw = useNavigationStore(s => s.rutaActual);
 
@@ -114,7 +116,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         return usuarioAuth?.username ?? null;
     }, [rutaActual, usernameProp, usuarioAuth?.username]);
 
-    const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
+    const esPropietario = esPropietarioTemprano;
 
     /* QQ23+QQ57: Menu contextual del perfil — propietario (config+papelera) o visitante (reportar/bloquear) */
     const menuPerfil = useMenuContextualPerfil({

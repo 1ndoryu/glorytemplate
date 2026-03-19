@@ -355,10 +355,13 @@ class SamplesRepository extends BaseRepository
         $tabla = SamplesCols::TABLA;
         $activo = SamplesEnums::ESTADO_ACTIVO;
 
+        /* [183A-96] Agregado PRECIO y SLUG — PagosController los necesita para checkout.
+         * Sin PRECIO, siempre respondía "no tiene precio de venta". */
         return static::consultarUno(
             "SELECT " . SamplesCols::ID . ", " . SamplesCols::TITULO
             . ", " . SamplesCols::RUTA_ORIGINAL . ", " . SamplesCols::RUTA_OPTIMIZADA
             . ", " . SamplesCols::PERMITIR_DESCARGA . ", " . SamplesCols::ES_PREMIUM
+            . ", " . SamplesCols::PRECIO . ", " . SamplesCols::SLUG
             . ", " . SamplesCols::CREADOR_ID
             . " FROM {$tabla} WHERE " . SamplesCols::ID . " = :id AND " . SamplesCols::ESTADO . " = '{$activo}'",
             ['id' => $id]

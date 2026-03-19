@@ -8,6 +8,8 @@
  * POST  /pagos/webhook       — Webhook de Stripe (sin auth)
  * GET   /pagos/planes        — Info pública de planes
  *
+ * sentinel-disable-file limite-lineas — Controller REST con 5 rutas + 5 webhook handlers.
+ *
  * @package Kamples
  */
 
@@ -21,6 +23,7 @@ use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\TransaccionesRepository;
@@ -264,7 +267,7 @@ class PagosController
             case 'checkout.session.completed':
                 /* Distinguir suscripcion vs compra de sample via metadata */
                 $metaTipo = $datos['metadata']['tipo'] ?? '';
-                if ($metaTipo === 'compra_sample') {
+                if ($metaTipo === TransaccionesEnums::TIPO_COMPRA_SAMPLE) {
                     self::procesarCompraSampleCompletada($datos);
                 } else {
                     self::procesarCheckoutCompletado($datos);
@@ -305,6 +308,7 @@ class PagosController
     {
         return new \WP_REST_Response([
             'planes' => [
+                /* [183A-96] Revenue share unificado 80/20 para todos los planes */
                 'free' => [
                     'nombre'           => 'Free',
                     'precioMensual'    => 0,
@@ -312,7 +316,7 @@ class PagosController
                     'descargasDia'     => 5,
                     'subidasMes'       => -1,
                     'transferenciaGb'  => 1,
-                    'revenueShare'     => '50/50',
+                    'revenueShare'     => '80/20',
                     'pruebaGratuita'   => 30,
                     'descargasPrueba'  => 20,
                 ],
@@ -323,7 +327,7 @@ class PagosController
                     'descargasDia'     => 50,
                     'subidasMes'       => -1,
                     'transferenciaGb'  => 10,
-                    'revenueShare'     => '70/30',
+                    'revenueShare'     => '80/20',
                 ],
                 'premium' => [
                     'nombre'           => 'Premium',
@@ -481,7 +485,16 @@ class PagosController
             return;
         }
 
-        /* Evitar procesar duplicados */
+        /* [183A-96] Idempotencia: verificar stripe_payment_id antes de insertar.
+         * Protege contra reintentos de webhook de Stripe. */
+        if ($stripePaymentId && TransaccionesRepository::existeStripePaymentId($stripePaymentId)) {
+            KamplesLogger::info('Webhook compra_sample: stripe_payment_id ya procesado', [
+                'stripePaymentId' => $stripePaymentId,
+            ]);
+            return;
+        }
+
+        /* Evitar procesar duplicados por comprador + sample */
         if (TransaccionesRepository::haComprado($userId, $sampleId)) {
             KamplesLogger::info('Webhook compra_sample: ya procesada (duplicado)', [
                 'userId' => $userId, 'sampleId' => $sampleId,

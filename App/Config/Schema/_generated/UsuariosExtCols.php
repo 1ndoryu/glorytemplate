@@ -43,7 +43,9 @@ final class UsuariosExtCols
     const SERA_ELIMINADO_EN = 'sera_eliminado_en';
     /* [183A-69] IP de registro para detectar cuentas múltiples desde la misma IP. */
     const REGISTRO_IP = 'registro_ip';
+    /* [183A-96] Email PayPal para retiros de ganancias. */
+    const PAYPAL_EMAIL = 'paypal_email';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'wp_user_id', 'username', 'email', 'nombre_visible', 'bio', 'avatar_url', 'portada_url', 'plan', 'rol', 'verificado', 'total_seguidores', 'total_seguidos', 'total_samples', 'total_descargas', 'stripe_customer_id', 'stripe_connect_id', 'created_at', 'updated_at', 'violaciones_moderacion', 'baneado_hasta', 'ban_razon', 'creditos_bonus', 'stripe_subscription_id', 'es_seed', 'sitio_web', 'generos_favoritos', 'estado', 'suspendido_hasta', 'suspension_razon', 'marcado_eliminacion_en', 'sera_eliminado_en', 'registro_ip'];
+    const TODAS = ['id', 'wp_user_id', 'username', 'email', 'nombre_visible', 'bio', 'avatar_url', 'portada_url', 'plan', 'rol', 'verificado', 'total_seguidores', 'total_seguidos', 'total_samples', 'total_descargas', 'stripe_customer_id', 'stripe_connect_id', 'created_at', 'updated_at', 'violaciones_moderacion', 'baneado_hasta', 'ban_razon', 'creditos_bonus', 'stripe_subscription_id', 'es_seed', 'sitio_web', 'generos_favoritos', 'estado', 'suspendido_hasta', 'suspension_razon', 'marcado_eliminacion_en', 'sera_eliminado_en', 'registro_ip', 'paypal_email'];
 }

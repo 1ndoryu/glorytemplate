@@ -446,6 +446,7 @@ export interface IUsuariosExt {
   suspensionRazon: string | null
   marcadoEliminacionEn: string | null
   seraEliminadoEn: string | null
+  paypalEmail: string | null
 }
 
 /* Constantes de columna (mirror de PHP) */

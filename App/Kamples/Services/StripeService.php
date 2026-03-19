@@ -24,14 +24,15 @@ class StripeService
     private const API_BASE = 'https://api.stripe.com/v1';
     private const MAX_REINTENTOS = 3;
 
-    /* Configuración de planes — subidas ilimitadas en todos, varía transferencia y descargas */
+    /* [183A-96] Configuración de planes — revenue_share 80/20 para todos (20% comisión plataforma).
+     * Subidas ilimitadas en todos, varía transferencia y descargas. */
     private const PLANES = [
         'pro' => [
             'precio_mensual'    => 5.00,
             'descargas_dia'     => 50,
             'subidas_mes'       => -1, /* ilimitadas */
             'transferencia_gb'  => 10,
-            'revenue_share'     => 0.70,
+            'revenue_share'     => 0.80,
         ],
         'premium' => [
             'precio_mensual'    => 19.99,
@@ -45,7 +46,7 @@ class StripeService
             'descargas_dia'     => 5,
             'subidas_mes'       => -1, /* ilimitadas */
             'transferencia_gb'  => 1,
-            'revenue_share'     => 0,
+            'revenue_share'     => 0.80,
             'prueba_gratuita'   => 30, /* días */
             'descargas_prueba'  => 20,
         ],

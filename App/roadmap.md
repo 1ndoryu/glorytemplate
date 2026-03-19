@@ -156,10 +156,36 @@ Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revis
 
 ## 183A-99
 
+Sobre si los usuarios premiun puedan vender, si, que puedan vender y todos tengan comision de 20%, excepto el premiun
 
+## 183A-100
+
+Cuando hago un comentario respondiendo otro comentario no aparece al momento sino despues de recargar, hacer una revision al sistema de comentarios, esto no se ha revisado desde que se creo. 
+
+Y abrir una imagen de un comentario debería abrirse asi como se abre a dar click a la imagen de un mensaje o publicacion
+
+los comentarios de 3 nivel deberían poder responderse pero no generar un 4 nivel sino ponerse debajo,
+
+le orden de las respuestas debe ser siempre por orden de fecha y los comentarios principales de primero los que tengan mas like. 
+
+## 183A-101
+
+Al dar click al nombre o foto de perfil a los usuarios en el panl de moderacion https://kamples.com/admin/panel/, que abra el perfil en otra pestaña.
+
+## 183A-102
+
+Las imagenes de los post de comunidad no de estan optimizando con el componente que hicimos, 
+
+## 183A-103
+
+chatFlotanteStagingPreview se ve mal, para que se vea bien, el boton de adjunto, input y envio tienen que ir en su propio div y estar debajo, y asi chatFlotanteInput tendria que estar en flex column 
+
+## 183A-104
+
+Solo para avisar, en la tab de ganacias en el perfil no debe aparecer perfilContenedorInterno ni el perfilSeccionPublicar
 
 ## Tarea final cuando completes todo
 
 1. rehacer el instalador de la aplicación de escritorio 
 3. indicarme donde esta en nuevo instalador
-4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. 
+4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir pero que aperezca cada vez que recargue de actualizar. 

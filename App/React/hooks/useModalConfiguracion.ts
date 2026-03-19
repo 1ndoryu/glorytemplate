@@ -53,6 +53,9 @@ export function useModalConfiguracion() {
     const [confirmarPassword, setConfirmarPassword] = useState('');
     const [cambiandoPassword, setCambiandoPassword] = useState(false);
     const [passwordEditando, setPasswordEditando] = useState(false);
+    /* [183A-96] PayPal email para retiros */
+    const [paypalEmail, setPaypalEmail] = useState(usuario?.paypalEmail ?? '');
+    const [guardandoPaypal, setGuardandoPaypal] = useState(false);
 
     /* Sincronizar campos cuando el modal se abre o los datos del usuario cambian */
     useEffect(() => {
@@ -76,6 +79,7 @@ export function useModalConfiguracion() {
             setNuevaPassword('');
             setConfirmarPassword('');
             setPasswordEditando(false);
+            setPaypalEmail(usuario.paypalEmail ?? '');
         }
     }, [abierto, usuario]);
 
@@ -204,6 +208,24 @@ export function useModalConfiguracion() {
         setCambiandoPassword(false);
     }, [cambiandoPassword, passwordActual, nuevaPassword, confirmarPassword]);
 
+    /* [183A-96] Guardar PayPal email */
+    const manejarGuardarPaypal = useCallback(async () => {
+        if (guardandoPaypal) return;
+        setGuardandoPaypal(true);
+        try {
+            const resp = await actualizarPerfil({ paypalEmail: paypalEmail.trim() || null });
+            if (resp.ok && resp.data) {
+                setUsuario(resp.data as UsuarioAutenticado);
+                crearToast('exito', 'Email de PayPal guardado');
+            } else {
+                crearToast('error', resp.error ?? 'Error al guardar');
+            }
+        } catch {
+            crearToast('error', 'Error de conexión');
+        }
+        setGuardandoPaypal(false);
+    }, [guardandoPaypal, paypalEmail, setUsuario]);
+
     const manejarCerrar = useCallback(() => {
         if (guardando) return;
         cerrar();
@@ -251,5 +273,7 @@ export function useModalConfiguracion() {
         confirmarPassword, setConfirmarPassword,
         cambiandoPassword, passwordEditando, setPasswordEditando,
         manejarCambiarPassword,
+        /* [183A-96] PayPal */
+        paypalEmail, setPaypalEmail, guardandoPaypal, manejarGuardarPaypal,
     };
 }

@@ -58,9 +58,17 @@ class TransaccionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-                        
-
-            
+    /* [183A-96] Idempotencia: verificar si un stripe_payment_id ya fue procesado.
+     * Previene doble procesamiento en reintentos de webhook. */
+    public static function existeStripePaymentId(string $stripePaymentId): bool
+    {
+        $tabla = TransaccionesCols::TABLA;
+        $row = static::consultarUno(
+            "SELECT 1 FROM {$tabla} WHERE " . TransaccionesCols::STRIPE_PAYMENT_ID . " = :stripeId LIMIT 1",
+            ['stripeId' => $stripePaymentId]
+        );
+        return $row !== null;
+    }
 
     /*
      * Registrar transacción de revenue share por descarga.
@@ -85,7 +93,7 @@ class TransaccionesRepository extends BaseRepository
             . ", " . TransaccionesCols::COMISION_PLATAFORMA
             . ", " . TransaccionesCols::ESTADO
             . ") VALUES (:comprador, :creador, :sample, '" . TransaccionesEnums::TIPO_DESCARGA . "', :monto, :pago, :comision, '"
-            . TransaccionesEnums::ESTADO_COMPLETED . "')",
+            . TransaccionesEnums::ESTADO_COMPLETADA . "')",
             [
                 'comprador' => $compradorId,
                 'creador'   => $creadorId,
@@ -105,9 +113,9 @@ class TransaccionesRepository extends BaseRepository
         $tabla = TransaccionesCols::TABLA;
         $row = static::consultarUno(
             "SELECT COALESCE(SUM(" . TransaccionesCols::PAGO_CREADOR . "), 0) as total FROM {$tabla}"
-            . " WHERE " . TransaccionesCols::CREADOR_ID . " = :userId AND " . TransaccionesCols::ESTADO . " = :estado"
+            . " WHERE " . TransaccionesCols::CREADOR_ID . " = :userId AND " . TransaccionesCols::ESTADO . " IN (:estado1, :estado2)"
             . " AND " . TransaccionesCols::CREATED_AT . " >= date_trunc('month', NOW())",
-            ['userId' => $creadorId, 'estado' => TransaccionesEnums::ESTADO_COMPLETED]
+            ['userId' => $creadorId, 'estado1' => TransaccionesEnums::ESTADO_COMPLETADA, 'estado2' => TransaccionesEnums::ESTADO_COMPLETED]
         );
         return (float) ($row['total'] ?? 0);
     }
@@ -120,10 +128,10 @@ class TransaccionesRepository extends BaseRepository
         $tabla = TransaccionesCols::TABLA;
         $row = static::consultarUno(
             "SELECT COALESCE(SUM(" . TransaccionesCols::PAGO_CREADOR . "), 0) as total FROM {$tabla}"
-            . " WHERE " . TransaccionesCols::CREADOR_ID . " = :userId AND " . TransaccionesCols::ESTADO . " = :estado"
+            . " WHERE " . TransaccionesCols::CREADOR_ID . " = :userId AND " . TransaccionesCols::ESTADO . " IN (:estado1, :estado2)"
             . " AND " . TransaccionesCols::CREATED_AT . " >= date_trunc('month', NOW()) - INTERVAL '1 month'"
             . " AND " . TransaccionesCols::CREATED_AT . " < date_trunc('month', NOW())",
-            ['userId' => $creadorId, 'estado' => TransaccionesEnums::ESTADO_COMPLETED]
+            ['userId' => $creadorId, 'estado1' => TransaccionesEnums::ESTADO_COMPLETADA, 'estado2' => TransaccionesEnums::ESTADO_COMPLETED]
         );
         return (float) ($row['total'] ?? 0);
     }
@@ -136,8 +144,8 @@ class TransaccionesRepository extends BaseRepository
         $tabla = TransaccionesCols::TABLA;
         $row = static::consultarUno(
             "SELECT COALESCE(SUM(" . TransaccionesCols::PAGO_CREADOR . "), 0) as total FROM {$tabla}"
-            . " WHERE " . TransaccionesCols::CREADOR_ID . " = :userId AND " . TransaccionesCols::ESTADO . " = :estado",
-            ['userId' => $creadorId, 'estado' => TransaccionesEnums::ESTADO_COMPLETED]
+            . " WHERE " . TransaccionesCols::CREADOR_ID . " = :userId AND " . TransaccionesCols::ESTADO . " IN (:estado1, :estado2)",
+            ['userId' => $creadorId, 'estado1' => TransaccionesEnums::ESTADO_COMPLETADA, 'estado2' => TransaccionesEnums::ESTADO_COMPLETED]
         );
         return (float) ($row['total'] ?? 0);
     }
@@ -146,6 +154,8 @@ class TransaccionesRepository extends BaseRepository
      * Retorna ingresos del creador: mes actual, mes anterior y total, en una sola query.
      * Optimizacion OPT02: 3 roundtrips a 1 con SUM() FILTER().
      */
+    /* [183A-96] Acepta ambos estados ('completada' y 'completed') para no perder
+     * transacciones insertadas con cualquiera de los dos valores. */
     public static function ingresosDashboard(int $userId): array
     {
         $tabla = TransaccionesCols::TABLA;
@@ -163,12 +173,13 @@ class TransaccionesRepository extends BaseRepository
                       AND {$createdAt} < date_trunc('month', NOW())
                 ), 0) AS ingresos_anterior
             FROM {$tabla}
-            WHERE {$creadorId} = :userId AND {$estado} = :estado
+            WHERE {$creadorId} = :userId AND {$estado} IN (:estado1, :estado2)
         ";
 
         $row = static::consultarUno($sql, [
             'userId' => $userId,
-            'estado' => TransaccionesEnums::ESTADO_COMPLETED,
+            'estado1' => TransaccionesEnums::ESTADO_COMPLETADA,
+            'estado2' => TransaccionesEnums::ESTADO_COMPLETED,
         ]);
 
         return [
@@ -224,14 +235,15 @@ class TransaccionesRepository extends BaseRepository
     {
         $tabla = TransaccionesCols::TABLA;
 
+        /* [183A-96] Acepta ambos estados para no perder datos */
         return static::consultar(
             "SELECT DATE(" . TransaccionesCols::CREATED_AT . ") as fecha"
             . ", COALESCE(SUM(" . TransaccionesCols::PAGO_CREADOR . "), 0) as monto"
             . " FROM {$tabla} WHERE " . TransaccionesCols::CREADOR_ID . " = :userId"
-            . " AND " . TransaccionesCols::ESTADO . " = :estado"
+            . " AND " . TransaccionesCols::ESTADO . " IN (:estado1, :estado2)"
             . " AND " . TransaccionesCols::CREATED_AT . " >= NOW() - INTERVAL '1 day' * :dias"
             . " GROUP BY DATE(" . TransaccionesCols::CREATED_AT . ") ORDER BY fecha ASC",
-            ['userId' => $creadorId, 'dias' => self::intervaloDias($intervalo), 'estado' => TransaccionesEnums::ESTADO_COMPLETED]
+            ['userId' => $creadorId, 'dias' => self::intervaloDias($intervalo), 'estado1' => TransaccionesEnums::ESTADO_COMPLETADA, 'estado2' => TransaccionesEnums::ESTADO_COMPLETED]
         );
     }
 
