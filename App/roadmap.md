@@ -147,14 +147,6 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-32
-
-Cuando se de dislike que el sample desaparezca y aparezca una alerta (el componente que muestra mensajes en la esquina inferior) que diga "Te mostraremos mas samples como esto" 
-
-Cuando se de like aparece "Te mostraremos más samples como este."
-
-La alerta no aplica para los like de coleccionnes y publicaicones de comunidad.
-
 ## 193A-34
 
 parace que no se estan aplicando normalizacion para tarjetaMeta, veo vocals y luego veo vocal de tag en tarjetaMeta, esta mal, lo que si veo normalizado son las feedtag pero deberia la misma normalizacion, 
