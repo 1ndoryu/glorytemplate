@@ -116,6 +116,7 @@ class SamplesController
         $sTitulo = SamplesCols::TITULO;
         $sDesc = SamplesCols::DESCRIPCION;
         $sTags = SamplesCols::TAGS;
+        $sTagsEnr = SamplesCols::TAGS_ENRIQUECIDOS;
         $sMeta = SamplesCols::METADATA;
         $sBpm = SamplesCols::BPM;
         $sKey = SamplesCols::KEY;
@@ -147,6 +148,7 @@ class SamplesController
             $busquedaSQL = "(to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
                          . " OR s.{$sTitulo} ILIKE :busqueda"
                          . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere)"
+                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTagsEnr}) tag WHERE tag ILIKE :busquedaTagEnrWhere)"
                          . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
                          . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4)";
             $params['busquedaFts'] = $busqueda;
@@ -154,14 +156,17 @@ class SamplesController
             $params['busquedaTagWhere'] = '%' . strtolower($busqueda) . '%';
             $params['busquedaFuzzy'] = $busqueda;
             $params['busquedaFuzzyTag'] = strtolower($busqueda);
+            $params['busquedaTagEnrWhere'] = '%' . strtolower($busqueda) . '%';
 
             /* [193A-34] Expandir con forma normalizada (sinónimos: guitarra→guitar, vocals→vocal).
              * El frontend envía busqueda_norm solo cuando difiere del original. */
             $busquedaNorm = $request->get_param('busqueda_norm');
             if (!empty($busquedaNorm) && strtolower(trim($busqueda)) !== $busquedaNorm) {
                 $busquedaSQL .= " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagNorm)"
+                              . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTagsEnr}) tag WHERE tag ILIKE :busquedaTagEnrNorm)"
                               . " OR s.{$sTitulo} ILIKE :busquedaNormLike";
                 $params['busquedaTagNorm'] = '%' . $busquedaNorm . '%';
+                $params['busquedaTagEnrNorm'] = '%' . $busquedaNorm . '%';
                 $params['busquedaNormLike'] = '%' . $busquedaNorm . '%';
             }
             $where[] = $busquedaSQL . ')';
@@ -333,6 +338,7 @@ class SamplesController
         $sTitulo = SamplesCols::TITULO;
         $sDesc   = SamplesCols::DESCRIPCION;
         $sTags   = SamplesCols::TAGS;
+        $sTagsEnr = SamplesCols::TAGS_ENRIQUECIDOS;
         $sPubAt  = SamplesCols::PUBLICADO_AT;
         $sEstadoFeed = SamplesCols::ESTADO;
         $eActivoFeed = SamplesEnums::ESTADO_ACTIVO;
@@ -349,11 +355,13 @@ class SamplesController
             $whereExtra = " AND (to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
                         . " OR s.{$sTitulo} ILIKE :busquedaLike"
                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike)"
+                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTagsEnr}) tag WHERE tag ILIKE :busquedaTagEnrLike)"
                         . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4)";
             $extraParams['busquedaFts'] = $busqueda;
             $extraParams['busquedaLike'] = '%' . $busqueda . '%';
             $extraParams['busquedaTagLike'] = '%' . \strtolower($busqueda) . '%';
+            $extraParams['busquedaTagEnrLike'] = '%' . \strtolower($busqueda) . '%';
             $extraParams['busquedaFuzzy'] = $busqueda;
             $extraParams['busquedaFuzzyTag'] = \strtolower($busqueda);
 
@@ -361,8 +369,10 @@ class SamplesController
             $busquedaNorm = $request->get_param('busqueda_norm');
             if (!empty($busquedaNorm) && \strtolower(\trim($busqueda)) !== $busquedaNorm) {
                 $whereExtra .= " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagNorm)"
+                             . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTagsEnr}) tag WHERE tag ILIKE :busquedaTagEnrNorm)"
                              . " OR s.{$sTitulo} ILIKE :busquedaNormLike";
                 $extraParams['busquedaTagNorm'] = '%' . $busquedaNorm . '%';
+                $extraParams['busquedaTagEnrNorm'] = '%' . $busquedaNorm . '%';
                 $extraParams['busquedaNormLike'] = '%' . $busquedaNorm . '%';
             }
             $whereExtra .= ')';
