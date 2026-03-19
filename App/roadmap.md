@@ -147,13 +147,25 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-23 (Prioridad alta)
+## 193A-25
 
-EL MECANISMO DE LOS TAGS SE DAÑO; LOS TAGS POR ALGUNA EXTRAÑA RAZON SOLO FILTRA Y EMPIEZAN A CARGAR PAGINAS Y PAGINAS VACIAS; ESTO NO TIENE SENTIDO; SE DICTO QUE CUANDO SE DE CLICK A UN TAG YA SEA EN LOS SAMPLES; EN FEEDTAG; EN CUALQUIER LUGAR; HAGA UNA BUSQUEDA; LA PARTICULARIDAD UNICA ES QUE SI UNA BUSQUEDA ES APARTIR DE UN TAG QUE SE CLICKEO; NO ABRE EL MODAL DE BUSQUEDA RAPIDA.
+{ok: false, error: "API key de Groq no configurada"}
+error
+: 
+"API key de Groq no configurada"
+ok
+: 
+false
 
-## 193A-24 (Prioridad alta)
+en el panel de cola sale eso pero tengo entendido que la api esta configurada 
 
-Sobre apiDesktopAdapter.ts:241  PUT http://localhost:1420/wp-json/kamples/v1/me/coleccionados/2552/carpeta 403 (Forbidden) porque intenta hacer put alli y no a kamples.com??
+## 193A-26
+
+la waveform en la tab de duplicados sale de color negro en vez de blanco en el panel de admin
+
+## 193A-27
+
+la cola de pendientes no avanza, los pendientes que se subieron desde el sync, anteriomento en alguna tarea comente de que el sync estaba subiendo samples muy rapido y se saltaba el gap de procesamiento pero ahora no veo que la cola realmente avance, la tarea fue ayer.
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
