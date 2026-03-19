@@ -48,10 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-87
-
-En la aplicacion de escritorio al intentar suscribirse al premiun, al regresar, se deslogea bueno, no se exactamente, aparece el landing deslogeado, pero si cierro la aplicación y la vuelvo abrir, vuelvo a estar logeada. 
-
 ## 193A-7
 
 Cuidado con esto, tengo este proyecto en este repositorio que es una rama de glorytemplate pero tambien tengo https://github.com/1ndoryu/kamples-sync que es una copia de esta rama, lo que vamos a hacer es actualizar https://github.com/1ndoryu/kamples-sync con los ulitmos cambios de esta rama, o sea sin afectar esta rama de glorytemplate ni hacer nada raro. Revisasr que hay una licencia de codigo abierto de las mas restrintivas.
@@ -70,7 +66,7 @@ Dice error de red al descargar en la apk,  "183A-92"
 
 ## 183A-98
 
-Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo. 
+Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo, corregir cualquier problema.
 
 ## 183A-108
 
@@ -135,16 +131,18 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
-## 193A-43 (en planificacion)
+## 193A-43 
 
 en temp\apis.sh agrege 3 apis de groq, 
 lo que vamos a hacer es aumentar la velocidad de la cola de ia, creo que actualmente hay un gap para la generacion metadata de los samples de 3 o 2 minutos, vamos a reducirlo a 1 minuto, pero vamos a incorporar un rotamiento de api, o sea, usa las 3 api para cada, 1 api por cada ejecucion y rota, asi se distribuye el gasto entre 3 personas y se evitan menos rate limits, es general para todos los procesamientos que usen IA, tienes que subir las 3 api al vps 
+
+verificar que solo haya gap para el procesamiento de audios y metadata de ia de esos audios, para cosas como comentarios, publicaciones de comunidad y moderacion para esas actividades no hay gap, pero igual usar la rotacion de api. 
 
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
-Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer. No pude restaurar PushSubscriptionsDTO, por favor revisa si quedo bien. De todas
+Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer. No pude restaurar PushSubscriptionsDTO, por favor revisa si quedo bien. Creo que las notificaciones dejaron de llegar, revisa el historial de PushSubscriptionsDTO y restaura.
 
 
 ## Tarea final cuando completes todo
