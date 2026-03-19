@@ -147,29 +147,9 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-27
-
-sobre cola
-
-(actualizacion, si avanzo pero muy lento, cual es el tiempo? a demas el smaple que se proceso no lo veo publicado habian 1872 y cuando se proceso seguian habiendo 1872 )
-
-estos son los samples que se procesaron, todoes estos dicen estado completado, pero siguen habiendo 1872 samples, de hecho tenia entendido que igual se publicaban pero el analisis de audio igual quedaba pendiente, o sea nunca publicaran porque probablmente se hayan subido desde el sync pero no se subieron publicados, probablmente se haya mal interpretado la tarea anterior, el hecho de que se suban en cola no significa que no se suban publicados
-
-452		#2558	analisis audio		0/30		-	19/3, 05:07	19/3, 05:22	
-451		#2557	analisis audio		0/30		-	19/3, 05:07	19/3, 05:21	
-450		#2556	analisis audio		0/30		-	19/3, 05:07	19/3, 05:20	
-449		#2555	analisis audio		0/30		-	19/3, 04:53	19/3, 05:09	
-448		#2554	analisis audio		0/30		-	19/3, 04:53	19/3, 05:08	
-447		#2553	analisis audio		0/30		-	19/3, 04:53	19/3, 05:07	
-446		#2552	analisis audio		0/30		-	19/3, 04:53	19/3, 05:06	
-445		#2551	analisis audio		0/30		-	19/3, 04:53	19/3, 05:05
-
-pero no los veo publicadados
-
 ## 193A-28
 
 La primera pagina de los samples siempre es la misma, no la veo cambiar, antes habia comentado que debe cargar cacheada primero para una carga rapida pero luego actualizarse con los datos reales pero esto no pasa, la primera pagina esta congelada y solo veo cosas interesantes en la segunda.
-
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
