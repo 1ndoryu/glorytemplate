@@ -147,28 +147,36 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-30
-
-193A-25 "EL MECANISMO DE LOS TAGS SE DAÑO; LOS TAGS POR ALGUNA EXTRAÑA RAZON SOLO FILTRA Y EMPIEZAN A CARGAR PAGINAS Y PAGINAS VACIAS; ESTO NO TIENE SENTIDO; SE DICTO QUE CUANDO SE DE CLICK A UN TAG YA SEA EN LOS SAMPLES; EN FEEDTAG; EN CUALQUIER LUGAR; HAGA UNA BUSQUEDA; LA PARTICULARIDAD UNICA ES QUE SI UNA BUSQUEDA ES APARTIR DE UN TAG QUE SE CLICKEO; NO ABRE EL MODAL DE BUSQUEDA RAPIDA."
-
-Supuestamente se soluciono pero no, sigue fallando, no se me entiendo, las tags a dar click tienen que funcionar exactamente como una busqueda cuomo cuando se escribe en contenedorCampoTexto inputBusqueda, lo que sea que estan haciendo ahora esta mal, aplica para las tags de las tarjeta de los samples, las feedtags, etc, 
-
-ya veo, si funciona con las tags de las tarjetas pero no con el resto de tags, tiene que funcionar con feedTags incluyendo feedFiltrosSelects
-
-ese mismo comportamiento se espera en las tags dentro de las colecciones, todas las tags deben hacer busquedas, no filtros 
-
-las busquedas se suponen que estan preparadas para valores negativos (revisar eso porque las tags tienen 2 botones, uno para negativo y otro para positivo, no se quien cambio la logica, el punto es que se tiene que dejar claro como tienen que funcionar todas las tags globalmente, la busque tiene ser en la pagina en la que se esta, y la busqueda se adapta a todos los contextos, esto parece funcionar el unico detalle es ese el de las tags )
-
 ## 193A-31
 
 En el feed me salen samples a los que les di dislike, cosa que no debería pasar y no me refiero a ocultarlos, creo que lo que haremos es que 
 
-al lado del nombre con un badge pequeño mostrar el score, redondeado, para ver el valor, y un tooltip que muestre detalles del score que se pueda leer facil, no se si es esto posible pero no es posible lo entiendo, sera una configuracion debug, que solo este disponible para admin obviamente que se pueda activar y desactivar en configuraciones, no tiene que representar carga cuando este apagada. Solo eso, no digo que ajustes el valor de los negativos o algo. Tiene que ser algo que explique porque aparece en el feed de forma sencilla y humana pero sin perder detalles. 
+al lado del nombre con un badge pequeño mostrar el score, redondeado, para ver el valor, y un tooltip que muestre detalles del score que se pueda leer facil, no se si es esto posible pero no es posible lo entiendo, sera una configuracion debug, que solo este disponible para admin obviamente que se pueda activar y desactivar en configuraciones, no tiene que representar carga cuando este apagada. Solo eso, no digo que ajustes el valor de los negativos o algo. Tiene que ser algo que explique porque aparece en el feed de forma sencilla y humana pero sin perder detalles, tambien tiene que mostrar si un sample producto de la serendipia. 
 
 ## 193A-32
 
-## 193A-33
+Cuando se de dislike que el sample desaparezca y aparezca una alerta (el componente que muestra mensajes en la esquina inferior) que diga "Te mostraremos mas samples como esto" 
 
+Cuando se de like aparece "Te mostraremos más samples como este."
+
+La alerta no aplica para los like de coleccionnes y publicaicones de comunidad.
+
+## 193A-33 (en planificacion)
+
+El algoritmo tiene un sesgo de por ejemplo, si doy like a 5 samples que son kick, todos los samples que me mostrará son de kick, entiendo, el algoritmo funciona pero esto es molesto, basicamente no hay diversidad, si el usuario tambine le ha dado like a samples de guitarra y violin, no apareceran, tiene que haber alguna manera de balancear los gustos del usuario si que sea costoso computacionalmente.
+
+## 193A-34
+
+parace que no se estan aplicando normalizacion para tarjetaMeta, veo vocals y luego veo vocal de tag en tarjetaMeta, esta mal, lo que si veo normalizado son las feedtag pero deberia la misma normalizacion, 
+
+tambien tengo la duda de que si la busqueda ya aprende de la normalizacion o sea, si busco vocal me 
+coherentemente tiene que contar como vocals tambien, su busco guitar, tambien cuenta guitarra, la normalizacion debe estar centralizada. 
+
+## 193A-35 (en planificacion)
+
+La busqueda, funciona mal
+
+por ejemplo busco "Tommy Wright III" no encuentra nada pero si hay samples que 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
