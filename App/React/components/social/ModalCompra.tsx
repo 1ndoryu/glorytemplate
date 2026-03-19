@@ -21,7 +21,6 @@ export const ModalCompra = (): JSX.Element | null => {
         <Modal
             abierto={abierto}
             onCerrar={cerrar}
-            titulo="Confirmar compra"
             tamano="pequeno"
         >
             <div className="compraContenido">

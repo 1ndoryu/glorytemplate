@@ -145,7 +145,9 @@ El sistema de compra de samples no se ha auditado bien
 
 falta un tab en el perfil del usuario que solamente pueda ver el de ganancias, la agregaremos pero la agregaremos con un estadoVacio de "Esto estará disponible pronto para que generes gancias a partir de tus samples y contribucciones", mientras tanto yo ocmo admin podre ver el panel para testarearlo antes de que todos los usuarios puedan. 
 
-Agregaras datos de prueba para el usuario 1 simulando ventas de samples publicados, una configu para agregar gmail de paypal para retirar ganancias y verificar las compras de samples guarden toda la informacion necesaria, valor, quien lo compro, 
+Agregaras datos de prueba para el usuario 1 simulando ventas de samples publicados, una configu para agregar gmail de paypal para retirar ganancias y verificar las compras de samples guarden toda la informacion necesaria, valor, quien lo compro, a quien lo compro, cual sample, etc, esto esto para que se pueda manejar bien las ganancias de los usuarios, se va a cobrar 20% de comisión por venta. 
+
+Hay un error, un usuario publico un sample con un precio y sale "Este sample no tiene precio de venta" y 
 
 ## Tarea final cuando completes todo
 
