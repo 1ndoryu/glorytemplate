@@ -106,6 +106,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-104:** Completada 2026-03-19. Ocultar perfilContenedorInterno y perfilSeccionPublicar en tab ganancias.
 - **183A-100:** Completada 2026-03-19. Revisión sistema comentarios: orden raíz por likes, respuestas 3er nivel flat, imágenes fullscreen via VisorImagen, WebSocket real-time.
 - **183A-99:** Completada 2026-03-19. Premium sin comisión (100/0). Free/Pro mantienen 80/20.
+- **183A-97+183A-101:** Completadas 2026-03-19. Click nombre/avatar en panel admin/moderación abre perfil en nueva pestaña.
 
 ## Tareas pendientes
 
@@ -140,17 +141,9 @@ Agregar una opción en los menu contextual de los samples para decargar en svg l
 
 Dice error de red al descargar en la apk,  "183A-92"
 
-## 183A-97
-
-https://kamples.com/admin/panel/ en la lista de usuarios, a dar click un nombre de usuario o la foto de perfil que abra en otra pestaña el perfil de usuario. 
-
 ## 183A-98
 
 Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo. 
-
-## 183A-101
-
-Al dar click al nombre o foto de perfil a los usuarios en el panl de moderacion https://kamples.com/admin/panel/, que abra el perfil en otra pestaña.
 
 ## 183A-102
 
