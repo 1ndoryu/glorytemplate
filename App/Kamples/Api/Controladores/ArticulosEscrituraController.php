@@ -25,7 +25,8 @@ class ArticulosEscrituraController
                 return new WP_REST_Response(['ok' => false, 'error' => 'No autenticado'], 401);
             }
 
-            if (!RateLimiter::verificarUsuario($userId, 'crear_articulo', 5, 3600)) {
+            $limitResp = RateLimiter::verificarUsuario($userId, 'crear_articulo', 5, 3600);
+            if ($limitResp) {
                 return new WP_REST_Response(['ok' => false, 'error' => 'Demasiados artículos. Intenta más tarde.'], 429);
             }
 
