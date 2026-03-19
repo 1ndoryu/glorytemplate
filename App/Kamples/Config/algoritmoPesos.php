@@ -416,7 +416,9 @@ return [
      */
     'serendipidad' => [
         'habilitado'            => true,
-        'frecuencia'            => 8,    /* Cada N samples, inyectar uno de descubrimiento */
+        /* [193A-33] Reducido de 8 a 5 para aumentar diversidad junto con la
+         * penalización por categoría (ROW_NUMBER PARTITION BY genero). */
+        'frecuencia'            => 5,    /* Cada N samples, inyectar uno de descubrimiento */
         'distancia_min'         => 0.3,  /* Distancia coseno mínima (0=idéntico, 2=opuesto) */
         'distancia_max'         => 1.0,  /* Distancia coseno máxima (no demasiado lejano) */
         'min_engagement'        => 5,    /* Engagement mínimo (likes+repro+descargas) */

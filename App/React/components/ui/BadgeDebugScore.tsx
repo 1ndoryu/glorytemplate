@@ -55,6 +55,16 @@ export const BadgeDebugScore = ({ debug }: BadgeDebugScoreProps): JSX.Element =>
         lineas.push(`👥 ${debug.rn}° del mismo creador — sin penalización`);
     }
 
+    /* [193A-33] Diversidad por género/categoría */
+    if (debug.generoDiversidad) {
+        if (debug.rnGenero > 4) {
+            const penGenero = Math.max(0.5, 1.0 - (debug.rnGenero - 4) * 0.10);
+            lineas.push(`🎵 ${debug.rnGenero}° de "${debug.generoDiversidad}" — diversidad género ×${penGenero.toFixed(2)}`);
+        } else if (debug.rnGenero > 0) {
+            lineas.push(`🎵 ${debug.rnGenero}° de "${debug.generoDiversidad}" — sin penalización`);
+        }
+    }
+
     return (
         <span
             className={`badgeDebugScore ${esSerendipia ? 'badgeDebugScoreSerendipia' : ''}`}

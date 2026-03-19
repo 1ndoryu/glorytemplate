@@ -417,6 +417,13 @@ class MotorRecomendacion
         /* Diversidad por creador como penalización suave */
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
 
+        /* [193A-33] Diversidad por categoría/género: evita monocultura en el feed.
+         * Si el usuario likea 5 kicks, sin esto el feed entero sería kick.
+         * Extraemos el género dominante del JSONB metadata y aplicamos penalización
+         * suave a partir del 5to sample del mismo género, análogo al de creador. */
+        $maxPorCategoria = 4;
+        $sMeta = SamplesCols::METADATA;
+
         /*
          * CTEs de pre-cómputo: tags enriquecidos (1× en vez de 9×),
          * flags usuario (LEFT JOIN en vez de 4 EXISTS), vectores de afinidad.
@@ -484,6 +491,14 @@ class MotorRecomendacion
                             * Sin esto, panelColeccionPortada no mostraba info de la coleccion
                             * en samples del feed algoritmico (solo funcionaba en recientes). */
                            " . \App\Kamples\Api\Helpers\NormalizadorSample::sqlColeccionOriginalJson() . " AS coleccion_original_json,
+                           /* [193A-33] Género dominante para diversidad: primer género en metadata JSONB.
+                            * COALESCE a 'other' si no tiene, para que la partición no ignore samples sin género. */
+                           LOWER(COALESCE(
+                               CASE WHEN jsonb_typeof(s.{$sMeta}->'genero') = 'array'
+                                    THEN s.{$sMeta}->'genero'->>0
+                                    ELSE s.{$sMeta}->>'genero'
+                               END, 'other'
+                           )) AS genero_diversidad,
                            ({$scoreTotal}) as score
                     FROM {$ts} s
                     {$joinsPrecomputo}{$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
@@ -493,11 +508,16 @@ class MotorRecomendacion
                 . "),
                 scored AS (
                     SELECT base_scores.*,
-                           ROW_NUMBER() OVER (PARTITION BY base_scores.{$sCreadorId} ORDER BY base_scores.score DESC) as rn
+                           ROW_NUMBER() OVER (PARTITION BY base_scores.{$sCreadorId} ORDER BY base_scores.score DESC) as rn,
+                           ROW_NUMBER() OVER (PARTITION BY base_scores.genero_diversidad ORDER BY base_scores.score DESC) as rn_genero
                     FROM base_scores
                 )
                 SELECT * FROM scored
-                ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
+                ORDER BY (
+                    score
+                    * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END
+                    * CASE WHEN rn_genero <= {$maxPorCategoria} THEN 1 ELSE GREATEST(0.5, 1.0 - (rn_genero - {$maxPorCategoria}) * 0.10) END
+                ) DESC
                 LIMIT :limit OFFSET :offset";
 
             /* [183A-80] Bulk-fetch: si el offset solicitado cabe en PAGINAS_BULK,

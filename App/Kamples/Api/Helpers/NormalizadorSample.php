@@ -308,6 +308,8 @@ class NormalizadorSample
             'total'              => round((float) ($row['score'] ?? 0), 4),
             'serendipia'         => (bool) ($row['_serendipia'] ?? false),
             'rn'                 => (int) ($row['rn'] ?? 0),
+            'rnGenero'           => (int) ($row['rn_genero'] ?? 0),
+            'generoDiversidad'   => $row['genero_diversidad'] ?? null,
             'verificado'         => (bool) ($row[self::ALIAS_VERIFICADO_SAMPLE] ?? false),
             'tieneEmbedding'     => isset($row[SamplesCols::EMBEDDING]) && $row[SamplesCols::EMBEDDING] !== null,
             'horasPublicacion'   => $horasPublicacion,

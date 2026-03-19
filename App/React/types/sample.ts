@@ -219,6 +219,8 @@ export interface ScoreDebug {
     total: number;
     serendipia: boolean;
     rn: number;
+    rnGenero: number;
+    generoDiversidad: string | null;
     verificado: boolean;
     tieneEmbedding: boolean;
     horasPublicacion: number | null;
