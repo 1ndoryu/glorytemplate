@@ -22,6 +22,7 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Auth\JwtService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioEmailBienvenida;
 use App\Helpers\UrlHelper;
 
 class AuthController
@@ -233,6 +234,9 @@ class AuthController
 
             /* Generar JWT para clientes desktop (Tauri) */
             $token = JwtService::generar($wpUserId, $username);
+
+            /* [183A-84] Email de bienvenida — no bloquea el registro si falla */
+            ServicioEmailBienvenida::enviar($email, $username);
 
             return new \WP_REST_Response([
                 'ok'   => true,
