@@ -97,6 +97,7 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **183A-86:** Completada 2026-03-18. Fix paginación feed: (1) SQL params bug en bulk-fetch, (2) lock unificado, (3) stale TTL igualado, (4) frontend IntersectionObserver re-creación tras skeleton + fallback manual cuando guards bloquean.
 - **183A-90+183A-89:** Completadas 2026-03-19. 183A-90: samples sin embedding IA reciben factor 0.5x en score (configurable metadata_ia_reduccion). 183A-89: secciones música 1h auth/24h anon (era 10min/30min), más ideas cache 1 día, feed 5min confirmado como filosofía correcta, PerfilUsuario 30min ya alineado.
+- **183A-81:** Completada 2026-03-19. Fuzzy search con pg_trgm word_similarity() — typos ("hihatt"→"hihat", "snarre"→"snare") ahora encuentran resultados. Aplicado en listar() y feed(). Config fuzzy_boost=0.6.
 
 ## Tareas pendientes
 
@@ -111,10 +112,6 @@ la busqueda no funciona, la del landing sin logearse, redirige a descubrir pero 
 ## 183A-78
 
 He intentado iniciar sesion y falla, dice "Ha fallado la comprobación de la cookie", despues recargue y estaba logeada, intentar que esto no vuelva a suceder. 
-
-## 183A-81
-
-Mejorar la busqueda, por ejemplo, si busco lick en vez de kick, muestre kick, no se que nombre tiene esto pero funciona en youtube y aqui no se ha implementado, la busqueda no tiene que ser asi tan cerrada, los usuarios a veces escribien mal las palabras. 
 
 ## 183A-84
 
@@ -133,6 +130,14 @@ Las imagenes de las colecciones en el inicio no estan cargando optimizadas como 
 
 <img class="filaColeccionImg" src="https://kamples.com/wp-content/uploads/2026/03/54c3ef7d53c10235a8f937fa64a81778-1.jpg" alt="" loading="lazy">
 <img src="https://i0.wp.com/kamples.com/wp-content/uploads/2026/03/5459dbd136fdfbd523f93efa9a432cb4.jpg?strip=all&amp;quality=75&amp;w=80" alt="Memphis Acapella Whatcha Gonna Do 65bpm Cm" loading="lazy" class="tarjetaPortadaImg">
+
+## 183A-91
+
+Cuidado con esto, tengo este proyecto en este repositorio que es una rama de glorytemplate pero tambien tengo https://github.com/1ndoryu/kamples-sync que es una copia de esta rama, lo que vamos a hacer es actualizar https://github.com/1ndoryu/kamples-sync con los ulitmos cambios de esta rama, o sea sin afectar esta rama de glorytemplate ni hacer nada raro. Revisasr que hay una licencia de codigo abierto de las mas restrintivas.
+
+## 183A-92 
+
+Algo esta mal con la descargas en la apk, cuando le doy a descargar audio, abre para compartir, no para guardar en algun lugar.
 
 ## Tarea final cuando completes todo
 
