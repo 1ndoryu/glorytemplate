@@ -109,6 +109,11 @@ const DescargasBase = (): JSX.Element => {
         if (sample) abrirComentarios(sample);
     }, [comprados, abrirComentarios]);
 
+    /* [193A-30] Búsqueda por tag en comprados */
+    const manejarBuscarTag = useCallback((tag: string) => {
+        useFiltrosStore.getState().setBusqueda(tag);
+    }, []);
+
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="seccionDescargas">
@@ -218,6 +223,7 @@ const DescargasBase = (): JSX.Element => {
                                 onMenu={menu.abrirMenu}
                                 onClickCreador={(u) => navegar(`/perfil/${u}`)}
                                 onComentar={manejarComentar}
+                                onFiltrarMeta={manejarBuscarTag}
                             />
                         ))}
                     </div>

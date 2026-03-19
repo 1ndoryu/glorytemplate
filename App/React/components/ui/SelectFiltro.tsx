@@ -27,6 +27,8 @@ export interface SelectFiltroProps {
     onExcluir: (tag: string) => void;
     /* Callback al quitar un tag (ni incluido ni excluido) */
     onQuitar: (tag: string) => void;
+    /* [193A-30] Búsqueda server-side al seleccionar una opción */
+    onBuscar?: (tag: string) => void;
 }
 
 export const SelectFiltro = ({
@@ -37,6 +39,7 @@ export const SelectFiltro = ({
     onIncluir,
     onExcluir,
     onQuitar,
+    onBuscar,
 }: SelectFiltroProps): JSX.Element | null => {
     const {
         abierto,
@@ -45,7 +48,7 @@ export const SelectFiltro = ({
         toggleAbierto,
         manejarClickOpcion,
         manejarExcluir,
-    } = useSelectFiltro({ opciones, tagsIncluidos, tagsExcluidos, onIncluir, onExcluir, onQuitar });
+    } = useSelectFiltro({ opciones, tagsIncluidos, tagsExcluidos, onIncluir, onExcluir, onQuitar, onBuscar });
 
     if (opciones.length === 0) return null;
 

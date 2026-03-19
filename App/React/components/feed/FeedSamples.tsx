@@ -190,6 +190,7 @@ export const FeedSamples = ({
                     onExcluirTag={feed.manejarExcluirTag}
                     onQuitarTag={feed.quitarTag}
                     onCambiarBpm={feed.setBpmRango}
+                    onBuscarTag={feed.manejarBuscarTag}
                 />
             )}
 

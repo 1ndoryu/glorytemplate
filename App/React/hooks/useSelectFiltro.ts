@@ -13,6 +13,8 @@ interface UseSelectFiltroParams {
     onIncluir: (tag: string) => void;
     onExcluir: (tag: string) => void;
     onQuitar: (tag: string) => void;
+    /* [193A-30] Búsqueda server-side: si existe, click en opción busca en vez de filtrar */
+    onBuscar?: (tag: string) => void;
 }
 
 export const useSelectFiltro = ({
@@ -22,6 +24,7 @@ export const useSelectFiltro = ({
     onIncluir,
     onExcluir,
     onQuitar,
+    onBuscar,
 }: UseSelectFiltroParams) => {
     const [abierto, setAbierto] = useState(false);
     const contenedorRef = useRef<HTMLDivElement>(null);
@@ -54,21 +57,33 @@ export const useSelectFiltro = ({
     }, [abierto]);
 
     const manejarClickOpcion = useCallback((tag: string) => {
+        /* [193A-30] Si hay búsqueda, buscar y cerrar dropdown */
+        if (onBuscar) {
+            onBuscar(tag);
+            setAbierto(false);
+            return;
+        }
         if (tagsIncluidos.includes(tag)) {
             onQuitar(tag);
         } else {
             onIncluir(tag);
         }
-    }, [tagsIncluidos, onIncluir, onQuitar]);
+    }, [tagsIncluidos, onIncluir, onQuitar, onBuscar]);
 
     const manejarExcluir = useCallback((e: React.MouseEvent, tag: string) => {
         e.stopPropagation();
+        /* [193A-30] Si hay búsqueda, buscar negativo y cerrar dropdown */
+        if (onBuscar) {
+            onBuscar('-' + tag);
+            setAbierto(false);
+            return;
+        }
         if (tagsExcluidos.includes(tag)) {
             onQuitar(tag);
         } else {
             onExcluir(tag);
         }
-    }, [tagsExcluidos, onExcluir, onQuitar]);
+    }, [tagsExcluidos, onExcluir, onQuitar, onBuscar]);
 
     const toggleAbierto = () => setAbierto(!abierto);
 

@@ -30,6 +30,8 @@ export interface FiltroTagsProps {
     onExcluirTag: (tag: string) => void;
     onQuitarTag: (tag: string) => void;
     onCambiarBpm: (min: number | null, max: number | null) => void;
+    /* [193A-30] Búsqueda server-side al hacer click en tag (en vez de filtrado client-side) */
+    onBuscarTag?: (tag: string) => void;
     className?: string;
 }
 
@@ -44,6 +46,7 @@ export const FiltroTags = ({
     onExcluirTag,
     onQuitarTag,
     onCambiarBpm,
+    onBuscarTag,
     className = '',
 }: FiltroTagsProps): JSX.Element => {
     const { listaTagsRef, arrastrandoTags, iniciarArrastre, moverArrastre, finalizarArrastre } = useFeedArrastreTags();
@@ -67,27 +70,27 @@ export const FiltroTags = ({
             <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonRestar"
                 aria-label={`Excluir tag ${tag}`}
                 onMouseDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); onExcluirTag(tag); }}
+                onClick={e => { e.stopPropagation(); onBuscarTag ? onBuscarTag('-' + tag) : onExcluirTag(tag); }}
             >
                 <Minus size={10} />
             </BotonBase>
             <span className="feedTagTexto" role="button" tabIndex={0}
                 aria-label={`Incluir tag ${tag}`}
                 onMouseDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); onIncluirTag(tag); }}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onIncluirTag(tag); } }}
+                onClick={e => { e.stopPropagation(); onBuscarTag ? onBuscarTag(tag) : onIncluirTag(tag); }}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onBuscarTag ? onBuscarTag(tag) : onIncluirTag(tag); } }}
             >
                 {tag}
             </span>
             <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonSumar"
                 aria-label={`Incluir tag ${tag}`}
                 onMouseDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); onIncluirTag(tag); }}
+                onClick={e => { e.stopPropagation(); onBuscarTag ? onBuscarTag(tag) : onIncluirTag(tag); }}
             >
                 <Plus size={10} />
             </BotonBase>
         </div>
-    ), [tagsIncluidos, tagsExcluidos, onIncluirTag, onExcluirTag]);
+    ), [tagsIncluidos, tagsExcluidos, onIncluirTag, onExcluirTag, onBuscarTag]);
 
     return (
         <div className={`feedTags ${className}`}>
@@ -106,6 +109,7 @@ export const FiltroTags = ({
                             onIncluir={onIncluirTag}
                             onExcluir={onExcluirTag}
                             onQuitar={onQuitarTag}
+                            onBuscar={onBuscarTag}
                         />
                     );
                 })}

@@ -15,6 +15,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useFavoritosPagina } from '@app/hooks/useFavoritosPagina';
 import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
@@ -48,7 +49,12 @@ const FavoritosBase = (): JSX.Element => {
     const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
 
     /* Filtrado client-side por tags/BPM para la lista principal */
-    const filtros = useFeedFiltros({ samples });
+    const filtros = useFeedFiltros({ samples, busquedaClientSide: true });
+
+    /* [193A-30] Búsqueda por tag: setBusqueda global, filtro local vía busquedaClientSide */
+    const manejarBuscarTag = useCallback((tag: string) => {
+        useFiltrosStore.getState().setBusqueda(tag);
+    }, []);
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('FavoritosIsland', TABS_FAVORITOS, 'favoritos');
@@ -124,6 +130,7 @@ const FavoritosBase = (): JSX.Element => {
                             onExcluirTag={filtros.manejarExcluirTag}
                             onQuitarTag={filtros.quitarTag}
                             onCambiarBpm={filtros.setBpmRango}
+                            onBuscarTag={manejarBuscarTag}
                         />
                         <div className="listaDeSamples">
                             {filtros.samplesFiltrados.map((sample) => (
@@ -135,6 +142,7 @@ const FavoritosBase = (): JSX.Element => {
                                     onMenu={menu.abrirMenu}
                                     onClickCreador={(u) => navegar(`/perfil/${u}`)}
                                     onComentar={manejarComentar}
+                                    onFiltrarMeta={manejarBuscarTag}
                                 />
                             ))}
                         </div>

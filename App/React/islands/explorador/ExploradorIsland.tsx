@@ -6,6 +6,7 @@
  * Lógica en useExploradorIsland, carpetas en ArbolCarpetas, modal en ModalMoverCarpeta.
  */
 
+import { useCallback } from 'react';
 import { FolderOpen, GripVertical } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadricula';
@@ -20,6 +21,7 @@ import { TarjetaCarpeta } from '@app/components/explorador/TarjetaCarpeta';
 import { BarraHerramientasExplorador } from '@app/components/explorador/BarraHerramientasExplorador';
 import { ModalMoverCarpeta } from '@app/components/explorador/ModalMoverCarpeta';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import '../../styles/componentes/explorador.css';
 import '../../styles/componentes/exploradorDragModal.css';
 
@@ -64,6 +66,11 @@ const ExploradorBase = (): JSX.Element => {
         seleccionarSubcarpeta,
         toggleDesplegada,
     } = useExploradorIsland();
+
+    /* [193A-30] Búsqueda por tag en explorador */
+    const manejarBuscarTag = useCallback((tag: string) => {
+        useFiltrosStore.getState().setBusqueda(tag);
+    }, []);
 
     if (cargando && samples.length === 0) {
         return (
@@ -223,6 +230,7 @@ const ExploradorBase = (): JSX.Element => {
                                         onMenu={menu.abrirMenu}
                                         onClickCreador={(u) => navegar(`/perfil/${u}`)}
                                         onComentar={manejarComentar}
+                                        onFiltrarMeta={manejarBuscarTag}
                                     />
                                 </div>
                             ))}

@@ -4,6 +4,7 @@
  * Logica extraida a usePerfilIsland (SRP).
  */
 
+import { useCallback } from 'react';
 import { Music, Settings, MapPin, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
@@ -22,6 +23,7 @@ import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { usePerfilIsland } from '@app/hooks/usePerfilIsland';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useSeguidoresModalStore } from '@app/stores/seguidoresModalStore';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { crearLogger } from '@app/services/logger';
 import type { SampleResumen } from '@app/types/sample';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
@@ -79,6 +81,11 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         );
     }
 
+    /* [193A-30] Búsqueda por tag en perfil */
+    const manejarBuscarTag = useCallback((tag: string) => {
+        useFiltrosStore.getState().setBusqueda(tag);
+    }, []);
+
     /* Renderizar lista de samples para la tab activa */
     const renderizarListaSamples = (lista: SampleResumen[], mensajeVacio: string, iconoVacio: JSX.Element) => {
         if (cargandoTab) {
@@ -92,7 +99,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         return (
             <div className="listaDeSamples">
                 {lista.map(sample => (
-                    <TarjetaSample key={sample.id} sample={sample} contexto={lista} onLike={manejarLike} onMenu={menu.abrirMenu} onClickCreador={manejarClickCreador} />
+                    <TarjetaSample key={sample.id} sample={sample} contexto={lista} onLike={manejarLike} onMenu={menu.abrirMenu} onClickCreador={manejarClickCreador} onFiltrarMeta={manejarBuscarTag} />
                 ))}
             </div>
         );
