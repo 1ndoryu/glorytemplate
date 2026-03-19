@@ -15,6 +15,7 @@ import {SeccionBloqueos} from './SeccionBloqueos';
 import {useGenerosModalStore} from '@app/stores/generosModalStore';
 import {abrirEnlaceExterno} from '@app/utils/plataforma';
 import {useReproductorStore} from '@app/stores/reproductorStore';
+import {invalidarCacheFeed} from '@app/utils/cacheFeedPersistente';
 import {CampoTexto} from '../ui/CampoTexto';
 import {Input} from '../ui/Input';
 
@@ -273,6 +274,9 @@ const SeccionAdmin = (): JSX.Element => {
         const nuevo = !debugActivo;
         localStorage.setItem('kamples_debug_score', nuevo ? '1' : '0');
         setDebugActivo(nuevo);
+        /* [193A-38] Invalidar cache del feed para que la próxima carga
+         * re-fetche con/sin debug=1 y los badges aparezcan/desaparezcan */
+        invalidarCacheFeed();
     };
 
     return (

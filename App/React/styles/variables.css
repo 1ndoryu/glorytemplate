@@ -22,6 +22,9 @@
     --acentoHover: #070707;
     --acentoMuted: #4a665b1a;
     --acentoTexto: #eae4cc;
+    /* [193A-38] Fondo selección tarjetas (selección múltiple samples) */
+    --fondoSeleccion: rgba(74, 102, 91, 0.15);
+    --fondoSeleccionHover: rgba(74, 102, 91, 0.2);
     --hoverSutil: rgba(255, 255, 255, 0.05);
     --exito: #5da98b;
     --exitoMuted: rgba(34, 197, 94, 0.15);
@@ -130,6 +133,8 @@
     --acentoHover: #3e564c;
     --acentoMuted: rgba(74, 102, 91, 0.14);
     --acentoTexto: #f8f3df;
+    --fondoSeleccion: rgba(74, 102, 91, 0.15);
+    --fondoSeleccionHover: rgba(74, 102, 91, 0.2);
     --exito: #2f8a68;
     --exitoMuted: rgba(47, 138, 104, 0.14);
     --error: #b4232f;

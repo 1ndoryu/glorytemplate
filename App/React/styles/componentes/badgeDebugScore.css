@@ -6,7 +6,7 @@
     position: relative;
     padding: 1px 5px;
     border-radius: var(--radioSm);
-    font-size: 10px;
+    font-size: var(--fuente2xs);
     font-weight: 600;
     font-family: monospace;
     line-height: 1.2;
@@ -35,7 +35,7 @@
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    font-size: 11px;
+    font-size: var(--fuenteXs);
     line-height: 1.5;
     white-space: pre-wrap;
     pointer-events: none;
@@ -47,8 +47,8 @@
 
 .badgeDebugScoreLinea:first-child {
     font-weight: 600;
-    font-size: 12px;
-    padding-bottom: 4px;
+    font-size: var(--fuenteSm);
+    padding-bottom: var(--espacioXs);
     border-bottom: 1px solid var(--bordeSutil);
-    margin-bottom: 2px;
+    margin-bottom: var(--espacio2xs);
 }

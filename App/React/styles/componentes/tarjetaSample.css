@@ -27,13 +27,13 @@
 
 /* QL116: Estado de selección múltiple */
 .tarjetaSampleSeleccionado {
-    background-color: var(--fondoSeleccion, rgba(74, 102, 91, 0.15));
+    background-color: var(--fondoSeleccion);
     outline: 1px solid var(--acento);
     outline-offset: -1px;
 }
 
 .tarjetaSampleSeleccionado:hover {
-    background-color: var(--fondoSeleccion, rgba(74, 102, 91, 0.2));
+    background-color: var(--fondoSeleccionHover);
 }
 
 /* Portada con imagen de color */
@@ -85,8 +85,12 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
+    min-width: 0;
 }
 
+/* [193A-38] min-width: 0 permite que flex reduzca el título para dejar espacio
+ * a badges (verificado, premium, debugScore). Sin esto, el título empuja
+ * los badges fuera del contenedor con overflow:hidden y no se ven. */
 .tarjetaTitulo {
     font-size: var(--fuenteMd);
     font-weight: var(--pesoMedio);
@@ -94,6 +98,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
 }
 
 /* Título clickeable: navega al detalle del sample */
