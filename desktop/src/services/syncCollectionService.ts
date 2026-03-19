@@ -1329,7 +1329,9 @@ export async function crearColeccionDesdeLocal(nombre: string, parentId: number 
                 }
 
                 if (resp.status === 409) {
-                    const idExistente = await buscarColeccionServidorPorNombre(nombreNormalizado);
+                    /* [193A-29] Pasar parentId para distinguir subcarpetas homónimas bajo padres distintos.
+                     * Sin parentId, un 409 en "Carpeta A/Sub" podría retornar el ID de "Carpeta B/Sub". */
+                    const idExistente = await buscarColeccionServidorPorNombre(nombreNormalizado, parentId);
                     if (idExistente) {
                         await registrarColeccionNuevaLocal(idExistente, nombreNormalizado, parentId);
                         return idExistente;
