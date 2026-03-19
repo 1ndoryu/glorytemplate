@@ -189,7 +189,7 @@ class ServicioNotificaciones
             ],
             $actorId,
             '',
-            "/post/{$publicacionId}/"
+            "/publicacion/{$publicacionId}/"
         );
     }
 

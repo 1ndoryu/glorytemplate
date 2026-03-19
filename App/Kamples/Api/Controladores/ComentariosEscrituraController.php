@@ -307,7 +307,7 @@ class ComentariosEscrituraController
                     $pubAutorId, 'comentario',
                     'Alguien comento en tu publicacion',
                     ['commenter_id' => $userId, 'publicacion_id' => $targetId],
-                    $userId, '', "/post/{$targetId}/"
+                    $userId, '', "/publicacion/{$targetId}/"
                 );
             }
         }
