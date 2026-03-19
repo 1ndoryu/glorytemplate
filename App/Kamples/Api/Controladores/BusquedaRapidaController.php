@@ -29,10 +29,13 @@ use App\Config\Schema\_generated\ColeccionesCols;
 use App\Helpers\UrlHelper;
 use App\Kamples\Database\Repositories\BaseRepository;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioCache;
 
 class BusquedaRapidaController
 {
     private const LIMITE_POR_TIPO = 5;
+    private const CACHE_TTL = 21600; /* 6 horas */
+    private const CACHE_PREFIX = 'kamples_busq_rapida_';
 
     public static function registrarRutas(string $namespace): void
     {
@@ -75,6 +78,18 @@ class BusquedaRapidaController
             $limite = self::LIMITE_POR_TIPO;
             $qLower = mb_strtolower($q);
 
+            /* [183A-93] Cache Redis 6h — búsquedas populares se repiten mucho.
+             * Resultados toleran datos ligeramente stale (no necesitan real-time). */
+            $claveCache = self::CACHE_PREFIX . md5($qLower);
+            $cacheado = ServicioCache::obtener($claveCache);
+
+            if ($cacheado !== false) {
+                $datos = json_decode($cacheado, true);
+                if (is_array($datos)) {
+                    return new \WP_REST_Response($datos, 200);
+                }
+            }
+
             $canciones   = self::buscarCanciones($q, $limite);
             $samples     = self::buscarSamples($q, $limite);
             $sampleos    = self::buscarSampleos($q, $limite);
@@ -84,14 +99,18 @@ class BusquedaRapidaController
             /* Lista unificada ordenada por relevancia del match */
             $todos = self::unificarResultados($qLower, $canciones, $samples, $sampleos, $usuarios, $colecciones);
 
-            return new \WP_REST_Response([
+            $resultado = [
                 'canciones'   => $canciones,
                 'samples'     => $samples,
                 'sampleos'    => $sampleos,
                 'usuarios'    => $usuarios,
                 'colecciones' => $colecciones,
                 'todos'       => $todos,
-            ], 200);
+            ];
+
+            ServicioCache::guardar($claveCache, json_encode($resultado), self::CACHE_TTL);
+
+            return new \WP_REST_Response($resultado, 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('BusquedaRapida: error en búsqueda', [
                 'query'   => $request->get_param('q') ?? '',
