@@ -147,13 +147,6 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-34
-
-parace que no se estan aplicando normalizacion para tarjetaMeta, veo vocals y luego veo vocal de tag en tarjetaMeta, esta mal, lo que si veo normalizado son las feedtag pero deberia la misma normalizacion, 
-
-tambien tengo la duda de que si la busqueda ya aprende de la normalizacion o sea, si busco vocal me 
-coherentemente tiene que contar como vocals tambien, su busco guitar, tambien cuenta guitarra, la normalizacion debe estar centralizada. 
-
 ## 193A-35
 
 La busqueda, funciona mal
@@ -177,6 +170,12 @@ no veo el supuesto BadgeDebugScore que se supone que debe estar al lado del nomb
 /wp-json/kamples/v1/codigos-gratis/generar:1  Failed to load resource: the server responded with a status of 500 ()
 
 todo este sistema de codigo-gratis necesita una auditoria profunda para ver si funciona bien. 
+
+## 193A-40
+
+193A-29 y 193A-3 parece que no se arreglaron, esto necesita una revision profunda y detallada, documentar, desde el backend, hasta el sync hasta el servidor, mitigaciones, el problema sigue apareciendo, muy probablemente porque se siguen publicando samples que se encolaron con el problema activo pero esto es una sospecha, se necesita certeza para este caso. (no se trata sobre el problema de 409 porque ya se arreglo) es el mismo que comoente hoy en la tarea 3, " Carpeta_A/Sub_A en el servidor, la creación de Carpeta_B/Sub_A encontraba y reutilizaba la colección de Carpeta_A" Esto exactamente lo que sigue pasando. 
+
+Se necesita mitigaciones, para algo se guarda en la metadata la info de las carpetas, no? se puede arreglar (espero que se este guardado la info.)
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
