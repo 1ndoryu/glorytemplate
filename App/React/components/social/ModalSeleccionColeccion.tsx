@@ -10,6 +10,7 @@ import { useModalSeleccionColeccion } from '@app/hooks/useModalSeleccionColeccio
 import '../../styles/componentes/modalSeleccionColeccion.css';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
+import { ImgOptimizada } from '../ui/ImgOptimizada';
 
 export const ModalSeleccionColeccion = (): JSX.Element | null => {
     const {
@@ -64,8 +65,9 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                                     className={`seleccionColeccionItem ${yaGuardado ? 'seleccionColeccionItemGuardado' : ''}`}
                                     onClick={() => !yaGuardado && manejarAgregar(col.id)}
                                     disabled={yaGuardado || agregandoEste} type="button">
-                                    <img className="seleccionColeccionItemImg"
-                                        src={col.imagenUrl || obtenerImagenColor(col.id)} alt="" />
+                                    {/* [183A-88] Photon CDN para thumbnails en picker */}
+                                    <ImgOptimizada className="seleccionColeccionItemImg"
+                                        src={col.imagenUrl || obtenerImagenColor(col.id)} alt="" w={48} quality={75} />
                                     <span className="seleccionColeccionItemNombre">{col.nombre}</span>
                                     {yaGuardado && <span className="seleccionColeccionYaGuardado"><Check size={12} /></span>}
                                     {agregandoEste && <Loader size={14} className="seleccionColeccionSpinner" />}

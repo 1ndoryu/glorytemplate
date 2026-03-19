@@ -13,6 +13,7 @@ import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { SampleResumen } from '@app/types';
 import { BotonBase } from '../ui/BotonBase';
+import { ImgOptimizada } from '../ui/ImgOptimizada';
 
 interface PanelSugerenciasProps {
     sample: SampleResumen;
@@ -62,11 +63,13 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
                     onKeyDown={e => e.key === 'Enter' && navegar(`/coleccion/${coleccion.slug ?? coleccion.id}/`)}
                 >
                     {coleccion.imagenUrl ? (
-                        <img
+                        /* [183A-88] Photon CDN para portada en panel sugerencias */
+                        <ImgOptimizada
                             className="panelColeccionPortadaImg"
                             src={coleccion.imagenUrl}
                             alt={coleccion.nombre}
-                            loading="lazy"
+                            w={320}
+                            quality={80}
                         />
                     ) : (
                         <div className="panelColeccionPortadaPlaceholder" />

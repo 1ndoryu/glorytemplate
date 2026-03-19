@@ -11,6 +11,7 @@ import { useScrollHorizontal } from '@app/hooks/useScrollHorizontal';
 import type { Coleccion } from '@app/types';
 import { Avatar } from '../ui/Avatar';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
+import { ImgOptimizada } from '../ui/ImgOptimizada';
 import '../../styles/componentes/filaColecciones.css';
 
 /* QK101: Subido a 20 para mostrar más variedad con scroll horizontal */
@@ -54,11 +55,13 @@ export const FilaColecciones = (): JSX.Element | null => {
                     className="filaColeccionChip"
                     title={col.nombre}
                 >
-                    <img
+                    {/* [183A-88] Photon CDN para portadas de colección — antes era <img> sin optimizar */}
+                    <ImgOptimizada
                         className="filaColeccionImg"
                         src={col.imagenUrl || obtenerImagenColorPorTexto(col.nombre)}
                         alt=""
-                        loading="lazy"
+                        w={80}
+                        quality={75}
                     />
                     <div className="filaColeccionOverlay">
                         <div className="filaColeccionAutor">

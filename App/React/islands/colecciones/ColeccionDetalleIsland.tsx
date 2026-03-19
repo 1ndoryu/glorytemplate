@@ -12,6 +12,7 @@ import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
+import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { ModalCombinarColeccion } from '@app/components/social/ModalCombinarColeccion';
@@ -132,7 +133,8 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
 
             {/* Header de la colección */}
             <div className="coleccionHeader">
-                <img className="coleccionHeaderImg" src={imagenHeader} alt={coleccion.nombre} />
+                {/* [183A-88] Photon CDN para portada de colección */}
+                <ImgOptimizada className="coleccionHeaderImg" src={imagenHeader} alt={coleccion.nombre} w={400} quality={80} />
                 <div className="coleccionHeaderInfo">
                     <div className="coleccionHeaderTipo">
                         {coleccion.esPublica ? (
