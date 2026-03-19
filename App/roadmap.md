@@ -108,6 +108,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-99:** Completada 2026-03-19. Premium sin comisión (100/0). Free/Pro mantienen 80/20.
 - **183A-97+183A-101:** Completadas 2026-03-19. Click nombre/avatar en panel admin/moderación abre perfil en nueva pestaña.
 - **183A-107+183A-103+183A-105+183A-102:** Completadas 2026-03-19. Estilos tabGanancias, chatFlotante flex-column staging, tarjetaColeccion centrado bottom, ImgOptimizada en posts.
+- **183A-106:** Completada 2026-03-19. Descargas gratis via código admin-generado. "Compartir gratis" en menú contextual copia URL con ?codigoGratis=XXX. Usuarios autenticados reclaman inmediatamente; anónimos guardan en localStorage y reclaman al autenticarse. Endpoints de descarga aceptan codigoGratis y saltan restricciones si el código fue reclamado. Migration v066.
 
 ## Tareas pendientes
 
@@ -146,19 +147,55 @@ Dice error de red al descargar en la apk,  "183A-92"
 
 Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo. 
 
-## 183A-106
-
-Descargas gratis a través de un codigo, la ideas un boton en el menu contextual en los samples y colecciones que solo pueda ver yo como admin, "compartir gratis", eso generara un enlace unico con un codigo que si el usuario lo usa, descarga el contenido. Lo puede usar una sola vez en su cuenta. La cuestion es que generalmente van a ser usuarios que no estan registrados asi que el enlace debe guardar en su navegador que recibiran determinada cosa gratis y al registrarse la tienen, asi si van a una coleccion, descargan el zip gratis si el enlace era una coleccion gratis. 
-
 ## 183A-108
 
 Me preocupa algo en particular, anteriormente se hizo algo que sacaba del algoritmo los samples que se reproducian y no tenian accion alguna del usuario, estos samples aun deben aparecer en la busqueda. 
 
-## 183A-109 (En planificación)
+## 183A-109 
 
 Nueva pagina de blog, ira en landing publico y logeado, una tab de blog. 
 
-esto incluye poder publicar articulos, esto es algo avanzado y complicado 
+esto incluye poder publicar articulos, esto es algo avanzado y complicado, similar al wp-admin pero no usaremos el wp-admin 
+
+un modal donde se escribe el contenido del articulo, soporta bold, soporta imagenes, etc, lo que soportaría algo que publica entradas de blog, con vista html, vista de edición. 
+
+Debe soportar adjuntar samples, o sea, aparece un sample, se puede elegir cual y aparecera en el blog
+tambien se puede elegir una coleccion, con una vista donde carga un cuadro abajo con los samples de esa coleccion 
+
+Se podra elegir si se puede hacer una descarga publica a esos samples, se activa o desactiva la descarga publica
+
+el modal de publicacion de blog debe aparecer en el boton crear del nav, o sea, cuando se de click a boton crear abre un menu contextual para elegir que crear, una publicacion o un articulo. 
+
+creo que la mejor decisión es que cualquiera pueda publicar articulos pero todos entran en suspervición, excepto los del admin 
+
+esto inplica, no haremos una tab extra en el panel del admin, se usara el sistema de moderacion que ya existe para aprobar o rechazar articulos, los articulos deben estar optimizados para seo lo que se pueda 
+
+la tarjeta de vista de los artiticulo debe ser similar a la de colecciones, con imagen un poco mas pequeña, titulo mas largo (asegurarse de que en las colecciones haya cantidad de texto maxima para los titulos), y un descripcion corta que se puede personalizar, un boton de 3 puntos, se puede dar like y comentar articulos, las categorías vamos a dejarlas pre hechas, vamos a inspirarnos splice, tiene Inspiration
+Mastering
+Mixing
+Music Promotion
+Music Theory
+Recording
+Sampling
+Sound Design
+Tools
+All Tips & Tutorials
+
+Ableton Live
+Bitwig Studio
+Cubase
+FL Studio
+GarageBand
+Logic Pro
+Pro Tools
+Studio One
+All DAWs
+
+## 183A-110
+
+Auditoría de seguridad estricta y profunda para ## 183A-106, y un boton para invalidr en los samples compartido un enlace de descarga gratis, vencimiento de 1 año para los enlaces compartido gratis, pero abriran un modal despues de registrarse con algo de "Lo siento, el contenido que intentas descargar es antiguo, y hace tiempo que se elimino por alguna extraña razón pero, recibiste 50 créditos gratis de compensación, esto te puede gustar y un bton de ver recomendaciones y que lleve a una busqueda del contenido que se intento descargar, o sea el nombre" Agregar un todo de que esto se debe testear por un humano para ver como se ve el modal, ya hay un componente de modal, no pongas titulo al modal (sin cabezera me refiero)
+
+
 
 ## Tarea final cuando completes todo
 
