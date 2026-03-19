@@ -72,22 +72,27 @@ class PipelineAudio
      * @param array|null $metadataExtraccion Metadata de la cola de extraccion (recortes del scraper).
      *  Contiene fuente_titulo, fuente_artista, destino_titulo, destino_artista, tipo_elemento, etc.
      *  Se inyecta en el contexto tecnico para que la IA tenga info del sample original.
+     * @param bool $desdeColaIA [193A-27] Si true, omite semáforo Redis — la cola ya controla concurrencia.
+     *  Evita ciclo infinito: cola → pipeline → semáforo lleno → re-encola → cola → ...
      */
-    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = [], bool $omitirDedup = false, ?array $metadataExtraccion = null): void
+    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = [], bool $omitirDedup = false, ?array $metadataExtraccion = null, bool $desdeColaIA = false): void
     {
         /*
          * QL69: Semaforo de concurrencia para limitar FFmpeg simultaneos.
          * Usa Redis INCR atomico. Si hay mas de MAX_PIPELINE_CONCURRENTES,
          * encolar para procesamiento background y retornar sin bloquear.
+         * [193A-27] Si viene de la cola IA, omitir semaforo para evitar recursión.
          */
-        $semaforoAdquirido = false;
-        try {
-            $semaforoAdquirido = self::adquirirSemaforoPipeline();
-        } catch (\Throwable $e) {
-            KamplesLogger::warning('Pipeline: Error adquiriendo semaforo, continuando sin limite', [
-                'error' => $e->getMessage(),
-            ]);
-            $semaforoAdquirido = true;
+        $semaforoAdquirido = $desdeColaIA;
+        if (!$desdeColaIA) {
+            try {
+                $semaforoAdquirido = self::adquirirSemaforoPipeline();
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('Pipeline: Error adquiriendo semaforo, continuando sin limite', [
+                    'error' => $e->getMessage(),
+                ]);
+                $semaforoAdquirido = true;
+            }
         }
 
         if (!$semaforoAdquirido) {
@@ -121,7 +126,10 @@ class PipelineAudio
         try {
             self::ejecutarPipeline($sampleId, $rutaArchivo, $nombreOriginal, $idCorto, $descripcionUsuario, $tagsUsuario, $omitirDedup, $metadataExtraccion);
         } finally {
-            self::liberarSemaforoPipeline();
+            /* [193A-27] Solo liberar semáforo si fue adquirido (no vino de cola IA) */
+            if (!$desdeColaIA) {
+                self::liberarSemaforoPipeline();
+            }
         }
     }
 

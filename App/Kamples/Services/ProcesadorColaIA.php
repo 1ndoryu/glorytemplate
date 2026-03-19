@@ -29,6 +29,7 @@ use App\Helpers\JsonHelper;
 use App\Kamples\Api\GroqHttpClient;
 use App\Kamples\Api\ServicioIA;
 use App\Kamples\Api\ServicioModeracionIA;
+use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
 
 class ProcesadorColaIA
@@ -186,6 +187,17 @@ class ProcesadorColaIA
                 $metadata = self::decodificarMetadata($item[ColaProcesamientoIaCols::METADATA] ?? null);
 
                 $exito = match (true) {
+                    /* [193A-27] Pipeline diferido: sync desktop u overflow de concurrencia.
+                     * El sample está en 'procesando' y nunca pasó por el pipeline completo.
+                     * Ejecutar PipelineAudio::procesar() que hará todo: FFmpeg, IA, waveform,
+                     * MP3, preview, estado='activo', embedding, cache. Si Groq da 429 durante
+                     * el pipeline, este encola SOLO la parte IA — el sample ya estará activo. */
+                    $tipo === ColaProcesamientoIaEnums::TIPO_SAMPLE
+                        && $operacion === ColaProcesamientoIaEnums::OPERACION_ANALISIS_AUDIO
+                        && !empty($metadata['pipeline_diferido'])
+                        => self::ejecutarPipelineDiferido($entidadId, $metadata),
+
+                    /* Reproceso IA normal: sample ya activo, solo falta metadata IA por rate limit */
                     $tipo === ColaProcesamientoIaEnums::TIPO_SAMPLE
                         && $operacion === ColaProcesamientoIaEnums::OPERACION_ANALISIS_AUDIO
                         => self::procesarAnalisisAudio($entidadId, $metadata),
@@ -381,6 +393,58 @@ class ProcesadorColaIA
             return true;
         } catch (\Throwable $e) {
             KamplesLogger::error('ProcesadorColaIA: Error actualizando sample', [
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /* [193A-27] Ejecuta PipelineAudio completo para samples que fueron encolados
+     * desde sync desktop o por overflow de concurrencia. El pipeline hace:
+     * FFprobe → BPM/Key → Hash → Dedup → IA → Waveform → MP3 → Preview → estado='activo' → Embedding.
+     * Si Groq da 429, el pipeline encola SOLO la parte IA — el sample ya estará activo.
+     * No usa semáforo porque la cola ya controla concurrencia (MAX_ITEMS + pausa 60s). */
+    private static function ejecutarPipelineDiferido(int $sampleId, array $metadata): bool
+    {
+        $sample = SamplesRepository::buscarPorId($sampleId);
+        if (!$sample) {
+            KamplesLogger::warning('ProcesadorColaIA: Sample no encontrado para pipeline diferido', ['sampleId' => $sampleId]);
+            return true;
+        }
+
+        $rutaArchivo = $metadata['rutaArchivo'] ?? ($sample[SamplesCols::RUTA_ORIGINAL] ?? '');
+        $nombreOriginal = $metadata['nombreOriginal'] ?? ($sample[SamplesCols::TITULO] ?? '');
+        $idCorto = $sample['id_corto'] ?? \substr(\md5((string) $sampleId), 0, 7);
+
+        if (empty($rutaArchivo) || !\file_exists($rutaArchivo)) {
+            KamplesLogger::error('ProcesadorColaIA: Archivo no encontrado para pipeline diferido', [
+                'sampleId' => $sampleId,
+                'ruta' => $rutaArchivo,
+            ]);
+            return false;
+        }
+
+        $descripcionUsuario = $metadata['descripcionUsuario'] ?? '';
+        $tagsUsuario = $metadata['tagsUsuario'] ?? [];
+
+        try {
+            PipelineAudio::procesar(
+                $sampleId,
+                $rutaArchivo,
+                $nombreOriginal,
+                $idCorto,
+                $descripcionUsuario,
+                $tagsUsuario,
+                false,
+                null,
+                true /* desdeColaIA — omite semáforo para evitar recursión */
+            );
+
+            KamplesLogger::info('ProcesadorColaIA: Pipeline diferido completado', ['sampleId' => $sampleId]);
+            return true;
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ProcesadorColaIA: Error en pipeline diferido', [
                 'sampleId' => $sampleId,
                 'error' => $e->getMessage(),
             ]);
