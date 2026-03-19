@@ -147,15 +147,9 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-40
-
-193A-29 y 193A-3 parece que no se arreglaron, esto necesita una revision profunda y detallada, documentar, desde el backend, hasta el sync hasta el servidor, mitigaciones, el problema sigue apareciendo, muy probablemente porque se siguen publicando samples que se encolaron con el problema activo pero esto es una sospecha, se necesita certeza para este caso. (no se trata sobre el problema de 409 porque ya se arreglo) es el mismo que comoente hoy en la tarea 3, " Carpeta_A/Sub_A en el servidor, la creación de Carpeta_B/Sub_A encontraba y reutilizaba la colección de Carpeta_A" Esto exactamente lo que sigue pasando. 
-
-Se necesita mitigaciones, para algo se guarda en la metadata la info de las carpetas, no? se puede arreglar (espero que se este guardado la info.)
-
 ## 193A-41
 
-Se ve cortado por el smaple de abajo, no se ve completo
+.badgeDebugScoreTooltip Se ve cortado por el smaple de abajo, no se ve completo
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
