@@ -173,6 +173,20 @@ return [
         /* C178: Boost multiplicativo para samples verificados por humano */
         'verificado_boost'     => 1.15,
 
+        /* [193A-28] Boost multiplicativo para samples recién publicados.
+         * Resuelve el cold start: samples nuevos no tienen interacciones, así que
+         * comportamiento=0 y tendencias=0. Sin boost, nunca entran en la página 1.
+         * El boost temporal los iguala con los establecidos para darles exposición.
+         * Después de las horas configuradas, el boost desaparece y el sample
+         * compite por sus propios méritos (interacciones ganadas). */
+        'boost_reciente' => [
+            'habilitado'  => true,
+            'horas_full'  => 24,   /* < 24h desde publicación: boost completo */
+            'horas_medio' => 72,   /* 24-72h: boost parcial (decae linealmente) */
+            'factor_full' => 2.0,  /* x2.0 para < 24h */
+            'factor_medio'=> 1.4,  /* x1.4 base a las 24h, decae a x1.0 a las 72h */
+        ],
+
         /* [183A-90] Reducción de visibilidad para samples sin metadata IA procesada.
          * Samples con embedding (IA completa) reciben factor 1.0 (sin cambio).
          * Samples sin embedding reciben este factor (< 1.0 = menos visibilidad).

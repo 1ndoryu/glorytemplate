@@ -121,6 +121,10 @@ export const apiPeticion = async <T>(
             ...headers,
         },
         credentials: 'same-origin',
+        /* [193A-28] Evitar cache HTTP del navegador en todas las peticiones API.
+         * Sin esto, el browser puede servir respuestas cacheadas del feed,
+         * causando que la primera página parezca "congelada". */
+        cache: 'no-store',
         ...(signal ? { signal } : {}),
     };
 

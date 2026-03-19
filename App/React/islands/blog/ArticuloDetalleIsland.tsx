@@ -16,7 +16,6 @@ import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Avatar } from '@app/components/ui/Avatar';
 import { MenuContextual } from '@app/components/ui';
-import type { MenuItemDef } from '@app/components/ui';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';

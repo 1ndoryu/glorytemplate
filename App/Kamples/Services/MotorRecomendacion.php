@@ -46,11 +46,11 @@ class MotorRecomendacion
     private const CACHE_TTL_PAGINADOS = 900; /* 15 minutos — paginas subsecuentes */
     private const CACHE_PREFIX = 'kamples_feed_';
     private const CACHE_STALE_PREFIX = 'kamples_feed_stale_';
-    private const CACHE_STALE_TTL = 21600; /* 6 horas — escudo stale para primera pagina */
+    private const CACHE_STALE_TTL = 7200; /* 2 horas — escudo stale para primera pagina */
     /* [183A-86] Stale TTL igualado a pag1 (6h). Con TTL desigual (1h vs 6h),
      * entre la hora 1-6 pag1 tiene stale (viejo seed) pero pag2 no → pag2
      * se recalcula con nuevo seed → dedup descarta todo → paginación rota. */
-    private const CACHE_STALE_TTL_PAGINAS = 21600;
+    private const CACHE_STALE_TTL_PAGINAS = 7200;
     private const WARM_LOCK_PREFIX = 'kamples_warm_feed_';
     private const LIMITES_WARM_PRIMERA_PAGINA = [12, 30];
     /* [183A-80] Máximo de páginas a pre-computar en una sola query (OFFSET 0).
@@ -388,7 +388,31 @@ class MotorRecomendacion
         $reduccionIA = (float) ($params['metadata_ia_reduccion'] ?? 0.5);
         $multiplicadorIA = "(CASE WHEN s.{$sEmbed} IS NOT NULL THEN 1 ELSE {$reduccionIA} END)";
 
-        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA}";
+        /* [193A-28] Boost multiplicativo para samples recién publicados.
+         * Resuelve cold start: samples nuevos no tienen interacciones → nunca entran
+         * en página 1 sin un boost temporal que los iguale con los establecidos.
+         * < horas_full (24h): factor_full (x2.0).
+         * horas_full..horas_medio (24-72h): decae linealmente de factor_medio a 1.0.
+         * > horas_medio: 1.0 (sin boost). */
+        $boostReciente = $params['boost_reciente'] ?? [];
+        $boostHabilitado = $boostReciente['habilitado'] ?? true;
+        $multiplicadorReciente = '1';
+        if ($boostHabilitado) {
+            $horasFull = (int) ($boostReciente['horas_full'] ?? 24);
+            $horasMedio = (int) ($boostReciente['horas_medio'] ?? 72);
+            $factorFull = (float) ($boostReciente['factor_full'] ?? 2.0);
+            $factorMedio = (float) ($boostReciente['factor_medio'] ?? 1.4);
+            $segFull = $horasFull * 3600;
+            $segMedio = $horasMedio * 3600;
+            $multiplicadorReciente = "(CASE
+                WHEN EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) < {$segFull} THEN {$factorFull}
+                WHEN EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) < {$segMedio} THEN
+                    GREATEST(1.0, {$factorMedio} - ({$factorMedio} - 1.0) * (EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) - {$segFull}) / ({$segMedio} - {$segFull}))
+                ELSE 1.0
+            END)";
+        }
+
+        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA} * {$multiplicadorReciente}";
 
         /* Diversidad por creador como penalización suave */
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
