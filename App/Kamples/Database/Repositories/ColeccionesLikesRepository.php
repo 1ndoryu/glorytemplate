@@ -32,7 +32,9 @@ class ColeccionesLikesRepository extends BaseRepository
      */
     private static bool $tablaVerificada = false;
 
-    private static function asegurarTabla(): void
+    /* [193A-6] Público para que ColeccionesRepository pueda asegurar la tabla
+     * antes de queries que referencian colecciones_likes (feed explorar). */
+    public static function asegurarTabla(): void
     {
         if (static::$tablaVerificada) {
             return;

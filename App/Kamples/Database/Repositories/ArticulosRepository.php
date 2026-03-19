@@ -85,7 +85,7 @@ class ArticulosRepository extends BaseRepository
 
         $sql = "SELECT {$t}.*, 
                        ue.username AS autor_username, ue.avatar_url AS autor_avatar,
-                       ue.nombre_display AS autor_nombre, ue.verificado AS autor_verificado
+                       ue.nombre_visible AS autor_nombre, ue.verificado AS autor_verificado
                        {$likeSelect}
                 FROM {$t}
                 JOIN usuarios_ext ue ON ue.id = {$t}." . ArticulosCols::AUTOR_ID . "
@@ -130,7 +130,7 @@ class ArticulosRepository extends BaseRepository
         return static::consultarUno(
             "SELECT {$t}.*, 
                     ue.username AS autor_username, ue.avatar_url AS autor_avatar,
-                    ue.nombre_display AS autor_nombre, ue.verificado AS autor_verificado
+                    ue.nombre_visible AS autor_nombre, ue.verificado AS autor_verificado
                     {$likeSelect}
              FROM {$t}
              JOIN usuarios_ext ue ON ue.id = {$t}." . ArticulosCols::AUTOR_ID . "
@@ -234,7 +234,7 @@ class ArticulosRepository extends BaseRepository
     {
         $t = ArticulosCols::TABLA;
         return static::consultar(
-            "SELECT {$t}.*, ue.username AS autor_username, ue.avatar_url AS autor_avatar, ue.nombre_display AS autor_nombre
+            "SELECT {$t}.*, ue.username AS autor_username, ue.avatar_url AS autor_avatar, ue.nombre_visible AS autor_nombre
              FROM {$t}
              JOIN usuarios_ext ue ON ue.id = {$t}." . ArticulosCols::AUTOR_ID . "
              WHERE {$t}." . ArticulosCols::MODERACION_ESTADO . " = :estado 

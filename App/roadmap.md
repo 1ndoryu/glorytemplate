@@ -42,6 +42,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-97+183A-101+183A-107+183A-103+183A-105+183A-102+183A-106+183A-110+183A-112+183A-113:** Admin perfil links; estilos varios; descargas gratis con código; seguridad v067; fix colecciones gratis; hover like/guardar. 2026-03-19.
 - **183A-109 (Fases 1-5):** Sistema de blog completo — CRUD artículos, categorías, likes, moderación, feed. 2026-03-19.
 - **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
+- **193A-8+193A-9+193A-6:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok. 2026-03-19.
 
 ## Tareas pendientes
 
@@ -117,25 +118,37 @@ El verificado si aparece en los nombres de usuario en sus publicaciones pero no 
 
 En la apk no puedo hacer scroll horizontal en filaColecciones, arreglar sin dañar que en escritorio se pueda hacer scroll con el mouse tambien.
 
-## 193A-3
-
-El sync tiene un problema y es que imagina esta situación
-
-tengo carpeta A, y carpeta B, en ambas tengo una subcarpeta A, que sucede, lo correctoería que al sincronizar, los audios de subcarpeta A de ambas tengan el padre que les corresponde pues, por la jerarquía de carpetas, sucede que los audios de ambas subcarpeta se suben a una coleccion del mismo nombre pero todas son del mismo padre, o sea, es un error. 
-
-Lo correcto es que las subcarpetas puedan tener el mismo nombre pero que al sincronizar, se mantenga la jerarquía, o sea, los audios de la subcarpeta A de la carpeta A tengan como padre a la carpeta A y los audios de la subcarpeta A de la carpeta B tengan como padre a la carpeta B.
-
-## 193A-4
-
-Ante habia comentando que los samples se suben muy rapido que habia que haber una gap para la cola de IA, bueno, los samples que se suben a traves del sync se procesan intentaneamente, si deben subirse al servidor pero el servidor tiene que tener una cola con gap, no la tiene, pense qeu si, pero no, esto hace que consuman los creditos de procesamiento de metadata de IA muy rapido, entonces, se necesita una cola extra para publicar los samples que se suben a traves del sync pero esto no tiene que afectar la subida local, tienen que subirse. 
-
 ## 193A-5
 
 No he pensando ni he revisado esto. Si el servidor da 500 o error, por un momento es innacesible, kamples esta caido. ¿Que pasa con el sync? Lo mas logico es que la subida se pause 5 muntos, e intente la conexion, sino, vuelva a pausar y asi sucesivamente, hasta que el servidor vuelva a estar disponible. Esto hay que revisarlo bien porque hay que protejer que cuando el modo de borrar tras subida este activo, no haya perdida de datos.
 
-## 193A-6
+## 193A-9-B (Prioritario)
 
-Hay algunos errores reportado en C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\App\logs\kamples-2026-03-19.log, me preocupa que tambien existan en el servidor y no los detectemos. Revisa el log del servidor. 
+Todos los articulos dicen "Artículo no encontrado"
+
+los articulos no tienen skeleton y tardan en cargar, optmizar
+
+dice Demasiados artículos. Intenta más tarde. y no he publicado nada
+/wp-json/kamples/v1/articulos:1  Failed to load resource: the server responded with a status of 429 ()
+
+
+## 193A-10 
+
+Funcionalidad de volumenes en colecciones
+
+Pasa que una coleccion puede volverse muy grande, y una forma es creando otro Volumen, dividiendo en dos, puede dividir aleatoreamente, lo importante es que cree otra coleccion con el mismo nombre pero con un sufijo tipo "Vol II, Vol III, etc" y que esta nueva coleccion tenga la mitad de los samples de la coleccion original, y que se mantengan las relaciones. Sería los volumenes coleciones hijas de la principal (no se le agrega vol 1 a la principal) por favor hacer esto bien y revisar, planificar porque si sale mal se pueden perder datos, el numero del volumen se tiene que poder elegir no duplicarse
+
+## 193A-11
+
+[Violation] 'visibilitychange' handler took 169ms
+main-CvJwtydY.js:41 [Violation] 'click' handler took 171ms
+5[Violation] 'requestAnimationFrame' handler tomó <N> ms
+main-CvJwtydY.js:26 [Violation] 'message' handler took 431ms
+main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
+[Violation] Forced reflow while executing JavaScript took 742ms
+main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
+
+
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)

@@ -248,6 +248,10 @@ class ColeccionesRepository extends BaseRepository
      */
     public static function explorarPublicas(int $offset, string $busqueda = '', ?int $userId = null): array
     {
+        /* [193A-6] La query usa colecciones_likes como señal de relevancia.
+         * Sin esta llamada, si la tabla no existe aún, la query falla con error 42P01. */
+        ColeccionesLikesRepository::asegurarTabla();
+
         $t = ColeccionesCols::TABLA;
         $tcs = ColeccionSamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
