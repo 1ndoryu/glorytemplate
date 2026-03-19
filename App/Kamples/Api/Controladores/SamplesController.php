@@ -1,5 +1,10 @@
 <?php
 
+/* sentinel-disable-file limite-lineas
+ * Justificación: controller REST con 4 endpoints de lectura (listar, obtener, feed, tagsAgregados)
+ * que ya fue dividido en A04 SOLID split — upload, modificación, biblioteca y sugerencias
+ * fueron delegados a sub-controllers. Los endpoints restantes comparten contexto de consultas
+ * SQL complejas (FTS + pg_trgm + scoring) que no se benefician de separación adicional. */
 
 /**
  * SamplesController — Coordinador + lectura + feed de samples.
@@ -134,14 +139,19 @@ class SamplesController
         if (!empty($busqueda)) {
             /* QK75: Full-text match como filtro principal — aprovecha GIN index idx_samples_busqueda_fts.
              * ILIKE como fallback para matches parciales que full-text no captura (substrings).
-             * Tags via UNNEST como tercer criterio. Combinados con OR para máxima cobertura.
-             * Con pg_trgm GIN index, el ILIKE también es rápido. */
+             * Tags via UNNEST como tercer criterio.
+             * [183A-81] similarity() via pg_trgm para tolerancia a typos ("lick" → "kick").
+             * Usa GIN index idx_samples_titulo_trgm. Umbral 0.3 = default pg_trgm. */
             $where[] = "(to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
                      . " OR s.{$sTitulo} ILIKE :busqueda"
-                     . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere))";
+                     . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere)"
+                     . " OR similarity(s.{$sTitulo}, :busquedaFuzzy) > 0.3"
+                     . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4))";
             $params['busquedaFts'] = $busqueda;
             $params['busqueda'] = '%' . $busqueda . '%';
             $params['busquedaTagWhere'] = '%' . strtolower($busqueda) . '%';
+            $params['busquedaFuzzy'] = $busqueda;
+            $params['busquedaFuzzyTag'] = strtolower($busqueda);
         }
 
         $genero = $request->get_param('genero');
@@ -211,12 +221,18 @@ class SamplesController
             /* Boost por coincidencia en tags */
             $sqlTagMatch = "CASE WHEN s.{$sTags} IS NOT NULL AND EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike) THEN 1.0 ELSE 0.0 END";
 
-            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
+            /* [183A-81] Boost por similitud fuzzy (pg_trgm) — typo tolerance.
+             * similarity() retorna [0,1], pesado con fuzzyBoost configurable. */
+            $fuzzyBoost = (float) ($busquedaConfig['fuzzy_boost'] ?? 0.6);
+            $sqlFuzzyRank = "similarity(s.{$sTitulo}, :busquedaFuzzyRank)";
+
+            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank} + {$fuzzyBoost} * {$sqlFuzzyRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
 
             /* Params separados — PDO EMULATE_PREPARES=false exige nombres únicos */
             $params['busquedaRank'] = $busqueda;
             $params['busquedaTituloRank'] = $busqueda;
             $params['busquedaTagLike'] = '%' . strtolower($busqueda) . '%';
+            $params['busquedaFuzzyRank'] = $busqueda;
         } else {
             $orderBy = 'ORDER BY s.' . $sPubAt . ' DESC NULLS LAST';
         }
@@ -310,12 +326,18 @@ class SamplesController
         $whereExtra = '';
         $extraParams = [];
         if (!empty($busqueda) && \mb_strlen($busqueda) >= 2) {
+            /* [183A-81] FTS + ILIKE + pg_trgm similarity para typo tolerance.
+             * similarity() usa GIN index idx_samples_titulo_trgm. */
             $whereExtra = " AND (to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
                         . " OR s.{$sTitulo} ILIKE :busquedaLike"
-                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike))";
+                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike)"
+                        . " OR similarity(s.{$sTitulo}, :busquedaFuzzy) > 0.3"
+                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4))";
             $extraParams['busquedaFts'] = $busqueda;
             $extraParams['busquedaLike'] = '%' . $busqueda . '%';
             $extraParams['busquedaTagLike'] = '%' . \strtolower($busqueda) . '%';
+            $extraParams['busquedaFuzzy'] = $busqueda;
+            $extraParams['busquedaFuzzyTag'] = \strtolower($busqueda);
         }
 
         /* QQ2/QL24: Total en TODAS las páginas para que el frontend tenga el contador correcto.

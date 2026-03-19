@@ -361,6 +361,11 @@ return [
         'tag_match_boost'      => 0.8,   /* Boost por coincidencia en tags del sample */
         'titulo_boost'         => 0.5,   /* Boost extra por match en título (más relevante que descripción) */
 
+        /* [183A-81] Boost por similitud fuzzy (pg_trgm similarity()).
+         * Complementa FTS/ILIKE: tolera typos ("lick" → "kick", "bass" → "bas").
+         * similarity() retorna [0,1], se multiplica por este peso. */
+        'fuzzy_boost'          => 0.6,
+
         /* Idioma para ts_vector/ts_query (PostgreSQL text search config) */
         'idioma_ts'            => 'spanish',
 
