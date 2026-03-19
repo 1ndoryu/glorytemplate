@@ -3,7 +3,7 @@
  * Funciones de autenticación y perfil de usuario.
  */
 
-import { apiGet, apiPost, apiPut, apiPostFormData } from './apiCliente';
+import { apiGet, apiPost, apiPut, apiPostFormData, apiPeticion } from './apiCliente';
 import type { Usuario, UsuarioAutenticado } from '../types';
 
 /*
@@ -51,12 +51,16 @@ export const subirPortada = async (archivo: File) => {
 
 /*
  * Login con credenciales (delega a WP).
- * TO-DO: implementar cuando tengamos auth custom.
+ * [183A-78] omitirNonce=true previene "cookie check failed" cuando existen
+ * cookies stale de una sesión anterior. WordPress valida nonce contra cookies
+ * ANTES del permission_callback — si las cookies son de un usuario diferente
+ * al nonce (generado para UID 0 en página anónima), rechaza la petición.
  */
 export const login = async (email: string, password: string) => {
-    return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/login', {
-        email,
-        password,
+    return apiPeticion<{ token: string; usuario: UsuarioAutenticado }>('/auth/login', {
+        method: 'POST',
+        body: { email, password },
+        omitirNonce: true,
     });
 };
 
@@ -70,7 +74,11 @@ export const registrar = async (datos: {
     password: string;
     nombreVisible: string;
 }) => {
-    return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/registro', datos);
+    return apiPeticion<{ token: string; usuario: UsuarioAutenticado }>('/auth/registro', {
+        method: 'POST',
+        body: datos,
+        omitirNonce: true,
+    });
 };
 
 /*
@@ -87,8 +95,10 @@ export const cerrarSesion = async () => {
  * y lo envía al backend para verificación server-side.
  */
 export const loginConGoogle = async (credential: string) => {
-    return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/google', {
-        credential,
+    return apiPeticion<{ token: string; usuario: UsuarioAutenticado }>('/auth/google', {
+        method: 'POST',
+        body: { credential },
+        omitirNonce: true,
     });
 };
 
@@ -102,10 +112,14 @@ export const loginConGoogleDesktop = async (params: {
     codeVerifier: string;
     redirectUri: string;
 }) => {
-    return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/google/desktop', {
-        code: params.code,
-        code_verifier: params.codeVerifier,
-        redirect_uri: params.redirectUri,
+    return apiPeticion<{ token: string; usuario: UsuarioAutenticado }>('/auth/google/desktop', {
+        method: 'POST',
+        body: {
+            code: params.code,
+            code_verifier: params.codeVerifier,
+            redirect_uri: params.redirectUri,
+        },
+        omitirNonce: true,
     });
 };
 
