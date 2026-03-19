@@ -73,6 +73,7 @@ class SamplesController
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1, 'minimum' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 12, 'minimum' => 1, 'maximum' => 100],
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
+                'busqueda_norm' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
             ],
         ]);
 
@@ -143,16 +144,27 @@ class SamplesController
              * [183A-81] word_similarity() via pg_trgm para tolerancia a typos ("hihatt" → "hihat").
              * word_similarity compara query vs cada palabra del título (no todo el string).
              * Usa GIN index idx_samples_titulo_trgm. Umbral 0.3 = default pg_trgm. */
-            $where[] = "(to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
-                     . " OR s.{$sTitulo} ILIKE :busqueda"
-                     . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere)"
-                     . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
-                     . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4))";
+            $busquedaSQL = "(to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
+                         . " OR s.{$sTitulo} ILIKE :busqueda"
+                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere)"
+                         . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
+                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4)";
             $params['busquedaFts'] = $busqueda;
             $params['busqueda'] = '%' . $busqueda . '%';
             $params['busquedaTagWhere'] = '%' . strtolower($busqueda) . '%';
             $params['busquedaFuzzy'] = $busqueda;
             $params['busquedaFuzzyTag'] = strtolower($busqueda);
+
+            /* [193A-34] Expandir con forma normalizada (sinónimos: guitarra→guitar, vocals→vocal).
+             * El frontend envía busqueda_norm solo cuando difiere del original. */
+            $busquedaNorm = $request->get_param('busqueda_norm');
+            if (!empty($busquedaNorm) && strtolower(trim($busqueda)) !== $busquedaNorm) {
+                $busquedaSQL .= " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagNorm)"
+                              . " OR s.{$sTitulo} ILIKE :busquedaNormLike";
+                $params['busquedaTagNorm'] = '%' . $busquedaNorm . '%';
+                $params['busquedaNormLike'] = '%' . $busquedaNorm . '%';
+            }
+            $where[] = $busquedaSQL . ')';
         }
 
         $genero = $request->get_param('genero');
@@ -338,12 +350,22 @@ class SamplesController
                         . " OR s.{$sTitulo} ILIKE :busquedaLike"
                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike)"
                         . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
-                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4))";
+                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4)";
             $extraParams['busquedaFts'] = $busqueda;
             $extraParams['busquedaLike'] = '%' . $busqueda . '%';
             $extraParams['busquedaTagLike'] = '%' . \strtolower($busqueda) . '%';
             $extraParams['busquedaFuzzy'] = $busqueda;
             $extraParams['busquedaFuzzyTag'] = \strtolower($busqueda);
+
+            /* [193A-34] Expandir con sinónimos normalizados desde frontend */
+            $busquedaNorm = $request->get_param('busqueda_norm');
+            if (!empty($busquedaNorm) && \strtolower(\trim($busqueda)) !== $busquedaNorm) {
+                $whereExtra .= " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagNorm)"
+                             . " OR s.{$sTitulo} ILIKE :busquedaNormLike";
+                $extraParams['busquedaTagNorm'] = '%' . $busquedaNorm . '%';
+                $extraParams['busquedaNormLike'] = '%' . $busquedaNorm . '%';
+            }
+            $whereExtra .= ')';
         }
 
         /* QQ2/QL24: Total en TODAS las páginas para que el frontend tenga el contador correcto.
@@ -506,6 +528,7 @@ class SamplesController
             'page'     => ['required' => false, 'type' => 'integer', 'default' => 1, 'minimum' => 1],
             'per_page' => ['required' => false, 'type' => 'integer', 'default' => 12, 'minimum' => 1, 'maximum' => 100],
             'busqueda' => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+            'busqueda_norm' => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             'genero'   => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             'bpm_min'  => ['required' => false, 'type' => 'integer', 'minimum' => 1, 'maximum' => 999],
             'bpm_max'  => ['required' => false, 'type' => 'integer', 'minimum' => 1, 'maximum' => 999],

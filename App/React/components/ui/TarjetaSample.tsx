@@ -13,6 +13,7 @@ import { WaveformPlayer } from './WaveformPlayer';
 import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
 import { etiquetaBpm } from '../../services/bpmUtils';
+import { normalizarTag } from '../../services/tagUtils';
 import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
@@ -259,14 +260,16 @@ const BadgesMetadata = ({ sample, onFiltrar }: BadgesMetadataProps): JSX.Element
     const badges: { texto: string; clave: string }[] = [];
     const usados = new Set<string>();
 
+    /* [193A-34] agregarBadge aplica normalizarTag para consistencia
+     * (vocals→vocal, guitarra→guitar, etc). Evita duplicados normalizados. */
     const agregarBadge = (valores: unknown, clave: string) => {
         const arr = Array.isArray(valores) ? valores : valores ? [valores] : [];
         for (const v of arr) {
             if (typeof v === 'string' && v.trim()) {
-                const normalizado = v.toLowerCase().trim();
-                if (!usados.has(normalizado)) {
-                    usados.add(normalizado);
-                    badges.push({ texto: v, clave });
+                const norm = normalizarTag(v);
+                if (norm && !usados.has(norm)) {
+                    usados.add(norm);
+                    badges.push({ texto: norm, clave });
                     return;
                 }
             }

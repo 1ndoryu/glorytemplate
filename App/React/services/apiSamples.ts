@@ -8,6 +8,7 @@ import { apiGet, apiPost, apiPostFormData, apiDelete, apiPut } from './apiClient
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen, Sample } from '../types';
 import type { CategoriaTag } from './tagUtils';
+import { normalizarTag } from './tagUtils';
 
 export interface PaginacionSamples {
     page: number;
@@ -37,10 +38,13 @@ export interface FiltrosSamples {
  * Lista samples con filtros y paginación.
  */
 export const listarSamples = async (filtros: FiltrosSamples = {}): Promise<RespuestaApi<RespuestaListaSamples>> => {
+    /* [193A-34] Enviar forma normalizada para que el backend busque sinónimos */
+    const busquedaNorm = filtros.busqueda ? normalizarTag(filtros.busqueda) : undefined;
     return apiGet<RespuestaListaSamples>('/samples', {
         page: filtros.page ?? 1,
         per_page: filtros.perPage ?? 12,
         busqueda: filtros.busqueda,
+        busqueda_norm: busquedaNorm && busquedaNorm !== filtros.busqueda?.toLowerCase().trim() ? busquedaNorm : undefined,
         genero: filtros.genero,
         bpm_min: filtros.bpmMin,
         bpm_max: filtros.bpmMax,
@@ -66,7 +70,14 @@ export const obtenerFeed = async (
     busqueda = ''
 ): Promise<RespuestaApi<SampleResumen[]>> => {
     const params: Record<string, string | number> = { tipo, page };
-    if (busqueda.trim()) params.busqueda = busqueda.trim();
+    if (busqueda.trim()) {
+        params.busqueda = busqueda.trim();
+        /* [193A-34] Enviar forma normalizada para sinónimos (guitarra→guitar, vocals→vocal) */
+        const norm = normalizarTag(busqueda.trim());
+        if (norm && norm !== busqueda.trim().toLowerCase()) {
+            params.busqueda_norm = norm;
+        }
+    }
     /* [193A-31] Debug score para admin: solo envía param si está activo en localStorage */
     if (typeof window !== 'undefined' && localStorage.getItem('kamples_debug_score') === '1') {
         params.debug = 1;
