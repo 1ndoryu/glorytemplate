@@ -140,12 +140,13 @@ class SamplesController
             /* QK75: Full-text match como filtro principal — aprovecha GIN index idx_samples_busqueda_fts.
              * ILIKE como fallback para matches parciales que full-text no captura (substrings).
              * Tags via UNNEST como tercer criterio.
-             * [183A-81] similarity() via pg_trgm para tolerancia a typos ("lick" → "kick").
+             * [183A-81] word_similarity() via pg_trgm para tolerancia a typos ("hihatt" → "hihat").
+             * word_similarity compara query vs cada palabra del título (no todo el string).
              * Usa GIN index idx_samples_titulo_trgm. Umbral 0.3 = default pg_trgm. */
             $where[] = "(to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
                      . " OR s.{$sTitulo} ILIKE :busqueda"
                      . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere)"
-                     . " OR similarity(s.{$sTitulo}, :busquedaFuzzy) > 0.3"
+                     . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
                      . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4))";
             $params['busquedaFts'] = $busqueda;
             $params['busqueda'] = '%' . $busqueda . '%';
@@ -221,10 +222,10 @@ class SamplesController
             /* Boost por coincidencia en tags */
             $sqlTagMatch = "CASE WHEN s.{$sTags} IS NOT NULL AND EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike) THEN 1.0 ELSE 0.0 END";
 
-            /* [183A-81] Boost por similitud fuzzy (pg_trgm) — typo tolerance.
-             * similarity() retorna [0,1], pesado con fuzzyBoost configurable. */
+            /* [183A-81] Boost por word_similarity fuzzy (pg_trgm) — typo tolerance.
+             * word_similarity() compara query vs cada palabra del título, retorna [0,1]. */
             $fuzzyBoost = (float) ($busquedaConfig['fuzzy_boost'] ?? 0.6);
-            $sqlFuzzyRank = "similarity(s.{$sTitulo}, :busquedaFuzzyRank)";
+            $sqlFuzzyRank = "word_similarity(:busquedaFuzzyRank, s.{$sTitulo})";
 
             $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank} + {$fuzzyBoost} * {$sqlFuzzyRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
 
@@ -326,12 +327,12 @@ class SamplesController
         $whereExtra = '';
         $extraParams = [];
         if (!empty($busqueda) && \mb_strlen($busqueda) >= 2) {
-            /* [183A-81] FTS + ILIKE + pg_trgm similarity para typo tolerance.
-             * similarity() usa GIN index idx_samples_titulo_trgm. */
+            /* [183A-81] FTS + ILIKE + pg_trgm word_similarity para typo tolerance.
+             * word_similarity() compara query vs cada palabra del título. */
             $whereExtra = " AND (to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
                         . " OR s.{$sTitulo} ILIKE :busquedaLike"
                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike)"
-                        . " OR similarity(s.{$sTitulo}, :busquedaFuzzy) > 0.3"
+                        . " OR word_similarity(:busquedaFuzzy, s.{$sTitulo}) > 0.3"
                         . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE similarity(tag, :busquedaFuzzyTag) > 0.4))";
             $extraParams['busquedaFts'] = $busqueda;
             $extraParams['busquedaLike'] = '%' . $busqueda . '%';
