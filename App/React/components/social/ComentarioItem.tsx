@@ -47,13 +47,17 @@ interface ComentarioItemProps {
     nivel?: number;
 }
 
-const MAX_NIVEL = 2;
+/* [183A-100] Nivel visual máximo de indentación. Respuestas a nivel >= 2 se
+ * muestran planas (misma indentación) pero aún con botón Responder. */
+const MAX_NIVEL_VISUAL = 2;
 
 export const ComentarioItem = ({comentario, acciones, onClickAutor, renderMediaComentario, nivel = 0}: ComentarioItemProps): JSX.Element => {
-    const {menuPos, menuItems, abrirMenu, cerrarMenu, textoEdicion, setTextoEdicion, textoRespuesta, setTextoRespuesta, respuestasVisibles, enviandoRespuesta, inputRespuestaRef, inputEdicionRef, editando, respondiendo, tieneRespuestas, iniciarRespuesta, enviarRespuesta, confirmarEdicion, toggleRespuestas, manejarKeyEdicion, manejarKeyRespuesta} = useComentarioItem({comentario, acciones});
+    const {menuPos, menuItems, abrirMenu, cerrarMenu, textoEdicion, setTextoEdicion, textoRespuesta, setTextoRespuesta, respuestasVisibles, enviandoRespuesta, inputRespuestaRef, inputEdicionRef, editando, respondiendo, tieneRespuestas, iniciarRespuesta, enviarRespuesta, confirmarEdicion, toggleRespuestas, manejarKeyEdicion, manejarKeyRespuesta} = useComentarioItem({comentario, acciones, nivel});
+
+    const nivelVisual = Math.min(nivel, MAX_NIVEL_VISUAL);
 
     return (
-        <div className={`comentarioItem ${nivel > 0 ? 'comentarioRespuesta' : ''}`}>
+        <div className={`comentarioItem ${nivelVisual > 0 ? 'comentarioRespuesta' : ''}`}>
             <div className="comentarioAutor" onClick={() => onClickAutor?.(comentario.autor.username)} role="link" tabIndex={0}>
                 <Avatar src={comentario.autor.avatarUrl} nombre={comentario.autor.nombreVisible} tamano="xs" />
             </div>
@@ -101,7 +105,7 @@ export const ComentarioItem = ({comentario, acciones, onClickAutor, renderMediaC
                                 {(comentario.totalLikes ?? 0) > 0 && <span className="comentarioAccionConteo">{comentario.totalLikes}</span>}
                             </BotonBase>
                         )}
-                        {acciones.onResponder && nivel < MAX_NIVEL && (
+                        {acciones.onResponder && (
                             <BotonBase variante="ghost" className="comentarioAccionBtn" tamano="ninguno" onClick={iniciarRespuesta} type="button" aria-label="Responder">
                                 <MessageCircle size={16} />
                                 <span>Responder</span>

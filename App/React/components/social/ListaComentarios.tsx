@@ -10,6 +10,7 @@ import { Avatar } from '@app/components/ui/Avatar';
 import { ComentarioItem } from '@app/components/social/ComentarioItem';
 import { ComentarioAudio } from '@app/components/social/ComentarioAudio';
 import { useListaComentarios } from '@app/hooks/useListaComentarios';
+import { useVisorImagenStore } from '@app/stores/visorImagenStore';
 import type { Comentario } from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
 import { BotonBase } from '../ui/BotonBase';
@@ -71,19 +72,24 @@ export const ListaComentarios = ({
         respondendoAId, setRespondendoAId,
     });
 
-    /* Renderizar media dentro de ComentarioItem */
+    const abrirVisor = useVisorImagenStore(s => s.abrir);
+
+    /* [183A-100] Renderizar media dentro de ComentarioItem.
+     * Imágenes abren en VisorImagen (fullscreen) en vez de nueva pestaña. */
     const renderMediaComentario = useCallback((comentario: Comentario) => (
         <>
             {comentario.tipoContenido === 'imagen' && comentario.mediaUrl && (
-                <a href={comentario.mediaUrl} target="_blank" rel="noopener noreferrer" className="comentarioImagen">
+                <div className="comentarioImagen" role="button" tabIndex={0}
+                    onClick={() => abrirVisor(comentario.mediaUrl!, 'Imagen adjunta')}
+                    onKeyDown={e => { if (e.key === 'Enter') abrirVisor(comentario.mediaUrl!, 'Imagen adjunta'); }}>
                     <img src={comentario.mediaUrl} alt="Imagen adjunta" loading="lazy" />
-                </a>
+                </div>
             )}
             {comentario.tipoContenido === 'audio' && comentario.mediaUrl && (
                 <ComentarioAudio src={comentario.mediaUrl} picos={comentario.mediaMetadata?.picos} />
             )}
         </>
-    ), []);
+    ), [abrirVisor]);
 
     const clases = ['listaComentarios', className].filter(Boolean).join(' ');
 

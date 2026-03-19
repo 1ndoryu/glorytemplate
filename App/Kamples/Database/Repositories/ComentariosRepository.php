@@ -144,7 +144,8 @@ class ComentariosRepository extends BaseRepository
             . " AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'"
             . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
             . $filtroBloqueos
-            . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
+            /* [183A-100] Comentarios raíz: más likes primero, luego más recientes */
+            . " ORDER BY c." . ComentariosCols::TOTAL_LIKES . " DESC, c." . ComentariosCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['tipo' => $tipo, 'targetId' => $targetId, 'limit' => $limit, 'offset' => $offset]
         );
     }

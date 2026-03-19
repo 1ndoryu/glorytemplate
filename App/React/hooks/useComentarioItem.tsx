@@ -16,9 +16,10 @@ import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 interface UseComentarioItemParams {
     comentario: Comentario;
     acciones?: ComentarioAcciones;
+    nivel?: number;
 }
 
-export const useComentarioItem = ({ comentario, acciones }: UseComentarioItemParams) => {
+export const useComentarioItem = ({ comentario, acciones, nivel = 0 }: UseComentarioItemParams) => {
     const usuario = useAuthStore(s => s.usuario);
     const [menuPos, setMenuPos] = useState({ abierto: false, x: 0, y: 0 });
     const [textoEdicion, setTextoEdicion] = useState('');
@@ -76,14 +77,17 @@ export const useComentarioItem = ({ comentario, acciones }: UseComentarioItemPar
         setTimeout(() => inputRespuestaRef.current?.focus(), 50);
     }, [acciones, comentario.id]);
 
+    /* [183A-100] Respuestas a nivel >= 2 se aplanan bajo el padre del comentario
+     * en vez de crear un nivel extra de anidamiento. */
     const enviarRespuesta = useCallback(async () => {
         const texto = textoRespuesta.trim();
         if (!texto || !acciones?.onResponder) return;
         setEnviandoRespuesta(true);
-        const ok = await acciones.onResponder(texto, comentario.id);
+        const parentIdEfectivo = nivel >= 2 ? (comentario.parentId ?? comentario.id) : comentario.id;
+        const ok = await acciones.onResponder(texto, parentIdEfectivo);
         setEnviandoRespuesta(false);
         if (ok) { setTextoRespuesta(''); setRespuestasVisibles(true); }
-    }, [textoRespuesta, acciones, comentario.id]);
+    }, [textoRespuesta, acciones, comentario.id, comentario.parentId, nivel]);
 
     /* Edición */
     const confirmarEdicion = useCallback(async () => {

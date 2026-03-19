@@ -36,6 +36,7 @@ use App\Helpers\JsonHelper;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
+use App\Kamples\Services\NotificadorWebSocket;
 use App\Kamples\KamplesLogger as LogGeneral;
 use App\Kamples\Servicios\ServicioMedia;
 
@@ -174,30 +175,44 @@ class ComentariosEscrituraController
         /* Datos del autor para respuesta completa */
         $usuario = UsuariosExtRepository::buscarParticipante($userId);
 
+        $comentarioData = [
+            'id' => $id,
+            'autorId' => $userId,
+            'contenido' => $contenido ?? '',
+            'tipoContenido' => $tipoContenido,
+            'mediaUrl' => $mediaUrl,
+            'mediaMetadata' => $mediaMetadata ? JsonHelper::decode($mediaMetadata) : null,
+            'creadoAt' => \date('c'),
+            'parentId' => $parentId,
+            'totalLikes' => 0,
+            'totalRespuestas' => 0,
+            'liked' => false,
+            'autor' => [
+                'id' => $userId,
+                'username' => $usuario[UsuariosExtCols::USERNAME] ?? '',
+                'nombreVisible' => $usuario[UsuariosExtCols::NOMBRE_VISIBLE] ?? $usuario[UsuariosExtCols::USERNAME] ?? '',
+                'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
+                    $usuario[UsuariosExtCols::AVATAR_URL] ?? null,
+                    (int) ($usuario[UsuariosExtCols::WP_USER_ID] ?? 0)
+                ),
+            ],
+        ];
+
+        /* [183A-100] Broadcast WebSocket para inserción en tiempo real.
+         * Destinatarios: dueño del contenido + autor del padre (si es respuesta).
+         * Excluye al autor del comentario (ya lo tiene localmente). */
+        $destinatariosWs = self::obtenerDestinatariosWs($tipo, $targetId, $parentId, $userId);
+        if (!empty($destinatariosWs)) {
+            NotificadorWebSocket::notificar('comentario_nuevo', $destinatariosWs, [
+                'tipo' => $tipo,
+                'targetId' => $targetId,
+                'comentario' => $comentarioData,
+            ]);
+        }
+
         return new \WP_REST_Response([
             'ok' => true,
-            'data' => [
-                'id' => $id,
-                'autorId' => $userId,
-                'contenido' => $contenido ?? '',
-                'tipoContenido' => $tipoContenido,
-                'mediaUrl' => $mediaUrl,
-                'mediaMetadata' => $mediaMetadata ? JsonHelper::decode($mediaMetadata) : null,
-                'creadoAt' => \date('c'),
-                'parentId' => $parentId,
-                'totalLikes' => 0,
-                'totalRespuestas' => 0,
-                'liked' => false,
-                'autor' => [
-                    'id' => $userId,
-                    'username' => $usuario[UsuariosExtCols::USERNAME] ?? '',
-                    'nombreVisible' => $usuario[UsuariosExtCols::NOMBRE_VISIBLE] ?? $usuario[UsuariosExtCols::USERNAME] ?? '',
-                    'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
-                        $usuario[UsuariosExtCols::AVATAR_URL] ?? null,
-                        (int) ($usuario[UsuariosExtCols::WP_USER_ID] ?? 0)
-                    ),
-                ],
-            ],
+            'data' => $comentarioData,
         ], 201);
         } catch (\Throwable $e) {
             LogGeneral::error('ComentariosEscrituraController::crear error', ['error' => $e->getMessage()]);
@@ -296,5 +311,34 @@ class ComentariosEscrituraController
                 );
             }
         }
+    }
+
+    /* [183A-100] Determina destinatarios del broadcast WebSocket en tiempo real.
+     * Incluye: dueño del contenido + autor del comentario padre (si respuesta).
+     * Excluye al autor del nuevo comentario (ya lo tiene localmente). */
+    private static function obtenerDestinatariosWs(string $tipo, int $targetId, ?int $parentId, int $userId): array
+    {
+        $ids = [];
+
+        if ($tipo === ComentariosEnums::TIPO_SAMPLE) {
+            $sInfo = SamplesRepository::buscarInfoNotificacion($targetId);
+            if ($sInfo) {
+                $ids[] = (int) $sInfo[SamplesCols::CREADOR_ID];
+            }
+        } elseif ($tipo === ComentariosEnums::TIPO_PUBLICACION) {
+            $pubAutorId = PublicacionesRepository::buscarAutorId($targetId);
+            if ($pubAutorId) {
+                $ids[] = $pubAutorId;
+            }
+        }
+
+        if ($parentId) {
+            $padreAutorId = ComentariosRepository::buscarAutorId($parentId);
+            if ($padreAutorId) {
+                $ids[] = $padreAutorId;
+            }
+        }
+
+        return \array_values(\array_unique(\array_filter($ids, fn($id) => $id !== $userId)));
     }
 }

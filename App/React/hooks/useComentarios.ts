@@ -11,6 +11,8 @@ import {
     editarComentario, eliminarComentario, reportarComentario,
     darLikeComentario, quitarLikeComentario, obtenerRespuestas,
 } from '@app/services/apiSocial';
+import { wsService } from '@app/services/wsService';
+import { useAuthStore } from '@app/stores/authStore';
 import { crearLogger } from '@app/services/logger';
 import type { Comentario } from '@app/types';
 import type { TipoComentable } from '@app/services/apiSocial';
@@ -228,6 +230,30 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
     useEffect(() => {
         if (cargarAlAbrir) cargar(1);
     }, [cargarAlAbrir, cargar]);
+
+    /* [183A-100] Escuchar comentarios nuevos en tiempo real via WebSocket.
+     * Filtra por tipo+targetId y excluye comentarios propios (ya insertados localmente). */
+    const usuarioId = useAuthStore(s => s.usuario?.id);
+
+    useEffect(() => {
+        const unsub = wsService.on('comentario_nuevo', (datos: unknown) => {
+            const d = datos as { tipo: string; targetId: number; comentario: Comentario };
+            if (!d?.comentario || d.tipo !== tipo || d.targetId !== targetId) return;
+            if (d.comentario.autorId === usuarioId) return;
+
+            if (d.comentario.parentId) {
+                setComentarios(prev => actualizarEnLista(prev, d.comentario.parentId!, c => ({
+                    ...c,
+                    totalRespuestas: (c.totalRespuestas ?? 0) + 1,
+                    respuestas: [...(c.respuestas ?? []), d.comentario],
+                })));
+            } else {
+                setComentarios(prev => [...prev, d.comentario]);
+            }
+        });
+
+        return unsub;
+    }, [tipo, targetId, usuarioId]);
 
     return {
         comentarios,
