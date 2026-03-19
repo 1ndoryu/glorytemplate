@@ -13,6 +13,7 @@ export type {
     NotaMusical,
     EscalaMusical,
     ExtraccionSample,
+    ScoreDebug,
 } from './sample';
 
 export type {

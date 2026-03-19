@@ -33,6 +33,9 @@ use App\Helpers\UrlHelper;
 
 class NormalizadorSample
 {
+    /* [193A-31] Flag para incluir datos de debug (score, serendipia) solo para admin.
+     * Se activa en SamplesController::feed() cuando admin + param debug. */
+    public static bool $incluirDebugScore = false;
     /**
      * Convierte un string PostgreSQL array ({val1,val2,...}) a array PHP.
      * PDO no parsea automáticamente columnas text[] de Postgres.
@@ -272,6 +275,43 @@ class NormalizadorSample
             'coleccionOriginal'  => self::decodificarColeccionOriginal($row),
             /* QQ117: Metadatos de extraccion (fuente, timing, metodo descarga) */
             'extraccion'         => self::decodificarExtraccion($row),
+            /* [193A-31] Debug score: solo se incluye para admin con debug activo */
+            ...(self::$incluirDebugScore && isset($row['score']) ? [
+                'scoreDebug' => self::construirScoreDebug($row),
+            ] : []),
+        ];
+    }
+
+    /* [193A-31] Construye el objeto scoreDebug a partir de la fila SQL del feed algorítmico.
+     * No modifica la query SQL — infiere multiplicadores de los campos existentes. */
+    private static function construirScoreDebug(array $row): array
+    {
+        $horasPublicacion = null;
+        if (isset($row[SamplesCols::PUBLICADO_AT])) {
+            $ts = strtotime($row[SamplesCols::PUBLICADO_AT]);
+            if ($ts !== false) {
+                $horasPublicacion = round((time() - $ts) / 3600, 1);
+            }
+        }
+
+        /* Inferir boost reciente desde las horas */
+        $boostReciente = 1.0;
+        if ($horasPublicacion !== null) {
+            if ($horasPublicacion < 24) {
+                $boostReciente = 2.0;
+            } elseif ($horasPublicacion < 72) {
+                $boostReciente = max(1.0, 1.4 - (1.4 - 1.0) * ($horasPublicacion - 24) / (72 - 24));
+            }
+        }
+
+        return [
+            'total'              => round((float) ($row['score'] ?? 0), 4),
+            'serendipia'         => (bool) ($row['_serendipia'] ?? false),
+            'rn'                 => (int) ($row['rn'] ?? 0),
+            'verificado'         => (bool) ($row[self::ALIAS_VERIFICADO_SAMPLE] ?? false),
+            'tieneEmbedding'     => isset($row[SamplesCols::EMBEDDING]) && $row[SamplesCols::EMBEDDING] !== null,
+            'horasPublicacion'   => $horasPublicacion,
+            'boostReciente'      => round($boostReciente, 2),
         ];
     }
     /*

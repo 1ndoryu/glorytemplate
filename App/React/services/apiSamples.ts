@@ -67,6 +67,10 @@ export const obtenerFeed = async (
 ): Promise<RespuestaApi<SampleResumen[]>> => {
     const params: Record<string, string | number> = { tipo, page };
     if (busqueda.trim()) params.busqueda = busqueda.trim();
+    /* [193A-31] Debug score para admin: solo envía param si está activo en localStorage */
+    if (typeof window !== 'undefined' && localStorage.getItem('kamples_debug_score') === '1') {
+        params.debug = 1;
+    }
     return apiGet<SampleResumen[]>('/feed', params);
 };
 

@@ -810,6 +810,8 @@ class MotorRecomendacion
         $posInsercion = $frecuencia - 1;
         foreach ($descubrimientos as $descubrimiento) {
             if ($posInsercion >= \count($resultados)) break;
+            /* [193A-31] Marcar sample como serendipia para debug badge */
+            $descubrimiento['_serendipia'] = true;
             \array_splice($resultados, $posInsercion, 0, [$descubrimiento]);
             $posInsercion += $frecuencia + 1; /* +1 porque el array creció */
         }

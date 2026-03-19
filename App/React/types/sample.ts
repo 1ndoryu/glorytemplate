@@ -210,6 +210,19 @@ export interface SampleResumen {
     coleccionOriginal?: { id: number; nombre: string; slug: string | null; imagenUrl?: string | null } | null;
     /* QK30: El backend siempre retorna extraccion (null si no hay datos) */
     extraccion?: ExtraccionSample | null;
+    /* [193A-31] Debug score — solo presente cuando admin + debug activo */
+    scoreDebug?: ScoreDebug | null;
+}
+
+/* [193A-31] Datos de debug del algoritmo de scoring, solo para admin */
+export interface ScoreDebug {
+    total: number;
+    serendipia: boolean;
+    rn: number;
+    verificado: boolean;
+    tieneEmbedding: boolean;
+    horasPublicacion: number | null;
+    boostReciente: number;
 }
 
 /* Importamos referencia para evitar circular */

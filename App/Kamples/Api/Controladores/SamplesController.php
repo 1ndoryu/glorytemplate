@@ -312,6 +312,11 @@ class SamplesController
         $offset  = ($page - 1) * $perPage;
         $busqueda = \trim((string) $request->get_param('busqueda'));
 
+        /* [193A-31] Debug score para admin: incluir scoreDebug en la respuesta
+         * solo cuando el admin solicita debug=1. Cero costo cuando apagado. */
+        if ($request->get_param('debug') && UsuarioHelper::esAdmin()) {
+            NormalizadorSample::$incluirDebugScore = true;
+        }
         /* Columnas para FTS */
         $sTitulo = SamplesCols::TITULO;
         $sDesc   = SamplesCols::DESCRIPCION;

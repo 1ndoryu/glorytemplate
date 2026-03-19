@@ -4,7 +4,8 @@
  * Extraído para cumplir SRP y limite de 300 líneas.
  */
 
-import {ImagePlus, Bell, BellOff, User, Shield, Palette, Ban, Music, ChevronRight, Scale, ExternalLink} from 'lucide-react';
+import {useState} from 'react';
+import {ImagePlus, Bell, BellOff, User, Shield, Palette, Ban, Music, ChevronRight, Scale, ExternalLink, Wrench} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -71,7 +72,9 @@ export const SECCIONES_NAV: NavItemConfig[] = [
     {id: 'notificaciones', etiqueta: 'Notificaciones', icono: <Bell size={16} />},
     {id: 'apariencia', etiqueta: 'Apariencia', icono: <Palette size={16} />},
     {id: 'bloqueos', etiqueta: 'Bloqueos', icono: <Ban size={16} />},
-    {id: 'legal', etiqueta: 'Legal', icono: <Scale size={16} />}
+    {id: 'legal', etiqueta: 'Legal', icono: <Scale size={16} />},
+    /* [193A-31] Tab admin — solo visible para rol admin */
+    {id: 'admin', etiqueta: 'Admin', icono: <Wrench size={16} />}
 ];
 
 /* Renderiza el contenido de la sección activa (compartido) */
@@ -231,6 +234,10 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
         case 'bloqueos':
             return <SeccionBloqueos />;
 
+        /* [193A-31] Sección admin: herramientas de debug solo para administradores */
+        case 'admin':
+            return <SeccionAdmin />;
+
         case 'legal':
             return (
                 <>
@@ -256,19 +263,51 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
     }
 };
 
+/* [193A-31] Sub-componente: sección admin con toggle de debug score */
+const SeccionAdmin = (): JSX.Element => {
+    const [debugActivo, setDebugActivo] = useState(
+        () => typeof window !== 'undefined' && localStorage.getItem('kamples_debug_score') === '1'
+    );
+
+    const toggleDebugScore = () => {
+        const nuevo = !debugActivo;
+        localStorage.setItem('kamples_debug_score', nuevo ? '1' : '0');
+        setDebugActivo(nuevo);
+    };
+
+    return (
+        <>
+            <div className="configSeccion configSeccionHorizontal">
+                <div className="configSeccionInfo">
+                    <span className="configLabel">Debug score</span>
+                    <span className="configSubtexto">Muestra el score del algoritmo de recomendación en cada sample del feed.</span>
+                </div>
+                <BotonBase variante="ghost" className={`configToggle ${debugActivo ? 'configToggleActivo' : ''}`} onClick={toggleDebugScore} type="button">
+                    <Wrench size={14} />
+                </BotonBase>
+            </div>
+        </>
+    );
+};
+
 /* Lista de navegación de secciones (compartida) */
-export const NavSecciones = ({h}: {h: HookConfiguracion}): JSX.Element => (
-    <nav className="configNavLista">
-        {SECCIONES_NAV.map(item => (
-            <BotonBase variante="ghost" key={item.id}
-                className={`configNavItem ${h.seccionActiva === item.id ? 'configNavItemActivo' : ''}`}
-                onClick={() => { h.setSeccionActiva(item.id); h.seleccionarSeccionMovil(item.id); }}
-                type="button"
-            >
-                {item.icono}
-                {item.etiqueta}
-                <ChevronRight size={14} className="configNavChevron" />
-            </BotonBase>
-        ))}
-    </nav>
-);
+export const NavSecciones = ({h}: {h: HookConfiguracion}): JSX.Element => {
+    const esAdmin = h.usuario?.rol === 'admin';
+    const secciones = esAdmin ? SECCIONES_NAV : SECCIONES_NAV.filter(s => s.id !== 'admin');
+
+    return (
+        <nav className="configNavLista">
+            {secciones.map(item => (
+                <BotonBase variante="ghost" key={item.id}
+                    className={`configNavItem ${h.seccionActiva === item.id ? 'configNavItemActivo' : ''}`}
+                    onClick={() => { h.setSeccionActiva(item.id); h.seleccionarSeccionMovil(item.id); }}
+                    type="button"
+                >
+                    {item.icono}
+                    {item.etiqueta}
+                    <ChevronRight size={14} className="configNavChevron" />
+                </BotonBase>
+            ))}
+        </nav>
+    );
+};

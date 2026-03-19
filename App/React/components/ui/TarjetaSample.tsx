@@ -17,6 +17,7 @@ import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
+import { BadgeDebugScore } from './BadgeDebugScore';
 import '../../styles/componentes/tarjetaSample.css';
 import { BotonBase } from './BotonBase';
 import { ImgOptimizada } from './ImgOptimizada';
@@ -159,6 +160,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     {noReproducido && <span className="tarjetaPuntoRojo" aria-label="No reproducido" />}
                     {sample.verificado && <BadgeCheck size={14} className="tarjetaVerificado" />}
                     {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
+                    {sample.scoreDebug && <BadgeDebugScore debug={sample.scoreDebug} />}
                 </div>
 
                 <div className="tarjetaMeta">
