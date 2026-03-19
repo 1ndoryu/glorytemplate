@@ -2,16 +2,19 @@
  * Hook: useColeccionesPublicas
  * Lógica extraída de ColeccionesIsland (SRP).
  * Carga colecciones públicas desde la API y gestiona búsqueda.
+ * [193A-37] Sincroniza con filtrosStore.busqueda para que el buscador
+ * del NavPublico filtre colecciones en la vista pública.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { listarColeccionesPublicas } from '@app/services/apiColecciones';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import type { Coleccion } from '@app/types';
 
 export const useColeccionesPublicas = () => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [busqueda, setBusqueda] = useState('');
+    const busquedaGlobal = useFiltrosStore(s => s.busqueda);
     const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
     const cargar = useCallback(async (query?: string) => {
@@ -28,17 +31,11 @@ export const useColeccionesPublicas = () => {
         }
     }, []);
 
-    /* Carga inicial */
+    /* [193A-37] Recargar cuando cambia la búsqueda global (NavPublico buscador) */
     useEffect(() => {
-        cargar();
-    }, [cargar]);
-
-    /* Búsqueda con debounce */
-    const manejarBusqueda = useCallback((valor: string) => {
-        setBusqueda(valor);
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => cargar(valor), 350);
-    }, [cargar]);
+        debounceRef.current = setTimeout(() => cargar(busquedaGlobal || undefined), 350);
+    }, [busquedaGlobal, cargar]);
 
     /* Cleanup debounce */
     useEffect(() => {
@@ -47,5 +44,5 @@ export const useColeccionesPublicas = () => {
         };
     }, []);
 
-    return { colecciones, cargando, busqueda, manejarBusqueda };
+    return { colecciones, cargando };
 };

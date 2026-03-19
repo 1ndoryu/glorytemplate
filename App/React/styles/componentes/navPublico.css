@@ -57,10 +57,68 @@
     gap: var(--espacioSm);
 }
 
+/* [193A-37] Buscador inline en rutas de contenido */
+.navPublicoBuscador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs) var(--espacioSm);
+    transition: border-color var(--transicionRapida);
+}
+
+.navPublicoBuscador:focus-within {
+    border-color: var(--bordeActivo);
+}
+
+.navPublicoBuscadorIcono {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+/* Override estilos de Input para que encaje compacto en el nav */
+.navPublicoBuscadorInput.campTextoInput {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    width: 140px;
+    min-height: unset;
+    height: auto;
+    line-height: 1.4;
+}
+
+.navPublicoBuscadorInput.campTextoInput:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.navPublicoBuscadorInput.campTextoInput::placeholder {
+    color: var(--textoTerciario);
+}
+
+.navPublicoBuscadorLimpiar {
+    padding: var(--espacio2xs) !important;
+    min-width: unset !important;
+    min-height: unset !important;
+    color: var(--textoTerciario);
+}
+
+.navPublicoBuscadorLimpiar:hover {
+    color: var(--textoPrimario);
+}
+
 /* Responsivo */
 @media (max-width: 600px) {
 
     .navPublicoEnlaces {
+        display: none;
+    }
+
+    .navPublicoBuscador {
         display: none;
     }
 }
