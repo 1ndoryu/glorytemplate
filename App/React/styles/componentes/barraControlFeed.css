@@ -58,7 +58,6 @@
 .barraControlFeedOrdenBtnActivo {
     color: var(--textoPrimario);
     background: var(--fondoElevado3);
-    border-color: var(--bordeSutil);
 }
 
 .barraControlFeedOrdenMenu {
