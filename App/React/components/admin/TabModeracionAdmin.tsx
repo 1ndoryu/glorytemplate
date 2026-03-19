@@ -1,4 +1,8 @@
-﻿/*
+﻿/* glory-sentinel-disable-file limite-lineas — Panel de moderación con 4 secciones diferenciadas
+ * (publicaciones pendientes, reportes, historial IA, modal de ban). Split no viable sin
+ * fragmentar UI que conceptualmente es una sola vista de moderación.
+ */
+/*
  * Componente: TabModeracionAdmin — Kamples (FASE 13)
  * Lista de publicaciones pendientes de moderación, reportes con acciones,
  * e historial IA en grid de 3 columnas con JSON acordeona, menú contextual.
@@ -79,11 +83,15 @@ const TarjetaHistorial = ({
     return (
         <div className="historialTarjeta">
             <div className="historialCabecera">
-                {pub.avatar_url && (
-                    <img src={pub.avatar_url} alt="" className="historialAvatar" />
-                )}
+                <a href={`/perfil/${pub.username}/`} target="_blank" rel="noopener noreferrer" className="historialPerfilLink" title="Ver perfil">
+                    {pub.avatar_url && (
+                        <img src={pub.avatar_url} alt="" className="historialAvatar" />
+                    )}
+                </a>
                 <div className="historialUsuarioInfo">
-                    <span className="historialNombre">{pub.nombre_visible || pub.username}</span>
+                    <a href={`/perfil/${pub.username}/`} target="_blank" rel="noopener noreferrer" className="historialNombreLink">
+                        <span className="historialNombre">{pub.nombre_visible || pub.username}</span>
+                    </a>
                     <span className="historialUsername">@{pub.username}</span>
                 </div>
                 <span className="historialFecha">{formatearFechaRelativa(pub.created_at)}</span>
@@ -251,10 +259,14 @@ export const TabModeracionAdmin = ({
                             {publicaciones.map((pub) => (
                                 <div key={pub.id} className="adminModeracionTarjeta">
                                     <div className="adminModeracionCabecera">
-                                        {pub.avatar_url && (
-                                            <img src={pub.avatar_url} alt="" className="adminModeracionAvatar" />
-                                        )}
-                                        <span className="adminModeracionAutor">{pub.nombre_visible || pub.username}</span>
+                                        <a href={`/perfil/${pub.username}/`} target="_blank" rel="noopener noreferrer" className="adminModeracionPerfilLink" title="Ver perfil">
+                                            {pub.avatar_url && (
+                                                <img src={pub.avatar_url} alt="" className="adminModeracionAvatar" />
+                                            )}
+                                        </a>
+                                        <a href={`/perfil/${pub.username}/`} target="_blank" rel="noopener noreferrer" className="adminModeracionNombreLink">
+                                            <span className="adminModeracionAutor">{pub.nombre_visible || pub.username}</span>
+                                        </a>
                                         <BadgeEstado estado={pub.moderacion_estado} />
                                         {pub.moderacion_razon && (
                                             <span className="adminModeracionRazon">{pub.moderacion_razon}</span>

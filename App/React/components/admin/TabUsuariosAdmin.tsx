@@ -137,16 +137,20 @@ export const TabUsuariosAdmin = ({
                         <tr key={u.id}>
                             <td>
                                 <div className="adminUsuarioFila">
-                                    {u.avatar_url ? (
-                                        <img src={u.avatar_url} alt="" className="adminUsuarioAvatar" />
-                                    ) : (
-                                        <div className="adminUsuarioAvatar" />
-                                    )}
+                                    <a href={`/perfil/${u.username}/`} target="_blank" rel="noopener noreferrer" className="adminUsuarioPerfilLink" title="Ver perfil">
+                                        {u.avatar_url ? (
+                                            <img src={u.avatar_url} alt="" className="adminUsuarioAvatar" />
+                                        ) : (
+                                            <div className="adminUsuarioAvatar" />
+                                        )}
+                                    </a>
                                     <div className="adminUsuarioInfo">
-                                        <span className="adminUsuarioNombre">
-                                            {u.nombre_visible || u.username}
-                                            {u.verificado && <BadgeCheck size={12} style={{ marginLeft: '4px', color: 'var(--acento)' }} />}
-                                        </span>
+                                        <a href={`/perfil/${u.username}/`} target="_blank" rel="noopener noreferrer" className="adminUsuarioNombreLink">
+                                            <span className="adminUsuarioNombre">
+                                                {u.nombre_visible || u.username}
+                                                {u.verificado && <BadgeCheck size={12} style={{ marginLeft: '4px', color: 'var(--acento)' }} />}
+                                            </span>
+                                        </a>
                                         <span className="adminUsuarioUsername">@{u.username}</span>
                                     </div>
                                 </div>
