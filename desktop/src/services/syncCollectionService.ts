@@ -1,4 +1,8 @@
-﻿/*
+﻿/* sentinel-disable-file limite-lineas
+ * Justificacion: Servicio central de sincronizacion de colecciones. Concentra logica
+ * de mapeo servidor<->local, descarga de samples, reconciliacion, renombres, purgas y espacios.
+ * Dividirlo requeriria refactoring mayor no relacionado a ninguna tarea actual. */
+/*
  * Servicio: syncCollectionService — C355
  * Lógica de mapeo colecciones del servidor ↔ carpetas locales en disco.
  *
@@ -127,12 +131,20 @@ function calcularBackoffCreacion(intento: number, retryAfterHeader: string | nul
     return Math.min(exponencial + jitter, 60_000);
 }
 
-async function buscarColeccionServidorPorNombre(nombreNormalizado: string): Promise<number | null> {
+/* [193A-3] parentId agregado para distinguir subcarpetas con el mismo nombre bajo padres distintos.
+ * Sin este filtro, Carpeta_A/Sub_A y Carpeta_B/Sub_A comparten la misma colección del servidor. */
+async function buscarColeccionServidorPorNombre(nombreNormalizado: string, parentId: number | null = null): Promise<number | null> {
     const datosServidor = await obtenerColeccionesDelServidor();
     if (!datosServidor) return null;
 
     const objetivo = nombreNormalizado.toLowerCase();
-    const existente = datosServidor.colecciones.find(c => c.nombre.toLowerCase() === objetivo);
+    const existente = datosServidor.colecciones.find(c => {
+        if (c.nombre.toLowerCase() !== objetivo) return false;
+        /* Filtrar por parent_id para no confundir subcarpetas homónimas bajo padres distintos */
+        if (parentId !== null) return c.parent_id === parentId;
+        /* Sin parentId buscamos solo colecciones raíz */
+        return c.parent_id === null || c.parent_id === undefined;
+    });
     return existente?.id ?? null;
 }
 
@@ -141,8 +153,8 @@ async function buscarColeccionServidorPorNombre(nombreNormalizado: string): Prom
  * Usada por syncWatcherSetup para el fallback de rename:
  * si la colección no está en tracking local, buscar en servidor antes de crear duplicada.
  */
-export async function buscarColeccionServidorPorNombrePublico(nombre: string): Promise<number | null> {
-    return buscarColeccionServidorPorNombre(normalizarNombreColeccion(nombre));
+export async function buscarColeccionServidorPorNombrePublico(nombre: string, parentId: number | null = null): Promise<number | null> {
+    return buscarColeccionServidorPorNombre(normalizarNombreColeccion(nombre), parentId);
 }
 
 function encolarCreacionColeccion(nombreNormalizado: string): void {
@@ -1285,7 +1297,8 @@ export async function crearColeccionDesdeLocal(nombre: string, parentId: number 
         if (enVuelo) return enVuelo;
 
         const promesa = (async (): Promise<number | null> => {
-            const existenteServidor = await buscarColeccionServidorPorNombre(nombreNormalizado);
+            /* [193A-3] Pasar parentId para evitar colisión con subcarpetas homónimas bajo otro padre */
+            const existenteServidor = await buscarColeccionServidorPorNombre(nombreNormalizado, parentId);
             if (existenteServidor) {
                 await registrarColeccionNuevaLocal(existenteServidor, nombreNormalizado, parentId);
                 return existenteServidor;
