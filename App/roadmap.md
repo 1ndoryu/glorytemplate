@@ -147,9 +147,29 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-28
+## 193A-29
 
-La primera pagina de los samples siempre es la misma, no la veo cambiar, antes habia comentado que debe cargar cacheada primero para una carga rapida pero luego actualizarse con los datos reales pero esto no pasa, la primera pagina esta congelada y solo veo cosas interesantes en la segunda.
+Busca referencias de 193A-3
+
+este era el problema original de 193A-3, no creo que se haya resuelto, y si se resolvio pues tal vez ya las carpetas que tenia estaban condicionadas a continuar con el problema pero al menos evita que siga sucediendo para nuevos archivos
+
+El sync tiene un problema y es que imagina esta situación
+
+tengo carpeta A, y carpeta B, en ambas tengo una subcarpeta A, que sucede, lo correctoería que al sincronizar, los audios de subcarpeta A de ambas tengan el padre que les corresponde pues, por la jerarquía de carpetas, sucede que los audios de ambas subcarpeta se suben a una coleccion del mismo nombre pero todas son del mismo padre, o sea, es un error. 
+
+Lo correcto es que las subcarpetas puedan tener el mismo nombre pero que al sincronizar, se mantenga la jerarquía, o sea, los audios de la subcarpeta A de la carpeta A tengan como padre a la carpeta A y los audios de la subcarpeta A de la carpeta B tengan como padre a la carpeta B.
+
+## 193A-30
+
+193A-25 "EL MECANISMO DE LOS TAGS SE DAÑO; LOS TAGS POR ALGUNA EXTRAÑA RAZON SOLO FILTRA Y EMPIEZAN A CARGAR PAGINAS Y PAGINAS VACIAS; ESTO NO TIENE SENTIDO; SE DICTO QUE CUANDO SE DE CLICK A UN TAG YA SEA EN LOS SAMPLES; EN FEEDTAG; EN CUALQUIER LUGAR; HAGA UNA BUSQUEDA; LA PARTICULARIDAD UNICA ES QUE SI UNA BUSQUEDA ES APARTIR DE UN TAG QUE SE CLICKEO; NO ABRE EL MODAL DE BUSQUEDA RAPIDA."
+
+Supuestamente se soluciono pero no, sigue fallando, no se me entiendo, las tags a dar click tienen que funcionar exactamente como una busqueda cuomo cuando se escribe en contenedorCampoTexto inputBusqueda, lo que sea que estan haciendo ahora esta mal, aplica para las tags de las tarjeta de los samples, las feedtags, etc, 
+
+ya veo, si funciona con las tags de las tarjetas pero no con el resto de tags, tiene que funcionar con feedTags incluyendo feedFiltrosSelects
+
+ese mismo comportamiento se espera en las tags dentro de las colecciones, todas las tags deben hacer busquedas, no filtros 
+
+las busquedas se suponen que estan preparadas para valores negativos (revisar eso porque las tags tienen 2 botones, uno para negativo y otro para positivo, no se quien cambio la logica, el punto es que se tiene que dejar claro como tienen que funcionar todas las tags globalmente, la busque tiene ser en la pagina en la que se esta, y la busqueda se adapta a todos los contextos, esto parece funcionar el unico detalle es ese el de las tags )
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
