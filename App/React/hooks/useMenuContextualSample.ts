@@ -18,6 +18,7 @@ import { useCorregirIAStore } from '@app/stores/corregirIAStore';
 import { useExtenderRecorteStore } from '@app/stores/extenderRecorteStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { construirItemsMenuSample } from '@app/utils/construirItemsMenuSample';
+import { useCodigoGratisStore } from '@app/stores/codigoGratisStore';
 
 /* Eventos globales para notificar cambios de samples sin recargar la página */
 export const EVENTO_SAMPLE_ELIMINADO = 'kamples:sample-eliminado';
@@ -59,6 +60,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const abrirExtenderRecorte = useExtenderRecorteStore(s => s.abrir);
     const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
     const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
+    const obtenerCodigoParaSample = useCodigoGratisStore(s => s.obtenerCodigoParaSample);
 
     const puedeEditar = useMemo(() => {
         if (!usuario || !estado.sample) return false;
@@ -97,6 +99,8 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
             puedeEditar,
             puedeEliminar,
             esAdmin,
+            /* [183A-106] Pasar codigo gratis reclamado para este sample si existe */
+            codigoGratis: estado.sample ? obtenerCodigoParaSample(estado.sample.id) : null,
         })
         : [];
 

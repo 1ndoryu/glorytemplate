@@ -277,9 +277,12 @@ export interface ResultadoDescargaZip {
 
 /* Descargar colección como ZIP (consume créditos por samples no descargados previamente) */
 export const descargarColeccionZip = async (
-    coleccionId: number
+    coleccionId: number,
+    codigoGratis?: string
 ): Promise<RespuestaApi<ResultadoDescargaZip>> => {
-    return apiPost<ResultadoDescargaZip>(`/colecciones/${coleccionId}/descargar-zip`);
+    /* [183A-106] Si hay codigo gratis reclamado, incluirlo para saltear limites de plan */
+    const body = codigoGratis ? { codigoGratis } : undefined;
+    return apiPost<ResultadoDescargaZip>(`/colecciones/${coleccionId}/descargar-zip`, body);
 };
 
 /*

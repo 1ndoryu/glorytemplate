@@ -34,6 +34,7 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { useSampleDetalle } from '@app/hooks/useSampleDetalle';
 import { useSampleAudio } from '@app/hooks/useSampleAudio';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { useCodigosGratis } from '@app/hooks/useCodigosGratis';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -55,6 +56,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     } = useSampleAudio(sample);
     const menu = useMenuContextualSample();
     const abrirPlanes = usePlanesModalStore(s => s.abrir);
+    /* [183A-106] Detecta ?codigoGratis= en URL y reclama descarga gratis */
+    useCodigosGratis();
     const seccionComentarios = useComentarios({
         tipo: 'sample',
         targetId: sample?.id ?? 0,

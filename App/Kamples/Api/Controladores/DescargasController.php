@@ -34,6 +34,7 @@ use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Database\Repositories\CodigoGratisRepository;
 
 class DescargasController
 {
@@ -120,6 +121,14 @@ class DescargasController
         $yaDescargado = !$esPropietario && DescargasRepository::yaDescargado($userId, $sampleId);
         $consumeCredito = !$esPropietario && !$yaDescargado;
 
+        /* [183A-106] Codigo de descarga gratis reclamado previamente: salta checks de plan/credito/precio */
+        $codigoGratis = sanitize_text_field((string) ($request->get_param('codigoGratis') ?? ''));
+        $esCodigoGratis = false;
+        if ($codigoGratis && !$esPropietario) {
+            $esCodigoGratis = CodigoGratisRepository::usuarioPuedeDescargar($codigoGratis, 'sample', $sampleId, $userId);
+            if ($esCodigoGratis) $consumeCredito = false;
+        }
+
         /*
          * QQ11+QQ16: Control de acceso a descargas por condiciones del sample.
          * Dos ejes independientes: esPremium (solo Pro descarga gratis) y precio (compra individual).
@@ -128,7 +137,7 @@ class DescargasController
         $esPremium = (bool) ($sample[SamplesCols::ES_PREMIUM] ?? false);
         $precioSample = isset($sample[SamplesCols::PRECIO]) ? (float) $sample[SamplesCols::PRECIO] : 0;
 
-        if (!$esPropietario) {
+        if (!$esPropietario && !$esCodigoGratis) {
             if ($precioSample > 0) {
                 /* Sample con precio: verificar compra o plan Pro en samples premium */
                 $yaComprado = TransaccionesRepository::haComprado($userId, $sampleId);

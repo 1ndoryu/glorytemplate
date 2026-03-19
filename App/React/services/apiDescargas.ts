@@ -52,10 +52,13 @@ export const obtenerLimites = async (): Promise<RespuestaApi<LimitesDescarga>> =
 /* Descargar un sample (incrementa contador) */
 /* Frontend llama POST /samples/{id}/descargar que coincide con la ruta backend */
 export const descargarSample = async (
-    sampleId: number
+    sampleId: number,
+    codigoGratis?: string
 ): Promise<RespuestaApi<ResultadoDescarga>> => {
     try {
-        return await apiPost<ResultadoDescarga>(`/samples/${sampleId}/descargar`);
+        /* [183A-106] Si hay un codigo reclamado, incluirlo en el body para saltear limites */
+        const body = codigoGratis ? { codigoGratis } : undefined;
+        return await apiPost<ResultadoDescarga>(`/samples/${sampleId}/descargar`, body);
     } catch (err) {
         log.error('Error descargando sample', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };

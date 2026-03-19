@@ -27,6 +27,7 @@ import { useReproductorStore } from '@app/stores/reproductorStore';
 import { FiltroSubcolecciones } from '@app/components/colecciones/FiltroSubcolecciones';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
+import { useCodigosGratis } from '@app/hooks/useCodigosGratis';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
 
@@ -58,6 +59,9 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
 
     /* QQ75/QL43: Preview de la colección — misma lógica que TarjetaColeccion */
     const { iniciarPreview, cargando: cargandoPreview } = useColeccionPreview();
+
+    /* [183A-106] Detecta ?codigoGratis= en URL y reclama descarga gratis */
+    useCodigosGratis();
     const coleccionPreviewId = useReproductorStore(s => s.coleccionPreviewId);
     const reproduciendo = useReproductorStore(s => s.reproduciendo);
     const esPreviewActiva = coleccion ? (coleccionPreviewId === coleccion.id && reproduciendo) : false;

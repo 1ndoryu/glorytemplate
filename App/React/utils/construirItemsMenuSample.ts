@@ -18,8 +18,9 @@ import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUAL
 import {
     Play, Eye, FolderPlus, Download, User, Link, Sparkles, PanelRight,
     ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2, FolderTree,
-    Search, Trash2, Flag,
+    Search, Trash2, Flag, Gift,
 } from 'lucide-react';
+import { generarCodigo } from '@app/services/apiCodigosGratis';
 
 export interface DepsMenuSample {
     sample: SampleResumen;
@@ -36,6 +37,8 @@ export interface DepsMenuSample {
     puedeEditar: boolean;
     puedeEliminar: boolean;
     esAdmin: boolean;
+    /* [183A-106] Codigo de descarga gratis reclamado para este sample (si existe) */
+    codigoGratis?: string | null;
 }
 
 const emitirEvento = (nombre: string, detail: unknown) =>
@@ -60,11 +63,12 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
             onClick: () => d.navegar(rutaColeccionOriginal),
         }] : []),
         { id: 'coleccion', etiqueta: 'Añadir a colección', icono: ic(FolderPlus), onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
-        /* [183A-73][183A-92] Descarga cross-platform: web usa <a>, nativo guarda en Documentos */
+        /* [183A-73][183A-92][183A-106] Descarga cross-platform: web usa <a>, nativo guarda en Documentos.
+         * Si hay codigo gratis reclamado, se incluye en el body para saltear limites del plan. */
         { id: 'descargar', etiqueta: 'Descargar archivo', icono: ic(Download), onClick: async () => {
             if (!requiereAuth()) return;
             try {
-                const resp = await descargarSample(s.id);
+                const resp = await descargarSample(s.id, d.codigoGratis ?? undefined);
                 if (resp.ok && resp.data?.url) {
                     const uri = await descargarArchivo(resp.data.url, resp.data.nombre || s.titulo || 'sample');
                     if (uri) toast.exito('Sample guardado en Documentos/Kamples');
@@ -116,6 +120,19 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
 
     if (d.esAdmin)
         items.push({ id: 'inspeccionar', etiqueta: 'Inspeccionar datos', icono: ic(Search), separadorDespues: true, onClick: () => d.setSampleInspeccion(s) });
+
+    /* [183A-106] Admin: generar enlace de descarga gratis — copia URL al portapapeles */
+    if (d.esAdmin)
+        items.push({ id: 'compartir-gratis', etiqueta: 'Compartir gratis', icono: ic(Gift), separadorDespues: true, onClick: async () => {
+            const resp = await generarCodigo('sample', s.id);
+            if (resp.ok && resp.data?.codigo) {
+                const url = `${window.location.origin}/sample/${s.slug}/?codigoGratis=${resp.data.codigo}`;
+                d.copiarAlPortapapeles(url);
+                toast.exito('Enlace de descarga gratis copiado al portapapeles');
+            } else {
+                toast.error('Error al generar enlace de descarga gratis');
+            }
+        }});
 
     if (d.puedeEliminar)
         items.push({ id: 'eliminar', etiqueta: 'Eliminar sample', icono: ic(Trash2), peligro: true, onClick: () => {

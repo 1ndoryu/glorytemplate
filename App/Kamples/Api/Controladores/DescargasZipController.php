@@ -23,6 +23,7 @@ use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Database\Repositories\CodigoGratisRepository;
 
 class DescargasZipController
 {
@@ -92,13 +93,20 @@ class DescargasZipController
             $samplesNuevos = \array_filter($samples, fn($s) => !\in_array((int) $s['id'], $idsYaDescargados));
             $creditosNecesarios = \count($samplesNuevos);
 
+            /* [183A-106] Codigo de descarga gratis: salta verificacion de creditos y premium */
+            $codigoGratis = sanitize_text_field((string) ($request->get_param('codigoGratis') ?? ''));
+            $esCodigoGratis = false;
+            if ($codigoGratis && !$esPropietario) {
+                $esCodigoGratis = CodigoGratisRepository::usuarioPuedeDescargar($codigoGratis, 'coleccion', $coleccionId, $userId);
+            }
+
             /* Verificar plan y limites */
             $usuario = UsuarioHelper::obtenerPorId($userId);
             $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
             $configPlan = StripeService::obtenerConfigPlan($plan);
             $limite = $configPlan['descargas_dia'] ?? 5;
 
-            if ($limite > 0) {
+            if (!$esCodigoGratis && $limite > 0) {
                 /* C198: Incluir creditos bonus */
                 $creditosBonus = (int) ($usuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
                 $limiteEfectivo = $limite + $creditosBonus;
@@ -120,7 +128,7 @@ class DescargasZipController
             }
 
             /* Verificar samples premium */
-            if ($plan === UsuariosExtEnums::PLAN_FREE) {
+            if (!$esCodigoGratis && $plan === UsuariosExtEnums::PLAN_FREE) {
                 $tienePremium = \array_filter($samplesNuevos, fn($s) => (bool) $s['es_premium']);
                 if (!empty($tienePremium)) {
                     return new \WP_REST_Response([

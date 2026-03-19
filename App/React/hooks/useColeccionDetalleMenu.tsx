@@ -4,8 +4,10 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { Link2, Trash2, Flag, Edit3, Combine } from 'lucide-react';
+import { Link2, Trash2, Flag, Edit3, Combine, Gift } from 'lucide-react';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
+import { generarCodigo } from '@app/services/apiCodigosGratis';
+import { toast } from '@app/stores/toastStore';
 import type { Coleccion } from '@app/types';
 import type { UsuarioAutenticado } from '@app/types';
 
@@ -88,6 +90,28 @@ export function useColeccionDetalleMenu({
                 onClick: () => {
                     cerrarMenuColeccion();
                     setModalEliminarAbierto?.(true);
+                },
+            });
+        }
+
+        /* [183A-106] Admin: generar enlace de descarga gratis para la coleccion entera */
+        if (esAdmin) {
+            items.push({
+                id: 'compartir-gratis',
+                etiqueta: 'Compartir gratis',
+                icono: <Gift size={16} />,
+                separadorDespues: true,
+                onClick: async () => {
+                    cerrarMenuColeccion();
+                    const resp = await generarCodigo('coleccion', coleccion.id);
+                    if (resp.ok && resp.data?.codigo) {
+                        const slug = coleccion.slug ?? coleccion.id;
+                        const url = `${window.location.origin}/coleccion/${slug}/?codigoGratis=${resp.data.codigo}`;
+                        copiarAlPortapapeles(url);
+                        toast.exito('Enlace de descarga gratis copiado al portapapeles');
+                    } else {
+                        toast.error('Error al generar enlace de descarga gratis');
+                    }
                 },
             });
         }

@@ -18,6 +18,7 @@ import { useAuthModalStore } from '@app/stores/authModalStore';
 import { toast } from '@app/stores/toastStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useColeccionDetalleMenu } from '@app/hooks/useColeccionDetalleMenu';
+import { useCodigoGratisStore } from '@app/stores/codigoGratisStore';
 import { useColeccionCombinacionPendiente } from '@app/hooks/useColeccionCombinacionPendiente';
 import type { Coleccion, ColeccionResumen, SampleResumen } from '@app/types';
 
@@ -167,12 +168,15 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     }, [usuario, abrirAuth, coleccion?.id, guardada]);
 
     /* Descargar coleccion como ZIP */
+    const obtenerCodigoParaColeccion = useCodigoGratisStore(s => s.obtenerCodigoParaColeccion);
     const manejarDescargarZip = useCallback(async () => {
         if (!usuario) { abrirAuth('login'); return; }
         if (!coleccion?.id || descargando) return;
         setDescargando(true);
         try {
-            const resp = await descargarColeccionZip(coleccion.id);
+            /* [183A-106] Pasar codigo gratis reclamado si existe para saltear limites */
+            const codigoGratis = obtenerCodigoParaColeccion(coleccion.id) ?? undefined;
+            const resp = await descargarColeccionZip(coleccion.id, codigoGratis);
             if (resp.ok && resp.data) {
                 const a = document.createElement('a');
                 a.href = resp.data.url;
@@ -196,7 +200,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         } finally {
             setDescargando(false);
         }
-    }, [coleccion?.id, descargando, usuario, abrirAuth]);
+    }, [coleccion?.id, descargando, usuario, abrirAuth, obtenerCodigoParaColeccion]);
 
     /* Sync like desde FeedSamples */
     const manejarLikeSamples = useCallback((sampleId: number) => {
