@@ -1,7 +1,7 @@
 # Plan: Sistema de Blog — 183A-109 + 183A-110-A
 
 **Fecha inicio:** 2026-03-19
-**Estado:** En progreso — Fase 2 completa
+**Estado:** En progreso — Fase 4 completa
 
 ## Visión general
 Blog completo: publicar artículos con rich text (bold, imágenes), embeber samples/colecciones, descarga pública togglable, moderación vía sistema existente, categorías pre-definidas, SEO optimizado, tarjetas estilo colección.
@@ -30,18 +30,27 @@ Blog completo: publicar artículos con rich text (bold, imágenes), embeber samp
 - [x] types/articulo.ts (tipos TS)
 - [x] Blog en Sidebar (icono BookOpen)
 
-### Fase 3 — Editor de artículos
-- [ ] ModalArticulo.tsx (editor rich text)
-- [ ] Bold, imágenes, vista HTML/edición
-- [ ] Selector de samples para embeber
-- [ ] Selector de colecciones con cuadro de samples
-- [ ] Toggle descarga pública de samples adjuntos
-- [ ] Extender botón "crear" en TopBar con menú contextual (publicación vs artículo)
+### Fase 3 — Editor de artículos ← COMPLETADA
+- [x] articuloEditorStore.ts (Zustand store con estado del editor)
+- [x] useEditorArticulo.ts (hook con publicar/validar/formatear/imagen)
+- [x] ModalArticulo.tsx (editor rich text con toolbar, categorías, portada, extracto)
+- [x] modalArticulo.css (estilos del editor)
+- [x] Textarea.tsx (componente UI base — no existía)
+- [x] Bold, imágenes, vista HTML/edición (toolbar completa: bold, italic, h2, h3, listas, cita, imagen, enlace, código)
+- [x] Toggle descarga pública
+- [x] Extender botón "crear" en TopBar con menú contextual (publicación vs artículo)
+- [x] ModalArticulo renderizado en LayoutPrincipal.tsx
+- [ ] Selector de samples para embeber (pendiente Fase 5)
+- [ ] Selector de colecciones con cuadro de samples (pendiente Fase 5)
 
-### Fase 4 — Moderación y SEO
-- [ ] Integrar con AdminModeracionController (artículos entran como pendientes, admin auto-aprobados)
-- [ ] DynamicSeoResolver para artículos (title, og, json-ld BlogPosting)
-- [ ] Sitemap para artículos
+### Fase 4 — Moderación y SEO ← COMPLETADA
+- [x] Integrar con AdminModeracionController (artículos entran como pendientes, admin auto-aprobados)
+- [x] DynamicSeoResolver para artículos (title, og, json-ld BlogPosting)
+- [x] Sitemap para artículos
+- [x] React: TabModeracionAdmin muestra artículos pendientes con aprobar/rechazar/ver
+- [x] React: apiAdmin types + moderarContenido acepta 'articulo'
+- [x] Ruta /blog en MAPA_RUTAS de LayoutPrincipal
+- [x] Notificación al autor en rechazo de artículo
 
 ### Fase 5 — Navegación e integración
 - [ ] Tab blog en sidebar (público y privado)

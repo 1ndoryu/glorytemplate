@@ -7,12 +7,15 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\CancionesRepository;
 use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
+use App\Kamples\Database\Repositories\ArticulosRepository;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ArtistasMusicalesCols;
+use App\Config\Schema\_generated\ArticulosCols;
+use App\Config\Schema\_generated\ArticulosEnums;
 
 /**
  * SeoSitemapProvider
@@ -63,6 +66,11 @@ class SeoSitemapProvider
         $sitemaps->registry->add_provider(
             'kamples-artistas',
             new SitemapArtistasProvider()
+        );
+        /* [183A-109 Fase 4] Sitemap para artículos del blog */
+        $sitemaps->registry->add_provider(
+            'kamples-articulos',
+            new SitemapArticulosProvider()
         );
     }
 
@@ -345,6 +353,61 @@ class SitemapArtistasProvider extends \WP_Sitemaps_Provider
     {
         try {
             $total = ArtistasMusicalesRepository::contarParaSitemap();
+        } catch (\Throwable $e) {
+            return 0;
+        }
+        return (int) ceil($total / self::POR_PAGINA);
+    }
+}
+
+/**
+ * [183A-109 Fase 4] Proveedor de sitemap para artículos del blog.
+ * Solo incluye artículos aprobados con slug válido.
+ */
+class SitemapArticulosProvider extends \WP_Sitemaps_Provider
+{
+    /** @var string */
+    public $name = 'kamples-articulos';
+    /** @var string */
+    public $object_type = 'kamples-articulos';
+
+    private const POR_PAGINA = 2000;
+
+    public function get_url_list($page_num, $object_subtype = '')
+    {
+        $offset = ((int) $page_num - 1) * self::POR_PAGINA;
+
+        try {
+            $articulos = ArticulosRepository::listarParaSitemap(self::POR_PAGINA, $offset);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $siteUrl = home_url();
+        $urls = [];
+        foreach ($articulos as $articulo) {
+            $slug = $articulo[ArticulosCols::SLUG] ?? '';
+            if ($slug === '') {
+                continue;
+            }
+            $entry = [
+                'loc' => $siteUrl . '/blog/' . $slug . '/',
+            ];
+
+            $updatedAt = $articulo[ArticulosCols::PUBLICADO_EN] ?? '';
+            if ($updatedAt !== '') {
+                $entry['lastmod'] = date('Y-m-d\TH:i:sP', strtotime($updatedAt));
+            }
+
+            $urls[] = $entry;
+        }
+        return $urls;
+    }
+
+    public function get_max_num_pages($object_subtype = '')
+    {
+        try {
+            $total = ArticulosRepository::contarParaSitemap();
         } catch (\Throwable $e) {
             return 0;
         }

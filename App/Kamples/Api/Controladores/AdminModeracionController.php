@@ -1,4 +1,8 @@
 <?php
+/* glory-sentinel-disable-file limite-lineas — Controller REST con 7 endpoints de moderación
+ * (listar, moderar, resolver reporte, historial, banear, rechazar todas, estadísticas).
+ * Cada endpoint es un método estático SRP, dividir en sub-controllers fragmentaría
+ * una misma responsabilidad: moderación de contenido. */
 
 /**
  * AdminModeracionController — Moderación de contenido (extraído de AdminController)
@@ -19,10 +23,12 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\ArticulosRepository;
 use App\Config\Schema\_generated\ReportesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\ComentariosEnums;
+use App\Config\Schema\_generated\ArticulosEnums;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\ServicioBan;
@@ -138,6 +144,8 @@ class AdminModeracionController
             return new \WP_REST_Response([
                 'data' => [
                     'publicaciones' => $publicaciones,
+                    /* [183A-109 Fase 4] Artículos pendientes de moderación */
+                    'articulos' => ArticulosRepository::listarPendientesModeracion(20, $offset),
                     'reportes' => $reportes,
                     'reportesTotal' => $reportesTotal,
                 ]
@@ -150,8 +158,8 @@ class AdminModeracionController
 
     /*
      * POST /admin/moderar — Aprobar/Rechazar contenido
-     * Body: { tipo: 'publicacion'|'comentario', id: number, accion: 'aprobar'|'rechazar' }
-     * Al rechazar una publicación, se notifica al autor.
+     * Body: { tipo: 'publicacion'|'comentario'|'articulo', id: number, accion: 'aprobar'|'rechazar' }
+     * Al rechazar una publicación o artículo, se notifica al autor.
      */
     public static function moderar(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -161,7 +169,8 @@ class AdminModeracionController
             $id = (int) ($body['id'] ?? 0);
             $accion = \sanitize_text_field($body['accion'] ?? '');
 
-            if (!in_array($tipo, [ComentariosEnums::TIPO_PUBLICACION, 'comentario']) || !$id || !in_array($accion, ['aprobar', 'rechazar'])) {
+            /* [183A-109 Fase 4] Tipos válidos: publicacion, comentario, articulo */
+            if (!in_array($tipo, [ComentariosEnums::TIPO_PUBLICACION, 'comentario', 'articulo']) || !$id || !in_array($accion, ['aprobar', 'rechazar'])) {
                 return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'Parámetros inválidos'], 400);
             }
 
@@ -170,6 +179,7 @@ class AdminModeracionController
             $existe = match ($tipo) {
                 ComentariosEnums::TIPO_PUBLICACION => PublicacionesRepository::actualizarEstadoModeracion($id, $estado),
                 'comentario'  => ComentariosRepository::actualizarEstadoModeracion($id, $estado),
+                'articulo'    => $accion === 'aprobar' ? ArticulosRepository::aprobar($id) : ArticulosRepository::rechazar($id, 'revision_manual'),
                 default       => false,
             };
 
@@ -188,6 +198,21 @@ class AdminModeracionController
                         ['razon' => 'revision_manual'],
                         null,
                         'Publicación rechazada'
+                    );
+                }
+            }
+
+            /* [183A-109 Fase 4] Notificar al autor si es rechazo de artículo */
+            if ($accion === 'rechazar' && $tipo === 'articulo') {
+                $autorId = ArticulosRepository::buscarAutorId($id);
+                if ($autorId) {
+                    ServicioNotificaciones::crear(
+                        $autorId,
+                        'moderacion',
+                        'Tu artículo fue revisado y rechazado por el equipo de moderación.',
+                        ['razon' => 'revision_manual'],
+                        null,
+                        'Artículo rechazado'
                     );
                 }
             }

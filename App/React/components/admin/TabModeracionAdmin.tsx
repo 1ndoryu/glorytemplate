@@ -12,8 +12,8 @@
  */
 
 import { useState, useCallback } from 'react';
-import { AlertTriangle, Flag, Loader2, CheckCircle } from 'lucide-react';
-import type { DatosModeracion, PublicacionModeracion } from '../../services/apiAdmin';
+import { AlertTriangle, Flag, Loader2, CheckCircle, BookOpen } from 'lucide-react';
+import type { DatosModeracion, PublicacionModeracion, ArticuloModeracion } from '../../services/apiAdmin';
 import { BotonBase, EstadoVacio, MenuContextual, Modal, SelectorBase, Input } from '../ui';
 import type { MenuItemDef } from '../ui';
 
@@ -22,7 +22,7 @@ type DuracionBan = '1h' | '24h' | '7d' | '30d';
 interface TabModeracionAdminProps {
     moderacion: DatosModeracion | null;
     historialModeracion: PublicacionModeracion[];
-    onModerar: (tipo: 'publicacion' | 'comentario', id: number, accion: 'aprobar' | 'rechazar') => Promise<boolean>;
+    onModerar: (tipo: 'publicacion' | 'comentario' | 'articulo', id: number, accion: 'aprobar' | 'rechazar') => Promise<boolean>;
     onResolverReporte: (id: number, accion: 'resolver' | 'descartar') => Promise<boolean>;
     onRechazarTodosPendientes: () => Promise<boolean>;
     onBanear: (usuarioId: number, duracion: DuracionBan, razon: string) => Promise<boolean>;
@@ -225,8 +225,9 @@ export const TabModeracionAdmin = ({
     }
 
     const publicaciones = moderacion.publicaciones ?? [];
+    const articulos = moderacion.articulos ?? [];
     const reportes = moderacion.reportes ?? [];
-    const sinContenido = publicaciones.length === 0 && reportes.length === 0 && historialModeracion.length === 0;
+    const sinContenido = publicaciones.length === 0 && articulos.length === 0 && reportes.length === 0 && historialModeracion.length === 0;
 
     if (sinContenido) {
         return (
@@ -277,6 +278,39 @@ export const TabModeracionAdmin = ({
                                     <div className="adminModeracionAcciones">
                                         <BotonBase variante="ghost" className="historialBoton historialBotonAprobar" onClick={() => onModerar('publicacion', pub.id, 'aprobar')} type="button">Aprobar</BotonBase>
                                         <BotonBase variante="ghost" className="historialBoton historialBotonRechazar" onClick={() => onModerar('publicacion', pub.id, 'rechazar')} type="button">Rechazar</BotonBase>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {/* [183A-109 Fase 4] Artículos pendientes de moderación */}
+                {articulos.length > 0 && (
+                    <>
+                        <div className="adminModeracionLista">
+                            <div className="adminModeracionCabeceraSeccion">
+                                <BookOpen size={14} />
+                                Artículos pendientes ({articulos.length})
+                            </div>
+                            {articulos.map((art: ArticuloModeracion) => (
+                                <div key={art.id} className="adminModeracionTarjeta">
+                                    <div className="adminModeracionCabecera">
+                                        {art.autor_avatar && (
+                                            <img src={art.autor_avatar} alt="" className="adminModeracionAvatar" />
+                                        )}
+                                        <span className="adminModeracionAutor">{art.autor_nombre || art.autor_username}</span>
+                                        <BadgeEstado estado={art.moderacion_estado} />
+                                        <span className="adminModeracionFecha">{formatearFechaRelativa(art.created_at)}</span>
+                                    </div>
+                                    <div className="adminModeracionContenido">
+                                        <strong>{art.titulo}</strong>
+                                        {art.extracto && <p style={{ margin: '4px 0 0', opacity: 0.7 }}>{art.extracto}</p>}
+                                    </div>
+                                    <div className="adminModeracionAcciones">
+                                        <BotonBase variante="ghost" className="historialBoton" onClick={() => window.open(`/blog/${art.slug}/`, '_blank')} type="button">Ver</BotonBase>
+                                        <BotonBase variante="ghost" className="historialBoton historialBotonAprobar" onClick={() => onModerar('articulo', art.id, 'aprobar')} type="button">Aprobar</BotonBase>
+                                        <BotonBase variante="ghost" className="historialBoton historialBotonRechazar" onClick={() => onModerar('articulo', art.id, 'rechazar')} type="button">Rechazar</BotonBase>
                                     </div>
                                 </div>
                             ))}

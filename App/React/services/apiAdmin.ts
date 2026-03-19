@@ -80,8 +80,23 @@ export interface ReporteAdmin {
     created_at: string;
 }
 
+/* [183A-109 Fase 4] Artículo pendiente de moderación */
+export interface ArticuloModeracion {
+    id: number;
+    titulo: string;
+    slug: string;
+    extracto: string | null;
+    moderacion_estado: string;
+    moderacion_razon: string | null;
+    created_at: string;
+    autor_username: string;
+    autor_nombre: string | null;
+    autor_avatar: string | null;
+}
+
 export interface DatosModeracion {
     publicaciones: PublicacionModeracion[];
+    articulos: ArticuloModeracion[];
     reportes: ReporteAdmin[];
     reportesTotal?: number;
 }
@@ -129,7 +144,7 @@ export const listarModeracion = async (page = 1): Promise<RespuestaApi<DatosMode
 };
 
 export const moderarContenido = async (
-    tipo: 'publicacion' | 'comentario',
+    tipo: 'publicacion' | 'comentario' | 'articulo',
     id: number,
     accion: 'aprobar' | 'rechazar'
 ): Promise<RespuestaApi<{ ok: boolean }>> => {

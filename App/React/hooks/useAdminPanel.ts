@@ -148,7 +148,7 @@ export function useAdminPanel() {
 
     /* Acciones de moderación */
     const moderar = useCallback(async (
-        tipo: 'publicacion' | 'comentario',
+        tipo: 'publicacion' | 'comentario' | 'articulo',
         id: number,
         accion: 'aprobar' | 'rechazar'
     ) => {

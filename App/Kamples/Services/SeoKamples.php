@@ -8,7 +8,10 @@ use Glory\Seo\RuntimeSeoData;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
+use App\Kamples\Database\Repositories\ArticulosRepository;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\ArticulosCols;
+use App\Config\Schema\_generated\ArticulosEnums;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\SamplesEnums;
 
@@ -420,6 +423,122 @@ class SeoKamples
             'canonical'   => $canonical,
             'ogImage'     => $ogImage,
             'ogType'      => 'music.playlist',
+            'robots'      => 'index,follow',
+            'breadcrumb'  => $breadcrumb,
+            'jsonLd'      => $jsonLd,
+        ]);
+    }
+
+    /**
+     * [183A-109 Fase 4] Resuelve SEO para /blog/{slug}/
+     * Genera JSON-LD BlogPosting, breadcrumbs, OG tags para artículos del blog.
+     */
+    public static function resolverArticulo(string $slug): void
+    {
+        /* sentinel-disable-next-line hardcoded-enum-value — 'blog' es nombre de ruta URL, no valor de BD */
+        if ($slug === '' || $slug === 'blog') {
+            return;
+        }
+
+        try {
+            $articulo = ArticulosRepository::buscarPorSlug($slug);
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        if ($articulo === null) {
+            return;
+        }
+
+        /* Solo indexar artículos aprobados */
+        $estado = $articulo[ArticulosCols::MODERACION_ESTADO] ?? '';
+        if ($estado !== ArticulosEnums::MODERACION_ESTADO_APROBADO) {
+            RuntimeSeoData::set(['robots' => 'noindex,nofollow']);
+            return;
+        }
+
+        $titulo = $articulo[ArticulosCols::TITULO] ?? 'Artículo';
+        $extracto = $articulo[ArticulosCols::EXTRACTO] ?? '';
+        $contenido = $articulo[ArticulosCols::CONTENIDO] ?? '';
+        $portadaUrl = $articulo[ArticulosCols::PORTADA_URL] ?? '';
+        $articuloSlug = $articulo[ArticulosCols::SLUG] ?? '';
+        $autorNombre = $articulo['autor_nombre'] ?? $articulo['autor_username'] ?? '';
+        $autorUsername = $articulo['autor_username'] ?? '';
+        $publicadoEn = $articulo[ArticulosCols::PUBLICADO_EN] ?? '';
+        $updatedAt = $articulo[ArticulosCols::UPDATED_AT] ?? '';
+
+        $siteUrl = home_url();
+        $canonical = $siteUrl . '/blog/' . $articuloSlug . '/';
+
+        $seoTitle = "{$titulo} | Blog | Kamples";
+
+        /* Meta description: extracto o contenido limpio */
+        $seoDesc = '';
+        if ($extracto !== '') {
+            $seoDesc = mb_substr($extracto, 0, 140);
+        } else {
+            $seoDesc = mb_substr(strip_tags($contenido), 0, 140);
+        }
+        if ($autorNombre !== '') {
+            $seoDesc .= " — por {$autorNombre}";
+        }
+        $seoDesc = mb_substr($seoDesc, 0, 160);
+
+        /* og:image */
+        $ogImage = '';
+        if ($portadaUrl !== '') {
+            $ogImage = NormalizadorSample::rutaAUrl($portadaUrl);
+        }
+
+        /* Breadcrumb */
+        $breadcrumb = [
+            ['name' => 'Inicio', 'url' => $siteUrl . '/'],
+            ['name' => 'Blog', 'url' => $siteUrl . '/blog/'],
+            ['name' => $titulo, 'url' => $canonical],
+        ];
+
+        /* JSON-LD BlogPosting */
+        $jsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            'headline' => mb_substr($titulo, 0, 110),
+            'url' => $canonical,
+        ];
+
+        if ($seoDesc !== '') {
+            $jsonLd['description'] = $seoDesc;
+        }
+        if ($ogImage !== '') {
+            $jsonLd['image'] = $ogImage;
+        }
+        if ($publicadoEn !== '') {
+            $date = date('Y-m-d', strtotime($publicadoEn));
+            if ($date !== false && $date !== '1970-01-01') {
+                $jsonLd['datePublished'] = $date;
+            }
+        }
+        if ($updatedAt !== '') {
+            $date = date('Y-m-d', strtotime($updatedAt));
+            if ($date !== false && $date !== '1970-01-01') {
+                $jsonLd['dateModified'] = $date;
+            }
+        }
+        if ($autorNombre !== '' || $autorUsername !== '') {
+            $jsonLd['author'] = [
+                '@type' => 'Person',
+                'name' => $autorNombre !== '' ? $autorNombre : $autorUsername,
+            ];
+            if ($autorUsername !== '') {
+                $jsonLd['author']['url'] = $siteUrl . '/perfil/' . $autorUsername . '/';
+            }
+        }
+
+        RuntimeSeoData::set([
+            'title'       => $seoTitle,
+            'description' => $seoDesc,
+            'canonical'   => $canonical,
+            'ogImage'     => $ogImage,
+            'ogType'      => 'article',
             'robots'      => 'index,follow',
             'breadcrumb'  => $breadcrumb,
             'jsonLd'      => $jsonLd,

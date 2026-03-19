@@ -25,6 +25,8 @@ use App\Kamples\Services\SeoSitemapProvider;
 DynamicSeoResolver::registerResolver('sample', [SeoKamples::class, 'resolverSample']);
 DynamicSeoResolver::registerResolver('perfil', [SeoKamples::class, 'resolverPerfil']);
 DynamicSeoResolver::registerResolver('coleccion', [SeoKamples::class, 'resolverColeccion']);
+/* [183A-109 Fase 4] Blog articles SEO resolver */
+DynamicSeoResolver::registerResolver('blog', [SeoKamples::class, 'resolverArticulo']);
 
 /*
  * SEO DEFAULTS — PAGINAS ESTATICAS
@@ -137,6 +139,11 @@ PageManager::setDefaultSeoMap([
     'explorador' => [
         'title' => 'Explorador de Samples | Kamples',
         'desc'  => 'Busca y filtra entre miles de samples gratuitos por genero, BPM, tonalidad, instrumento y tipo. Encuentra el sonido perfecto para tu produccion.',
+    ],
+    /* [183A-109] Blog page default SEO */
+    'blog' => [
+        'title' => 'Blog de Producción Musical | Kamples',
+        'desc'  => 'Artículos sobre producción musical, mezcla, mastering, teoría musical y herramientas. Tutoriales y guías para productores.',
     ],
     'notificaciones' => [
         'title'  => 'Notificaciones | Kamples',

@@ -332,4 +332,42 @@ class ArticulosRepository extends BaseRepository
             ['estado' => ArticulosEnums::MODERACION_ESTADO_APROBADO]
         );
     }
+
+    /* [183A-109 Fase 4] Listar artículos aprobados para sitemap (slug + fecha) */
+    public static function listarParaSitemap(int $limit, int $offset): array
+    {
+        $t = ArticulosCols::TABLA;
+        return static::consultar(
+            "SELECT " . ArticulosCols::SLUG . ", " . ArticulosCols::PUBLICADO_EN . "
+             FROM {$t}
+             WHERE " . ArticulosCols::MODERACION_ESTADO . " = :estado
+               AND " . ArticulosCols::ELIMINADO_EN . " IS NULL
+             ORDER BY " . ArticulosCols::PUBLICADO_EN . " DESC
+             LIMIT :limit OFFSET :offset",
+            ['estado' => ArticulosEnums::MODERACION_ESTADO_APROBADO, 'limit' => $limit, 'offset' => $offset]
+        );
+    }
+
+    /* [183A-109 Fase 4] Contar artículos aprobados para sitemap paginación */
+    public static function contarParaSitemap(): int
+    {
+        $t = ArticulosCols::TABLA;
+        return (int) static::consultarValor(
+            "SELECT COUNT(*) FROM {$t}
+             WHERE " . ArticulosCols::MODERACION_ESTADO . " = :estado
+               AND " . ArticulosCols::ELIMINADO_EN . " IS NULL",
+            ['estado' => ArticulosEnums::MODERACION_ESTADO_APROBADO]
+        );
+    }
+
+    /* [183A-109 Fase 4] Buscar autor ID para notificaciones de moderación */
+    public static function buscarAutorId(int $id): ?int
+    {
+        $t = ArticulosCols::TABLA;
+        $val = static::consultarValor(
+            "SELECT " . ArticulosCols::AUTOR_ID . " FROM {$t} WHERE " . ArticulosCols::ID . " = :id",
+            ['id' => $id]
+        );
+        return $val !== null ? (int) $val : null;
+    }
 }

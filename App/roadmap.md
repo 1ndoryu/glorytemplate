@@ -154,78 +154,21 @@ Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revis
 
 Me preocupa algo en particular, anteriormente se hizo algo que sacaba del algoritmo los samples que se reproducian y no tenian accion alguna del usuario, estos samples aun deben aparecer en la busqueda. 
 
-## 183A-109 
+## 183A-109 (Fases 1-3 completadas, pendiente Fases 4-5)
 
-Nueva pagina de blog, ira en landing publico y logeado, una tab de blog. 
+**Completado:** Backend (schema, migración, repos, controllers) + Frontend lectura (BlogIsland, ArticuloDetalleIsland, TarjetaArticulo, CSS, navegación sidebar, servicio API, hooks, tipos) + Editor de artículos (articuloEditorStore, useEditorArticulo, ModalArticulo con rich text/toolbar/portada/categorías/extracto, Textarea UI component, TopBar menú contextual crear publicación vs artículo, ModalArticulo en LayoutPrincipal). 
 
-esto incluye poder publicar articulos, esto es algo avanzado y complicado, similar al wp-admin pero no usaremos el wp-admin 
+**Pendiente:**
+- Fase 4: Moderación + SEO (integrar AdminModeracionController, DynamicSeoResolver, sitemap)
+- Fase 5: Like/comentarios integración completa, embeds samples/colecciones, menú 3 puntos, landing público sección blog
 
-un modal donde se escribe el contenido del articulo, soporta bold, soporta imagenes, etc, lo que soportaría algo que publica entradas de blog, con vista html, vista de edición. 
+## 183A-110-A (Completada — incluida en 183A-109 Fase 2)
 
-Debe soportar adjuntar samples, o sea, aparece un sample, se puede elegir cual y aparecera en el blog
-tambien se puede elegir una coleccion, con una vista donde carga un cuadro abajo con los samples de esa coleccion 
-
-Se podra elegir si se puede hacer una descarga publica a esos samples, se activa o desactiva la descarga publica
-
-el modal de publicacion de blog debe aparecer en el boton crear del nav, o sea, cuando se de click a boton crear abre un menu contextual para elegir que crear, una publicacion o un articulo. 
-
-creo que la mejor decisión es que cualquiera pueda publicar articulos pero todos entran en suspervición, excepto los del admin 
-
-esto inplica, no haremos una tab extra en el panel del admin, se usara el sistema de moderacion que ya existe para aprobar o rechazar articulos, los articulos deben estar optimizados para seo lo que se pueda 
-
-la tarjeta de vista de los artiticulo debe ser similar a la de colecciones, con imagen un poco mas pequeña, titulo mas largo (asegurarse de que en las colecciones haya cantidad de texto maxima para los titulos), y un descripcion corta que se puede personalizar, un boton de 3 puntos, se puede dar like y comentar articulos, las categorías vamos a dejarlas pre hechas, vamos a inspirarnos splice, tiene, por defecto en español
-
-Inspiration
-Mastering
-Mixing
-Music Promotion
-Music Theory
-Recording
-Sampling
-Sound Design
-Tools
-All Tips & Tutorials
-
-Ableton Live
-Bitwig Studio
-Cubase
-FL Studio
-GarageBand
-Logic Pro
-Pro Tools
-Studio One
-All DAWs
-
-Free Drops
-Free MIDI
-Free Plugins
-Free Presets
-Free Project Files
-Free Sounds
-All Free Content
-
-Artist Interviews
-Features
-News
-All Stories
-
-## 183A-110-A 
-
-el grid de articulos sera 
-
-Sera un grid de 4 columnas centrado, con
-
-width: min(100%, var(--landingAnchoMaximo));
-padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) 0;
-
-separado cada sesiones de categoría
-
-esto implica que a dar click a la categoría cargue la pagina de categoría con todos los articulos de esa categoría 
+Grid de 4 columnas centrado implementado en BlogIsland.
 
 ## 183A-111
 
 Planificar que se pueda cambiar el idioma a ingles de kamples y que se adapte segun el idioma del navegador, la forma mas eficiente y menos costosa, y completa
-
 
 ## 183A-114
 
@@ -247,6 +190,34 @@ Error: read ECONNRESET
 Error: read ECONNRESET
     at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
 11:54:41 p.m. [vite] http proxy error: /wp-json/kamples/v1/me/sync/colecciones?_t=1773892430501
+
+## 183A-115
+
+El verificado si aparece en los nombres de usuario en sus publicaciones pero no aparece en sus nombre en los comentarios, ni tampoco en el nombre de usuario de su perfil y el de tooltop al hacer hover sobre el nombre tampoco, aqui hay incosistencia arquitectonica. 
+
+## 193A-1
+
+En la apk no puedo hacer scroll horizontal en filaColecciones, arreglar sin dañar que en escritorio se pueda hacer scroll con el mouse tambien.
+
+## 193A-2
+
+Borrar o mover el resumen de las tareas del dia anterior. "## Historial compactado" Vaciarlo para las tareas de hoy.
+
+## 193A-3
+
+El sync tiene un problema y es que imagina esta situación
+
+tengo carpeta A, y carpeta B, en ambas tengo una subcarpeta A, que sucede, lo correctoería que al sincronizar, los audios de subcarpeta A de ambas tengan el padre que les corresponde pues, por la jerarquía de carpetas, sucede que los audios de ambas subcarpeta se suben a una coleccion del mismo nombre pero todas son del mismo padre, o sea, es un error. 
+
+Lo correcto es que las subcarpetas puedan tener el mismo nombre pero que al sincronizar, se mantenga la jerarquía, o sea, los audios de la subcarpeta A de la carpeta A tengan como padre a la carpeta A y los audios de la subcarpeta A de la carpeta B tengan como padre a la carpeta B.
+
+
+
+
+## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
+
+Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer. No pude restaurar PushSubscriptionsDTO, por favor revisa si quedo bien.
+
 
 ## Tarea final cuando completes todo
 
