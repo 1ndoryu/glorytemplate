@@ -98,6 +98,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-86:** Completada 2026-03-18. Fix paginación feed: (1) SQL params bug en bulk-fetch, (2) lock unificado, (3) stale TTL igualado, (4) frontend IntersectionObserver re-creación tras skeleton + fallback manual cuando guards bloquean.
 - **183A-90+183A-89:** Completadas 2026-03-19. 183A-90: samples sin embedding IA reciben factor 0.5x en score (configurable metadata_ia_reduccion). 183A-89: secciones música 1h auth/24h anon (era 10min/30min), más ideas cache 1 día, feed 5min confirmado como filosofía correcta, PerfilUsuario 30min ya alineado.
 - **183A-81:** Completada 2026-03-19. Fuzzy search con pg_trgm word_similarity() — typos ("hihatt"→"hihat", "snarre"→"snare") ahora encuentran resultados. Aplicado en listar() y feed(). Config fuzzy_boost=0.6.
+- **183A-92:** Completada 2026-03-19. Descarga APK guarda en Documents/Kamples/ en vez de abrir Share sheet. Toast de confirmación.
 
 ## Tareas pendientes
 
@@ -135,9 +136,13 @@ Las imagenes de las colecciones en el inicio no estan cargando optimizadas como 
 
 Cuidado con esto, tengo este proyecto en este repositorio que es una rama de glorytemplate pero tambien tengo https://github.com/1ndoryu/kamples-sync que es una copia de esta rama, lo que vamos a hacer es actualizar https://github.com/1ndoryu/kamples-sync con los ulitmos cambios de esta rama, o sea sin afectar esta rama de glorytemplate ni hacer nada raro. Revisasr que hay una licencia de codigo abierto de las mas restrintivas.
 
-## 183A-92 
+## 183A-93
 
-Algo esta mal con la descargas en la apk, cuando le doy a descargar audio, abre para compartir, no para guardar en algun lugar.
+El modal de busqueda tarda demasiado en aparecer, parece que necesita optimización profunda. No confundir con la busqueda de samples normal en el feed o general, al escribir algo en la busqueda aparece un modal busquedaRapidaDropdown, bueno, la busqueda del feed se actualiza mas rapido y eso que es mas compleja. Se puede implementar cache global por 6 horas y que esto no sobrecargue el sistema.
+
+## 183A-94
+
+Agregar una opción en los menu contextual de los samples para decargar en svg las waveform, necesito esto, que se descarguen en color blanco. 
 
 ## Tarea final cuando completes todo
 
