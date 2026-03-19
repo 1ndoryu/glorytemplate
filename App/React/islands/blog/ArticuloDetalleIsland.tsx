@@ -1,11 +1,12 @@
 /*
- * ArticuloDetalleIsland.tsx — Kamples (183A-109)
+ * ArticuloDetalleIsland.tsx — Kamples (183A-109 + 193A-20)
  * Vista de lectura de un artículo individual del blog.
  * Recibe slug como prop desde pages.php (ruta dinámica).
+ * [193A-20] Botón de 3 puntos para autor — permite editar el artículo.
  */
 
 import { useState, useCallback } from 'react';
-import { ArrowLeft, Heart, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { useArticuloDetalle } from '@app/hooks/useArticuloDetalle';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { obtenerEtiquetaCategoria } from '@app/components/blog/TarjetaArticulo';
@@ -14,7 +15,11 @@ import { EnlaceNavegacion } from '@app/components/ui/EnlaceNavegacion';
 import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Avatar } from '@app/components/ui/Avatar';
+import { MenuContextual } from '@app/components/ui';
+import type { MenuItemDef } from '@app/components/ui';
 import { useNavigationStore } from '@/core/router';
+import { useAuthStore } from '@app/stores/authStore';
+import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import '@app/styles/componentes/articuloDetalle.css';
 
 interface ArticuloDetalleIslandProps {
@@ -30,6 +35,17 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
 
     const { articulo, cargando, error, darLike } = useArticuloDetalle(slug);
     const navegar = useNavigationStore(s => s.navegar);
+    const usuarioId = useAuthStore(s => s.usuario?.id ?? null);
+    const abrirEdicion = useArticuloEditorStore(s => s.abrirEdicion);
+
+    /* [193A-20] Menú contextual para el autor */
+    const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number }>({ abierto: false, x: 0, y: 0 });
+    const abrirMenuDetalle = useCallback((e: React.MouseEvent) => {
+        setMenu({ abierto: true, x: e.clientX, y: e.clientY });
+    }, []);
+    const cerrarMenuDetalle = useCallback(() => {
+        setMenu(prev => ({ ...prev, abierto: false }));
+    }, []);
 
     /* [183A-109 Fase 5] Comentarios en artículos */
     const [comentariosVisibles, setComentariosVisibles] = useState(false);
@@ -164,7 +180,56 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                     <MessageCircle size={18} />
                     {articulo.totalComentarios > 0 && <span>{articulo.totalComentarios}</span>}
                 </BotonBase>
+
+                {/* [193A-20] Botón de más opciones solo para el autor */}
+                {usuarioId && articulo.autorId === usuarioId && (
+                    <BotonBase
+                        variante="ghost"
+                        tamano="ninguno"
+                        soloIcono
+                        className="tarjetaArticuloAccionBtn"
+                        aria-label="Más opciones"
+                        onClick={abrirMenuDetalle}
+                    >
+                        <MoreHorizontal size={18} />
+                    </BotonBase>
+                )}
             </div>
+
+            {/* [193A-20] Menú contextual del autor */}
+            {usuarioId && articulo.autorId === usuarioId && (
+                <MenuContextual
+                    abierto={menu.abierto}
+                    onCerrar={cerrarMenuDetalle}
+                    x={menu.x}
+                    y={menu.y}
+                    items={[
+                        {
+                            id: 'editar',
+                            etiqueta: 'Editar',
+                            onClick: () => {
+                                abrirEdicion(articulo.id, {
+                                    titulo: articulo.titulo,
+                                    contenido: articulo.contenido,
+                                    extracto: articulo.extracto ?? '',
+                                    categoria: articulo.categoria,
+                                    portadaUrl: articulo.portadaUrl ?? '',
+                                    adjuntos: [],
+                                });
+                                cerrarMenuDetalle();
+                            },
+                        },
+                        {
+                            id: 'copiar',
+                            etiqueta: 'Copiar enlace',
+                            onClick: () => {
+                                navigator.clipboard.writeText(`${window.location.origin}/blog/${articulo.slug}/`);
+                                cerrarMenuDetalle();
+                            },
+                        },
+                    ]}
+                />
+            )}
 
             {/* [183A-109 Fase 5] Sección de comentarios */}
             {comentariosVisibles && (

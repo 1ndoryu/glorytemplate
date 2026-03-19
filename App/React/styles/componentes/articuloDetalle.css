@@ -35,7 +35,6 @@
 
 .articuloDetalleCategoria {
     display: inline-block;
-    padding: 2px var(--espacioSm);
     background-color: var(--fondoElevado2);
     color: var(--textoSecundario);
     font-size: var(--fuenteXs);

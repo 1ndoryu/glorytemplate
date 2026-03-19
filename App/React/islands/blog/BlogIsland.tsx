@@ -1,9 +1,10 @@
 /*
- * BlogIsland.tsx — Kamples (183A-109 + 183A-110-A + 183A-110-B + 183A-110-E)
+ * BlogIsland.tsx — Kamples (183A-109 + 183A-110-A + 183A-110-B + 183A-110-E + 193A-20)
  * Listado público de artículos del blog.
  * Grid 4 columnas centrado, filtro por categoría con scroll horizontal.
  * [183A-110-B] Categorías arrastrables con mouse y touch (Capacitor).
  * [183A-110-E] Modo "Mis artículos" con filtro por estado de moderación.
+ * [193A-20] Menú contextual incluye "Editar" si el usuario es el autor.
  */
 
 import { useState, useCallback } from 'react';
@@ -17,6 +18,7 @@ import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
 import { useArrastrarScroll } from '@app/hooks/useArrastrarScroll';
 import { useAuthStore } from '@app/stores/authStore';
+import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import type { CategoriaArticulo } from '@app/types';
 import '@app/styles/componentes/blog.css';
 
@@ -64,6 +66,8 @@ export const BlogIsland: React.FC = () => {
     } = useBlog();
     const navegar = useNavigationStore(s => s.navegar);
     const autenticado = useAuthStore(s => s.autenticado);
+    const usuarioId = useAuthStore(s => s.usuario?.id ?? null);
+    const abrirEdicion = useArticuloEditorStore(s => s.abrirEdicion);
 
     /* [183A-110-E] Estado local para la sub-fila de mis artículos */
     const [estadoMisArticulos, setEstadoMisArticulos] = useState<'aprobado' | 'pendiente' | 'rechazado' | 'borrador'>('aprobado');
@@ -102,6 +106,22 @@ export const BlogIsland: React.FC = () => {
     const articuloMenu = menu.articuloId ? articulos.find(a => a.id === menu.articuloId) : null;
 
     const itemsMenu: MenuItemDef[] = articuloMenu ? [
+        /* [193A-20] Editar — solo si el usuario autenticado es el autor */
+        ...(usuarioId && articuloMenu.autor?.id === usuarioId ? [{
+            id: 'editar',
+            etiqueta: 'Editar',
+            onClick: () => {
+                abrirEdicion(articuloMenu.id, {
+                    titulo: articuloMenu.titulo,
+                    contenido: '',  /* El resumen no incluye contenido completo — se abrirá vacío */
+                    extracto: articuloMenu.extracto ?? '',
+                    categoria: articuloMenu.categoria,
+                    portadaUrl: articuloMenu.portadaUrl,
+                    adjuntos: [],
+                });
+                cerrarMenu();
+            },
+        }] : []),
         {
             id: 'compartir',
             etiqueta: 'Copiar enlace',
