@@ -95,6 +95,9 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-80:** Completada 2026-03-18. Bulk-fetch 3 páginas en 1 query (LIMIT 90 OFFSET 0) + CTE `ignored_samples` (samples reproducidos 5+ veces en 30 días sin like). Serendipia movida dentro del bulk loop, NO eliminada. Filosofía algoritmo documentada: todos los samples se evalúan, no pierden calidad por antigüedad.
 - **183A-82+183A-83:** Completadas 2026-03-18. 183A-82: serendipia no se borró, se movió al bulk loop. 183A-83: `coleccion_original_json` añadido al SELECT del feed inteligente — antes solo estaba en recientes. Método `sqlColeccionOriginalJson()` centralizado en NormalizadorSample.
 
+- **183A-86:** Completada 2026-03-18. Fix paginación feed: (1) SQL params bug en bulk-fetch, (2) lock unificado, (3) stale TTL igualado, (4) frontend IntersectionObserver re-creación tras skeleton + fallback manual cuando guards bloquean.
+- **183A-90+183A-89:** Completadas 2026-03-19. 183A-90: samples sin embedding IA reciben factor 0.5x en score (configurable metadata_ia_reduccion). 183A-89: secciones música 1h auth/24h anon (era 10min/30min), más ideas cache 1 día, feed 5min confirmado como filosofía correcta, PerfilUsuario 30min ya alineado.
+
 ## Tareas pendientes
 
 ## 183A-74
@@ -130,22 +133,6 @@ Las imagenes de las colecciones en el inicio no estan cargando optimizadas como 
 
 <img class="filaColeccionImg" src="https://kamples.com/wp-content/uploads/2026/03/54c3ef7d53c10235a8f937fa64a81778-1.jpg" alt="" loading="lazy">
 <img src="https://i0.wp.com/kamples.com/wp-content/uploads/2026/03/5459dbd136fdfbd523f93efa9a432cb4.jpg?strip=all&amp;quality=75&amp;w=80" alt="Memphis Acapella Whatcha Gonna Do 65bpm Cm" loading="lazy" class="tarjetaPortadaImg">
-
-## 183A-89
-
-Repaso, esto es una revision, no una solicitud de cambio, puedo estar equivocada pero esto es lo que creo haber planificado antes
-
-| >> Secciones pagina Musica (sin cache) <<          |   272.1ms | (esto se puede cachear 24 horas por usuario, no es relevante que este acutualizado siempre, igualmente el contenido de los sampleos incluso se puede cachear por 1 semana los sampleos en cada cancion) Tambine se puede optimizar mas agresivamente aunque el algoritmo pierda calidad.
-
-| >> Mas Ideas coleccion >= 200 samples <<           |    65.6ms | (se puede cachear 1 dia)
-| >> FEED pag1 sin cache fresco <<                   |   105.2ms | (se puede cachear por 5 minutos con un algoritmo sencillo, un calculo complejo y de mejor calidad se puede hacer de background cada hora si es que el usuario tiene activiad y el calculo rapido use ese cache de mejor calidad, esto es una idea, no se si se implemento antes, no recuerdo los tiempo de cache)
-| PerfilUsuario::construir (sin cache)               |    42.8ms | la cache debe manejarse igual como se maneja el feed 
-
-Lo importante y eso se tiene que reflejar en lo comentario, la filosofía del algoritmo de feed para los usuarios que estan activo y escuchando samples se tiene que actualizar cada 5 minutos para que el usuario en el proceso pueda difrutar de encontrar samples relevantes. 
-
-## 183A-90
-
-que los samples que ya tengan metadata IA ya procesada tengan el doble de posibilidad de aparecer en el feed, esto mejor es aplicar una reduccion a los samples que aun estan en cola sin la metadata sin procesar para que los usuarios no lo vean aún (no basarse si estan en cola porque puede que dejen de estar en cola y sin metadata aun), que no afecte su rendimiento cuando se procesen. 
 
 ## Tarea final cuando completes todo
 
