@@ -77,12 +77,16 @@ class ArticulosController
         ]);
     }
 
-    /* GET /articulos — Listado público paginado, filtrable por categoría */
+    /* GET /articulos — Listado público paginado, filtrable por categoría.
+     * [193A-15] Frontend envía 'pagina'/'limite' (no 'page'/'per_page') — leer ambas variantes.
+     * [193A-15] Respuesta envuelve artículos en { data: { articulos, total, hay_mas } }
+     * para que useBlog/listarArticulos puedan leerlo correctamente. */
     public static function listar(WP_REST_Request $request): WP_REST_Response
     {
         try {
-            $page = max(1, (int)$request->get_param('page'));
-            $perPage = min(50, max(1, (int)$request->get_param('per_page')));
+            /* Aceptar pagina/limite (frontend) o page/per_page (legado) */
+            $page = max(1, (int)($request->get_param('pagina') ?? $request->get_param('page') ?? 1));
+            $perPage = min(50, max(1, (int)($request->get_param('limite') ?? $request->get_param('per_page') ?? 20)));
             $categoria = sanitize_text_field($request->get_param('categoria') ?? '');
             $offset = ($page - 1) * $perPage;
 
@@ -95,13 +99,15 @@ class ArticulosController
             $userId = get_current_user_id() ?: null;
             $articulos = ArticulosRepository::listarPublicados($perPage, $offset, $catFiltro, $userId);
             $total = ArticulosRepository::contarPublicados($catFiltro);
+            $hayMas = ($offset + count($articulos)) < $total;
 
             return new WP_REST_Response([
-                'ok'       => true,
-                'data'     => array_map([self::class, 'normalizarArticulo'], $articulos),
-                'total'    => $total,
-                'page'     => $page,
-                'per_page' => $perPage,
+                'ok'   => true,
+                'data' => [
+                    'articulos' => array_map([self::class, 'normalizarArticulo'], $articulos),
+                    'total'     => $total,
+                    'hay_mas'   => $hayMas,
+                ],
             ]);
         } catch (\Throwable $e) {
             KamplesLogger::error('ArticulosController::listar', ['error' => $e->getMessage()]);

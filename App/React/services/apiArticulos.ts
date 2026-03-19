@@ -28,11 +28,13 @@ const normalizarArticulo = (raw: Record<string, unknown>): Articulo => ({
     moderacionEstado: (raw.moderacion_estado ?? raw.moderacionEstado ?? 'pendiente') as Articulo['moderacionEstado'],
     creadoAt: (raw.created_at ?? raw.creadoAt ?? '') as string,
     publicadoEn: (raw.publicado_en ?? raw.publicadoEn ?? null) as string | null,
-    autor: raw.username ? {
+    /* [193A-15] Backend devuelve autor_username/autor_nombre/autor_avatar, no username plano */
+    autor: (raw.autor_username ?? raw.username) ? {
         id: (raw.autor_id ?? raw.autorId ?? 0) as number,
-        username: raw.username as string,
-        nombreVisible: (raw.nombre_visible ?? raw.nombreVisible ?? raw.username) as string,
-        avatarUrl: (raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
+        username: (raw.autor_username ?? raw.username) as string,
+        nombreVisible: (raw.autor_nombre ?? raw.nombre_visible ?? raw.nombreVisible ?? raw.autor_username ?? raw.username) as string,
+        avatarUrl: (raw.autor_avatar ?? raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
+        verificado: (raw.autor_verificado ?? raw.verificado ?? false) as boolean,
     } as UsuarioResumen : (raw.autor as UsuarioResumen ?? { id: 0, username: '', nombreVisible: '', avatarUrl: null }),
     liked: (raw.liked ?? raw.esta_likeado ?? false) as boolean,
 });
@@ -49,11 +51,13 @@ const normalizarResumen = (raw: Record<string, unknown>): ArticuloResumen => ({
     publicadoEn: (raw.publicado_en ?? raw.publicadoEn ?? null) as string | null,
     /* [183A-110-E] moderacionEstado incluido para vista Mis artículos */
     moderacionEstado: ((raw.moderacion_estado ?? raw.moderacionEstado) ?? undefined) as ArticuloResumen['moderacionEstado'],
-    autor: raw.username ? {
+    /* [193A-15] Backend devuelve autor_username/autor_nombre/autor_avatar, no username plano */
+    autor: (raw.autor_username ?? raw.username) ? {
         id: (raw.autor_id ?? raw.autorId ?? 0) as number,
-        username: raw.username as string,
-        nombreVisible: (raw.nombre_visible ?? raw.nombreVisible ?? raw.username) as string,
-        avatarUrl: (raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
+        username: (raw.autor_username ?? raw.username) as string,
+        nombreVisible: (raw.autor_nombre ?? raw.nombre_visible ?? raw.nombreVisible ?? raw.autor_username ?? raw.username) as string,
+        avatarUrl: (raw.autor_avatar ?? raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
+        verificado: (raw.autor_verificado ?? raw.verificado ?? false) as boolean,
     } as UsuarioResumen : (raw.autor as UsuarioResumen ?? { id: 0, username: '', nombreVisible: '', avatarUrl: null }),
     liked: (raw.liked ?? raw.esta_likeado ?? false) as boolean,
 });
