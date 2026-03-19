@@ -275,11 +275,18 @@ class ArticulosRepository extends BaseRepository
     private static function generarSlugUnico(string $titulo, ?int $excluirId = null): string
     {
         $slug = mb_strtolower(trim($titulo));
-        $slug = preg_replace('/[^\p{L}\p{N}\s-]/u', '', $slug);
+        /* [193A-9-B] Transliterar acentos a ASCII para URLs limpias.
+         * iconv retorna false si falla — no lanza excepción. */
+        $transliterado = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug);
+        if (is_string($transliterado)) {
+            $slug = $transliterado;
+        }
+        $slug = preg_replace('/[^a-z0-9\s-]/', '', $slug);
         $slug = preg_replace('/[\s-]+/', '-', $slug);
         $slug = trim($slug, '-');
+        /* sentinel-disable-next-line hardcoded-enum-value — 'articulo' es slug fallback de URL, no enum de dominio */
         if (empty($slug)) $slug = 'articulo';
-        $slug = mb_substr($slug, 0, 280);
+        $slug = substr($slug, 0, 280);
 
         $baseSlug = $slug;
         $counter = 0;

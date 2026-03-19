@@ -1,11 +1,18 @@
 /*
- * Hook: useArticuloDetalle — Kamples (183A-109)
+ * Hook: useArticuloDetalle — Kamples (183A-109 + 193A-9-B)
  * Carga un artículo individual por slug y gestiona like.
+ * [193A-9-B] Cache en memoria por slug — re-visitas muestran datos instantáneamente
+ * sin skeleton, y refetch silencioso actualiza en background.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { obtenerArticulo, toggleLikeArticulo } from '@app/services/apiArticulos';
 import type { Articulo } from '@app/types';
+
+/* [193A-9-B] Cache en memoria: slug → { data, timestamp }.
+ * TTL de 5 minutos — después refetch silencioso. */
+const cacheArticulos = new Map<string, { data: Articulo; ts: number }>();
+const CACHE_TTL = 5 * 60 * 1000;
 
 export const useArticuloDetalle = (slug: string) => {
     const [articulo, setArticulo] = useState<Articulo | null>(null);
@@ -18,18 +25,33 @@ export const useArticuloDetalle = (slug: string) => {
         abortRef.current?.abort();
         abortRef.current = new AbortController();
 
+        /* [193A-9-B] Si hay cache fresco, mostrar inmediatamente sin skeleton */
+        const cached = cacheArticulos.get(slug);
+        if (cached && Date.now() - cached.ts < CACHE_TTL) {
+            setArticulo(cached.data);
+            setCargando(false);
+            return;
+        }
+
         const cargar = async () => {
-            setCargando(true);
+            /* Si hay cache expirado, mostrar mientras refetch (sin skeleton) */
+            if (cached) {
+                setArticulo(cached.data);
+                setCargando(false);
+            } else {
+                setCargando(true);
+            }
             setError(null);
             try {
                 const res = await obtenerArticulo(slug);
                 if (res.ok && res.data) {
                     setArticulo(res.data);
+                    cacheArticulos.set(slug, { data: res.data, ts: Date.now() });
                 } else {
-                    setError(res.error ?? 'Artículo no encontrado');
+                    if (!cached) setError(res.error ?? 'Artículo no encontrado');
                 }
             } catch {
-                setError('Error cargando el artículo');
+                if (!cached) setError('Error cargando el artículo');
             } finally {
                 setCargando(false);
             }

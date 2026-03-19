@@ -53,7 +53,7 @@ class ArticulosController
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
-        register_rest_route($namespace, '/articulos/(?P<slug>[a-zA-Z0-9\-]+)', [
+        register_rest_route($namespace, '/articulos/(?P<slug>[^/]+)', [
             [
                 'methods' => 'GET', 'callback' => [self::class, 'obtener'],
                 'permission_callback' => '__return_true',
