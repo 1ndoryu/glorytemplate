@@ -8,6 +8,7 @@ import { useCallback, useState } from 'react';
 import { useCompraModalStore } from '@app/stores/compraModalStore';
 import { crearCheckoutSample } from '@app/services/apiPagos';
 import { toast } from '@app/stores/toastStore';
+import { esEscritorio, abrirEnlaceExterno } from '@app/utils/plataforma';
 
 export const useModalCompra = () => {
     const abierto = useCompraModalStore(s => s.abierto);
@@ -23,7 +24,13 @@ export const useModalCompra = () => {
         try {
             const resp = await crearCheckoutSample(sample.id);
             if (resp.ok && resp.url) {
-                window.location.href = resp.url;
+                /* [183A-87] Desktop: abrir Stripe en navegador externo */
+                if (esEscritorio()) {
+                    await abrirEnlaceExterno(resp.url);
+                    cerrar();
+                } else {
+                    window.location.href = resp.url;
+                }
             } else {
                 toast.error(resp.error ?? 'Error al iniciar la compra');
                 setProcesando(false);

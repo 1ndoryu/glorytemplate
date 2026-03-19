@@ -13,7 +13,7 @@ import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useAuthModalStore } from '@app/stores/authModalStore';
 import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
-import { esAndroid, abrirEnlaceExterno } from '@app/utils/plataforma';
+import { esAndroid, esEscritorio, abrirEnlaceExterno } from '@app/utils/plataforma';
 import type { PeriodoPlan } from '@app/services/apiPagos';
 
 export type PlanId = 'free' | 'pro' | 'premium';
@@ -162,6 +162,29 @@ export const usePlanesIsland = () => {
             return;
         }
 
+        /* [183A-87] En desktop Tauri, window.location.href mata la SPA React.
+         * Se abre Stripe en el navegador del sistema via plugin-shell.
+         * La sesión Tauri (auth.json) se preserva intacta. */
+        if (esEscritorio()) {
+            setError(null);
+            setCargando(planId);
+            try {
+                const periodo: PeriodoPlan = periodoAnual ? 'anual' : 'mensual';
+                const resultado = await crearSesionCheckout(planId as 'pro' | 'premium', periodo);
+                if (resultado.ok && resultado.url) {
+                    await abrirEnlaceExterno(resultado.url);
+                    cerrarPlanes();
+                } else {
+                    setError(resultado.error ?? 'Error al crear sesión de pago');
+                }
+            } catch {
+                setError('Error de conexión. Intenta de nuevo.');
+            } finally {
+                setCargando(null);
+            }
+            return;
+        }
+
         setError(null);
         setCargando(planId);
         try {
@@ -184,7 +207,13 @@ export const usePlanesIsland = () => {
         try {
             const resultado = await abrirPortalFacturacion();
             if (resultado.ok && resultado.url) {
-                window.location.href = resultado.url;
+                /* [183A-87] Desktop: abrir portal en navegador externo, no navegar WebView */
+                if (esEscritorio()) {
+                    await abrirEnlaceExterno(resultado.url);
+                    cerrarPlanes();
+                } else {
+                    window.location.href = resultado.url;
+                }
             } else {
                 setError(resultado.error ?? 'Error al abrir portal');
             }

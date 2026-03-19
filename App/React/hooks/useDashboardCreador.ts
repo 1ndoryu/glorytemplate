@@ -22,6 +22,7 @@ import {
     type DatosConnect,
     type BalanceConnect,
 } from '@app/services/apiPagos';
+import { esEscritorio, abrirEnlaceExterno } from '@app/utils/plataforma';
 import { useNavigationStore } from '@/core/router';
 
 /* Calcular porcentaje de cambio entre dos periodos */
@@ -93,7 +94,12 @@ export function useDashboardCreador() {
         try {
             const resultado = await iniciarOnboardingConnect();
             if (resultado.ok && resultado.url) {
-                window.location.href = resultado.url;
+                /* [183A-87] Desktop: abrir onboarding Stripe en navegador externo */
+                if (esEscritorio()) {
+                    await abrirEnlaceExterno(resultado.url);
+                } else {
+                    window.location.href = resultado.url;
+                }
             }
         } catch {
             /* Fallo silencioso */
