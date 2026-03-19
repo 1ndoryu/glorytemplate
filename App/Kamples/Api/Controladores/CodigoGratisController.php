@@ -70,12 +70,13 @@ class CodigoGratisController
             }
 
             /* Verificar que el item objetivo existe y obtener su nombre */
+            $item       = null;
             $nombreItem = '';
             if ($tipo === 'sample') {
                 $item = SamplesRepository::buscarParaDescarga($targetId);
                 if ($item) $nombreItem = (string) ($item['titulo'] ?? '');
             } else {
-                $item = ColeccionesRepository::buscarPorId($targetId);
+                $item = ColeccionesRepository::obtenerResumen($targetId);
                 if ($item) $nombreItem = (string) ($item['nombre'] ?? '');
             }
 
