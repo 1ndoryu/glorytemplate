@@ -1,8 +1,9 @@
 /*
- * ArticuloDetalleIsland.tsx — Kamples (183A-109 + 193A-20)
+ * ArticuloDetalleIsland.tsx — Kamples (183A-109 + 193A-20 + 193A-36)
  * Vista de lectura de un artículo individual del blog.
  * Recibe slug como prop desde pages.php (ruta dinámica).
  * [193A-20] Botón de 3 puntos para autor — permite editar el artículo.
+ * [193A-36] "Volver al blog" redirige a /?tab=blog para autenticados.
  */
 
 import { useState, useCallback } from 'react';
@@ -34,8 +35,12 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
 
     const { articulo, cargando, error, darLike } = useArticuloDetalle(slug);
     const navegar = useNavigationStore(s => s.navegar);
+    const autenticado = useAuthStore(s => s.autenticado);
     const usuarioId = useAuthStore(s => s.usuario?.id ?? null);
     const abrirEdicion = useArticuloEditorStore(s => s.abrirEdicion);
+
+    /* [193A-36] Autenticados vuelven a /?tab=blog (blog es tab del inicio) */
+    const hrefBlog = autenticado ? '/?tab=blog' : '/blog';
 
     /* [193A-20] Menú contextual para el autor */
     const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number }>({ abierto: false, x: 0, y: 0 });
@@ -84,7 +89,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
     if (error || !articulo) {
         return (
             <div className="articuloDetalleContenedor">
-                <EnlaceNavegacion href="/blog" className="articuloDetalleVolver">
+                <EnlaceNavegacion href={hrefBlog} className="articuloDetalleVolver">
                     <ArrowLeft size={16} />
                     Volver al blog
                 </EnlaceNavegacion>
@@ -102,7 +107,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
     return (
         <div className="articuloDetalleContenedor">
             {/* Volver */}
-            <EnlaceNavegacion href="/blog" className="articuloDetalleVolver">
+            <EnlaceNavegacion href={hrefBlog} className="articuloDetalleVolver">
                 <ArrowLeft size={16} />
                 Volver al blog
             </EnlaceNavegacion>
