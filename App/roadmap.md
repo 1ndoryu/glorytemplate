@@ -147,18 +147,6 @@ PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytempl
 tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
 
 
-## 193A-29
-
-Busca referencias de 193A-3
-
-este era el problema original de 193A-3, no creo que se haya resuelto, y si se resolvio pues tal vez ya las carpetas que tenia estaban condicionadas a continuar con el problema pero al menos evita que siga sucediendo para nuevos archivos
-
-El sync tiene un problema y es que imagina esta situación
-
-tengo carpeta A, y carpeta B, en ambas tengo una subcarpeta A, que sucede, lo correctoería que al sincronizar, los audios de subcarpeta A de ambas tengan el padre que les corresponde pues, por la jerarquía de carpetas, sucede que los audios de ambas subcarpeta se suben a una coleccion del mismo nombre pero todas son del mismo padre, o sea, es un error. 
-
-Lo correcto es que las subcarpetas puedan tener el mismo nombre pero que al sincronizar, se mantenga la jerarquía, o sea, los audios de la subcarpeta A de la carpeta A tengan como padre a la carpeta A y los audios de la subcarpeta A de la carpeta B tengan como padre a la carpeta B.
-
 ## 193A-30
 
 193A-25 "EL MECANISMO DE LOS TAGS SE DAÑO; LOS TAGS POR ALGUNA EXTRAÑA RAZON SOLO FILTRA Y EMPIEZAN A CARGAR PAGINAS Y PAGINAS VACIAS; ESTO NO TIENE SENTIDO; SE DICTO QUE CUANDO SE DE CLICK A UN TAG YA SEA EN LOS SAMPLES; EN FEEDTAG; EN CUALQUIER LUGAR; HAGA UNA BUSQUEDA; LA PARTICULARIDAD UNICA ES QUE SI UNA BUSQUEDA ES APARTIR DE UN TAG QUE SE CLICKEO; NO ABRE EL MODAL DE BUSQUEDA RAPIDA."
@@ -170,6 +158,17 @@ ya veo, si funciona con las tags de las tarjetas pero no con el resto de tags, t
 ese mismo comportamiento se espera en las tags dentro de las colecciones, todas las tags deben hacer busquedas, no filtros 
 
 las busquedas se suponen que estan preparadas para valores negativos (revisar eso porque las tags tienen 2 botones, uno para negativo y otro para positivo, no se quien cambio la logica, el punto es que se tiene que dejar claro como tienen que funcionar todas las tags globalmente, la busque tiene ser en la pagina en la que se esta, y la busqueda se adapta a todos los contextos, esto parece funcionar el unico detalle es ese el de las tags )
+
+## 193A-31
+
+En el feed me salen samples a los que les di dislike, cosa que no debería pasar y no me refiero a ocultarlos, creo que lo que haremos es que 
+
+al lado del nombre con un badge pequeño mostrar el score, redondeado, para ver el valor, y un tooltip que muestre detalles del score que se pueda leer facil, no se si es esto posible pero no es posible lo entiendo, sera una configuracion debug, que solo este disponible para admin obviamente que se pueda activar y desactivar en configuraciones, no tiene que representar carga cuando este apagada. Solo eso, no digo que ajustes el valor de los negativos o algo. Tiene que ser algo que explique porque aparece en el feed de forma sencilla y humana pero sin perder detalles. 
+
+## 193A-32
+
+## 193A-33
+
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
