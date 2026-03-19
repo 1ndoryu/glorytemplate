@@ -67,6 +67,10 @@ class NormalizadorPublicacion
         $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
         unset($pub['reaccion_usuario']);
 
+        /* [183A-98] Estado de repost del usuario actual */
+        $pub['reposteado'] = (bool) ($pub['reposteado_por_mi'] ?? false);
+        unset($pub['reposteado_por_mi']);
+
         /* Moderación e imágenes */
         $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
         $pub['imagenes'] = UrlHelper::normalizarArray(

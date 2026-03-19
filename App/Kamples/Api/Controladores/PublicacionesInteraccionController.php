@@ -100,9 +100,14 @@ class PublicacionesInteraccionController
 
         $pubId = (int) $request->get_param('id');
 
+        /* [183A-98] crearRepost valida: no self-repost, no duplicado, no cadenas.
+         * Retorna null si ya existía (idempotente via ON CONFLICT DO NOTHING). */
         $id = PublicacionesRepository::crearRepost($userId, $pubId);
 
-        return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
+        return new \WP_REST_Response(['ok' => true, 'id' => $id], $id ? 201 : 200);
+        } catch (\RuntimeException $e) {
+            /* [183A-98] Errores de validación (self-repost, no encontrado, cadena) */
+            return new \WP_REST_Response(['code' => 'error_validacion', 'message' => $e->getMessage()], 403);
         } catch (\Throwable $e) {
             KamplesLogger::error('PublicacionesInteraccionController::repostear error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

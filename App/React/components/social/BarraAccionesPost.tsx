@@ -30,6 +30,8 @@ interface BarraAccionesPostProps {
     onRepost?: (id: number) => void;
     /** Formato de conteo: si true, muestra 0 tambien. Default false = solo >0 */
     mostrarCeroConteo?: boolean;
+    /** [183A-98] Si true, deshabilita el botón de repost (no puedes repostear tu propio contenido) */
+    esPropio?: boolean;
     className?: string;
 }
 
@@ -46,6 +48,7 @@ export default function BarraAccionesPost({
     onComentar,
     onRepost,
     mostrarCeroConteo = false,
+    esPropio = false,
     className = '',
 }: BarraAccionesPostProps) {
     const p = publicacion;
@@ -109,9 +112,10 @@ export default function BarraAccionesPost({
 
             <BotonBase variante="ghost"
                 className={`accionesPostBtn ${claseRepost}`}
-                onClick={onRepost ? () => onRepost(p.id) : undefined}
+                onClick={(!esPropio && onRepost) ? () => onRepost(p.id) : undefined}
+                disabled={esPropio}
                 type="button"
-                aria-label={p.reposteado ? 'Quitar repost' : 'Repostear'}
+                aria-label={esPropio ? 'No puedes repostear tu propio contenido' : (p.reposteado ? 'Quitar repost' : 'Repostear')}
             >
                 <Repeat2 size={20} />
                 {(mostrarCeroConteo || p.totalReposts > 0) && (

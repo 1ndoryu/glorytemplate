@@ -280,6 +280,7 @@ export const TarjetaPublicacion = ({
                 onComentar={onComentar}
                 onRepost={onRepost}
                 mostrarCeroConteo={mostrarCeroConteo}
+                esPropio={esAutor}
             />
 
             {/* QQ20: Preview del comentario con más likes */}

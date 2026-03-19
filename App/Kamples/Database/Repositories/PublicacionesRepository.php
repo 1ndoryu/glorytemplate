@@ -217,6 +217,11 @@ class PublicacionesRepository extends BaseRepository
             ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . PublicacionesCols::ID . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
 
+        /* [183A-98] Subquery de repost del usuario actual */
+        $reposteadoSubquery = isset($params['current_user'])
+            ? ", EXISTS(SELECT 1 FROM {$tp} rp WHERE rp." . PublicacionesCols::AUTOR_ID . " = :current_user AND rp." . PublicacionesCols::REPOST_ID . " = p." . PublicacionesCols::ID . " AND rp." . PublicacionesCols::ELIMINADO_EN . " IS NULL) AS reposteado_por_mi"
+            : ", FALSE AS reposteado_por_mi";
+
         /* QQ76: Excluir publicaciones con muchos reportes pendientes */
         $currentUserId = $params['current_user'] ?? null;
         $filtroReportes = ReportesRepository::sqlFiltroAutoOcultacion(
@@ -235,6 +240,7 @@ class PublicacionesRepository extends BaseRepository
             . ", u." . UsuariosExtCols::VERIFICADO
             . ", u." . UsuariosExtCols::WP_USER_ID
             . " {$likedSubquery}"
+            . " {$reposteadoSubquery}"
             . ", orig." . PublicacionesCols::ID . " AS orig_id"
             . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
             . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
@@ -342,6 +348,11 @@ class PublicacionesRepository extends BaseRepository
             ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . $pId . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
 
+        /* [183A-98] Subquery de repost del usuario actual */
+        $reposteadoSubquery = isset($params['current_user'])
+            ? ", EXISTS(SELECT 1 FROM {$tp} rp WHERE rp." . PublicacionesCols::AUTOR_ID . " = :current_user AND rp." . PublicacionesCols::REPOST_ID . " = p." . $pId . " AND rp." . PublicacionesCols::ELIMINADO_EN . " IS NULL) AS reposteado_por_mi"
+            : ", FALSE AS reposteado_por_mi";
+
         /* QQ76: Excluir publicaciones con muchos reportes pendientes */
         $filtroReportes = ReportesRepository::sqlFiltroAutoOcultacion(
             'publicacion',
@@ -364,6 +375,7 @@ class PublicacionesRepository extends BaseRepository
             . ", u." . UsuariosExtCols::VERIFICADO
             . ", u." . UsuariosExtCols::WP_USER_ID
             . " {$likedSubquery}"
+            . " {$reposteadoSubquery}"
             . ", orig.{$pId} AS orig_id"
             . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
             . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
@@ -428,6 +440,11 @@ class PublicacionesRepository extends BaseRepository
             ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . PublicacionesCols::ID . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
 
+        /* [183A-98] Subquery de repost del usuario actual */
+        $reposteadoSubquery = $currentUserId
+            ? ", EXISTS(SELECT 1 FROM {$tp} rp WHERE rp." . PublicacionesCols::AUTOR_ID . " = :current_user AND rp." . PublicacionesCols::REPOST_ID . " = p." . PublicacionesCols::ID . " AND rp." . PublicacionesCols::ELIMINADO_EN . " IS NULL) AS reposteado_por_mi"
+            : ", FALSE AS reposteado_por_mi";
+
         if ($currentUserId) {
             $params['current_user'] = $currentUserId;
         }
@@ -439,6 +456,7 @@ class PublicacionesRepository extends BaseRepository
             . ", u." . UsuariosExtCols::VERIFICADO
             . ", u." . UsuariosExtCols::WP_USER_ID
             . " {$likedSubquery}"
+            . " {$reposteadoSubquery}"
             . ", orig." . PublicacionesCols::ID . " AS orig_id"
             . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
             . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
@@ -620,17 +638,39 @@ class PublicacionesRepository extends BaseRepository
     }
 
     /*
-     * Crear repost de una publicación.
-     * Inserta una fila vacía con repost_id apuntando al original.
-     * El feed hace JOIN para devolver el contenido del original.
-     */
-    public static function crearRepost(int $autorId, int $repostId): int
+     * [183A-98] Crear repost de una publicación.
+     * Inserta fila vacía con repost_id apuntando al original.
+     * Validaciones: no permite self-repost, duplicados (ON CONFLICT), ni cadenas (solo originales).
+     * Retorna id del repost creado, o null si ya existía (idempotente). */
+    public static function crearRepost(int $autorId, int $repostId): ?int
     {
         $tabla = PublicacionesCols::TABLA;
 
+        /* Verificar que la publicación original existe, no es un repost (evitar cadenas),
+         * y no es del mismo autor (evitar self-repost) */
+        $original = static::consultarUno(
+            "SELECT " . PublicacionesCols::ID . ", " . PublicacionesCols::AUTOR_ID . ", "
+            . PublicacionesCols::REPOST_ID . " FROM {$tabla} WHERE "
+            . PublicacionesCols::ID . " = :id AND " . PublicacionesCols::ELIMINADO_EN . " IS NULL",
+            ['id' => $repostId]
+        );
+
+        if (!$original) {
+            throw new \RuntimeException('Publicación no encontrada');
+        }
+        if ((int) $original[PublicacionesCols::AUTOR_ID] === $autorId) {
+            throw new \RuntimeException('No puedes repostear tu propio contenido');
+        }
+        if ($original[PublicacionesCols::REPOST_ID] !== null) {
+            throw new \RuntimeException('Solo puedes repostear publicaciones originales');
+        }
+
+        /* ON CONFLICT DO NOTHING: si ya existe repost de este usuario, no duplica */
         $id = static::insertar(
             "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
-            . ", " . PublicacionesCols::REPOST_ID . ") VALUES (:autor, '', :repostId) RETURNING " . PublicacionesCols::ID,
+            . ", " . PublicacionesCols::REPOST_ID . ") VALUES (:autor, '', :repostId)"
+            . " ON CONFLICT (autor_id, repost_id) WHERE repost_id IS NOT NULL DO NOTHING"
+            . " RETURNING " . PublicacionesCols::ID,
             ['autor' => $autorId, 'repostId' => $repostId]
         );
 
