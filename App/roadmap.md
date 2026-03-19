@@ -48,10 +48,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-98
-
-Revisar y auditar la funcionalidad de repostear de los post, esto no se ha revisado desde hace tiempo, corregir cualquier problema.
-
 ## 183A-108
 
 Me preocupa algo en particular, anteriormente se hizo algo que sacaba del algoritmo los samples que se reproducian y no tenian accion alguna del usuario, estos samples aun deben aparecer en la busqueda. 
@@ -136,6 +132,9 @@ No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los 
 
 Cuando voy a https://kamples.com/perfil/Wandorius/ aparece Contenido no disponible, este es un error recurrente y frecuente
 
+## 193A-47 
+
+Cuando hay un comentario el enlace de la notificacion es https://kamples.com/post/12/ y esta mal, las url de los post es /publicacion/ a demas dice "Alguien comentu tu publicacion" en vez de decir @usuario tal comento "tal cosa" o lo que esa pero mas discrictivo.  Pero tambien si voy a https://kamples.com/post/12/ dice Publicación no encontrada
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
