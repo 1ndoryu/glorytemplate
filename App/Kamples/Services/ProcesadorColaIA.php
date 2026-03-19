@@ -314,6 +314,14 @@ class ProcesadorColaIA
         $bpmConfianza = $metadataExistente['bpm_confianza'] ?? ($contextoTecnico['bpm_confianza'] ?? null);
         $keyConfianza = $metadataExistente['key_confianza'] ?? ($contextoTecnico['key_confianza'] ?? null);
 
+        /* [193A-42] Preservar carpetas del sync si ya existen (no sobreescribir con IA).
+         * ia_carpeta_* siempre guarda lo que dijo la IA como referencia inmutable. */
+        $syncCarpetaPri = $metadataExistente['carpeta_primaria'] ?? null;
+        $syncCarpetaSec = $metadataExistente['carpeta_secundaria'] ?? null;
+        $tieneCaretaSync = $syncCarpetaPri !== null
+            && $syncCarpetaPri !== 'General'
+            && $syncCarpetaPri !== SamplesRepository::CARPETA_DEFAULT;
+
         $actualizaciones[SamplesCols::METADATA] = \json_encode([
             'nombre_archivo_base'   => $metadataIA['nombre_archivo_base'],
             'tags'                  => $metadataIA['tags'],
@@ -327,10 +335,11 @@ class ProcesadorColaIA
             'descripcion_corta_es'  => $metadataIA['descripcion_corta_es'],
             'descripcion'           => $metadataIA['descripcion'],
             'descripcion_es'        => $metadataIA['descripcion_es'],
-            'carpeta_primaria'      => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
-            'carpeta_secundaria'    => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
+            'carpeta_primaria'      => $tieneCaretaSync ? $syncCarpetaPri : ($metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT),
+            'carpeta_secundaria'    => $tieneCaretaSync ? ($syncCarpetaSec ?? 'General') : (!empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General'),
             'ia_carpeta_primaria'   => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
             'ia_carpeta_secundaria' => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
+            'origen_subida'         => $metadataExistente['origen_subida'] ?? null,
             'bpm_confianza'         => $bpmConfianza,
             'key_confianza'         => $keyConfianza,
             'reprocesado_at'        => \date('Y-m-d H:i:s'),

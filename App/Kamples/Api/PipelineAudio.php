@@ -392,6 +392,7 @@ class PipelineAudio
         ];
 
         /* QL67: Incluir origen_subida (ruta de carpetas sync) como contexto para la IA */
+        $metadataExistente = [];
         try {
             $metadataExistente = SamplesRepository::obtenerMetadataJsonb($sampleId);
             $origenSubida = $metadataExistente['origen_subida'] ?? null;
@@ -537,6 +538,15 @@ class PipelineAudio
             $actualizaciones['tipo'] = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'oneshot';
 
             /* Guardar toda la metadata creativa + confianza técnica en JSONB */
+            /* [193A-42] Si el sync desktop ya estableció carpetas reales (via PUT /carpeta),
+             * preservarlas en vez de sobreescribir con la clasificación IA.
+             * ia_carpeta_* siempre guarda lo que dijo la IA como referencia inmutable. */
+            $syncCarpetaPri = $metadataExistente['carpeta_primaria'] ?? null;
+            $syncCarpetaSec = $metadataExistente['carpeta_secundaria'] ?? null;
+            $tieneCaretaSync = $syncCarpetaPri !== null
+                && $syncCarpetaPri !== 'General'
+                && $syncCarpetaPri !== SamplesRepository::CARPETA_DEFAULT;
+
             $actualizaciones['metadata'] = \json_encode([
                 'nombre_archivo_base'  => $metadataIA['nombre_archivo_base'],
                 'tags'                 => $metadataIA['tags'],
@@ -550,12 +560,12 @@ class PipelineAudio
                 'descripcion_corta_es' => $metadataIA['descripcion_corta_es'],
                 'descripcion'          => $metadataIA['descripcion'],
                 'descripcion_es'       => $metadataIA['descripcion_es'],
-                'carpeta_primaria'     => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
-                /* C289: Fallback 'General' si la IA devuelve null/vacio para carpeta_secundaria */
-                'carpeta_secundaria'   => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
+                'carpeta_primaria'     => $tieneCaretaSync ? $syncCarpetaPri : ($metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT),
+                'carpeta_secundaria'   => $tieneCaretaSync ? ($syncCarpetaSec ?? 'General') : (!empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General'),
                 /* Copia inmutable de la clasificacion IA — no se modifica al mover manualmente */
                 'ia_carpeta_primaria'  => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
                 'ia_carpeta_secundaria' => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
+                'origen_subida'        => $metadataExistente['origen_subida'] ?? null,
                 'bpm_confianza'        => $analisisTecnico['bpm_confianza'],
                 'key_confianza'        => $analisisTecnico['key_confianza'],
             ]);
@@ -564,13 +574,21 @@ class PipelineAudio
              * C356: IA encolada por rate limit — metadata minima con datos tecnicos disponibles.
              * Marca ia_pendiente para que el frontend/sync sepan que falta el analisis creativo.
              * El ProcesadorColaIA actualizara esta metadata cuando se reprocese.
+             * [193A-42] Preservar carpetas del sync si ya existen.
              */
             $actualizaciones['tipo'] = SamplesEnums::TIPO_ONESHOT;
+            $syncCarpetaPri = $metadataExistente['carpeta_primaria'] ?? null;
+            $syncCarpetaSec = $metadataExistente['carpeta_secundaria'] ?? null;
+            $tieneCaretaSync = $syncCarpetaPri !== null
+                && $syncCarpetaPri !== 'General'
+                && $syncCarpetaPri !== SamplesRepository::CARPETA_DEFAULT;
+
             $actualizaciones['metadata'] = \json_encode([
                 'ia_pendiente' => true,
                 'ia_encolada_at' => \date('Y-m-d H:i:s'),
-                'carpeta_primaria' => SamplesRepository::CARPETA_DEFAULT,
-                'carpeta_secundaria' => 'General',
+                'carpeta_primaria' => $tieneCaretaSync ? $syncCarpetaPri : SamplesRepository::CARPETA_DEFAULT,
+                'carpeta_secundaria' => $tieneCaretaSync ? ($syncCarpetaSec ?? 'General') : 'General',
+                'origen_subida' => $metadataExistente['origen_subida'] ?? null,
                 'bpm_confianza' => $analisisTecnico['bpm_confianza'],
                 'key_confianza' => $analisisTecnico['key_confianza'],
             ]);

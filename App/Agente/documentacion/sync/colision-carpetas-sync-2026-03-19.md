@@ -1,8 +1,8 @@
 # Colisión de carpetas en Sync — Investigación profunda
 
-> **Fecha:** 2026-03-19  
-> **Tareas relacionadas:** 193A-3, 193A-29, 193A-40  
-> **Estado:** Bug de código CORREGIDO. Datos legacy pendientes de migración.
+> **Fecha:** 2026-03-19 (actualizado 2026-03-19 193A-42)  
+> **Tareas relacionadas:** 193A-3, 193A-29, 193A-40, 193A-42  
+> **Estado:** Bug de código CORREGIDO. Datos legacy CORREGIDOS. Pipeline IA parcheada para no sobreescribir carpetas sync.
 
 ## Resumen
 
@@ -117,14 +117,27 @@ buscarColeccionServidorPorNombre(nombre, parentId)
 3. Contadores `total_samples` verificados y alineados
 4. 0 colisiones post-fix confirmado
 
-### Pendiente: 198 samples "General / General"
-Estos samples tienen metadata `carpeta_primaria: "General"` y `carpeta_secundaria: "General"` pero 
-están en subcollecciones que no corresponden. Sin `origen_subida`, no hay forma automática de saber 
-dónde deberían estar. Opciones:
-- **Opción A:** Crear colección "General" y moverlos ahí
-- **Opción B:** Dejarlos donde están y actualizar metadata para que coincida
-- **Opción C:** Quitarlos de coleccion_samples (quedan como "sin colección")
-Requiere decisión del usuario.
+### Pendiente: 198 samples "General / General" — RESUELTO (193A-42)
+La causa raíz: el pipeline IA (`PipelineAudio.php` y `ProcesadorColaIA.php`) hacía `json_encode`
+completo de la metadata, SOBREESCRIBIENDO `carpeta_primaria`/`carpeta_secundaria` que el sync
+desktop ya había establecido correctamente via PUT `/me/coleccionados/{id}/carpeta`.
+
+**Secuencia del race condition:**
+1. Desktop POST → crear sample (sin carpetas en metadata aún)
+2. Desktop PUT → `jsonb_set` atómico → carpetas correctas (ej: "DOOMVIBE! DRUM KIT" / "COWBELLS")
+3. Cron → `ejecutarPipelineDiferido` → `json_encode` completo → sobreescribe con IA ("General/General")
+
+**Fix aplicado en 3 puntos:**
+- `PipelineAudio.php` L541 (IA exitosa): lee `$metadataExistente`, preserva carpetas sync si no son "General"
+- `PipelineAudio.php` L571 (rate limit fallback): misma lógica
+- `ProcesadorColaIA.php` L320 (reprocesado): misma lógica
+- Los 3 puntos también preservan `origen_subida` que se perdía con el `json_encode` completo.
+
+**Fix de datos legacy:**
+SQL UPDATE usando `coleccion_samples` + `colecciones` para derivar carpeta_primaria/secundaria reales:
+- 213 samples corregidos (de 215 con "General")
+- 9 restantes: 7 son colecciones raíz con secundaria="General" (correcto), 2 sin colección asignada
+- Resultado final: 0 samples con metadata incorrecta
 
 ### SQL de diagnóstico (referencia)
 
