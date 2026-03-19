@@ -22,6 +22,7 @@ import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ModalSeguidores } from '../social/ModalSeguidores';
 import { ModalGeneros } from '../social/ModalGeneros';
+import { ModalArticulo } from '../blog/ModalArticulo';
 import { useGenerosModalStore } from '@app/stores/generosModalStore';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { ModalEditar } from '../social/ModalEditar';
@@ -188,6 +189,9 @@ export const LayoutPrincipal = ({
 
             {/* Modal unificado de creación (subir sample + publicar) */}
             <ModalCrear />
+
+            {/* [183A-109] Modal de escritura de artículos del blog */}
+            <ModalArticulo />
 
             {/* Modal de publicación social (posts comunidad) */}
             <ModalPublicar />

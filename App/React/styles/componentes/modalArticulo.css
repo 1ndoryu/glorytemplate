@@ -1,0 +1,258 @@
+/*
+ * modalArticulo.css — Kamples (183A-109 Fase 3)
+ * Estilos del editor de artículos del blog.
+ */
+
+.editorArticuloContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Título del artículo */
+.editorArticuloTitulo {
+    width: 100%;
+    padding: var(--espacioSm) 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold, 700);
+    line-height: 1.3;
+}
+
+.editorArticuloTitulo::placeholder {
+    color: var(--textoTerciario);
+}
+
+/* Extracto */
+.editorArticuloExtracto {
+    width: 100%;
+    padding: var(--espacioSm) 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--textoSecundario);
+    font-family: var(--fuentePrincipal);
+    font-size: var(--fuenteSm);
+    line-height: 1.4;
+    resize: none;
+    min-height: 40px;
+    max-height: 80px;
+}
+
+.editorArticuloExtracto::placeholder {
+    color: var(--textoTerciario);
+}
+
+.editorArticuloCharCount {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-align: right;
+    margin-top: calc(var(--espacioXs) * -1);
+}
+
+.editorArticuloCharCountLimite {
+    color: var(--error);
+}
+
+/* Selector de categoría */
+.editorArticuloCategoriaSelect {
+    padding: var(--espacioXs) var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    max-width: 250px;
+    transition: border-color var(--transicionRapida);
+}
+
+.editorArticuloCategoriaSelect:focus {
+    border-color: var(--acento);
+}
+
+/* Portada */
+.editorArticuloPortada {
+    position: relative;
+    border: 2px dashed var(--bordeSutil);
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color var(--transicionRapida);
+}
+
+.editorArticuloPortada:hover {
+    border-color: var(--bordeActivo);
+}
+
+.editorArticuloPortadaVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXl) 0;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+.editorArticuloPortadaPreview {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+}
+
+.editorArticuloPortadaQuitar {
+    position: absolute;
+    top: var(--espacioSm);
+    right: var(--espacioSm);
+}
+
+/* Barra de herramientas del editor */
+.editorArticuloToolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: var(--espacioXs);
+    border: 1px solid var(--bordeSutil);
+    border-bottom: none;
+    border-radius: var(--radioMd) var(--radioMd) 0 0;
+    background-color: var(--fondoElevado2);
+    flex-wrap: wrap;
+}
+
+.editorArticuloToolbarSeparador {
+    width: 1px;
+    height: 20px;
+    background-color: var(--bordeSutil);
+    margin: 0 var(--espacioXs);
+    flex-shrink: 0;
+}
+
+/* Área de contenido editable */
+.editorArticuloContenido {
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: 0 0 var(--radioMd) var(--radioMd);
+    background-color: var(--fondoBase, var(--fondoElevado1));
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+    font-size: var(--fuenteMd);
+    line-height: 1.6;
+    outline: none;
+    word-break: break-word;
+}
+
+.editorArticuloContenido:focus {
+    border-color: var(--acento);
+}
+
+/* Estilos dentro del contentEditable */
+.editorArticuloContenido h2 {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold, 600);
+    margin: var(--espacioMd) 0 var(--espacioSm);
+}
+
+.editorArticuloContenido h3 {
+    font-size: calc(var(--fuenteMd) + 2px);
+    font-weight: var(--pesoMedio);
+    margin: var(--espacioSm) 0 var(--espacioXs);
+}
+
+.editorArticuloContenido img {
+    max-width: 100%;
+    border-radius: var(--radioMd);
+    margin: var(--espacioSm) 0;
+}
+
+.editorArticuloContenido blockquote {
+    border-left: 3px solid var(--bordeSutil);
+    padding-left: var(--espacioMd);
+    margin: var(--espacioSm) 0;
+    color: var(--textoSecundario);
+    font-style: italic;
+}
+
+/* Vista HTML (textarea) */
+.editorArticuloHtml {
+    width: 100%;
+    min-height: 200px;
+    max-height: 400px;
+    padding: var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: 0 0 var(--radioMd) var(--radioMd);
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    font-family: monospace;
+    font-size: var(--fuenteSm);
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+}
+
+.editorArticuloHtml:focus {
+    border-color: var(--acento);
+}
+
+/* Opciones extra (descarga pública, embeds) */
+.editorArticuloOpciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.editorArticuloToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+}
+
+.editorArticuloToggleCheck {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--bordeSutil);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transicionRapida);
+}
+
+.editorArticuloToggleActivo {
+    background-color: var(--acento);
+    border-color: var(--acento);
+    color: var(--blanco);
+}
+
+/* Footer del editor */
+.editorArticuloFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioMd);
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.editorArticuloFooterIzq {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}

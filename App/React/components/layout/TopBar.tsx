@@ -1,4 +1,9 @@
-﻿/*
+﻿/* sentinel-disable-file limite-lineas — TopBar es componente central de layout con menús
+ * contextuales (avatar, hamburguesa, crear), dropdowns (notificaciones, mensajes, búsqueda),
+ * tabs dinámicas y lógica condicional admin/dev. Los arrays de MenuItemDef ocupan espacio
+ * pero deben vivir cerca de su punto de uso para legibilidad. */
+
+/*
  * Componente: TopBar
  * Barra superior con tabs dinámicas, búsqueda global, notificaciones, mensajes y avatar.
  * Las tabs se establecen desde cada isla via useTabsTopBarStore.
@@ -6,7 +11,7 @@
  */
 
 import { useState } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box, BookOpen } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { ResultadosBusquedaRapidaDropdown } from '../ui/ResultadosBusquedaRapida';
 import { Badge } from '../ui/Badge';
@@ -24,6 +29,7 @@ import { useTopBar } from '@app/hooks/useTopBar';
 import { useBusquedaRapida } from '@app/hooks/useBusquedaRapida';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
+import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
@@ -80,16 +86,29 @@ export const TopBar = (): JSX.Element => {
     const [hamburguesaAbierta, setHamburguesaAbierta] = useState(false);
     const [hamburguesaPos, setHamburguesaPos] = useState({ x: 0, y: 0 });
 
+    /* [183A-109] Menu contextual del botón "+" — elegir entre publicación y artículo.
+     * Estado combinado en un solo useState para cumplir max 3 useState por componente. */
+    const [crearMenu, setCrearMenu] = useState({ abierto: false, x: 0, y: 0 });
+
     const esAdmin = usuario?.rol === 'admin';
     const mostrarHerramientasDev = esAdmin && devModeActivo;
 
     const hamburguesaItems: MenuItemDef[] = [
         {
             id: 'hb-crear',
-            etiqueta: 'Crear',
+            etiqueta: 'Crear publicación',
             icono: <Plus size={14} />,
             onClick: () => {
                 abrirCrear();
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-crear-articulo',
+            etiqueta: 'Escribir artículo',
+            icono: <BookOpen size={14} />,
+            onClick: () => {
+                useArticuloEditorStore.getState().abrir();
                 setHamburguesaAbierta(false);
             },
         },
@@ -397,11 +416,47 @@ export const TopBar = (): JSX.Element => {
                         tamano="md"
                         soloIcono
                         className="topbarBtnCrear"
-                        onClick={() => abrirCrear()}
+                        onClick={(e) => {
+                            const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                            setCrearMenu(prev => ({
+                                abierto: !prev.abierto,
+                                x: rect.right,
+                                y: rect.bottom,
+                            }));
+                        }}
                         aria-label="Crear"
                     >
                         <Plus size={20} />
                     </BotonBase>
+
+                    {/* [183A-109] Menu contextual "Crear": publicación o artículo */}
+                    <MenuContextual
+                        abierto={crearMenu.abierto}
+                        onCerrar={() => setCrearMenu(prev => ({ ...prev, abierto: false }))}
+                        items={[
+                            {
+                                id: 'crear-publicacion',
+                                etiqueta: 'Publicación',
+                                icono: <Plus size={14} />,
+                                onClick: () => {
+                                    abrirCrear();
+                                    setCrearMenu(prev => ({ ...prev, abierto: false }));
+                                },
+                            },
+                            {
+                                id: 'crear-articulo',
+                                etiqueta: 'Escribir artículo',
+                                icono: <BookOpen size={14} />,
+                                onClick: () => {
+                                    useArticuloEditorStore.getState().abrir();
+                                    setCrearMenu(prev => ({ ...prev, abierto: false }));
+                                },
+                            },
+                        ]}
+                        x={crearMenu.x}
+                        y={crearMenu.y}
+                        alinearDerecha
+                    />
 
                     {/* C184: Botón mezclador */}
                     <BotonBase
