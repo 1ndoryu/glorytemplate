@@ -103,6 +103,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-77:** Completada 2026-03-19. Navegación SPA preserva query string — búsqueda landing ahora pasa ?buscar= a /descubrir/.
 - **183A-78:** Completada 2026-03-19. Login omite X-WP-Nonce — fix "cookie check failed" con cookies stale de sesión anterior.
 - **183A-96:** Completada 2026-03-19. Fix bug precio compra, tab ganancias, PayPal config, revenue share 80/20, auditoría integridad (5 bugs críticos corregidos: mismatch revenue display, estado dual, race conditions webhook/compra doble).
+- **183A-104:** Completada 2026-03-19. Ocultar perfilContenedorInterno y perfilSeccionPublicar en tab ganancias.
 
 ## Tareas pendientes
 
@@ -170,10 +171,6 @@ Las imagenes de los post de comunidad no de estan optimizando con el componente 
 ## 183A-103
 
 chatFlotanteStagingPreview se ve mal, para que se vea bien, el boton de adjunto, input y envio tienen que ir en su propio div y estar debajo, y asi chatFlotanteInput tendria que estar en flex column 
-
-## 183A-104
-
-Solo para avisar, en la tab de ganacias en el perfil no debe aparecer perfilContenedorInterno ni el perfilSeccionPublicar
 
 ## Tarea final cuando completes todo
 
