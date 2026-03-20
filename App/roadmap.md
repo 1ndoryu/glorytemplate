@@ -61,8 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 193A-93
-
 ## 2003A-3 
 
 revisar comando de ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30" realmente esta actualizado y muestra los valores reales
@@ -104,9 +102,25 @@ Perfil: 76ms | Conteo: 9ms
 Exit code: 0
 PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> 
 
-## 2003A-4
+## 2003A-5
 
-Cuando hago scroll en la apk y luego intento subir, se queda pegado porque se activa lo de tirar hacia abajo para recargar, fatal, solo se tiene que activar cuando se este arriba totalmente. (Pasa con el feed de los samples y publicaciones de comunidad)
+Aumenta el limite de samples de subida por usuario a 20.000 a través del sync, para pro, para free 100 
+
+Haz una pagina de price en el landing con los planes, que haya ese detalle indicando el limite de sincronizacion 100 y 20.000, free y pro, premiun no lo pongas, obviamente todo lo de premiun en cuanto a logia que sea igual a pro
+
+## 2003A-6
+
+A veces el sincronizador dice
+apiDesktopAdapter.ts:241  POST http://localhost:1420/wp-json/kamples/v1/samples/upload 400 (Bad Request)
+window.fetch @ apiDesktopAdapter.ts:241
+subirArchivo @ uploadQueueService.ts:1000
+await in subirArchivo
+procesarItemUpload @ uploadQueueService.ts:749
+procesarCola @ uploadQueueService.ts:722
+syncLogger.ts:201 [UploadQueue] Máximo de reintentos alcanzado: Drank A Yack, Smoke A Sack 132 bpm (FULL).wav
+
+espero que esto no genere problemas o genere perdida de datos, 
+
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 

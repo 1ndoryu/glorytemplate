@@ -12,14 +12,26 @@
  * Si el elemento tiene scroll propio (scrollHeight > clientHeight), usa el.scrollTop.
  * Si no, usa window.scrollY. Esto evita que se active al subir despues de bajar
  * y corrige incompatibilidades con WebView (Capacitor/APK).
+ *
+ * [2003A-4] Fix: obtenerScrollTop ahora verifica con getComputedStyle si el elemento
+ * REALMENTE hace scroll (overflow auto/scroll). Si el div es alto pero no tiene
+ * overflow-y propio (ej: feedSamplesContenedor, comunidadFeed), el scroll es el window.
+ * Sin este fix, el.scrollTop siempre es 0 aunque el usuario esté scrolleado abajo,
+ * lo que hacía que PTR se activara en cualquier momento, no solo desde el top.
  */
 
 import { useRef, useCallback, useState, useEffect } from 'react';
 
-/* [183A-74] Determina el scroll top real del contexto. Si el elemento tiene
- * overflow scrollable propio, usar su scrollTop. Si no, el scroll es del viewport. */
+/* [183A-74] [2003A-4] Determina el scroll top real del contexto.
+ * Verifica si el elemento tiene overflow-y scrollable computado (no solo si es alto).
+ * Si el div no tiene overflow-y: auto/scroll, el scroll es window. */
 function obtenerScrollTop(el: HTMLElement): number {
-    if (el.scrollHeight > el.clientHeight + 1) {
+    const overflow = window.getComputedStyle(el).overflowY;
+    const tieneScrollPropio =
+        (overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay') &&
+        el.scrollHeight > el.clientHeight + 1;
+
+    if (tieneScrollPropio) {
         return el.scrollTop;
     }
     return window.scrollY || document.documentElement.scrollTop || 0;
