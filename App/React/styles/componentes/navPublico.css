@@ -51,6 +51,15 @@
     color: var(--textoPrimario);
 }
 
+/* [2003A-6] Enlace de precios con color acento para mayor visibilidad */
+.navPublicoEnlacePrecios {
+    color: var(--acento);
+}
+
+.navPublicoEnlacePrecios:hover {
+    color: var(--textoPrimario);
+}
+
 .navPublicoDerecha {
     display: flex;
     align-items: center;

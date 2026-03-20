@@ -75,6 +75,8 @@ export const NavPublico = (): JSX.Element => {
                     <GloryLink href="/colecciones/" className="navPublicoEnlace">{t('nav.colecciones')}</GloryLink>
                     <GloryLink href="/musica/" className="navPublicoEnlace">{t('nav.musica')}</GloryLink>
                     <GloryLink href="/blog/" className="navPublicoEnlace">{t('nav.blog')}</GloryLink>
+                    {/* [2003A-6] Enlace a la página de precios en la nav pública */}
+                    <GloryLink href="/precios/" className="navPublicoEnlace navPublicoEnlacePrecios">{t('nav.precios')}</GloryLink>
                 </div>
             </div>
             <div className="navPublicoDerecha">
