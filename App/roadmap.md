@@ -87,48 +87,6 @@ Me parece que no es muy detallado para saber que es lo que esta tardando :/ pero
 Hay un problema con la aplicación de escritorio, el deslogeo no funciona si abro y vuelvo abrir, sigue logeado, esto hay que tener cuidado porque al princpio era que la sesion no se guardaba y se salia a recargar, ahora el problema es que no se deslogea ni actualiza el sync al deslogearse.
 
 
-## 2003A-17
-
-Cuando intento iniciar sesion con google en la aplicación sale
-
-Acceso bloqueado: la solicitud de esta aplicación no es válida
-
-
-No puedes iniciar sesión porque esta aplicación de windows ha enviado una solicitud no válida. Puedes volver a intentarlo más tarde o ponerte en contacto con el desarrollador para solucionar este problema. Más información sobre este error
-Si eres desarrollador de esta app, consulta los detalles del error.
-Error 400: redirect_uri_mismatch
-
-tambien veo 
-
-client:390 Applying inline style violates the following Content Security Policy directive 'style-src 'self' 'unsafe-inline' 'nonce-12511269588201223981''. Note that 'unsafe-inline' is ignored if either a hash or nonce value is present in the source list. The action has been blocked.
-(anonymous) @ client:390
-(anonymous) @ client:390
-PendingScript
-(anonymous) @ main-n-JQkDHO.js:797
-fl @ syncConstants-BqpE_RaQ.js:40
-Tn @ syncConstants-BqpE_RaQ.js:40
-Sf @ syncConstants-BqpE_RaQ.js:40
-rn @ syncConstants-BqpE_RaQ.js:40
-aa @ syncConstants-BqpE_RaQ.js:40
-It @ syncConstants-BqpE_RaQ.js:38
-(anonymous) @ syncConstants-BqpE_RaQ.js:40
-client:273 Loading the stylesheet 'https://accounts.google.com/gsi/style' violates the following Content Security Policy directive: "style-src 'self' 'unsafe-inline' 'nonce-12511269588201223981'". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.
-fs @ client:273
-Ks @ client:284
-d @ main-n-JQkDHO.js:797
-script
-(anonymous) @ main-n-JQkDHO.js:797
-fl @ syncConstants-BqpE_RaQ.js:40
-Tn @ syncConstants-BqpE_RaQ.js:40
-Sf @ syncConstants-BqpE_RaQ.js:40
-rn @ syncConstants-BqpE_RaQ.js:40
-aa @ syncConstants-BqpE_RaQ.js:40
-It @ syncConstants-BqpE_RaQ.js:38
-(anonymous) @ syncConstants-BqpE_RaQ.js:40
-apiAuth-CAjG9Wmx.js:1  GET https://kamples.com/wp-json/kamples/v1/me 401 (Unauthorized)
-
-y que esta imagen en la aplicacion de windows no aparece <aside class="authPanelImagen"><img src="/wp-content/themes/glorytemplate/App/Assets/images/2.jpg" alt="Kamples" class="authImagen" loading="lazy"></aside>
-
 ## 2003A-18
 
 La funcionalidad mas importante (que si funciona en modo de dev) de arrastrar samples a cualquier lugar, carpeta del sistema daw (hacia que se descargara en ese lugar) no funciona en la aplicacion de escritorio instalada. Problemente haya sido por el feature de selecion multiple que se hizo. (Me acabo de dar cuenta que en modo dev tampoco funciona)

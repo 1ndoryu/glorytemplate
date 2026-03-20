@@ -65,13 +65,17 @@ function obtenerClientId(): string | null {
  *   (popup nativo, funciona en incógnito sin third-party cookies).
  * - disparar: dispara One Tap (opcional, solo funciona con cookies activas).
  */
-export function useGoogleAuth(onCredential: (credential: string) => void) {
+export function useGoogleAuth(onCredential: (credential: string) => void, skip = false) {
     const inicializadoRef = useRef(false);
     const callbackRef = useRef(onCredential);
     const [gsiListo, setGsiListo] = useState(false);
     callbackRef.current = onCredential;
 
     useEffect(() => {
+        /* [2003A-17] En contextos nativos (desktop/APK) no cargar GSI.
+         * El botón nativo usa PKCE o Capacitor, no el flujo de credenciales GSI. */
+        if (skip) return;
+
         const clientId = obtenerClientId();
         if (!clientId) {
             log.debug('Google Client ID no disponible en GLORY_CONTEXT');
@@ -116,7 +120,7 @@ export function useGoogleAuth(onCredential: (credential: string) => void) {
         script.onload = inicializarGSI;
         script.onerror = () => log.error('Error cargando Google Identity Services script');
         document.head.appendChild(script);
-    }, []);
+    }, [skip]);
 
     /*
      * QK5: Callback ref que renderiza el botón de Google cuando el nodo DOM
@@ -125,7 +129,7 @@ export function useGoogleAuth(onCredential: (credential: string) => void) {
      * Al cambiar gsiListo, React re-invoca el callback con el nodo → renderiza.
      */
     const botonContenedorRef = useCallback((nodo: HTMLDivElement | null) => {
-        if (!nodo || !gsiListo || !window.google?.accounts?.id) return;
+        if (skip || !nodo || !gsiListo || !window.google?.accounts?.id) return;
         window.google.accounts.id.renderButton(nodo, {
             type: 'standard',
             theme: 'outline',
@@ -134,13 +138,14 @@ export function useGoogleAuth(onCredential: (credential: string) => void) {
             logo_alignment: 'left',
             width: 300,
         });
-    }, [gsiListo]);
+    }, [gsiListo, skip]);
 
     /**
      * Dispara el popup de Google One Tap / Sign In.
      * Si GSI no está disponible, no hace nada (graceful degradation).
      */
     const disparar = useCallback(() => {
+        if (skip) return; /* no-op en contextos nativos */
         if (!window.google?.accounts?.id) {
             log.warn('Google Identity Services no disponible');
             return;

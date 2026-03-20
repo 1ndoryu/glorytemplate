@@ -282,8 +282,8 @@ export const useAuth = () => {
         }
     }, [esGoogleNativo, setUsuario]);
 
-    /* GSI: disparar popup de Google Sign-In — solo activo en web */
-    const { disparar: dispararGoogle, botonContenedorRef: googleBotonRef } = useGoogleAuth(manejarCredencialGoogle);
+    /* GSI: disparar popup de Google Sign-In — solo activo en web. Skip en native (2003A-17). */
+    const { disparar: dispararGoogle, botonContenedorRef: googleBotonRef } = useGoogleAuth(manejarCredencialGoogle, esGoogleNativo);
 
     const iniciarSesionGoogle = useCallback(() => {
         log.info('Iniciando flujo OAuth Google (web)');
