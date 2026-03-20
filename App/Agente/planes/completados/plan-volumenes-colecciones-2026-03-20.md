@@ -42,3 +42,6 @@
 - Si se mueven samples sin registrar changelog, el desktop puede reconstruir mal el árbol.
 - Si se usa el nombre de la colección activa sin normalizar raíz/hija, podrían generarse nombres inconsistentes.
 - Si se intenta dividir una colección con menos de 2 samples directos, no existe una mitad válida.
+
+## Cierre
+- Implementado, validado con lint PHP, diagnóstico de archivos, `npm run type-check`, deploy por Coolify y health check HTTP/app en verde.

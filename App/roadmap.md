@@ -61,12 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 No he pensando ni he revisado esto. Si el servidor da 500 o error, por un momento es innacesible, kamples esta caido. ¿Que pasa con el sync? Lo mas logico es que la subida se pause 5 muntos, e intente la conexion, sino, vuelva a pausar y asi sucesivamente, hasta que el servidor vuelva a estar disponible. Esto hay que revisarlo bien porque hay que protejer que cuando el modo de borrar tras subida este activo, no haya perdida de datos.
 
-## 193A-10 
-
-Funcionalidad de volumenes en colecciones
-
-Pasa que una coleccion puede volverse muy grande, y una forma es creando otro Volumen, dividiendo en dos, puede dividir aleatoreamente, lo importante es que cree otra coleccion con el mismo nombre pero con un sufijo tipo "Vol II, Vol III, etc" y que esta nueva coleccion tenga la mitad de los samples de la coleccion original, y que se mantengan las relaciones. Sería los volumenes coleciones hijas de la principal (no se le agrega vol 1 a la principal) por favor hacer esto bien y revisar, planificar porque si sale mal se pueden perder datos, el numero del volumen se tiene que poder elegir no duplicarse
-
 ## 193A-11
 
 [Violation] 'visibilitychange' handler took 169ms
@@ -85,9 +79,6 @@ Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, elim
 
 filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, tambien con el dedo en movil!!
 
-## 193A-70
-
-El antispam de las notificaciones parece muy agresivo, auditar las notificaciones, revisar porque algunas notificaciones no aparecen en la apk pero otras si, revisar que todas vayan a aparecer.
 
 ## 193A-73
 
@@ -99,12 +90,19 @@ filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un alg
 
 ## 193A-78
 
-Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
+Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir 
+
+## 193A-79
+
+Lo de combinar colecciones no funciona, esto claramente necesita uan revision profunda. Revisar logs en el servidor, intente combinar test 1 con test 2, ambas colecciones existen sin conbinarse.
+
+## 
 
 ## Antes de penultima (preferiblemente antepenultima)
 
 Auditoría de seguridad profundad general, revisar lo mas tipico para pasar auditorias de seguridad, como inyecciones SQL, XSS, CSRF, autenticación, autorización, etc. Revisar especialmente cualquier parte del código que maneje datos de usuario o interacciones con el servidor, datos sensibles, etc. Hacer pruebas de penetración básicas para identificar vulnerabilidades. 
 
+Hacer un plan extenso de varias partes basadas en areas como autenticación, privacidad de usuarios, etc. 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
