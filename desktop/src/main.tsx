@@ -77,7 +77,7 @@ import {
 } from '@desktop/services/uploadQueueService';
 
 /* Drag service — expuesto en window para drag-to-DAW/desktop nativo */
-import { iniciarDragNativo, prepararDragNativo, preCachearIconoDrag } from '@desktop/services/audioLocalService';
+import { iniciarDragNativo, prepararDragNativo, preCachearIconoDrag, estaListoParaDrag } from '@desktop/services/audioLocalService';
 
 /* Registrar todas las islas */
 islandRegistry.registerAll(appIslands);
@@ -210,6 +210,7 @@ async function marcarEntornoDesktop(): Promise<void> {    window.__KAMPLES_DESKT
     window.__KAMPLES_DRAG__ = {
         iniciarDragNativo,
         prepararDragNativo,
+        estaListoParaDrag,
     };
     /* Pre-calentar icono de drag para que el primer arrastre sea instantáneo */
     void preCachearIconoDrag();

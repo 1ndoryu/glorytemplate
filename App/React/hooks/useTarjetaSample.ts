@@ -173,6 +173,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
              * Auto-sync: si estamos en desktop con sync activa,
              * descarga el archivo a la carpeta local inmediatamente.
              * Se ejecuta en background sin bloquear la UI.
+             * [2003A-18] Si sync no está disponible, cachear para drag nativo.
              */
             const syncService = obtenerSyncService();
             if (syncService) {
@@ -183,6 +184,12 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                 ).catch((err: unknown) => {
                     console.error('[AutoSync] Error sincronizando sample recién coleccionado:', err);
                 });
+            } else if (esDesktop() && resp.data?.url) {
+                const dragService = obtenerDragService();
+                if (dragService) {
+                    const nombre = resp.data.nombre || `${sample.titulo}.${resp.data.formato || 'wav'}`;
+                    dragService.prepararDragNativo(sample.id, resp.data.url, nombre).catch(() => void 0);
+                }
             }
         } else if (resp.status === 429 || resp.status === 403) {
             toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
@@ -212,27 +219,26 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     }, [abrirPicker, sample]);
 
     /*
-     * Drag handler unificado: bifurca entre drag nativo OS-level y drag
-     * in-app para el mezclador.
+     * [2003A-18+2003A-27] Drag handler unificado.
+     * Desktop: verifica si hay archivo disponible (sync local O temp cache).
+     *   Si hay → e.preventDefault() + startDrag nativo (OS-level).
+     *   Si no hay → browser drag para mezclador. No descargamos automáticamente
+     *   para evitar descargas accidentales en arrastres involuntarios.
+     *   El usuario colecciona (+) para tener el sample localmente.
+     * Web: siempre browser drag para mezclador.
      */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
-        /*
-         * En desktop, si hay archivo local sincronizado: cancelar drag del
-         * browser y delegar al drag nativo OS-level de Tauri.
-         * El browser suelta el mouse → startDrag() lo captura para el OS.
-         */
         if (esDesktop()) {
             const dragService = obtenerDragService();
             const syncService = obtenerSyncService();
 
             if (dragService) {
-                /* Verificacion sincrona: hay copia local? */
                 const rutaLocal = syncService?.obtenerRutaLocal(sample.id);
+                const enCache = dragService.estaListoParaDrag(sample.id);
 
-                if (rutaLocal) {
-                    /* Cancelar drag browser para que no compita con el nativo */
+                if (rutaLocal || enCache) {
+                    /* Archivo disponible: cancelar browser drag, usar nativo OS */
                     e.preventDefault();
-
                     dragService.iniciarDragNativo(
                         sample.id,
                         sample.rutaPreview || '',
@@ -242,30 +248,8 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                     });
                     return;
                 }
-
-                /*
-                 * [2003A-18] Sin archivo local: no cancelar el drag del browser
-                 * (permite drag in-app para el mezclador).
-                 * Se inicia descarga en segundo plano via prepararDragNativo().
-                 * Cuando termina, el usuario ve un toast y el próximo arrastre
-                 * pasa por dragTempCache → startDrag() con mouse aún presionado.
-                 */
-                descargarSample(sample.id).then(resp => {
-                    if (resp.ok && resp.data?.url) {
-                        const nombre = resp.data.nombre || `${sample.titulo}.${resp.data.formato || 'wav'}`;
-                        if (!resp.data?.yaExistia) setDescargado(true);
-                        dragService.prepararDragNativo(sample.id, resp.data.url, nombre)
-                            .then(() => {
-                                toast.info(getT()('toast.sampleListoArrastrar'));
-                            })
-                            .catch(() => void 0);
-                    } else if (resp.status === 429 || resp.status === 403) {
-                        toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
-                    }
-                }).catch(() => {
-                    toast.error(getT()('error.redArrastre'));
-                });
-                /* No return ni preventDefault: el browser drag sigue para el mezclador */
+                /* Sin archivo local — browser drag continúa para mezclador.
+                 * No se descarga automáticamente (2003A-27: evitar descargas accidentales). */
             }
         }
 

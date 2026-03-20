@@ -49,6 +49,7 @@ interface Window {
     __KAMPLES_DRAG__?: {
         iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean>;
         prepararDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<void>;
+        estaListoParaDrag: (sampleId: number) => boolean;
     };
     /*
      * QK77-A: Interfaz de persistencia de auth — inyección de dependencias.

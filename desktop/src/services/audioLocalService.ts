@@ -212,3 +212,12 @@ export async function prepararDragNativo(
         dragPreparando.delete(sampleId);
     }
 }
+
+/*
+ * [2003A-18] Verifica síncronamente si hay un archivo listo para drag nativo
+ * en el temp cache. Usado por el handler de dragStart para decidir
+ * e.preventDefault() sin esperar async.
+ */
+export function estaListoParaDrag(sampleId: number): boolean {
+    return dragTempCache.has(sampleId);
+}

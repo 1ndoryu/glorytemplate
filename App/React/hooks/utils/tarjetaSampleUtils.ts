@@ -16,6 +16,7 @@ export const esDesktop = (): boolean => !!window.__KAMPLES_DESKTOP__;
 export const obtenerDragService = (): {
     iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean>;
     prepararDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<void>;
+    estaListoParaDrag: (sampleId: number) => boolean;
 } | null => {
     const drag = window.__KAMPLES_DRAG__;
     return drag ?? null;
