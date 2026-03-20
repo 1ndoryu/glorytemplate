@@ -60,7 +60,3 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp — Rules of Hooks.
 
 ## Tareas pendientes
-
-## 2003A-36
-
-falta algo con 2003a-34, pues si consume credito pero no es lo que se espera totalmente, no marca como coleccionado el sample al menos no veo que el simbolo de mas se marque de rojo indicado que ya esta coleccionado (no confundir con bookmark)
