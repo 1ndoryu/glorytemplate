@@ -5,7 +5,7 @@
  * AbortController para cleanup en unmount.
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { obtenerPerfil } from '@app/services/apiAuth';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike, listarPublicacionesUsuario, repostear, quitarRepost } from '@app/services/apiSocial';
@@ -210,12 +210,20 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         } catch { /* sin-op */ }
     }, [usuario]);
 
+    /* [193A-46] Refs para acceder al estado actual sin crear dependencia en useCallback.
+     * Sin esto, useCallback([samplesPerfil]) se recrea al cambiar el estado,
+     * causando bucle infinito de re-renders (React error #310). */
+    const samplesPerfilRef = useRef(samplesPerfil);
+    samplesPerfilRef.current = samplesPerfil;
+    const publicacionesPerfilRef = useRef(publicacionesPerfil);
+    publicacionesPerfilRef.current = publicacionesPerfil;
+
     /* Like con optimistic UI y soporte de reacciones */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const sampleEncontrado = samplesPerfil.find(s => s.id === sampleId);
+        const sampleEncontrado = samplesPerfilRef.current.find(s => s.id === sampleId);
         const estabaLiked = sampleEncontrado?.liked ?? false;
         const reaccionAnterior = sampleEncontrado?.reaccion ?? null;
-        const snapSamples = samplesPerfil;
+        const snapSamples = samplesPerfilRef.current;
 
         try {
             if (reaccion) {
@@ -255,7 +263,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         } catch {
             setSamplesPerfil(snapSamples);
         }
-    }, [samplesPerfil]);
+    }, []);
 
     /* Navegacion al creador */
     const manejarClickCreador = useCallback(
@@ -265,8 +273,8 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
 
     /* QQ18: Like optimista en publicaciones del perfil (replicado de useComunidadIsland) */
     const manejarLikePost = useCallback(async (postId: number, reaccion?: TipoReaccion) => {
-        const post = publicacionesPerfil.find((p) => p.id === postId);
-        const snapshot = publicacionesPerfil;
+        const post = publicacionesPerfilRef.current.find((p) => p.id === postId);
+        const snapshot = publicacionesPerfilRef.current;
 
         try {
             if (reaccion) {
@@ -292,7 +300,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         } catch {
             setPublicacionesPerfil(snapshot);
         }
-    }, [publicacionesPerfil]);
+    }, []);
 
     /* QQ18: Alternar panel de comentarios en publicaciones del perfil */
     const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
@@ -307,9 +315,9 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
 
     /* Repost optimista con toast */
     const manejarRepost = useCallback(async (postId: number) => {
-        const post = publicacionesPerfil.find(p => p.id === postId);
+        const post = publicacionesPerfilRef.current.find(p => p.id === postId);
         if (!post) return;
-        const snapshot = publicacionesPerfil;
+        const snapshot = publicacionesPerfilRef.current;
         const estabaReposteado = post.reposteado;
         setPublicacionesPerfil(prev => prev.map(p =>
             p.id === postId
@@ -328,7 +336,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
             setPublicacionesPerfil(snapshot);
             toast.error('No se pudo realizar el repost');
         }
-    }, [publicacionesPerfil]);
+    }, []);
 
     return {
         usuario,
