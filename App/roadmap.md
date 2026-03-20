@@ -61,5 +61,20 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-- 2003A-28: Fix definitivo pull-to-refresh — publicaciones siempre activa, samples nunca activa
-- 2003A-29: Build nueva APK y escritorio con el fix aplicado
+(vacío — todas las tareas completadas)
+
+## 20A03A-30
+
+Sigue sin funcionar arrastrar audios a una carpeta desde la aplicaccion de escritorio.
+
+## 2003A-31
+
+Dar click a ver perfil desde e chat debe cerrar el chat y dar click al nombre o foto de perfil en el chat debe abrir el perfil y cerrar el chat.
+
+## 2003A-32
+
+El boton de seguir y mensaje tienen diferentes tamaños en los perfiles de usuarios, no debería, deberian ser del mismo tamaño ambos. 
+
+## 2003A-33
+
+En los menu contextuales de los perfiles, viendo los perfiles de otro debería aparecer la opcion de banear o eliminar usuario siendo yo admin.
