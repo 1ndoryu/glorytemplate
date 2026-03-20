@@ -67,7 +67,7 @@ export function SeccionConfiguracion({userName, userEmail, isAdmin = false}: Sec
                 {/* Columna derecha: Capacidad, Suscripción, Demo y Stripe */}
                 <div className="capFlexCol capGap--lg">
                     <PanelCapacidad config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
-                    <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} stripeConfigurado={stripeConfigurado} />
+                    <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} stripeConfigurado={stripeConfigurado} isAdmin={isAdmin} />
                     {/* Panel Demo: solo visible si el modo está permitido (WP_DEBUG o CAP_ALLOW_DEMO_MODE) */}
                     <PanelDemo />
                     {/* Panel Stripe: solo visible para administradores */}

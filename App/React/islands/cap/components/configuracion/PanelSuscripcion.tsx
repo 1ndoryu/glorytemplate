@@ -18,6 +18,7 @@ interface PanelSuscripcionProps {
     userName: string;
     userEmail: string;
     stripeConfigurado?: boolean;
+    isAdmin?: boolean;
 }
 
 function formatearFecha(fecha: string): string {
@@ -63,10 +64,45 @@ function obtenerEtiquetaEstado(estado: string, haPagado: boolean, diasRestantes:
     }
 }
 
-export function PanelSuscripcion({suscripcion, userName, userEmail, stripeConfigurado = false}: PanelSuscripcionProps) {
+export function PanelSuscripcion({suscripcion, userName, userEmail, stripeConfigurado = false, isAdmin = false}: PanelSuscripcionProps) {
     const [abriendo, setAbriendo] = useState(false);
     const [suscribiendo, setSuscribiendo] = useState(false);
     const [errorCheckout, setErrorCheckout] = useState<string | null>(null);
+
+    /* [2003A-2] Si es admin, no necesita suscripción ni checkout.
+     * Los admins gestionan pagos de clientes desde Stripe Dashboard. */
+    if (isAdmin) {
+        return (
+            <Tarjeta className="capPanelConfig capPanelConfig--suscripcion">
+                <TarjetaHeader>
+                    <div className="capFlexStart capGap--sm">
+                        <span className="capPanelConfig__icono capPanelConfig__icono--destacado">
+                            <IconoTarjeta />
+                        </span>
+                        <h3 className="capTitulo capTitulo--sm">Suscripción</h3>
+                    </div>
+                </TarjetaHeader>
+                <TarjetaBody>
+                    <div className="capSuscripcionInfo">
+                        <Alerta variante="info">
+                            Como administrador, tu cuenta no requiere suscripción. Los pagos y suscripciones de tus clientes se gestionan desde el panel de Stripe.
+                        </Alerta>
+                        <div className="capFormConfig__acciones capMt--lg">
+                            <Boton
+                                variante="outline"
+                                tamano="md"
+                                onClick={() => window.open('https://dashboard.stripe.com/customers', '_blank', 'noopener,noreferrer')}
+                            >
+                                <IconoEnlaceExterno />
+                                Abrir Stripe Dashboard
+                            </Boton>
+                            <p className="capTexto capTexto--xs capTexto--terciario capMt--sm">Se abrirá el panel de Stripe en una nueva pestaña</p>
+                        </div>
+                    </div>
+                </TarjetaBody>
+            </Tarjeta>
+        );
+    }
 
     const porcentajeRestante = suscripcion ? Math.min(100, (suscripcion.diasRestantes / 14) * 100) : 0;
     const esTrial = suscripcion && !suscripcion.haPagado && suscripcion.diasRestantes > 0 && suscripcion.diasRestantes <= 14;
