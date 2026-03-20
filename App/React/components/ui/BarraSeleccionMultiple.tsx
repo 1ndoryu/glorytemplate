@@ -23,9 +23,10 @@ export const BarraSeleccionMultiple = (): JSX.Element | null => {
         limpiarSeleccion,
     } = useBarraSeleccionMultiple();
 
-    if (cantidad === 0) return null;
-
+    /* [193A-66] useT DEBE ir antes de cualquier return condicional — Rules of Hooks */
     const { t } = useT();
+
+    if (cantidad === 0) return null;
 
     return (
         <div className="barraSeleccionMultiple" id="barraSeleccionMultiple">

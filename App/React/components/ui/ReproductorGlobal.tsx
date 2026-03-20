@@ -29,9 +29,10 @@ export const ReproductorGlobal = (): JSX.Element | null => {
         irASample,
     } = useReproductorGlobal();
 
-    if (!sampleActual) return null;
-
+    /* [193A-66] useT DEBE ir antes de cualquier return condicional — Rules of Hooks */
     const { t } = useT();
+
+    if (!sampleActual) return null;
 
     return (
         <div className="reproductorGlobal" id="reproductorGlobal">
