@@ -50,6 +50,9 @@
     overflow-x: hidden;
     /* padding: var(--espacio2xl); */
     background-color: var(--fondoBase);
+    /* [2003A-26] Contener overscroll en el contenedor scroll principal.
+     * Evita que el overscroll propague al body y active pull-to-refresh nativo. */
+    overscroll-behavior-y: contain;
 }
 
 /* Limitador de ancho para contenido */

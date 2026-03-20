@@ -18,6 +18,10 @@ html {
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    /* [2003A-26] Deshabilitar pull-to-refresh nativo del navegador/WebView.
+     * La app tiene su propio PTR (usePullToRefresh.ts) via touch events directos,
+     * que no depende de overscroll-behavior y sigue funcionando normalmente. */
+    overscroll-behavior: none;
 }
 
 body {
