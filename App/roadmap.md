@@ -86,10 +86,6 @@ Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si g
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
 
-## 193A-94
-
-El proceso de recortes (el que genera recortes apartir de canciones y sampleos) usa un procesamiento de IA; asegurarse de que use las mismas api que rotan, y que no tengan gap para pedir info la IA (no me refiero el gap que hace para hacer las busquedas y scrapper)
-
 ## 193A-95
 
 cambiar el icono de
