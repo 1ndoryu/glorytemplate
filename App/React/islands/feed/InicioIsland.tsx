@@ -122,6 +122,11 @@ export const FeedUnificado = (): JSX.Element => {
      */
     const filtrosContenido = useFiltrosContenido({
         disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados', 'ocultarColeccionados', 'ocultarReproducidos', 'ocultarLikeados', 'soloDeSeguidos'],
+        /* [193A-83] soloMeEncanta se maneja por backend (solo_encanta en /feed).
+         * Sin esto, aplicar() filtraba datos cacheados client-side causando
+         * el efecto visual de "ocultar y recargar lento" en vez del re-fetch
+         * limpio que ocurre con búsqueda y tags. */
+        servidorSide: ['soloMeEncanta'],
         idsReproducidos: yaReproducidos ? idsReproducidos : undefined,
         idsSeguidos: deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined,
     });

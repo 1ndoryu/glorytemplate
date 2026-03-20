@@ -70,6 +70,11 @@ const DEFINICIONES = crearDefiniciones();
 interface OpcionesFiltrosContenido {
     /** Filtros disponibles para este contexto */
     disponibles: FiltroContenidoId[];
+    /* [193A-83] Filtros que se manejan por backend y NO deben aplicarse en `aplicar()`.
+     * Siguen visibles en UI y toggleables, pero el callback client-side los ignora
+     * para que el cambio de proveedor/claveCache cause un re-fetch limpio
+     * en vez de filtrar datos cacheados. */
+    servidorSide?: FiltroContenidoId[];
     /**
      * Set de IDs de samples reproducidos (para ocultarReproducidos).
      * Cargar externamente via useHistorialIds si se necesita.
@@ -98,7 +103,7 @@ export interface ResultadoFiltrosContenido {
 }
 
 export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): ResultadoFiltrosContenido {
-    const { disponibles, idsReproducidos, idsSeguidos } = opciones;
+    const { disponibles, servidorSide, idsReproducidos, idsSeguidos } = opciones;
     const [activos, setActivos] = useState<Set<FiltroContenidoId>>(new Set());
 
     const filtros = useMemo<FiltroContenidoDef[]>(
@@ -124,39 +129,45 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
 
     const resetear = useCallback(() => setActivos(new Set()), []);
 
+    /* [193A-83] Set estable de filtros server-side para evitar recrear `aplicar` innecesariamente */
+    const servidorSideSet = useMemo(
+        () => new Set(servidorSide ?? []),
+        [servidorSide]
+    );
+
     const aplicar = useCallback(
         (samples: SampleResumen[]): SampleResumen[] => {
             if (activos.size === 0) return samples;
             let resultado = samples;
 
-            if (activos.has('soloWav')) {
+            if (activos.has('soloWav') && !servidorSideSet.has('soloWav')) {
                 resultado = resultado.filter(s =>
                     s.formato?.toLowerCase() === 'wav'
                 );
             }
-            if (activos.has('soloMeEncanta')) {
+            if (activos.has('soloMeEncanta') && !servidorSideSet.has('soloMeEncanta')) {
                 /* [193A-44] Filtrar por reaccion 'encanta', no por liked genérico */
                 resultado = resultado.filter(s => s.reaccion === 'encanta');
             }
-            if (activos.has('ocultarDescargados')) {
+            if (activos.has('ocultarDescargados') && !servidorSideSet.has('ocultarDescargados')) {
                 resultado = resultado.filter(s => !s.yaColeccionado);
             }
-            if (activos.has('ocultarColeccionados')) {
+            if (activos.has('ocultarColeccionados') && !servidorSideSet.has('ocultarColeccionados')) {
                 resultado = resultado.filter(s => !s.yaGuardadoEnColeccion);
             }
-            if (activos.has('ocultarReproducidos') && idsReproducidos && idsReproducidos.size > 0) {
+            if (activos.has('ocultarReproducidos') && !servidorSideSet.has('ocultarReproducidos') && idsReproducidos && idsReproducidos.size > 0) {
                 resultado = resultado.filter(s => !idsReproducidos.has(s.id));
             }
-            if (activos.has('ocultarLikeados')) {
+            if (activos.has('ocultarLikeados') && !servidorSideSet.has('ocultarLikeados')) {
                 resultado = resultado.filter(s => !s.liked);
             }
-            if (activos.has('soloDeSeguidos') && idsSeguidos && idsSeguidos.size > 0) {
+            if (activos.has('soloDeSeguidos') && !servidorSideSet.has('soloDeSeguidos') && idsSeguidos && idsSeguidos.size > 0) {
                 resultado = resultado.filter(s => idsSeguidos.has(s.creador?.id ?? 0));
             }
 
             return resultado;
         },
-        [activos, idsReproducidos, idsSeguidos]
+        [activos, servidorSideSet, idsReproducidos, idsSeguidos]
     );
 
     return { filtros, estaActivo, toggle, hayActivos, resetear, aplicar };
