@@ -196,3 +196,9 @@ a.inspectorCampoValor.inspectorLink:hover {
     scrollbar-width: thin;
     scrollbar-color: var(--bordeSutil) transparent;
 }
+
+/* [193A-55] Icono verificado en inspector */
+.inspectorVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

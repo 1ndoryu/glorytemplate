@@ -8,9 +8,10 @@
 
 import Avatar from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import Badge from '@app/components/ui/Badge';
+import { BadgeCheck } from 'lucide-react';
 import { useTooltipPerfil } from '@app/hooks/useTooltipPerfil';
 import { usePosicionTooltipPerfil } from '@app/hooks/usePosicionTooltipPerfil';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/tooltipPerfil.css';
 
 export function TooltipPerfil() {
@@ -21,6 +22,8 @@ export function TooltipPerfil() {
     } = useTooltipPerfil();
 
     const posicion = usePosicionTooltipPerfil(ancla, tooltipRef);
+
+    const { t } = useT();
 
     if (!username) return null;
 
@@ -36,9 +39,9 @@ export function TooltipPerfil() {
             aria-label={`Perfil de ${username}`}
         >
             {cargando ? (
-                <div className="tooltipPerfilCargando">Cargando...</div>
+                <div className="tooltipPerfilCargando">{t('perfil.cargando')}</div>
             ) : !perfil ? (
-                <div className="tooltipPerfilCargando">No disponible</div>
+                <div className="tooltipPerfilCargando">{t('perfil.noDisponible')}</div>
             ) : (
                 <>
                     <div className="tooltipPerfilCabecera">
@@ -46,7 +49,7 @@ export function TooltipPerfil() {
                             <BotonBase variante="ghost" className="tooltipPerfilNombreBtn" onClick={irAPerfil}>
                                 <span className="tooltipPerfilNombre">
                                     {perfil.nombreVisible}
-                                    {perfil.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
+                                    {perfil.verificado && <BadgeCheck size={14} className="tooltipVerificado" />}
                                 </span>
                             </BotonBase>
                             <span className="tooltipPerfilUsername">@{perfil.username}</span>

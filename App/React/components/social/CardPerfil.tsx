@@ -8,7 +8,7 @@
 
 import Avatar from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import Badge from '@app/components/ui/Badge';
+import { BadgeCheck } from 'lucide-react';
 import { useCardPerfil } from '@app/hooks/useCardPerfil';
 import '../../styles/componentes/cardPerfil.css';
 
@@ -44,7 +44,7 @@ export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
                             <BotonBase variante="ghost" className="cardPerfilNombreBtn" onClick={irAPerfil}>
                                 <span className="cardPerfilNombre">
                                     {perfil.nombreVisible}
-                                    {perfil.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
+                                    {perfil.verificado && <BadgeCheck size={14} className="cardVerificado" />}
                                 </span>
                             </BotonBase>
                             <span className="cardPerfilUsername">@{perfil.username}</span>

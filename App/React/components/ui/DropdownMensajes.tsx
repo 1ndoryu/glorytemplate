@@ -5,11 +5,12 @@
  * C192: Usa mensajesStore como cache (stale-while-revalidate) via useDropdownMensajes hook.
  */
 
-import { Mail, Loader2, Users, UserPlus, X } from 'lucide-react';
+import { Mail, Loader2, Users, UserPlus, X, BadgeCheck } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { BotonBase } from './BotonBase';
 import { useDropdownMensajes } from '../../hooks/useDropdownMensajes';
 import { useEsMovil } from '@app/hooks/useEsMovil';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/dropdownPanel.css';
 
 /* Formatea fecha ISO a texto relativo */
@@ -38,6 +39,7 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
         abrirConversacion,
     } = useDropdownMensajes({ onCerrar });
     const esMovil = useEsMovil();
+    const { t } = useT();
 
     return (
         <>
@@ -46,9 +48,9 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                 {esMovil && (
                     <div className="dropdownPanelCabecera">
                         <span className="dropdownPanelTitulo">Mensajes</span>
-                        <button className="dropdownPanelCerrar" onClick={onCerrar} type="button" aria-label="Cerrar">
+                        <BotonBase variante="ghost" className="dropdownPanelCerrar" onClick={onCerrar} type="button" aria-label={t('mensajes.cerrar')}>
                             <X size={20} />
-                        </button>
+                        </BotonBase>
                     </div>
                 )}
                 {/* QQ52: Tabs principal / solicitudes */}
@@ -80,12 +82,12 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                     {cargando && !conversacionesCargadas ? (
                         <div className="dropdownPanelVacio">
                             <Loader2 size={28} className="adminSpinner" />
-                            <p>Cargando...</p>
+                            <p>{t('comun.cargando')}</p>
                         </div>
                     ) : conversaciones.length === 0 ? (
                         <div className="dropdownPanelVacio">
                             <Mail size={28} />
-                            <p>Sin mensajes</p>
+                            <p>{t('mensajes.sinMensajes')}</p>
                         </div>
                     ) : (
                         conversaciones.map((conv) => (
@@ -101,7 +103,10 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                                 />
                                 <div className="dropdownItemContenido">
                                     <span className="dropdownItemTexto">
-                                        <strong>@{conv.participante.username}</strong> {conv.ultimoMensaje}
+                                        <strong>@{conv.participante.username}</strong>
+                                        {/* [193A-55] Badge verificado en dropdown mensajes */}
+                                        {conv.participante.verificado && <BadgeCheck size={12} className="dropdownVerificado" />}
+                                        {' '}{conv.ultimoMensaje}
                                     </span>
                                     <span className="dropdownItemTiempo">
                                         {formatearTiempo(conv.ultimoMensajeAt)}

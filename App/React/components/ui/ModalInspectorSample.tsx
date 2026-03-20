@@ -7,10 +7,9 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp, Clock, Layers} from 'lucide-react';
+import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp, Clock, Layers, BadgeCheck} from 'lucide-react';
 import {Modal} from './Modal';
 import {Avatar} from './Avatar';
-import {Badge} from './Badge';
 import type {Sample, SampleResumen} from '@app/types';
 import {obtenerSample} from '@app/services/apiSamples';
 import '../../styles/componentes/modalInspector.css';
@@ -283,9 +282,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                                 <span className="inspectorCreadorNombre">
                                     {datos.creador.nombreVisible}
                                     {datos.creador.verificado && (
-                                        <Badge variante="acento" tamano="xs">
-                                            V
-                                        </Badge>
+                                        <BadgeCheck size={14} className="inspectorVerificado" />
                                     )}
                                 </span>
                                 <span className="inspectorCreadorUsername">

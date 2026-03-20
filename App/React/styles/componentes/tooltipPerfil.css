@@ -115,3 +115,9 @@
     justify-content: center;
     margin-top: var(--espacioXs);
 }
+
+/* [193A-55] Icono verificado en tooltip */
+.tooltipVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

@@ -256,3 +256,9 @@
     text-align: center;
     line-height: 1.4;
 }
+
+/* [193A-55] Icono verificado en dropdown mensajes */
+.dropdownVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

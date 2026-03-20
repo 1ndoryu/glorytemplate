@@ -496,3 +496,9 @@ button.botonBase.varianteGhost.tamanoMd.comentarioEnviarBtn {
 .comentarioRespuesta {
     padding-top: var(--espacioXs);
 }
+
+/* [193A-55] Icono verificado en comentarios */
+.comentarioVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

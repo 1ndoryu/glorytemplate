@@ -56,6 +56,9 @@
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
     margin-bottom: calc(var(--espacioXs) / 2);
+    gap: var(--espacioMd);
+    display: flex;
+    align-items: center;
 }
 
 .perfilUsername {
@@ -224,4 +227,10 @@
     padding: var(--espacioXl);
     border-radius: var(--radioSm);
     border: 1px solid var(--bordeSutil);
+}
+
+/* [193A-55] Icono verificado en perfil */
+.perfilVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
 }

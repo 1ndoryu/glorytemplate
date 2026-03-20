@@ -4,7 +4,7 @@
  * Scroll arriba carga mensajes más antiguos. Lógica en useChatIsland.
  */
 
-import { ArrowLeft, Send, Circle, Paperclip, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Circle, Paperclip, Loader2, BadgeCheck } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatIsland } from '@app/hooks/useChatIsland';
@@ -41,7 +41,11 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
                         <Avatar nombre={conversacion.participante.nombreVisible}
                             src={conversacion.participante.avatarUrl ?? undefined} tamano="sm" />
                         <div className="chatHeaderTexto">
-                            <span className="chatHeaderNombre">{conversacion.participante.nombreVisible}</span>
+                            <span className="chatHeaderNombre">
+                                {conversacion.participante.nombreVisible}
+                                {/* [193A-55] Badge verificado en chat */}
+                                {conversacion.participante.verificado && <BadgeCheck size={14} className="chatVerificado" />}
+                            </span>
                             <span className="chatHeaderEstado">
                                 {conversacion.enLinea ? (
                                     <><Circle size={8} fill="var(--exito)" stroke="none" /> En línea</>

@@ -43,3 +43,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* [193A-55] Icono verificado (BadgeCheck lucide-react) */
+.enlaceCreadorVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

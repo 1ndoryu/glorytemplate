@@ -129,3 +129,9 @@
     justify-content: center;
     margin-top: var(--espacioXs);
 }
+
+/* [193A-55] Icono verificado en card */
+.cardVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

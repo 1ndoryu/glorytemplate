@@ -4,9 +4,8 @@
  * Lógica extraída a useComentarioItem (SRP).
  */
 
-import {Heart, MessageCircle, MoreHorizontal, Send} from 'lucide-react';
+import {Heart, MessageCircle, MoreHorizontal, Send, BadgeCheck} from 'lucide-react';
 import {Avatar} from '@app/components/ui/Avatar';
-import {Badge} from '@app/components/ui/Badge';
 import {MenuContextual} from '@app/components/ui/MenuContextual';
 import {useComentarioItem} from '@app/hooks/useComentarioItem';
 import type {Comentario} from '@app/types/publicacion';
@@ -66,8 +65,8 @@ export const ComentarioItem = ({comentario, acciones, onClickAutor, renderMediaC
                 <div className="comentarioCabeceraLinea">
                     <span className="comentarioNombre" onClick={() => onClickAutor?.(comentario.autor.username)} role="link" tabIndex={0}>
                         {comentario.autor.nombreVisible}
-                        {/* [183A-115] Badge verificado en comentarios */}
-                        {comentario.autor.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
+                        {/* [193A-55] BadgeCheck unificado con TarjetaPublicacion */}
+                        {comentario.autor.verificado && <BadgeCheck size={14} className="comentarioVerificado" />}
                     </span>
                     <span className="comentarioTiempo">{formatearTiempoComentario(comentario.creadoAt)}</span>
                     {comentario.editadoAt && (

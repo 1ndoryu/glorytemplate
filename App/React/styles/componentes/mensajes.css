@@ -134,4 +134,10 @@
     font-weight: var(--pesoMedio);
 }
 
+/* [193A-55] Icono verificado en lista de mensajes */
+.mensajesVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
 /* Reemplazado por EstadoVacio centralizado (C359) */

@@ -5,7 +5,7 @@
  * TO-DO: conectar WebSocket para tiempo real (7.1).
  */
 
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, BadgeCheck } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { Avatar } from '@app/components/ui/Avatar';
 import { InputBusqueda } from '@app/components/ui/InputBusqueda';
@@ -91,6 +91,8 @@ const MensajesIslandBase = (): JSX.Element => {
                                 <div className="mensajesItemSuperior">
                                     <span className="mensajesItemNombre">
                                         {conv.participante.nombreVisible}
+                                        {/* [193A-55] Badge verificado en lista de mensajes */}
+                                        {conv.participante.verificado && <BadgeCheck size={12} className="mensajesVerificado" />}
                                     </span>
                                     <span className="mensajesItemTiempo">
                                         {formatearTiempo(conv.ultimoMensajeAt)}

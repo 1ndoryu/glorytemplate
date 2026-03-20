@@ -228,3 +228,9 @@
         padding-top: var(--safeAreaTop);
     }
 }
+
+/* [193A-55] Icono verificado en chat header */
+.chatVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

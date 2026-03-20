@@ -1,5 +1,5 @@
+import { BadgeCheck } from 'lucide-react';
 import Avatar from '@app/components/ui/Avatar';
-import Badge from '@app/components/ui/Badge';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import '../../styles/componentes/enlaceCreador.css';
 
@@ -50,7 +50,7 @@ export default function EnlaceCreador({
                 <div className="enlaceCreadorInfo">
                     <span className="enlaceCreadorNombre">
                         {nombreVisible}
-                        {verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
+                        {verificado && <BadgeCheck size={14} className="enlaceCreadorVerificado" />}
                     </span>
                     {(mostrarUsername || meta) && (
                         <span className="enlaceCreadorMeta">
