@@ -89,25 +89,13 @@ filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, ta
 
 El antispam de las notificaciones parece muy agresivo, auditar las notificaciones, revisar porque algunas notificaciones no aparecen en la apk pero otras si, revisar que todas vayan a aparecer.
 
-## 193A-72 URGENTE TAMBIEN
+## 193A-73
 
-LA IDEA ES QUE SE PROCESE UN SAMPLE 1 POR 1 CADA MINUTO, 1 POR API, CADA UNO USA UNA API Y ROTA, PROCESA, ROTA; PROCESA ROTA Eso no es lo que veo que este pasando
+En dropdownItemTexto cuando hay un check de confirmado no aparece al lado del nombre sino debajo
 
-816		#2897	analisis audio		0/30		-	19/3, 06:20	20/3, 00:05	
-815		#2896	analisis audio		0/30		-	19/3, 06:20	20/3, 00:05	
-814		#2895	analisis audio		0/30		-	19/3, 06:20	20/3, 00:05	
-813		#2894	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
-812		#2893	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
-811		#2892	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
-810		#2891	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
-809		#2890	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
-808		#2889	analisis audio		0/30		-	19/3, 06:20	19/3, 23:51	
-807		#2888	analisis audio		0/30		-	19/3, 06:20	19/3, 23:51	
-806		#2887	analisis audio		0/30		-	19/3, 06:20	19/3, 23:51	
-805		#2886	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51	
-804		#2885	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51	
-803		#2884	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51	
-802		#2883	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51
+## 193A-76 Urgente
+
+NO APARECEN TODOS LOS TIPOS DE NOTIFICAICONES EN LA APK SOLO AGUNAS TODAS LAS NOTIFICACIONES DEBEN APARECER EN ANDROID
 
 ## Antes de penultima (preferiblemente antepenultima)
 
