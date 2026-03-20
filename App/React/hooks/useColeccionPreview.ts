@@ -19,6 +19,8 @@ export const useColeccionPreview = () => {
     const [cargando, setCargando] = useState(false);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const unsubRef = useRef<(() => void) | null>(null);
+    /* [2003A-20] Guardar estado original de aleatorio para restaurarlo al detener preview */
+    const aleatorioOriginalRef = useRef<boolean | null>(null);
 
     const limpiarTimer = useCallback(() => {
         if (timerRef.current) {
@@ -34,11 +36,22 @@ export const useColeccionPreview = () => {
         }
     }, []);
 
-    /* Cleanup al desmontar */
+    /* Cleanup al desmontar — [2003A-20] También limpiar estado preview del store */
     useEffect(() => {
         return () => {
             limpiarTimer();
             limpiarSuscripcion();
+            const store = useReproductorStore.getState();
+            if (store.coleccionPreviewId !== null) {
+                store.setColeccionPreviewId(null);
+            }
+            /* Restaurar aleatorio si fue cambiado por el preview */
+            if (aleatorioOriginalRef.current !== null) {
+                if (store.aleatorio !== aleatorioOriginalRef.current) {
+                    store.toggleAleatorio();
+                }
+                aleatorioOriginalRef.current = null;
+            }
         };
     }, [limpiarTimer, limpiarSuscripcion]);
 
@@ -48,6 +61,14 @@ export const useColeccionPreview = () => {
         const store = useReproductorStore.getState();
         store.pause();
         store.setColeccionPreviewId(null);
+        /* [2003A-20] Restaurar aleatorio a su estado pre-preview.
+         * Sin esto, aleatorio queda ON y toda reproducción posterior es shuffled. */
+        if (aleatorioOriginalRef.current !== null) {
+            if (store.aleatorio !== aleatorioOriginalRef.current) {
+                store.toggleAleatorio();
+            }
+            aleatorioOriginalRef.current = null;
+        }
     }, [limpiarTimer, limpiarSuscripcion]);
 
     /*
@@ -117,6 +138,10 @@ export const useColeccionPreview = () => {
             /* Reproducir con contexto = todos los samples de la colección */
             store.reproducir(samples[indice], samples);
 
+            /* [2003A-20] Guardar estado original antes de forzar aleatorio ON */
+            if (aleatorioOriginalRef.current === null) {
+                aleatorioOriginalRef.current = store.aleatorio;
+            }
             /* Activar aleatorio si no lo está */
             if (!store.aleatorio) store.toggleAleatorio();
 
