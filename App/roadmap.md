@@ -61,13 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 2003A-20
-
-Este problema sucedio una vez y es probable que suceda siempre
-
-cuando di click a reproducir una coleccion desde la lista de colecciones, y luego regrese a inicio, al reproducir algunos samples no terminan de reproducirse completo y pasan al anterior o al siguiente o cualquier otro aun teniendo la reproduccion automaticamente activada, paso en la apliaccion de escritorio, no digo que tenga que ver o que no pueda pasar en la web. 
-
-
 ## 2003A-26
 
 El problema de hacer scroll y luego intentar subir activa la recarga persiste en la version movil android, llevamos mucho tiempo con esta tarea. 
