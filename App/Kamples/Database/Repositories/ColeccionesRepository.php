@@ -1052,6 +1052,178 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
+     * [193A-10] Crear un volumen hijo a partir de una colección raíz.
+     * Mueve la segunda mitad de los samples directos al nuevo volumen y renumera
+     * posiciones en ambas colecciones para mantener un orden consistente.
+     *
+     * @return array{ok: bool, error: ?string, nuevaColeccionId?: int, nombreVolumen?: string, sampleIdsMovidos?: array<int>, samplesMovidos?: int}
+     */
+    public static function crearVolumenEnTransaccion(int $coleccionId, int $userId, int $numeroVolumen): array
+    {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $colId = ColeccionesCols::ID;
+        $colNombre = ColeccionesCols::NOMBRE;
+        $colDesc = ColeccionesCols::DESCRIPCION;
+        $colPublica = ColeccionesCols::PUBLICA;
+        $colParentId = ColeccionesCols::PARENT_ID;
+        $colUsuarioId = ColeccionesCols::USUARIO_ID;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csPosicion = ColeccionSamplesCols::POSICION;
+        $csAddedAt = ColeccionSamplesCols::ADDED_AT;
+
+        if ($numeroVolumen < 2) {
+            return ['ok' => false, 'error' => 'numero_volumen_invalido'];
+        }
+
+        $coleccion = static::consultarUno(
+            "SELECT {$colId}, {$colUsuarioId}, {$colNombre}, {$colDesc}, {$colPublica}, {$colParentId}"
+            . " FROM {$t} WHERE {$colId} = :id AND {$colUsuarioId} = :userId",
+            ['id' => $coleccionId, 'userId' => $userId]
+        );
+
+        if (!$coleccion) {
+            return ['ok' => false, 'error' => 'coleccion_no_encontrada'];
+        }
+
+        if (($coleccion[$colParentId] ?? null) !== null) {
+            return ['ok' => false, 'error' => 'solo_raiz'];
+        }
+
+        $nombreVolumen = self::construirNombreVolumen((string) ($coleccion[$colNombre] ?? ''), $numeroVolumen);
+        if ($nombreVolumen === '') {
+            return ['ok' => false, 'error' => 'nombre_invalido'];
+        }
+
+        if (self::buscarIdPorNombreEnJerarquia($userId, $nombreVolumen, $coleccionId) !== null) {
+            return ['ok' => false, 'error' => 'volumen_duplicado'];
+        }
+
+        $samplesDirectos = static::consultar(
+            "SELECT {$csSampleId}, {$csPosicion}, {$csAddedAt}"
+            . " FROM {$tcs}"
+            . " WHERE {$csColId} = :coleccionId"
+            . " ORDER BY {$csPosicion} ASC, {$csAddedAt} ASC, {$csSampleId} ASC",
+            ['coleccionId' => $coleccionId]
+        );
+
+        $totalDirectos = \count($samplesDirectos);
+        if ($totalDirectos < 2) {
+            return ['ok' => false, 'error' => 'samples_insuficientes'];
+        }
+
+        $cantidadMover = (int) \ceil($totalDirectos / 2);
+        $indiceInicio = $totalDirectos - $cantidadMover;
+        $samplesMover = \array_slice($samplesDirectos, $indiceInicio);
+        $samplesQuedan = \array_slice($samplesDirectos, 0, $indiceInicio);
+
+        if (empty($samplesMover) || empty($samplesQuedan)) {
+            return ['ok' => false, 'error' => 'split_invalido'];
+        }
+
+        static::iniciarTransaccion();
+
+        try {
+            $resultadoCreacion = self::crear(
+                $userId,
+                $nombreVolumen,
+                (string) ($coleccion[$colDesc] ?? ''),
+                (bool) ($coleccion[$colPublica] ?? true),
+                $coleccionId
+            );
+
+            $nuevaColeccionId = (int) ($resultadoCreacion['id'] ?? 0);
+            if (!$resultadoCreacion['creada'] || $nuevaColeccionId <= 0) {
+                static::revertir();
+                return ['ok' => false, 'error' => $resultadoCreacion['error'] ?? 'error_crear_volumen'];
+            }
+
+            foreach ($samplesMover as $indice => $row) {
+                static::ejecutar(
+                    "UPDATE {$tcs}"
+                    . " SET {$csColId} = :nuevoId, {$csPosicion} = :nuevaPosicion"
+                    . " WHERE {$csColId} = :origenId AND {$csSampleId} = :sampleId",
+                    [
+                        'nuevoId' => $nuevaColeccionId,
+                        'nuevaPosicion' => $indice + 1,
+                        'origenId' => $coleccionId,
+                        'sampleId' => (int) $row[$csSampleId],
+                    ]
+                );
+            }
+
+            foreach ($samplesQuedan as $indice => $row) {
+                static::ejecutar(
+                    "UPDATE {$tcs} SET {$csPosicion} = :nuevaPosicion"
+                    . " WHERE {$csColId} = :coleccionId AND {$csSampleId} = :sampleId",
+                    [
+                        'nuevaPosicion' => $indice + 1,
+                        'coleccionId' => $coleccionId,
+                        'sampleId' => (int) $row[$csSampleId],
+                    ]
+                );
+            }
+
+            self::tocarTimestamp($coleccionId);
+            self::tocarTimestamp($nuevaColeccionId);
+
+            static::confirmar();
+
+            return [
+                'ok' => true,
+                'error' => null,
+                'nuevaColeccionId' => $nuevaColeccionId,
+                'nombreVolumen' => $nombreVolumen,
+                'sampleIdsMovidos' => \array_map(fn(array $row): int => (int) $row[$csSampleId], $samplesMover),
+                'samplesMovidos' => \count($samplesMover),
+            ];
+        } catch (\Throwable $e) {
+            static::revertir();
+            throw $e;
+        }
+    }
+
+    private static function construirNombreVolumen(string $nombreBase, int $numeroVolumen): string
+    {
+        $nombreBase = \trim($nombreBase);
+        if ($nombreBase === '') {
+            return '';
+        }
+
+        return $nombreBase . ' Vol ' . self::numeroARomano($numeroVolumen);
+    }
+
+    private static function numeroARomano(int $numero): string
+    {
+        $mapa = [
+            1000 => 'M',
+            900 => 'CM',
+            500 => 'D',
+            400 => 'CD',
+            100 => 'C',
+            90 => 'XC',
+            50 => 'L',
+            40 => 'XL',
+            10 => 'X',
+            9 => 'IX',
+            5 => 'V',
+            4 => 'IV',
+            1 => 'I',
+        ];
+
+        $resultado = '';
+        foreach ($mapa as $valor => $simbolo) {
+            while ($numero >= $valor) {
+                $resultado .= $simbolo;
+                $numero -= $valor;
+            }
+        }
+
+        return $resultado;
+    }
+
+    /*
      * QL115: Combinar colección origen → destino en una transaccion atómica.
      * Mueve samples, maneja subcolecciones y retorna datos de backup para undo.
      *

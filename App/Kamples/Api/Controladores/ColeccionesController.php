@@ -143,6 +143,11 @@ class ColeccionesController
         ]);
 
         /* QL115: Combinar colecciones */
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/crear-volumen', [
+            'methods' => 'POST', 'callback' => [ColeccionesCombinarController::class, 'crearVolumen'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
         register_rest_route($namespace, '/colecciones/(?P<id>\d+)/combinar', [
             'methods' => 'POST', 'callback' => [ColeccionesCombinarController::class, 'combinar'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],

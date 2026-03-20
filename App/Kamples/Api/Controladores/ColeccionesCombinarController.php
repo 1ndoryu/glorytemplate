@@ -27,6 +27,117 @@ use App\Kamples\KamplesLogger;
 class ColeccionesCombinarController
 {
     /**
+     * POST /colecciones/{id}/crear-volumen
+     *
+     * Body JSON:
+     *   numeroVolumen: int — número visible del volumen hijo a crear (2, 3, 4...)
+     */
+    public static function crearVolumen(
+        \WP_REST_Request $request
+    ): \WP_REST_Response {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $limitResp = RateLimiter::verificarUsuario($userId, 'crear_volumen_coleccion', 50, 3600);
+            if ($limitResp) return $limitResp;
+
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
+
+            $coleccionId = (int) $request->get_param('id');
+            $body = $request->get_json_params();
+            $numeroVolumen = (int) ($body['numeroVolumen'] ?? 0);
+
+            if ($numeroVolumen < 2) {
+                return new \WP_REST_Response([
+                    'code' => 'numero_volumen_invalido',
+                    'message' => 'El número de volumen debe ser 2 o mayor',
+                ], 400);
+            }
+
+            $resultado = ColeccionesRepository::crearVolumenEnTransaccion($coleccionId, $userId, $numeroVolumen);
+
+            if (!($resultado['ok'] ?? false)) {
+                return match ($resultado['error'] ?? 'error_crear_volumen') {
+                    'coleccion_no_encontrada' => new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404),
+                    'solo_raiz' => new \WP_REST_Response(['code' => 'solo_raiz', 'message' => 'Solo las colecciones raíz pueden crear volúmenes'], 400),
+                    'volumen_duplicado' => new \WP_REST_Response(['code' => 'volumen_duplicado', 'message' => 'Ya existe un volumen con ese número bajo esta colección'], 409),
+                    'samples_insuficientes' => new \WP_REST_Response(['code' => 'samples_insuficientes', 'message' => 'La colección necesita al menos 2 samples directos para dividirse'], 400),
+                    'numero_volumen_invalido' => new \WP_REST_Response(['code' => 'numero_volumen_invalido', 'message' => 'El número de volumen debe ser 2 o mayor'], 400),
+                    default => new \WP_REST_Response(['code' => 'error_crear_volumen', 'message' => 'No se pudo crear el volumen'], 500),
+                };
+            }
+
+            $nuevaColeccionId = (int) ($resultado['nuevaColeccionId'] ?? 0);
+            $sampleIdsMovidos = $resultado['sampleIdsMovidos'] ?? [];
+
+            $changelogCreado = SyncChangelogRepository::registrar(
+                $userId,
+                SyncChangelogEnums::TIPO_COLLECTION_CREATED,
+                $nuevaColeccionId,
+                [
+                    'parentId' => $coleccionId,
+                    'nombre' => $resultado['nombreVolumen'] ?? '',
+                    'tipoOperacion' => 'crear_volumen',
+                ]
+            );
+            if ($changelogCreado === null) {
+                KamplesLogger::critical('Fallo registrar changelog crear volumen', [
+                    'userId' => $userId,
+                    'coleccionId' => $coleccionId,
+                    'nuevaColeccionId' => $nuevaColeccionId,
+                ]);
+            }
+
+            foreach ($sampleIdsMovidos as $sampleId) {
+                $sampleId = (int) $sampleId;
+
+                $clRemoved = SyncChangelogRepository::registrar(
+                    $userId,
+                    SyncChangelogEnums::TIPO_SAMPLE_REMOVED,
+                    $sampleId,
+                    ['coleccionId' => $coleccionId]
+                );
+                if ($clRemoved === null) {
+                    KamplesLogger::critical('Fallo registrar changelog volumen sample_removed', [
+                        'userId' => $userId,
+                        'sampleId' => $sampleId,
+                        'coleccionId' => $coleccionId,
+                    ]);
+                }
+
+                $clAdded = SyncChangelogRepository::registrar(
+                    $userId,
+                    SyncChangelogEnums::TIPO_SAMPLE_ADDED,
+                    $sampleId,
+                    ['coleccionId' => $nuevaColeccionId]
+                );
+                if ($clAdded === null) {
+                    KamplesLogger::critical('Fallo registrar changelog volumen sample_added', [
+                        'userId' => $userId,
+                        'sampleId' => $sampleId,
+                        'coleccionId' => $nuevaColeccionId,
+                    ]);
+                }
+            }
+
+            return new \WP_REST_Response([
+                'ok' => true,
+                'nuevaColeccionId' => $nuevaColeccionId,
+                'nombreVolumen' => $resultado['nombreVolumen'] ?? '',
+                'samplesMovidos' => (int) ($resultado['samplesMovidos'] ?? 0),
+            ], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en crear volumen de colección', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
      * POST /colecciones/{id}/combinar
      *
      * Body JSON:
@@ -195,7 +306,7 @@ class ColeccionesCombinarController
 
             /* Decodificar metadata */
             $metadataRaw = $changelog[SyncChangelogCols::METADATA] ?? '{}';
-            $backupMeta = is_string($metadataRaw) ? json_decode($metadataRaw, true) : $metadataRaw;
+            $backupMeta = self::decodificarMetadataChangelog($metadataRaw);
 
             if (empty($backupMeta) || ($backupMeta['tipo_operacion'] ?? '') !== 'combinacion') {
                 return new \WP_REST_Response(['code' => 'metadata_invalida', 'message' => 'Datos de backup inválidos'], 500);
@@ -267,7 +378,7 @@ class ColeccionesCombinarController
             }
 
             $metadataRaw = $changelog[SyncChangelogCols::METADATA] ?? '{}';
-            $meta = is_string($metadataRaw) ? json_decode($metadataRaw, true) : $metadataRaw;
+            $meta = self::decodificarMetadataChangelog($metadataRaw);
 
             return new \WP_REST_Response([
                 'hayCombinacion' => true,
@@ -281,5 +392,22 @@ class ColeccionesCombinarController
             KamplesLogger::error('Error en combinacionPendiente', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
+    }
+
+    private static function decodificarMetadataChangelog(mixed $metadataRaw): array
+    {
+        if (!is_string($metadataRaw)) {
+            return is_array($metadataRaw) ? $metadataRaw : [];
+        }
+
+        $decoded = json_decode($metadataRaw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            KamplesLogger::warning('ColeccionesCombinarController: metadata de changelog inválida', [
+                'jsonError' => json_last_error_msg(),
+            ]);
+            return [];
+        }
+
+        return $decoded;
     }
 }

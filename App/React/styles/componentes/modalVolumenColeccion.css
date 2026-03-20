@@ -1,0 +1,45 @@
+.modalVolumenContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modalVolumenIcono {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--colorBg2);
+    color: var(--colorTexto);
+}
+
+.modalVolumenTitulo {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.modalVolumenDescripcion {
+    margin: 0;
+    color: var(--colorTextoSuave);
+    line-height: 1.5;
+}
+
+.modalVolumenCampo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modalVolumenResumen {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--colorBg2);
+    color: var(--colorTexto);
+}
+
+.modalVolumenResumenError {
+    color: var(--colorPeligro, #c0392b);
+}

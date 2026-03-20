@@ -57,6 +57,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const [descargando, setDescargando] = useState(false);
     const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
     const [modalCombinarAbierto, setModalCombinarAbierto] = useState(false);
+    const [modalVolumenAbierto, setModalVolumenAbierto] = useState(false);
     const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
 
     /*
@@ -144,6 +145,20 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         cargar();
         return () => { controller.abort(); };
     }, [segmento, id, activa]);
+
+    const recargarColeccionActual = useCallback(async () => {
+        if (!segmento) return;
+
+        const resp = id !== null
+            ? await obtenerColeccion(id, { incluirSubcolecciones: true })
+            : await obtenerColeccionPorSlug(segmento, { incluirSubcolecciones: true });
+
+        if (resp.ok && resp.data) {
+            setColeccion(prev => hidratarColeccionDetalle(resp.data!, prev));
+            const rawData = resp.data as unknown as Record<string, unknown>;
+            setGuardada(Boolean(rawData.esta_guardada ?? rawData.estaGuardada ?? false));
+        }
+    }, [segmento, id]);
 
     const coleccionPadre = coleccion?.coleccionPadre ?? null;
 
@@ -304,7 +319,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     /* Menu contextual — extraído a hook separado (SRP) */
     const {
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
-    } = useColeccionDetalleMenu({ coleccion, usuario, navegar, setModalEditarAbierto, setModalCombinarAbierto, setModalEliminarAbierto });
+    } = useColeccionDetalleMenu({ coleccion, usuario, navegar, setModalEditarAbierto, setModalCombinarAbierto, setModalVolumenAbierto, setModalEliminarAbierto });
 
     /* Actualiza el estado local de la coleccion tras una edicion en el modal */
     const manejarGuardarEdicion = useCallback((coleccionActualizada: Coleccion) => {
@@ -340,6 +355,9 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         manejarLikeSamples,
         modalCombinarAbierto,
         setModalCombinarAbierto,
+        modalVolumenAbierto,
+        setModalVolumenAbierto,
+        recargarColeccionActual,
         combinacionPendiente,
         manejarDeshacerCombinacion,
         deshaciendoCombinacion,

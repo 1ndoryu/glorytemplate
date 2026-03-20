@@ -407,6 +407,22 @@ export const obtenerCombinacionPendiente = async (
     return apiGet<CombinacionPendiente>(`/colecciones/${coleccionId}/combinacion-pendiente`);
 };
 
+export interface ResultadoCrearVolumen {
+    ok: boolean;
+    nuevaColeccionId: number;
+    nombreVolumen: string;
+    samplesMovidos: number;
+}
+
+export const crearVolumenColeccion = async (
+    coleccionId: number,
+    numeroVolumen: number
+): Promise<RespuestaApi<ResultadoCrearVolumen>> => {
+    return apiPost<ResultadoCrearVolumen>(`/colecciones/${coleccionId}/crear-volumen`, {
+        numeroVolumen,
+    });
+};
+
 /* QL119: Eliminar colección con opciones configurables */
 export interface OpcionesEliminarColeccion {
     borrarSamples?: boolean;

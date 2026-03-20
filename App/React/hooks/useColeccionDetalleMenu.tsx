@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { Link2, Trash2, Flag, Edit3, Combine, Gift, ShieldOff } from 'lucide-react';
+import { Link2, Trash2, Flag, Edit3, Combine, Gift, ShieldOff, Plus } from 'lucide-react';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { generarCodigo, invalidarCodigo } from '@app/services/apiCodigosGratis';
 import { toast } from '@app/stores/toastStore';
@@ -18,6 +18,7 @@ interface UseColeccionDetalleMenuParams {
     navegar: (ruta: string) => void;
     setModalEditarAbierto: (v: boolean) => void;
     setModalCombinarAbierto?: (v: boolean) => void;
+    setModalVolumenAbierto?: (v: boolean) => void;
     setModalEliminarAbierto?: (v: boolean) => void;
 }
 
@@ -27,6 +28,7 @@ export function useColeccionDetalleMenu({
     navegar,
     setModalEditarAbierto,
     setModalCombinarAbierto,
+    setModalVolumenAbierto,
     setModalEliminarAbierto,
 }: UseColeccionDetalleMenuParams) {
     const [menuColeccion, setMenuColeccion] = useState<{ abierto: boolean; x: number; y: number }>({
@@ -74,12 +76,26 @@ export function useColeccionDetalleMenu({
                 id: 'combinar',
                 etiqueta: 'Combinar colecciones',
                 icono: <Combine size={16} />,
-                separadorDespues: true,
                 onClick: () => {
                     cerrarMenuColeccion();
                     setModalCombinarAbierto?.(true);
                 },
             });
+
+            if (coleccion.parentId === null) {
+                items.push({
+                    id: 'crear-volumen',
+                    etiqueta: 'Crear volumen',
+                    icono: <Plus size={16} />,
+                    separadorDespues: true,
+                    onClick: () => {
+                        cerrarMenuColeccion();
+                        setModalVolumenAbierto?.(true);
+                    },
+                });
+            } else {
+                items[items.length - 1].separadorDespues = true;
+            }
         }
 
         if (esPropietario || esAdmin) {
@@ -144,7 +160,7 @@ export function useColeccionDetalleMenu({
         });
 
         return items;
-    }, [coleccion, usuario, navegar, cerrarMenuColeccion, setModalEditarAbierto, setModalCombinarAbierto, setModalEliminarAbierto]);
+    }, [coleccion, usuario, navegar, cerrarMenuColeccion, setModalEditarAbierto, setModalCombinarAbierto, setModalVolumenAbierto, setModalEliminarAbierto]);
 
     return {
         menuColeccion,

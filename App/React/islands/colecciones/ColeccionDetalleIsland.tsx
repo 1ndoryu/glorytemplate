@@ -14,9 +14,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
-import { ModalColeccion } from '@app/components/social/ModalColeccion';
-import { ModalCombinarColeccion } from '@app/components/social/ModalCombinarColeccion';
-import { ModalEliminarColeccion } from '@app/components/social/ModalEliminarColeccion';
+import { ColeccionDetalleModales } from '@app/components/colecciones/ColeccionDetalleModales';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
@@ -53,6 +51,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
         modalCombinarAbierto, setModalCombinarAbierto,
+        modalVolumenAbierto, setModalVolumenAbierto, recargarColeccionActual,
         combinacionPendiente, manejarDeshacerCombinacion, deshaciendoCombinacion,
         manejarCombinado,
         modalEliminarAbierto, setModalEliminarAbierto, manejarEliminado,
@@ -305,36 +304,22 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                 y={menuColeccion.y}
             />
 
-            {/* Modal para editar la colección (solo propietario/admin via menu) */}
-            {coleccion && (
-                <ModalColeccion
-                    abierto={modalEditarAbierto}
-                    onCerrar={() => setModalEditarAbierto(false)}
-                    onGuardar={manejarGuardarEdicion}
-                    coleccion={coleccion}
-                />
-            )}
-
-            {/* QL115: Modal para combinar colecciones */}
-            {coleccion && (
-                <ModalCombinarColeccion
-                    abierto={modalCombinarAbierto}
-                    onCerrar={() => setModalCombinarAbierto(false)}
-                    onCombinado={manejarCombinado}
-                    coleccion={coleccion}
-                    esAdmin={usuario?.rol === 'admin'}
-                />
-            )}
-
-            {/* QL119: Modal para eliminar colección con opciones */}
-            {coleccion && (
-                <ModalEliminarColeccion
-                    abierto={modalEliminarAbierto}
-                    onCerrar={() => setModalEliminarAbierto(false)}
-                    onEliminado={manejarEliminado}
-                    coleccion={coleccion}
-                />
-            )}
+            <ColeccionDetalleModales
+                coleccion={coleccion}
+                esAdmin={usuario?.rol === 'admin'}
+                modalEditarAbierto={modalEditarAbierto}
+                setModalEditarAbierto={setModalEditarAbierto}
+                manejarGuardarEdicion={manejarGuardarEdicion}
+                modalCombinarAbierto={modalCombinarAbierto}
+                setModalCombinarAbierto={setModalCombinarAbierto}
+                manejarCombinado={manejarCombinado}
+                modalVolumenAbierto={modalVolumenAbierto}
+                setModalVolumenAbierto={setModalVolumenAbierto}
+                recargarColeccionActual={recargarColeccionActual}
+                modalEliminarAbierto={modalEliminarAbierto}
+                setModalEliminarAbierto={setModalEliminarAbierto}
+                manejarEliminado={manejarEliminado}
+            />
             {/* [183A-110] Modal de compensación por código de descarga expirado */}
             <ModalCodigoExpirado />
         </div>
