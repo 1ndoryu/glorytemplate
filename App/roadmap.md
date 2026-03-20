@@ -48,6 +48,8 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **183A-111 (Fases 1-3, 2026-03-19):** i18n Kamples — infraestructura (es/en/ja + store + hook + SelectorIdioma), NavPublico, TopBar, ModalAuth, TarjetaSample, PanelDetalleSample migrados (Commits 1-5). Fase 3: 31 hooks migrados con getT() + claves error.*/toast.* en los 3 JSON (Commit 7). Plan activo: `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
 - **193A-46-A (2026-03-19):** Fix URGENTE PerfilIsland — `useCallback` declarado después de early returns violaba reglas de hooks → crash "Rendered more hooks than during the previous render". Fix: mover el hook antes de cualquier return condicional.
+- **193A-51 (2026-03-19):** Waveforms oscuras en white mode — CSS vars `--colorWaveformNoReproducido/Reproducido` + resolverColorCSS en canvas (getComputedStyle).
+- **193A-52 (2026-03-19):** Selector idioma landing → pill select minimalista sin banderas (`SelectorIdioma variante='select'`).
 
 ## Tareas pendientes
 
@@ -101,13 +103,11 @@ No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los 
 <!-- COMPLETADA: la causa era useCallback después de early returns — fix commiteado 5c37636a7 -->
 
 
-## 193A-51
+## 193A-51 — COMPLETADO
+<!-- waveforms oscuras en light mode via CSS vars. Commit 89b9af32b -->
 
-Las waveform cuando la pagina este en white mode tienen que ser de color oscuro, se ven blanca y no contrastan
-
-## 193A-52 (en planificacion)
-
-El selector de idioma en el landing es muy feo, tiene que ser mas minimalista, un badge con bordes completamente redondeados con select personalizado como el que se usa en el modal de editar de los samples, (es un componente de select personalizado propio de kamples), y mostrar en texto los idioa sin la bandera
+## 193A-52 — COMPLETADO
+<!-- selector idioma landing → pill select sin banderas. Commit 89b9af32b -->
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
