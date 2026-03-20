@@ -82,18 +82,6 @@ filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un alg
 Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
 
 
-## 193A-91
-
-ID Tipo Entidad Operación Estado Intentos Error Proximo intento Creado Procesado Acciones
-851 #2932 analisis audio 0/30 - 19/3, 06:22 20/3, 01:51
-850 #2931 analisis audio 0/30 - 19/3, 06:22 20/3, 01:49
-849 #2930 analisis audio 0/30 - 19/3, 06:22 20/3, 01:47
-848 #2929 analisis audio 0/30 - 19/3, 06:22 20/3, 01:45
-847 #2928 analisis audio 0/30 - 19/3, 06:22 20/3, 01:43
-846 #2927 analisis audio 0/30 - 19/3, 06:22 20/3, 01:40
-
-sigue yendo cada 3-2 miuntos en vez de cada minuto, verifica que realmente este rotando las api por cada analisis. 
-
 ## 193A-92
 
 las imagenes de perfil por defecto se cambiaron(a los usuarios que no tienen imagen aun) a <img src="https://i0.wp.com/secure.gravatar.com/avatar/af13af2a3a0dffcb340412d0d95830f0ab30638181e0bc5f5f8fea9be93f0bba?strip=all&amp;quality=75&amp;resize=28%2C28" alt="Melvoft" loading="lazy" class="avatarImagen">, pedi optmizacion, si pero no que se cambiara esa, tenia otra antes por defecto.
@@ -102,6 +90,9 @@ revisa el historial de avatar, restaura a cuando no usaba grevatar y optimiza as
 
 las iamgenes de colors me parece que no estan usando el cdn <img src="/wp-content/themes/glorytemplate/colors/48973f8f62134470de198bf59210b367.jpg" alt="Doom Vocal Hit 100bpm Cm" loading="lazy" class="tarjetaPortadaImg">
 
+## 193A-93
+
+Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
 
 ## Antes de penultima (preferiblemente antepenultima)
 
