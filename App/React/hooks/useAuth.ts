@@ -23,8 +23,9 @@ const LS_KEY_USUARIO = 'kamples_auth_usuario';
  * QK1: Limpia todos los Zustand stores que contienen datos de usuario.
  * Evita fuga de datos entre cuentas tras logout (cache perfiles,
  * notificaciones, mensajes, reproducidos, etc.).
+ * [2003A-15] Exportada para que TopBar.tsx la llame en sus logout handlers.
  */
-function limpiarStoresUsuario(): void {
+export function limpiarStoresUsuario(): void {
     /* Cache de perfiles hover (incluye estado de seguimiento) */
     useTooltipPerfilStore.getState().limpiarCache();
     useTooltipPerfilStore.getState().cancelarTodo();

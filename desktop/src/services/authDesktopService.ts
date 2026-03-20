@@ -76,28 +76,41 @@ export async function inicializarAuthDesktop(): Promise<void> {
     let token: string | null = null;
     let usuario: Record<string, unknown> | null = null;
 
+    /* [2003A-15] Flag para saber si el Tauri Store cargó bien.
+     * Si cargó y no tiene token → el usuario hizo logout → NO restaurar desde localStorage.
+     * WebView2 puede no flushear removeItem() a disco si la app se cierra rápido,
+     * dejando un token zombie en localStorage que restauraría la sesión cerrada. */
+    let tauriStoreCargado = false;
+
     /* Tauri Store primero */
     try {
         const { load } = await import('@tauri-apps/plugin-store');
         const store = await load(STORE_FILE);
         token = await store.get<string>(STORE_KEY_TOKEN) ?? null;
         usuario = await store.get<Record<string, unknown>>(STORE_KEY_USUARIO) ?? null;
+        tauriStoreCargado = true;
         console.info('[AuthDesktop] TauriStore — token:', !!token, '| user:', !!usuario);
 
         if (token) {
             lsGuardar(LS_KEY_TOKEN, token);
             if (usuario) lsGuardar(LS_KEY_USUARIO, JSON.stringify(usuario));
+        } else {
+            /* [2003A-15] Tauri Store vacío = logout confirmado. Limpiar localStorage
+             * por si conserva un token zombie que no se flusheó a disco. */
+            lsEliminar(LS_KEY_TOKEN);
+            lsEliminar(LS_KEY_USUARIO);
         }
     } catch (err) {
         console.warn('[AuthDesktop] Tauri Store falló — intentando localStorage:', err);
     }
 
-    /* Fallback a localStorage */
-    if (!token) {
+    /* [2003A-15] Fallback a localStorage SOLO si Tauri Store no pudo cargar (crash/corrupción).
+     * Si cargó pero no tiene token, el usuario cerró sesión — no restaurar desde LS. */
+    if (!token && !tauriStoreCargado) {
         const tokenLs = lsLeer(LS_KEY_TOKEN);
         if (tokenLs) {
             token = tokenLs;
-            console.info('[AuthDesktop] Token restaurado desde LS (fallback)');
+            console.info('[AuthDesktop] Token restaurado desde LS (fallback — TauriStore inaccesible)');
             const usuarioLs = lsLeer(LS_KEY_USUARIO);
             if (usuarioLs) { try { usuario = JSON.parse(usuarioLs); } catch { usuario = null; } }
             resincronizarATauriStore(token, usuario).catch(() => {});
@@ -253,10 +266,6 @@ export async function cerrarSesionDesktop(): Promise<void> {
     limpiarAuthApi();
     establecerTokenSync(null);
 
-    /* QK77: Limpiar localStorage */
-    lsEliminar(LS_KEY_TOKEN);
-    lsEliminar(LS_KEY_USUARIO);
-
     /* Detener sync watcher ANTES de limpiar tracking */
     try {
         const { detenerSyncBidireccional } = await import('./syncWatcherSetup');
@@ -288,15 +297,32 @@ export async function cerrarSesionDesktop(): Promise<void> {
 
     if (!esDesktop()) return;
 
+    /* [2003A-15] Limpiar Tauri Store PRIMERO (usa IPC síncrono con save()) y DESPUÉS
+     * localStorage. WebView2 puede no flushear removeItem() a disco si la app cierra rápido,
+     * pero el Tauri Store sí se flushea con save(). Al reiniciar, inicializarAuthDesktop()
+     * lee Tauri Store primero: si está vacío, no cae al fallback de localStorage. */
     try {
         const { load } = await import('@tauri-apps/plugin-store');
         const store = await load(STORE_FILE);
         await store.delete(STORE_KEY_TOKEN);
         await store.delete(STORE_KEY_USUARIO);
         await store.save();
+
+        /* Verificar que realmente se borró — defensa contra bugs del plugin */
+        const postToken = await store.get<string>(STORE_KEY_TOKEN);
+        if (postToken) {
+            console.error('[AuthDesktop] Token persistió tras delete — forzando clear');
+            await store.set(STORE_KEY_TOKEN, null as unknown as string);
+            await store.save();
+        }
     } catch (err) {
-        console.error('[AuthDesktop] Error cerrando sesión:', err);
+        console.error('[AuthDesktop] Error cerrando sesión en Tauri Store:', err);
     }
+
+    /* [2003A-15] Limpiar localStorage DESPUÉS del store. Si la app cierra antes de que
+     * WebView2 flushee, el Tauri Store ya está limpio y el init no caerá al fallback LS. */
+    lsEliminar(LS_KEY_TOKEN);
+    lsEliminar(LS_KEY_USUARIO);
 
     emitirCambioAuth('logout');
 }

@@ -23,6 +23,7 @@ import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { LogoKamples } from '../ui/LogoKamples';
 import { cerrarSesion as apiCerrarSesion } from '@app/services/apiAuth';
 import { useAuthStore } from '@app/stores/authStore';
+import { limpiarStoresUsuario } from '@app/hooks/useAuth';
 import { useNavigationStore } from '@/core/router/navigationStore';
 import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
@@ -217,6 +218,7 @@ export const TopBar = (): JSX.Element => {
                     } catch { /* En web no existe el modulo */ }
                 }
                 useAuthStore.getState().cerrarSesion();
+                limpiarStoresUsuario();
                 if (esDesktop) {
                     useNavigationStore.getState().navegar('/');
                 } else {
@@ -353,6 +355,7 @@ export const TopBar = (): JSX.Element => {
                 }
 
                 useAuthStore.getState().cerrarSesion();
+                limpiarStoresUsuario();
 
                 if (esDesktop) {
                     /* SPA navigation: evita reload que re-lee cookies WP del webview */
