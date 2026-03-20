@@ -47,12 +47,14 @@ export const obtenerColeccionados = async (
     perPage = 100,
     carpeta = '',
     orden = 'recientes',
-    busqueda = ''
+    busqueda = '',
+    soloEncanta = false
 ): Promise<RespuestaApi<RespuestaColeccionados>> => {
     try {
         const params: Record<string, string | number | boolean | undefined> = { page, per_page: perPage, orden };
         if (carpeta) params.carpeta = carpeta;
         if (busqueda) params.busqueda = busqueda;
+        if (soloEncanta) params.solo_encanta = true;
         return await apiGet<RespuestaColeccionados>('/me/coleccionados', params);
     } catch (err) {
         log.error('Error obteniendo coleccionados', err);

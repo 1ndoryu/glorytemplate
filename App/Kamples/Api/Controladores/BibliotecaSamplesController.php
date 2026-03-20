@@ -38,6 +38,7 @@ class BibliotecaSamplesController
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
                 'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => ''],
+                'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
             ],
         ]);
 
@@ -63,6 +64,7 @@ class BibliotecaSamplesController
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 100],
                 'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => ''],
+                'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
             ],
         ]);
 
@@ -100,11 +102,13 @@ class BibliotecaSamplesController
         $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
         $busqueda = \trim((string) $request->get_param('busqueda'));
 
-        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden, $busqueda);
+        $soloEncanta = (bool) $request->get_param('solo_encanta');
+
+        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden, $busqueda, $soloEncanta);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = LikesRepository::contarFavoritosSamples($userId, $busqueda);
+        $total = LikesRepository::contarFavoritosSamples($userId, $busqueda, $soloEncanta);
 
         return new \WP_REST_Response([
             'data' => [
@@ -189,10 +193,12 @@ class BibliotecaSamplesController
         $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
         $busqueda = \trim((string) $request->get_param('busqueda'));
 
-        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden, $busqueda);
+        $soloEncanta = (bool) $request->get_param('solo_encanta');
+
+        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden, $busqueda, $soloEncanta);
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = SamplesRepository::contarColeccionados($userId, $carpeta, $busqueda);
+        $total = SamplesRepository::contarColeccionados($userId, $carpeta, $busqueda, $soloEncanta);
 
         return new \WP_REST_Response([
             'data' => [

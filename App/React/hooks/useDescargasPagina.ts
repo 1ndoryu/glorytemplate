@@ -35,7 +35,7 @@ export interface UseDescargasPaginaResultado {
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
-export function useDescargasPagina(busqueda = ''): UseDescargasPaginaResultado {
+export function useDescargasPagina(busqueda = '', soloEncantaColeccionados = false, soloEncantaFavoritos = false): UseDescargasPaginaResultado {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [comprados, setComprados] = useState<SampleResumen[]>([]);
     const [limites, setLimites] = useState<LimitesDescarga | null>(null);
@@ -72,10 +72,10 @@ export function useDescargasPagina(busqueda = ''): UseDescargasPaginaResultado {
     const [ordenFavoritos, setOrdenFavoritos] = useState<TipoOrdenFeed>('recientes');
 
     /* QL53: Fábricas internas de proveedores que aceptan orden */
-    const crearProveedorColeccionados = useCallback((orden: string, busq: string) => {
+    const crearProveedorColeccionados = useCallback((orden: string, busq: string, soloEncanta: boolean) => {
         return async (pagina: number): Promise<ResultadoProveedor> => {
             try {
-                const resp = await obtenerColeccionados(pagina, 30, '', orden, busq);
+                const resp = await obtenerColeccionados(pagina, 30, '', orden, busq, soloEncanta);
                 return {
                     ok: resp.ok,
                     data: resp.ok && resp.data?.data ? resp.data.data : [],
@@ -89,10 +89,10 @@ export function useDescargasPagina(busqueda = ''): UseDescargasPaginaResultado {
     }, []);
 
     /* QL53: Proveedor de favoritos con sorting */
-    const crearProveedorFavoritos = useCallback((orden: string, busq: string) => {
+    const crearProveedorFavoritos = useCallback((orden: string, busq: string, soloEncanta: boolean) => {
         return async (pagina: number): Promise<ResultadoProveedor> => {
             try {
-                const resp = await obtenerMisFavoritos(pagina, 30, orden, busq);
+                const resp = await obtenerMisFavoritos(pagina, 30, orden, busq, soloEncanta);
                 return {
                     ok: resp.ok,
                     data: resp.ok && resp.data?.data ? resp.data.data : [],
@@ -107,12 +107,12 @@ export function useDescargasPagina(busqueda = ''): UseDescargasPaginaResultado {
 
     /* QL53: Proveedores memoizados que se recrean cuando cambia el orden o busqueda */
     const proveedorColeccionados = useMemo(
-        () => crearProveedorColeccionados(ordenColeccionados, busqueda),
-        [crearProveedorColeccionados, ordenColeccionados, busqueda]
+        () => crearProveedorColeccionados(ordenColeccionados, busqueda, soloEncantaColeccionados),
+        [crearProveedorColeccionados, ordenColeccionados, busqueda, soloEncantaColeccionados]
     );
     const proveedorFavoritos = useMemo(
-        () => crearProveedorFavoritos(ordenFavoritos, busqueda),
-        [crearProveedorFavoritos, ordenFavoritos, busqueda]
+        () => crearProveedorFavoritos(ordenFavoritos, busqueda, soloEncantaFavoritos),
+        [crearProveedorFavoritos, ordenFavoritos, busqueda, soloEncantaFavoritos]
     );
 
     /* Proveedor paginado para tab "Más Ideas" */

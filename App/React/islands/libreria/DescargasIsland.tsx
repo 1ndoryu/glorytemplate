@@ -49,13 +49,22 @@ const DescargasBase = (): JSX.Element => {
         return () => clearTimeout(timerBusquedaRef.current);
     }, [busqueda]);
 
+    /* QL87: Filtros por tab (independientes) */
+    const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+    const filtrosDescargas = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarColeccionados'] });
+    const filtrosFavoritos = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados', 'ocultarColeccionados'] });
+
     const {
         comprados, cargando, cargandoComprados,
         proveedorColeccionados, proveedorFavoritos, proveedorSugerencias,
         ordenColeccionados, setOrdenColeccionados,
         ordenFavoritos, setOrdenFavoritos,
         manejarLike,
-    } = useDescargasPagina(busquedaDebounced);
+    } = useDescargasPagina(
+        busquedaDebounced,
+        filtrosDescargas.estaActivo('soloMeEncanta'),
+        filtrosFavoritos.estaActivo('soloMeEncanta')
+    );
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -71,10 +80,6 @@ const DescargasBase = (): JSX.Element => {
     const activa = useIslaActiva('DescargasIsland');
     const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
 
-    /* QL87: Filtros por tab (independientes) */
-    const [filtrosAbierto, setFiltrosAbierto] = useState(false);
-    const filtrosDescargas = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarColeccionados'] });
-    const filtrosFavoritos = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados', 'ocultarColeccionados'] });
     const filtrosActivos = tabActiva === 'favoritos' ? filtrosFavoritos : filtrosDescargas;
 
     /* QL41: Header dinámico según tab activa */
@@ -179,9 +184,9 @@ const DescargasBase = (): JSX.Element => {
                         </BotonBase>
                     </BarraControlFeed>
                     <FeedSamples
-                        key={`descargas-coleccionados-${ordenColeccionados}-${busquedaDebounced}`}
+                        key={`descargas-coleccionados-${ordenColeccionados}-${busquedaDebounced}-${filtrosDescargas.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
                         proveedor={proveedorColeccionados}
-                        claveCache={`coleccionados_${ordenColeccionados}_${busquedaDebounced}`}
+                        claveCache={`coleccionados_${ordenColeccionados}_${busquedaDebounced}_${filtrosDescargas.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
@@ -215,9 +220,9 @@ const DescargasBase = (): JSX.Element => {
                         </BotonBase>
                     </BarraControlFeed>
                     <FeedSamples
-                        key={`descargas-favoritos-${ordenFavoritos}-${busquedaDebounced}`}
+                        key={`descargas-favoritos-${ordenFavoritos}-${busquedaDebounced}-${filtrosFavoritos.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
                         proveedor={proveedorFavoritos}
-                        claveCache={`favoritos_descargas_${ordenFavoritos}_${busquedaDebounced}`}
+                        claveCache={`favoritos_descargas_${ordenFavoritos}_${busquedaDebounced}_${filtrosFavoritos.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
