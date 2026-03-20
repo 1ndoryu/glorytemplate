@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
 import { apiGet, apiPost } from '@app/services/apiCliente';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 const URL_GRUPO_WA = 'https://chat.whatsapp.com/JOduGKvWGR9KbYfBS9BWGL';
 
@@ -78,7 +79,7 @@ export function useSolicitudWhatsapp() {
         const descripcionTrim = descripcion.trim();
 
         if (!nombreTrim || !telefonoTrim || !paisTrim || !motivoTrim || !descripcionTrim) {
-            toast.error('Todos los campos son obligatorios');
+            toast.error(getT()('error.camposRequeridos'));
             return;
         }
 

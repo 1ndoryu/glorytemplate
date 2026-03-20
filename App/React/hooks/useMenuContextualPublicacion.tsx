@@ -15,6 +15,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { actualizarPublicacion, eliminarPublicacion } from '@app/services/apiSocial';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 
@@ -133,10 +134,10 @@ export const useMenuContextualPublicacion = (
                                 detail: { publicacionId: post.id, cambios: { moderacionEstado: 'aprobado' } },
                             }));
                         } else {
-                            toast.error('Error al aprobar');
+                            toast.error(getT()('error.aprobar'));
                         }
                     } catch (err) {
-                        toast.error('Error de red al aprobar');
+                        toast.error(getT()('error.aprobarRed'));
                     }
                 },
             });
@@ -163,13 +164,13 @@ export const useMenuContextualPublicacion = (
                         /* API call en background con rollback si falla */
                         eliminarPublicacion(post.id).then(resp => {
                             if (!resp.ok) {
-                                toast.error('Error al eliminar, restaurando...');
+                                toast.error(getT()('error.eliminar'));
                                 if (setPublicaciones) {
                                     setPublicaciones(prev => [...prev, post]);
                                 }
                             }
                         }).catch(() => {
-                            toast.error('Error de red al eliminar');
+                            toast.error(getT()('error.eliminarRed'));
                             if (setPublicaciones) {
                                 setPublicaciones(prev => [...prev, post]);
                             }

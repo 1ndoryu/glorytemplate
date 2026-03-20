@@ -7,6 +7,7 @@
 import { useState, useCallback } from 'react';
 import { proponerEdicion, proponerEliminacion } from '@app/services/apiContribuciones';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { TipoRelacion, TipoElemento } from '@app/types/cancion';
 
 export interface RelacionParaEditar {
@@ -93,7 +94,7 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
 
         if (modoEliminacion) {
             if (razon.trim().length < 10) {
-                toast.error('La razón debe tener al menos 10 caracteres.');
+                toast.error(getT()('error.razonCorta'));
                 setCargando(false);
                 return false;
             }
@@ -144,7 +145,7 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
         }
 
         if (Object.keys(cambios).length === 0 || (Object.keys(cambios).length === 1 && cambios['razon'])) {
-            toast.error('No hay cambios para enviar.');
+            toast.error(getT()('error.sinCambios'));
             setCargando(false);
             return false;
         }

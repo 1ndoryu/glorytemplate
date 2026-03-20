@@ -7,6 +7,7 @@
 import { useCallback } from 'react';
 import type { SampleResumen } from '@app/types';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { obtenerCarpetaPrimaria, obtenerCarpetaSecundaria } from './utils/exploradorPaginaUtils';
 
 /*
@@ -42,7 +43,7 @@ export function useRestaurarUbicacion({ todosSamples, moverSample }: UseRestaura
         const iaSecundaria = obtenerIaCarpetaSecundaria(sample);
 
         if (!iaPrimaria) {
-            toast.error('Este sample no tiene ubicación original de IA registrada.');
+            toast.error(getT()('error.sampleSinUbicacion'));
             return false;
         }
 

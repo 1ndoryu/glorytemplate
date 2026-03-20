@@ -9,6 +9,7 @@ import { corregirMetadataIA } from '@app/services/apiSamples';
 import { useCorregirIAStore } from '@app/stores/corregirIAStore';
 import { EVENTO_SAMPLE_ACTUALIZADO } from '@app/hooks/useMenuContextualSample';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('useCorregirIA');
@@ -31,7 +32,7 @@ export const useCorregirIA = (): RetornoCorregirIA => {
 
         const textoLimpio = instrucciones.trim();
         if (textoLimpio.length < 5) {
-            toast.error('Escribe instrucciones más detalladas (mínimo 5 caracteres)');
+            toast.error(getT()('error.instruccionesCortas'));
             return false;
         }
 
@@ -60,7 +61,7 @@ export const useCorregirIA = (): RetornoCorregirIA => {
             return false;
         } catch (err) {
             log.error('Error inesperado al corregir metadata IA', err);
-            toast.error('Error de red al enviar corrección');
+            toast.error(getT()('error.redCorreccion'));
             return false;
         } finally {
             setEnviando(false);

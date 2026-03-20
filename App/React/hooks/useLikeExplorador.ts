@@ -9,6 +9,7 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 const log = crearLogger('useLikeExplorador');
 
@@ -42,7 +43,7 @@ export function useLikeExplorador(
                 const resp = await darLike('sample', sampleId, reaccion);
                 if (!resp.ok) {
                     setTodosSamples(prevSamples);
-                    toast.error('Error al procesar la reacción');
+                    toast.error(getT()('error.reaccion'));
                 }
             } catch (err) {
                 setTodosSamples(prevSamples);
@@ -61,7 +62,7 @@ export function useLikeExplorador(
                 const resp = await quitarLike('sample', sampleId);
                 if (!resp.ok) {
                     setTodosSamples(prevSamples);
-                    toast.error('Error al quitar la reacción');
+                    toast.error(getT()('error.quitarReaccion'));
                 }
             } catch (err) {
                 setTodosSamples(prevSamples);
@@ -79,7 +80,7 @@ export function useLikeExplorador(
                 const resp = await darLike('sample', sampleId, 'like');
                 if (!resp.ok) {
                     setTodosSamples(prevSamples);
-                    toast.error('Error al procesar la reacción');
+                    toast.error(getT()('error.reaccion'));
                 }
             } catch (err) {
                 setTodosSamples(prevSamples);

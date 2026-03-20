@@ -10,6 +10,7 @@ import { obtenerPerfil } from '@app/services/apiAuth';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike, listarPublicacionesUsuario, repostear, quitarRepost } from '@app/services/apiSocial';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { TipoReaccion } from '@app/types';
 import { useAuthStore } from '@app/stores/authStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
@@ -328,7 +329,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
             const resp = estabaReposteado ? await quitarRepost(postId) : await repostear(postId);
             if (!resp.ok) {
                 setPublicacionesPerfil(snapshot);
-                toast.error('No se pudo realizar el repost');
+                toast.error(getT()('error.repost'));
             } else {
                 toast.exito(estabaReposteado ? 'Repost eliminado' : 'Repost compartido');
             }

@@ -26,6 +26,7 @@ import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useCompraModalStore } from '@app/stores/compraModalStore';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { useAudioPlayback } from './useAudioPlayback';
 import { esDesktop, obtenerDragService, obtenerSyncService } from './utils/tarjetaSampleUtils';
 import { requiereAuth } from '@app/utils/requiereAuth';
@@ -119,7 +120,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const manejarLike = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         if (!sample.liked && !sample.reaccion) {
-            toast.info('Te mostraremos más samples como este');
+            toast.info(getT()('toast.masComoEste'));
         }
         onLike?.(sample.id);
     }, [onLike, sample.id, sample.liked, sample.reaccion]);
@@ -127,9 +128,9 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const manejarReaccion = useCallback((reaccion: TipoReaccion) => {
         onLike?.(sample.id, reaccion);
         if (reaccion === 'dislike') {
-            toast.info('Te mostraremos menos samples como esto');
+            toast.info(getT()('toast.menosComoEsto'));
         } else {
-            toast.info('Te mostraremos más samples como este');
+            toast.info(getT()('toast.masComoEste'));
         }
     }, [onLike, sample.id]);
 
@@ -263,7 +264,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                         toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
                     }
                 }).catch(() => {
-                    toast.error('Error de red al preparar arrastre');
+                    toast.error(getT()('error.redArrastre'));
                 });
                 return;
             }

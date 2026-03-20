@@ -8,6 +8,7 @@ import { Link2, Trash2, Flag, Edit3, Combine, Gift, ShieldOff } from 'lucide-rea
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { generarCodigo, invalidarCodigo } from '@app/services/apiCodigosGratis';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { Coleccion } from '@app/types';
 import type { UsuarioAutenticado } from '@app/types';
 
@@ -109,7 +110,7 @@ export function useColeccionDetalleMenu({
                         copiarAlPortapapeles(url);
                         toast.exito('Enlace de descarga gratis copiado al portapapeles');
                     } else {
-                        toast.error('Error al generar enlace de descarga gratis');
+                        toast.error(getT()('error.enlaceDescargaGratis'));
                     }
                 },
             });
@@ -128,7 +129,7 @@ export function useColeccionDetalleMenu({
                             const n = resp.data?.invalidados ?? 0;
                             toast.exito(n > 0 ? `${n} enlace(s) invalidado(s)` : 'No había enlaces activos');
                         } else {
-                            toast.error('Error al invalidar enlace');
+                            toast.error(getT()('error.invalidarEnlace'));
                         }
                     });
                 },

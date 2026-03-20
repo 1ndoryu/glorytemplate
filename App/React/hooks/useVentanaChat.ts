@@ -11,6 +11,7 @@ import {useAuthStore} from '@app/stores/authStore';
 import {useMensajesStore} from '@app/stores/mensajesStore';
 import {useNavigationStore} from '@/core/router';
 import {toast} from '@app/stores/toastStore';
+import {getT} from '@app/utils/i18n';
 import {useReportarStore} from '@app/stores/reportarStore';
 import {useBloqueosStore} from '@app/stores/bloqueosStore';
 import {wsService} from '@app/services/wsService';
@@ -231,7 +232,7 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
             useMensajesStore.getState().aceptarConversacion(chat.conversacionId);
         } catch {
             setMensajes(prev => prev.filter(m => m.id !== mensajeOptimista.id));
-            toast.error('Error al enviar mensaje');
+            toast.error(getT()('error.enviarMensaje'));
         }
         setEnviando(false);
         inputRef.current?.focus();
@@ -280,7 +281,7 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
             useMensajesStore.getState().aceptarConversacion(chat.conversacionId);
         } catch {
             setMensajes(prev => prev.filter(m => m.id !== msgOptimista.id));
-            toast.error('Error al enviar archivo');
+            toast.error(getT()('error.enviarArchivo'));
         }
         setEnviando(false);
     }, [archivoStaging, enviando, chat.conversacionId, miId]);

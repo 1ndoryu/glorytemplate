@@ -13,6 +13,7 @@ import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { requiereAuth } from '@app/utils/requiereAuth';
 
 interface UseTarjetaColeccionOpciones {
@@ -104,7 +105,7 @@ export function useTarjetaColeccion({
 
         if (!resp.ok) {
             setLikeada(valorAnterior);
-            toast.error('Error al procesar like');
+            toast.error(getT()('error.likeTarjetaColeccion'));
         } else if (resp.data) {
             setLikeada(resp.data.likeada);
         }

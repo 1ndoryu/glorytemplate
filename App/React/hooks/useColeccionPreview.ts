@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { obtenerColeccion } from '@app/services/apiColecciones';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 const DURACION_MAX_PREVIEW = 10_000;
 
@@ -99,13 +100,13 @@ export const useColeccionPreview = () => {
         try {
             const resp = await obtenerColeccion(coleccionId);
             if (!resp.ok || !resp.data) {
-                toast.error('No se pudo cargar la colección');
+                toast.error(getT()('error.cargarColeccion'));
                 return;
             }
 
             const samples = resp.data.samples ?? [];
             if (samples.length === 0) {
-                toast.info('Esta colección no tiene samples');
+                toast.info(getT()('toast.coleccionSinSamples'));
                 return;
             }
 
@@ -122,7 +123,7 @@ export const useColeccionPreview = () => {
             store.setColeccionPreviewId(coleccionId);
             iniciarCiclo();
         } catch {
-            toast.error('Error al cargar colección');
+            toast.error(getT()('error.cargarColeccionRed'));
         } finally {
             setCargando(false);
         }

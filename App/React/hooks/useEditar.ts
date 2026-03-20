@@ -9,6 +9,7 @@ import { actualizarSample, subirSample, subirImagenSample } from '@app/services/
 import { actualizarPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { actualizarColeccion } from '@app/services/apiColecciones';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { crearLogger } from '@app/services/logger';
 import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
 import { extraerTags } from '@app/hooks/useCrearContenido';
@@ -105,11 +106,11 @@ export const useEditar = (
     const seleccionarImagenSample = useCallback((archivo: File) => {
         const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         if (!tiposPermitidos.includes(archivo.type)) {
-            toast.error('Solo se permiten imágenes JPG, PNG, WebP o GIF');
+            toast.error(getT()('error.imagenTipoDetallado'));
             return;
         }
         if (archivo.size > 5 * 1024 * 1024) {
-            toast.error('La imagen no puede superar 5MB');
+            toast.error(getT()('error.imagenTamano2'));
             return;
         }
         setImagenSampleFile(archivo);
@@ -276,7 +277,7 @@ export const useEditar = (
             return false;
         } catch (err) {
             log.error('Error al guardar', err);
-            toast.error('Error inesperado al guardar');
+            toast.error(getT()('error.guardar'));
             return false;
         } finally {
             setGuardando(false);

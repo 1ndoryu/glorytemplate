@@ -16,6 +16,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useAuthModalStore } from '@app/stores/authModalStore';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useColeccionDetalleMenu } from '@app/hooks/useColeccionDetalleMenu';
 import { useCodigoGratisStore } from '@app/stores/codigoGratisStore';
@@ -196,7 +197,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
                 toast.error(resp.error ?? 'Error al descargar la colección');
             }
         } catch {
-            toast.error('Error de conexión al descargar');
+            toast.error(getT()('error.descargar'));
         } finally {
             setDescargando(false);
         }

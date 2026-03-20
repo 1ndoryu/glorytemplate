@@ -12,6 +12,7 @@ import { feedCanciones, buscarCanciones } from '@app/services/apiCanciones';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
 import type { Cancion } from '@app/types/cancion';
 import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
@@ -154,7 +155,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
             setCanciones(prev => prev.map(c =>
                 c.id === cancionId ? { ...c, liked: anterior.liked } : c
             ));
-            toast.error('Error al dar like');
+            toast.error(getT()('error.like'));
         }
     }, [canciones]);
 

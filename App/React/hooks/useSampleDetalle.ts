@@ -14,6 +14,7 @@ import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import type { Sample, SampleResumen, TipoReaccion } from '@app/types';
@@ -117,7 +118,7 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
                 const uri = await descargarArchivo(resp.data.url, resp.data.nombre || sample.titulo || 'sample');
                 if (uri) toast.exito('Sample guardado en Documentos/Kamples');
             } catch {
-                toast.error('Error al guardar el archivo');
+                toast.error(getT()('error.guardarArchivo'));
             }
         } else if (resp.status === 429) {
             toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');

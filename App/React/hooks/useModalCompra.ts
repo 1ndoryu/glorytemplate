@@ -8,6 +8,7 @@ import { useCallback, useState } from 'react';
 import { useCompraModalStore } from '@app/stores/compraModalStore';
 import { crearCheckoutSample } from '@app/services/apiPagos';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { esEscritorio, abrirEnlaceExterno } from '@app/utils/plataforma';
 
 export const useModalCompra = () => {
@@ -36,7 +37,7 @@ export const useModalCompra = () => {
                 setProcesando(false);
             }
         } catch {
-            toast.error('Error de conexión al procesar la compra');
+            toast.error(getT()('error.compra'));
             setProcesando(false);
         }
     }, [sample, procesando]);

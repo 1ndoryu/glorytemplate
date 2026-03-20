@@ -12,6 +12,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useMenuContextualPublicacion } from '@app/hooks/useMenuContextualPublicacion';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import {
     obtenerPublicacion, darLike, quitarLike,
     repostear, quitarRepost,
@@ -195,7 +196,7 @@ export function usePublicacionDetalle({ publicacionIdProp }: UsePublicacionDetal
             const resp = estabaReposteado ? await quitarRepost(postId) : await repostear(postId);
             if (!resp.ok) {
                 setPublicacion(snapshot);
-                toast.error('No se pudo realizar el repost');
+                toast.error(getT()('error.repost'));
             } else {
                 toast.exito(estabaReposteado ? 'Repost eliminado' : 'Repost compartido');
             }

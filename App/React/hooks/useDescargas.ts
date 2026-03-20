@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from '@app/stores/authStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { crearLogger } from '@app/services/logger';
 import { esTauri } from '@app/utils/plataforma';
 
@@ -84,7 +85,7 @@ export const useDescargas = (): RetornoDescargas => {
                             toast.exito(`"${resp.data.nombre}" guardado en Descargas`);
                         } catch (dlErr) {
                             log.error('Error escribiendo descarga a disco', dlErr);
-                            toast.error('Error guardando el archivo');
+                            toast.error(getT()('error.guardarDescargas'));
                             return false;
                         }
                     } else {

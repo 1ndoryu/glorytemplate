@@ -11,6 +11,7 @@ import type { CarpetaInfo } from '@app/services/apiExplorador';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { obtenerCarpetaPrimaria, obtenerCarpetaSecundaria, recalcularCarpetas } from './utils/exploradorPaginaUtils';
 import { useLikeExplorador } from './useLikeExplorador';
 import { useRestaurarUbicacion } from './useRestaurarUbicacion';
@@ -208,7 +209,7 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
             if (!resp.ok) {
                 setTodosSamples(prevSamples);
                 setCarpetas(prevCarpetas);
-                toast.error('Error al mover el sample');
+                toast.error(getT()('error.moverSample'));
                 return false;
             }
             toast.exito(`Sample movido a ${carpetaPrimaria}${carpetaSecundaria ? '/' + carpetaSecundaria : ''}`);

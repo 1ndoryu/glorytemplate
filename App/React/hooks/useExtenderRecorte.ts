@@ -11,6 +11,7 @@ import { extenderRecorte, generarSiguienteSample, restaurarRecorte } from '@app/
 import { useExtenderRecorteStore } from '@app/stores/extenderRecorteStore';
 import { EVENTO_SAMPLE_ACTUALIZADO, EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('useExtenderRecorte');
@@ -48,7 +49,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
         if (!sample || enviando) return false;
 
         if (segAntes === 0 && segDespues === 0) {
-            toast.error('Agrega al menos 1 segundo de extensión');
+            toast.error(getT()('error.extensionMinima'));
             return false;
         }
 
@@ -81,7 +82,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
             return false;
         } catch (err) {
             log.error('Error inesperado al extender recorte', err);
-            toast.error('Error de red al enviar extensión');
+            toast.error(getT()('error.redExtension'));
             return false;
         } finally {
             setEnviando(false);
@@ -92,7 +93,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
         if (!sample || enviando) return false;
 
         if (duracionSiguiente <= 0) {
-            toast.error('La duración debe ser mayor a 0');
+            toast.error(getT()('error.duracion'));
             return false;
         }
 
@@ -122,7 +123,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
             return false;
         } catch (err) {
             log.error('Error inesperado al generar sample siguiente', err);
-            toast.error('Error de red al generar sample');
+            toast.error(getT()('error.redGenerarSample'));
             return false;
         } finally {
             setEnviando(false);
@@ -162,7 +163,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
             return false;
         } catch (err) {
             log.error('Error inesperado al restaurar recorte', err);
-            toast.error('Error de red al restaurar');
+            toast.error(getT()('error.redRestaurar'));
             return false;
         } finally {
             setEnviando(false);

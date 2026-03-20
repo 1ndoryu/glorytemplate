@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { seccionesCanciones } from '@app/services/apiCanciones';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { SeccionMusica, Cancion } from '@app/types/cancion';
 
 /* QL83: Slugs de canciones ocultas en el feed de musica (no en busqueda) */
@@ -63,7 +64,7 @@ export function useSeccionesCanciones() {
                     c.id === cancionId ? { ...c, liked: anterior!.liked } : c
                 ),
             })));
-            toast.error('Error al dar like');
+            toast.error(getT()('error.like'));
         }
     }, [secciones]);
 

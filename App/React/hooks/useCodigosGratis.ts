@@ -17,6 +17,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useCodigoGratisStore } from '@app/stores/codigoGratisStore';
 import { verificarCodigo, reclamarCodigo } from '@app/services/apiCodigosGratis';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 export const useCodigosGratis = (): void => {
     const usuario = useAuthStore((s) => s.usuario);
@@ -38,12 +39,12 @@ export const useCodigosGratis = (): void => {
             /* [183A-110] Codigo expirado: guardar pendiente para dar compensacion al registrarse */
             if (!infoResp.ok && infoResp.data?.expired) {
                 agregarPendiente(codigo);
-                toast.info('Este enlace ya venciÃ³, pero si te registras recibirÃ¡s crÃ©ditos de compensaciÃ³n.');
+                toast.info(getT()('toast.codigoExpirado'));
                 return;
             }
 
             if (!infoResp.ok || !infoResp.data) {
-                toast.error('El enlace de descarga gratis no es vÃ¡lido.');
+                toast.error(getT()('toast.codigoInvalido'));
                 return;
             }
 
@@ -54,12 +55,12 @@ export const useCodigosGratis = (): void => {
                 const resp = await reclamarCodigo(codigo);
                 if (resp.ok && resp.data?.tipo && resp.data?.targetId !== undefined) {
                     reclamar(codigo, resp.data.tipo, resp.data.targetId);
-                    toast.exito('Â¡Descarga gratuita desbloqueada! Usa el botÃ³n de descarga.');
+                    toast.exito(getT()('toast.descargaDesbloqueada'));
                 }
             } else {
                 /* No autenticado: guardar para reclamar al iniciar sesion */
                 agregarPendiente(codigo);
-                toast.info('Tienes una descarga gratis esperando. Â¡Inicia sesiÃ³n para reclamarla!');
+                toast.info(getT()('toast.descargaGratisEspera'));
             }
             void tipo; void targetId; /* solo para type-check, se procesa en reclamar */
         };
@@ -94,7 +95,7 @@ export const useCodigosGratis = (): void => {
             limpiarPendientes();
 
             if (descargasDesbloqueadas > 0) {
-                toast.exito('Â¡Descarga gratuita desbloqueada! Usa el botÃ³n de descarga.');
+                toast.exito(getT()('toast.descargaDesbloqueada'));
             }
         };
 

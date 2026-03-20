@@ -12,6 +12,7 @@ import type { SampleResumen, TipoReaccion } from '@app/types';
 import type { ResultadoProveedor } from '@app/components/feed/FeedSamples';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 const log = crearLogger('useFavoritosPagina');
 
@@ -88,7 +89,7 @@ export function useFavoritosPagina(orden: string = 'recientes'): UseFavoritosPag
                 if (!resp.ok) {
                     setSamples(prevSamples);
                     setTotalFavoritos(prevTotal);
-                    toast.error('Error al procesar la reacción');
+                    toast.error(getT()('error.reaccion'));
                 }
             } catch (err) {
                 setSamples(prevSamples);
@@ -104,7 +105,7 @@ export function useFavoritosPagina(orden: string = 'recientes'): UseFavoritosPag
                 if (!resp.ok) {
                     setSamples(prevSamples);
                     setTotalFavoritos(prevTotal);
-                    toast.error('Error al quitar la reacción');
+                    toast.error(getT()('error.quitarReaccion'));
                 }
             } catch (err) {
                 setSamples(prevSamples);
@@ -123,7 +124,7 @@ export function useFavoritosPagina(orden: string = 'recientes'): UseFavoritosPag
                 const resp = await darLike('sample', sampleId, 'like');
                 if (!resp.ok) {
                     setSamples(prevSamples);
-                    toast.error('Error al procesar la reacción');
+                    toast.error(getT()('error.reaccion'));
                 }
             } catch (err) {
                 setSamples(prevSamples);

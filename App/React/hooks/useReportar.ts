@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react';
 import { useReportarStore, type TipoReporte } from '@app/stores/reportarStore';
 import { apiPost } from '@app/services/apiCliente';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 interface RespuestaReporte {
     ok: boolean;
@@ -55,7 +56,7 @@ export function useReportar() {
         }
         const detallesTrim = detalles.trim();
         if (esError && !detallesTrim) {
-            toast.error('Describe el error que encontraste');
+            toast.error(getT()('error.descripcionReporte'));
             return;
         }
         if (!tipo) return;

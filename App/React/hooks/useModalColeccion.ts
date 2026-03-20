@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { crearColeccion, actualizarColeccion, subirImagenColeccion, listarColecciones } from '@app/services/apiColecciones';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { Coleccion } from '@app/types';
 
 const log = crearLogger('ModalColeccion');
@@ -119,7 +120,7 @@ export const useModalColeccion = ({
                     if (respImagen.ok && respImagen.data) {
                         imagenUrl = respImagen.data.imagenUrl;
                     } else {
-                        toast.error('No se pudo subir la imagen');
+                        toast.error(getT()('error.upload'));
                         setGuardando(false);
                         return;
                     }

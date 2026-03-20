@@ -9,6 +9,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { crearArticulo, actualizarArticulo } from '@app/services/apiArticulos';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import type { EmbedArticulo } from '@app/types';
 
 export const useEditorArticulo = () => {
@@ -106,7 +107,7 @@ export const useEditorArticulo = () => {
                 }
             }
         } catch {
-            toast.error('Error de red al publicar');
+            toast.error(getT()('error.redPublicar'));
         } finally {
             store.setPublicando(false);
         }
@@ -120,11 +121,11 @@ export const useEditorArticulo = () => {
         const file = e.target.files?.[0];
         if (!file) return;
         if (!file.type.startsWith('image/')) {
-            toast.error('Solo se permiten imágenes');
+            toast.error(getT()('error.imagenTipo'));
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('La imagen no debe superar 5 MB');
+            toast.error(getT()('error.imagenTamano'));
             return;
         }
         store.setPortada(file);

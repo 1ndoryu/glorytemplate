@@ -11,6 +11,7 @@ import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useMenuContextualPublicacion } from '@app/hooks/useMenuContextualPublicacion';
 import { apiGet } from '@app/services/apiCliente';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 import { darLike, quitarLike, repostear, quitarRepost, obtenerPublicacion } from '@app/services/apiSocial';
 import { EVENTO_ENTIDAD_ACTUALIZADA } from '@app/components/social/ModalEditar';
 import type { TipoReaccion, Publicacion } from '@app/types';
@@ -222,7 +223,7 @@ export function useComunidadIsland() {
             const resp = estabaReposteado ? await quitarRepost(postId) : await repostear(postId);
             if (!resp.ok) {
                 setPublicaciones(snapshot);
-                toast.error('No se pudo realizar el repost');
+                toast.error(getT()('error.repost'));
             } else {
                 toast.exito(estabaReposteado ? 'Repost eliminado' : 'Repost compartido');
             }

@@ -225,7 +225,7 @@ Las waveform cuando la pagina este en white mode tienen que ser de color oscuro,
 
 ## 193A-52 (en planificacion)
 
-El selector de idioma en el landing es muy feo, tiene que ser mas minimalista, te dejare un ejemplo
+El selector de idioma en el landing es muy feo, tiene que ser mas minimalista, un badge con bordes completamente redondeados con select personalizado como el que se usa en el modal de editar de los samples, (es un componente de select personalizado propio de kamples), y mostrar en texto los idioa sin la bandera
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
