@@ -5,7 +5,7 @@
  * Toda la lógica reside en useCrearContenido.
  */
 
-import { Music, Image as ImageIcon, X, AlertCircle, CheckCircle, Clock, ImagePlus } from 'lucide-react';
+import { Music, Image as ImageIcon, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -121,16 +121,12 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {/* Audio adjunto con info */}
             {audioAdjunto && (
                 <div className="crearAdjunto">
-                    <div className="crearAdjuntoIcono"><Music size={18} /></div>
-                    <div className="crearAdjuntoInfo">
-                        <span className="crearAdjuntoNombre">{audioAdjunto.nombre}</span>
-                        <span className="crearAdjuntoMeta">{audioAdjunto.formato} — {audioAdjunto.tamano}</span>
-                    </div>
-                    {/* QQ90: Botón/preview portada del sample */}
+                    {/* [193A-90] La portada reemplaza el ícono de Music. Click abre selector
+                     * o quita la portada según el estado. No es un botón separado. */}
                     {portadaPreviewUrl ? (
                         <BotonBase
                             variante="ghost"
-                            className="crearAdjuntoPortadaPreview"
+                            className="crearAdjuntoIcono crearAdjuntoPortadaPreview"
                             onClick={quitarPortada}
                             type="button"
                             aria-label={t('crear.quitarPortada')}
@@ -142,15 +138,19 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     ) : (
                         <BotonBase
                             variante="ghost"
-                            className="crearAdjuntoBtn"
+                            className="crearAdjuntoIcono crearAdjuntoIconoBtn"
                             onClick={() => inputPortadaRef.current?.click()}
                             type="button"
                             aria-label={t('crear.adjuntarPortada')}
                             title={t('crear.adjuntarPortada')}
                         >
-                            <ImagePlus size={14} />
+                            <Music size={18} />
                         </BotonBase>
                     )}
+                    <div className="crearAdjuntoInfo">
+                        <span className="crearAdjuntoNombre">{audioAdjunto.nombre}</span>
+                        <span className="crearAdjuntoMeta">{audioAdjunto.formato} — {audioAdjunto.tamano}</span>
+                    </div>
                     <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={quitarAudio} type="button" aria-label={t('crear.quitarAudio')}>
                         <X size={14} />
                     </BotonBase>
@@ -275,10 +275,10 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             <div className="crearAcciones">
                 <div className="crearAccionesIzquierda">
                     <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputAudioRef.current?.click()} type="button" aria-label={t('crear.adjuntarAudio')} disabled={!!audioAdjunto}>
-                        <Music size={18} />
+                        <Music size={20} />
                     </BotonBase>
                     <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputImagenRef.current?.click()} type="button" aria-label={t('crear.adjuntarImagen')} disabled={imagenes.length >= maxImagenes}>
-                        <ImageIcon size={18} />
+                        <ImageIcon size={20} />
                     </BotonBase>
                 </div>
                 <div className="crearAccionesDerecha">

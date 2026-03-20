@@ -163,6 +163,24 @@
     color: var(--acento-blanco);
     display: flex;
     flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+/* [193A-90] El ícono de Music es clickeable para subir portada */
+.crearAdjuntoIconoBtn {
+    cursor: pointer;
+    border-radius: var(--radioMd);
+    transition: background-color var(--transicionRapida);
+}
+
+.crearAdjuntoIconoBtn:hover {
+    background-color: var(--fondoElevado2);
 }
 
 .crearAdjuntoInfo {
@@ -208,18 +226,13 @@
     color: var(--error);
 }
 
-/* QQ90: Preview de portada en el adjunto de audio */
+/* [193A-90] Preview de portada reemplaza el ícono Music en la misma posición */
 .crearAdjuntoPortadaPreview {
     position: relative;
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
     border-radius: var(--radioMd);
     overflow: hidden;
     cursor: pointer;
     border: 1px solid var(--bordeSutil);
-    padding: 0;
-    background: none;
 }
 
 .crearAdjuntoPortadaPreview img {
@@ -500,7 +513,6 @@
     align-items: center;
     justify-content: space-between;
     padding-top: var(--espacioSm);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .crearAccionesIzquierda {

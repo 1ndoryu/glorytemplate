@@ -104,6 +104,8 @@ las imagenes de perfil por defecto se cambiaron(a los usuarios que no tienen ima
 
 revisa el historial de avatar, restaura a cuando no usaba grevatar y optimiza asi como se optimizan el resto de imagenes.
 
+las iamgenes de colors me parece que no estan usando el cdn <img src="/wp-content/themes/glorytemplate/colors/48973f8f62134470de198bf59210b367.jpg" alt="Doom Vocal Hit 100bpm Cm" loading="lazy" class="tarjetaPortadaImg">
+
 
 ## Antes de penultima (preferiblemente antepenultima)
 
