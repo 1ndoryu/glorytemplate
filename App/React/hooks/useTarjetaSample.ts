@@ -247,13 +247,18 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                         return;
                     }
 
+                    /* [2003A-36] Marcar coleccionado ANTES de descargarYArrastrar.
+                     * Si descargarYArrastrar falla (usuario suelta mouse, red, etc.)
+                     * el crédito ya se consumió — el "+" debe reflejar el estado real.
+                     * Sin la condición yaExistia: consistente con manejarColeccionar. */
+                    setDescargado(true);
+                    if (!resp.data?.yaExistia) {
+                        toast.exito('Sample coleccionado');
+                    }
+
                     if (resp.data?.url) {
                         const nombreFinal = resp.data.nombre || nombre;
                         await dragService.descargarYArrastrar(sample.id, resp.data.url, nombreFinal);
-
-                        if (!resp.data.yaExistia) {
-                            setDescargado(true);
-                        }
                     }
                 })().catch((err: unknown) => {
                     console.error('[DragNativo] Error:', err);
