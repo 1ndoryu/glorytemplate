@@ -61,10 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 2003A-26
-
-El problema de hacer scroll y luego intentar subir activa la recarga persiste en la version movil android, llevamos mucho tiempo con esta tarea. 
-
 ## 2003A-27
 
 ¿esto es lo suficientemente detallado para encontrar problema de optimizacion? si no lo es, ajustalo, y si lo es, dejalo asi 
