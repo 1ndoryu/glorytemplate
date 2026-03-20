@@ -20,8 +20,10 @@ use App\Kamples\Database\Repositories\ConversacionesRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\BloqueosRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\NotificadorWebSocket;
+use App\Kamples\Services\ServicioFcm;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Servicios\ServicioMedia;
 
@@ -155,6 +157,30 @@ class MensajesEnvioController
                     'conversacionId' => $conversacionId,
                     'mensaje'        => $mensaje,
                 ]);
+
+                /* [193A-76] Con la app cerrada, el WS no alcanza. Se envía FCM
+                 * dedicado para mensaje_nuevo usando el canal Android "mensajes". */
+                $remitente = UsuariosExtRepository::buscarUsername($userId);
+                $cuerpoPush = match ($tipo) {
+                    MensajesEnums::TIPO_IMAGEN => '[Imagen]',
+                    MensajesEnums::TIPO_AUDIO => '[Audio]',
+                    MensajesEnums::TIPO_SAMPLE => '[Sample]',
+                    default => $contenido,
+                };
+
+                ServicioFcm::enviarAUsuario(
+                    $otroId,
+                    'Nuevo mensaje',
+                    $cuerpoPush !== '' ? "@{$remitente}: {$cuerpoPush}" : "@{$remitente} te ha enviado un mensaje",
+                    [
+                        'tipo' => 'mensaje_nuevo',
+                        'enlace' => "/mensajes/{$conversacionId}/",
+                        'ruta' => "/mensajes/{$conversacionId}/",
+                        'conversacionId' => $conversacionId,
+                        'remitenteId' => $userId,
+                        'mensajeId' => $msgId,
+                    ]
+                );
             }
 
             return new \WP_REST_Response(['data' => $mensaje], 201);

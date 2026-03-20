@@ -191,7 +191,8 @@ class NotificacionesRepository extends BaseRepository
         int $destinatarioId,
         string $tipo,
         ?int $actorId,
-        int $intervaloSegundos = 86400
+        int $intervaloSegundos = 86400,
+        ?string $datosJson = null
     ): bool {
         $tabla = NotificacionesCols::TABLA;
 
@@ -211,6 +212,14 @@ class NotificacionesRepository extends BaseRepository
             $params['actorId'] = $actorId;
         } else {
             $sql .= " AND " . NotificacionesCols::ACTOR_ID . " IS NULL";
+        }
+
+        /* [193A-76] El dedup por tipo+actor era demasiado agresivo: distintos
+         * eventos del mismo actor podían colisionar si compartían tipo genérico
+         * ('like', 'comentario'). Se refina con el payload JSON de la entidad. */
+        if ($datosJson !== null && $datosJson !== '') {
+            $sql .= " AND " . NotificacionesCols::DATOS . " = :datos::jsonb";
+            $params['datos'] = $datosJson;
         }
 
         $sql .= " LIMIT 1";

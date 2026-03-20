@@ -68,11 +68,21 @@ class ServicioNotificaciones
             return;
         }
 
-        /* QL47-B: Dedup — evitar spam por acciones repetidas (like/unlike/like, follow/unfollow) */
+        $datosJson = \json_encode($datos);
+        if ($datosJson === false) {
+            KamplesLogger::warning('ServicioNotificaciones: json_encode falló, usando payload vacío', [
+                'tipo' => $tipo,
+                'destinatarioId' => $destinatarioId,
+            ]);
+            $datosJson = '{}';
+        }
+
+        /* [193A-76] Dedup por actor+tipo+payload. Antes, dos eventos distintos del
+         * mismo actor podían colisionar si compartían tipo genérico. */
         $ventanaDedup = self::DEDUP_VENTANAS[$tipo] ?? null;
         if ($ventanaDedup !== null && $actorId !== null) {
             try {
-                if (NotificacionesRepository::existeReciente($destinatarioId, $tipo, $actorId, $ventanaDedup)) {
+                if (NotificacionesRepository::existeReciente($destinatarioId, $tipo, $actorId, $ventanaDedup, $datosJson)) {
                     return;
                 }
             } catch (\Throwable $e) {
@@ -89,7 +99,7 @@ class ServicioNotificaciones
                 $tipo,
                 $titulo,
                 $mensaje,
-                json_encode($datos),
+                $datosJson,
                 $actorId,
                 $enlace
             );
