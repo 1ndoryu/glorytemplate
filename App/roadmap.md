@@ -122,10 +122,6 @@ Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apag
 
 No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los articulos, e admin puede y debería elimianr cualquier articulo
 
-## 193A-46 (urgente)
-
-Cuando voy a https://kamples.com/perfil/Wandorius/ aparece Contenido no disponible, este es un error recurrente y frecuente
-
 ## 193A-47 
 
 Cuando hay un comentario el enlace de la notificacion es https://kamples.com/post/12/ y esta mal, las url de los post es /publicacion/ a demas dice "Alguien comentu tu publicacion" en vez de decir @usuario tal comento "tal cosa" o lo que esa pero mas discrictivo.  Pero tambien si voy a https://kamples.com/post/12/ dice Publicación no encontrada
