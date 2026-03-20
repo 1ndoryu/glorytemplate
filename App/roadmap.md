@@ -56,9 +56,8 @@ Ubicacion: `App/docs (ignorar)/`
 ## 183A-115 — COMPLETADO
 <!-- Badge verificado consistente en comentarios, perfil, detalle sample, colección y panel. Commit 9145bee85 -->
 
-## 193A-1
-
-En la apk no puedo hacer scroll horizontal en filaColecciones, arreglar sin dañar que en escritorio se pueda hacer scroll con el mouse tambien.
+## 193A-1 — COMPLETADO
+<!-- Touch scroll filaColecciones: useArrastrarScroll + touch-action:manipulation. Commit bc024089a -->
 
 ## 193A-5
 
