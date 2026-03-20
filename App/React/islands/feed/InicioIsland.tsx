@@ -148,24 +148,27 @@ export const FeedUnificado = (): JSX.Element => {
      * QK83: Proveedor de datos — pasa búsqueda al backend para FTS server-side.
      * El backend usa GIN indexes (QK75) para búsqueda full-text rápida (~400ms).
      * QL24: El backend ahora envía total en TODAS las páginas, no solo page 1.
+     * [193A-80] soloMeEncanta se envía al backend como solo_encanta para filtrado real.
      */
+    const soloMeEncanta = filtrosContenido.estaActivo('soloMeEncanta');
+
     const proveedor = useCallback(async (pagina: number) => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
-        const resp = await obtenerFeed(tipo, pagina, busquedaDebounced);
+        const resp = await obtenerFeed(tipo, pagina, busquedaDebounced, soloMeEncanta);
         if (resp.total != null) setTotalServidor(resp.total);
         return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
-    }, [ordenamiento, busquedaDebounced]);
+    }, [ordenamiento, busquedaDebounced, soloMeEncanta]);
 
     /* QL24: Resetear totalServidor al cambiar ordenamiento/búsqueda para evitar
      * mostrar total stale de un ordenamiento anterior mientras la nueva API responde. */
     useEffect(() => {
         setTotalServidor(null);
-    }, [ordenamiento, busquedaDebounced]);
+    }, [ordenamiento, busquedaDebounced, soloMeEncanta]);
 
-    /* QK83: Incluir búsqueda en clave de cache para invalidar al cambiar query */
-    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}`;
+    /* QK83: Incluir búsqueda y soloMeEncanta en clave de cache para invalidar al cambiar */
+    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${soloMeEncanta}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {

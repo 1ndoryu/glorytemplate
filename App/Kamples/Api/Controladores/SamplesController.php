@@ -38,6 +38,8 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class SamplesController
 {
@@ -74,6 +76,7 @@ class SamplesController
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 12, 'minimum' => 1, 'maximum' => 100],
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'busqueda_norm' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
+                'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
             ],
         ]);
 
@@ -378,14 +381,33 @@ class SamplesController
             $whereExtra .= ')';
         }
 
+        /* [193A-80] Filtro backend "solo me encanta": retorna únicamente samples
+         * donde el usuario autenticado tiene reacción 'encanta'. Esto reemplaza
+         * el antiguo filtro client-side que ocultaba samples post-fetch causando
+         * conteos incorrectos y paginación rota. */
+        $soloEncanta = (bool) $request->get_param('solo_encanta');
+        if ($soloEncanta) {
+            $uidEncanta = UsuarioHelper::obtenerIdPg();
+            if ($uidEncanta) {
+                $whereExtra .= " AND EXISTS (SELECT 1 FROM " . LikesCols::TABLA . " le"
+                             . " WHERE le." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+                             . " AND le." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+                             . " AND le." . LikesCols::USUARIO_ID . " = :soloEncantaUid"
+                             . " AND le." . LikesCols::REACCION . " = '" . LikesEnums::REACCION_ENCANTA . "')";
+                $extraParams['soloEncantaUid'] = $uidEncanta;
+            }
+        }
+
         /* QQ2/QL24: Total en TODAS las páginas para que el frontend tenga el contador correcto.
          * Antes solo se calculaba en page 1, causando que totalServidor quedara null
          * si la primera carga venía de cache y el race condition perdía el valor. */
         $countWhere = "s.{$sEstadoFeed} = '{$eActivoFeed}'" . $whereExtra;
         $totalActivos = SamplesRepository::contarConFiltros($countWhere, $extraParams);
 
-        /* Intentar usar el motor de recomendación para 'descubrir' (sin búsqueda activa) */
-        if ($tipo === 'descubrir' && empty($busqueda)) {
+        /* Intentar usar el motor de recomendación para 'descubrir' (sin búsqueda activa).
+         * [193A-80] Se omite cuando soloEncanta está activo porque el usuario quiere un
+         * subconjunto específico, no recomendaciones algorítmicas. */
+        if ($tipo === 'descubrir' && empty($busqueda) && !$soloEncanta) {
             $userId = UsuarioHelper::obtenerIdPg();
             KamplesLogger::info('Feed descubrir solicitado', [
                 'userId' => $userId, 'page' => $page, 'perPage' => $perPage,
