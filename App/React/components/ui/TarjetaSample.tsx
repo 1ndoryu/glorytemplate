@@ -17,6 +17,7 @@ import { normalizarTag } from '../../services/tagUtils';
 import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
+import { useT } from '@app/utils/i18n';
 import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import { BadgeDebugScore } from './BadgeDebugScore';
 import '../../styles/componentes/tarjetaSample.css';
@@ -57,6 +58,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
     const haySeleccion = useSeleccionSamplesStore(s => s.seleccionados.size > 0);
     const toggleSeleccion = useSeleccionSamplesStore(s => s.toggleSeleccion);
     const seleccionarRango = useSeleccionSamplesStore(s => s.seleccionarRango);
+    const { t } = useT();
 
     const manejarClick = (e: MouseEvent) => {
         if (e.ctrlKey || e.metaKey) {
@@ -124,7 +126,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
             onTouchMove={() => { touchMovido.current = true; cancelarLongPress(); }}
         >
             {/* Portada con overlay play/pause */}
-            <div className="tarjetaPortada" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
+            <div className="tarjetaPortada" aria-label={estaReproduciendo ? t('sample.pausar') : t('sample.reproducir')}>
                 <ImgOptimizada className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} w={80} quality={75} />
                 <div className={`tarjetaPortadaOverlay ${estaReproduciendo ? 'tarjetaPortadaOverlayActivo' : ''}`}>
                     {estaReproduciendo ? <Pause size={16} /> : <Play size={16} />}
@@ -158,7 +160,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     >
                         {sample.titulo}
                     </a>
-                    {noReproducido && <span className="tarjetaPuntoRojo" aria-label="No reproducido" />}
+                    {noReproducido && <span className="tarjetaPuntoRojo" aria-label={t('sample.noReproducido')} />}
                     {sample.verificado && <BadgeCheck size={14} className="tarjetaVerificado" />}
                     {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
                     {sample.scoreDebug && <BadgeDebugScore debug={sample.scoreDebug} />}
@@ -199,25 +201,25 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                         }`}
                         onClick={manejarLike}
                         type="button"
-                        aria-label={sample.liked ? 'Quitar like' : 'Dar like'}
+                        aria-label={sample.liked ? t('sample.quitarLike') : t('sample.darLike')}
                     >
                         <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
                     </BotonBase>
                 </TooltipReacciones>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionGuardarBtn ${guardado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionGuardarBtn ${guardado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarGuardar} type="button" aria-label={t('sample.guardarColeccion')}>
                     <Bookmark size={18} fill={guardado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionComentarBtn ${comentado ? 'tarjetaAccionLiked' : ''}`} onClick={(e) => { e.stopPropagation(); manejarComentar(sample.id); }} type="button" aria-label="Comentar">
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionComentarBtn ${comentado ? 'tarjetaAccionLiked' : ''}`} onClick={(e) => { e.stopPropagation(); manejarComentar(sample.id); }} type="button" aria-label={t('sample.comentar')}>
                     <MessageCircle size={18} fill={comentado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
                 {(() => {
                     /* QQ16: Determinar icono y tooltip según condición del sample */
                     const etiqueta = requiereCompra
-                        ? `Comprar $${sample.precio}`
-                        : esSoloPro ? 'Solo Pro' : 'Coleccionar';
+                        ? t('sample.comprar', { precio: `$${sample.precio}` })
+                        : esSoloPro ? t('sample.soloPro') : t('sample.coleccionar');
                     const icono = requiereCompra
                         ? <DollarSign size={18} />
                         : esSoloPro ? <Crown size={18} /> : <Plus size={18} />;
@@ -237,7 +239,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     );
                 })()}
 
-                <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion tarjetaMenuBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">
+                <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion tarjetaMenuBtn" onClick={manejarMenu} type="button" aria-label={t('sample.masOpciones')}>
                     <MoreHorizontal size={18} />
                 </BotonBase>
             </div>

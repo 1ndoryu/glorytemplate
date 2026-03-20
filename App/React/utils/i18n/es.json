@@ -105,5 +105,16 @@
   "comun.error": "Error",
   "comun.cerrar": "Cerrar",
   "comun.aceptar": "Aceptar",
-  "comun.buscar": "Buscar"
+  "comun.buscar": "Buscar",
+  "sample.reproducir": "Reproducir",
+  "sample.pausar": "Pausar",
+  "sample.noReproducido": "No reproducido",
+  "sample.darLike": "Dar like",
+  "sample.quitarLike": "Quitar like",
+  "sample.guardarColeccion": "Guardar en colección",
+  "sample.comentar": "Comentar",
+  "sample.comprar": "Comprar {precio}",
+  "sample.soloPro": "Solo Pro",
+  "sample.coleccionar": "Coleccionar",
+  "sample.masOpciones": "Más opciones"
 }

@@ -105,5 +105,16 @@
   "comun.error": "エラー",
   "comun.cerrar": "閉じる",
   "comun.aceptar": "OK",
-  "comun.buscar": "検索"
+  "comun.buscar": "検索",
+  "sample.reproducir": "再生",
+  "sample.pausar": "一時停止",
+  "sample.noReproducido": "未再生",
+  "sample.darLike": "いいね",
+  "sample.quitarLike": "いいね取消",
+  "sample.guardarColeccion": "コレクションに保存",
+  "sample.comentar": "コメント",
+  "sample.comprar": "{precio}で購入",
+  "sample.soloPro": "Proのみ",
+  "sample.coleccionar": "コレクション",
+  "sample.masOpciones": "その他のオプション"
 }

@@ -105,5 +105,16 @@
   "comun.error": "Error",
   "comun.cerrar": "Close",
   "comun.aceptar": "OK",
-  "comun.buscar": "Search"
+  "comun.buscar": "Search",
+  "sample.reproducir": "Play",
+  "sample.pausar": "Pause",
+  "sample.noReproducido": "Not played",
+  "sample.darLike": "Like",
+  "sample.quitarLike": "Remove like",
+  "sample.guardarColeccion": "Save to collection",
+  "sample.comentar": "Comment",
+  "sample.comprar": "Buy {precio}",
+  "sample.soloPro": "Pro only",
+  "sample.coleccionar": "Collect",
+  "sample.masOpciones": "More options"
 }
