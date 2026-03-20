@@ -7,6 +7,7 @@
 
 import { IMAGENES_COLOR } from './datos/imagenesColorLista';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
+import { photonUrl } from './photonUrl';
 
 const RUTA_RELATIVA = '/wp-content/themes/glorytemplate/colors/';
 const TOTAL = IMAGENES_COLOR.length;
@@ -27,10 +28,10 @@ export const obtenerImagenColor = (id: number): string => {
     const base = obtenerRutaBase();
     /* Guard: si id es NaN/undefined o no hay imágenes, devolver placeholder */
     if (!Number.isFinite(id) || TOTAL === 0) {
-        return `${base}${IMAGENES_COLOR[0] ?? 'placeholder.jpg'}`;
+        return photonUrl(`${base}${IMAGENES_COLOR[0] ?? 'placeholder.jpg'}`, { quality: 75 });
     }
     const indice = ((id % TOTAL) + TOTAL) % TOTAL;
-    return `${base}${IMAGENES_COLOR[indice]}`;
+    return photonUrl(`${base}${IMAGENES_COLOR[indice]}`, { quality: 75 });
 };
 
 /*
@@ -45,5 +46,5 @@ export const obtenerImagenColorPorTexto = (texto: string): string => {
         hash |= 0;
     }
     const indice = ((hash % TOTAL) + TOTAL) % TOTAL;
-    return `${base}${IMAGENES_COLOR[indice]}`;
+    return photonUrl(`${base}${IMAGENES_COLOR[indice]}`, { quality: 75 });
 };

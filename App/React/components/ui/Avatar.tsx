@@ -4,6 +4,7 @@
  * Soporta indicador de estado online.
  */
 
+import { ImgOptimizada } from './ImgOptimizada';
 import '../../styles/componentes/avatar.css';
 
 type TamanoAvatar = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
@@ -26,6 +27,15 @@ const mapaTamano: Record<TamanoAvatar, string> = {
     lg: 'avatarLg',
     xl: 'avatarXl',
     '2xl': 'avatar2xl',
+};
+
+const mapaPixeles: Record<TamanoAvatar, number> = {
+    xs: 22,
+    sm: 28,
+    md: 36,
+    lg: 48,
+    xl: 80,
+    '2xl': 120,
 };
 
 /* Extrae las primeras 2 iniciales del nombre */
@@ -63,14 +73,18 @@ export const Avatar = ({
 
     /* Normalizar: string vacío, URL inválida → null (muestra iniciales) */
     const srcNormalizado = src && src.trim() !== '' ? src : null;
+    const tamanoPx = mapaPixeles[tamano];
 
     return (
         <div className={clases} onClick={onClick} title={nombreSeguro} role={onClick ? 'button' : undefined}>
             {srcNormalizado ? (
-                <img
+                <ImgOptimizada
                     className="avatarImagen"
                     src={srcNormalizado}
                     alt={nombreSeguro}
+                    w={tamanoPx}
+                    h={tamanoPx}
+                    quality={75}
                     loading="lazy"
                     onError={(e) => {
                         /* Si la imagen falla, ocultar y mostrar iniciales */
@@ -80,9 +94,7 @@ export const Avatar = ({
                     }}
                 />
             ) : null}
-            {!srcNormalizado && (
-                <span className="avatarIniciales">{obtenerIniciales(nombreSeguro)}</span>
-            )}
+            <span className={`avatarIniciales${srcNormalizado ? ' avatarInicialesOcultas' : ''}`}>{obtenerIniciales(nombreSeguro)}</span>
             {estado !== 'ninguno' && (
                 <span
                     className={`avatarEstado ${estado === 'online' ? 'estadoOnline' : 'estadoOffline'}`}
