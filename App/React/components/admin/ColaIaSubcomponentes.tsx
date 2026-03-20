@@ -3,10 +3,10 @@
  * Extraidos para mantener el componente principal bajo 300 lineas.
  */
 
-import { AlertCircle, Clock, ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
+import { AlertCircle, Clock, ChevronUp, ChevronDown, RotateCcw, CheckCircle, XCircle, Key } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
-import type { ItemColaIa, EstadisticasColaIa, CuotaGroq } from '../../services/apiColaIa';
+import type { ItemColaIa, EstadisticasColaIa, CuotaGroq, EstadoKeysGroq } from '../../services/apiColaIa';
 import { useT } from '@app/utils/i18n/useT';
 
 /* Mapa de colores para badges de estado */
@@ -59,6 +59,63 @@ export const EstadisticasResumen = ({ stats }: { stats: EstadisticasColaIa }): J
                 <span className="colaIaStatNumero">{stats.errores + stats.en_reintento}</span>
                 <span className="colaIaStatLabel">{t('admin.cola.errores')}</span>
             </div>
+        </div>
+    );
+};
+
+/* Estado de las API Keys Groq (GROQ_API_1/2/3) — confirma que las 3 están configuradas */
+export const KeysGroqEstado = ({ estado }: { estado: EstadoKeysGroq }): JSX.Element => {
+    const todasOk = estado.total_configuradas === 3;
+    const ninguna = estado.total_configuradas === 0;
+    const indiceActivo = estado.indice_actual;
+
+    return (
+        <div className="colaIaKeysEstado">
+            <div className="colaIaKeysTitulo">
+                <Key size={14} />
+                <span>Keys Groq</span>
+                {todasOk
+                    ? <Badge variante="exito">3/3 OK</Badge>
+                    : <Badge variante={ninguna ? 'error' : 'advertencia'}>{estado.total_configuradas}/3 configuradas</Badge>
+                }
+            </div>
+            <div className="colaIaKeysList">
+                {estado.keys.map((k, i) => (
+                    <div
+                        key={k.nombre}
+                        className={`colaIaKeyItem${i === indiceActivo && k.configurada ? ' colaIaKeyActiva' : ''}`}
+                        title={k.configurada ? `Preview: ${k.preview}` : 'No configurada — agregar al .env del servidor'}
+                    >
+                        {k.configurada
+                            ? <CheckCircle size={13} className="colaIaKeyOk" />
+                            : <XCircle size={13} className="colaIaKeyError" />
+                        }
+                        <span className="colaIaKeyNombre">{k.nombre}</span>
+                        {i === indiceActivo && k.configurada && (
+                            <Badge variante="info">activa ahora</Badge>
+                        )}
+                    </div>
+                ))}
+                {!todasOk && (
+                    <div className="colaIaKeyItem">
+                        {estado.legacy_groq_api.configurada
+                            ? <CheckCircle size={13} className="colaIaKeyOk" />
+                            : <XCircle size={13} className="colaIaKeyError" />
+                        }
+                        <span className="colaIaKeyNombre">GROQ_API (legacy)</span>
+                        {estado.legacy_groq_api.configurada
+                            ? <Badge variante="advertencia">fallback</Badge>
+                            : <Badge variante="error">falta</Badge>
+                        }
+                    </div>
+                )}
+            </div>
+            {(estado.ultimo_audio_ts || estado.contador_diario > 0) && (
+                <div className="colaIaKeysExtra">
+                    {estado.ultimo_audio_ts && <span><Clock size={12} /> Último audio: {estado.ultimo_audio_ts}</span>}
+                    {estado.contador_diario > 0 && <span>Procesados hoy: {estado.contador_diario}</span>}
+                </div>
+            )}
         </div>
     );
 };

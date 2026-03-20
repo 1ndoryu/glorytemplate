@@ -15,6 +15,7 @@ import { useT } from '@app/utils/i18n/useT';
 import {
     EstadisticasResumen,
     CuotaGroqResumen,
+    KeysGroqEstado,
     CabeceraOrdenable,
     FilaItemColaIa,
 } from './ColaIaSubcomponentes';
@@ -57,6 +58,7 @@ export const TabColaIaAdmin = (): JSX.Element => {
     return (
         <div className="tabColaIa">
             {cola.estadisticas && <EstadisticasResumen stats={cola.estadisticas} />}
+            {cola.estadoKeys && <KeysGroqEstado estado={cola.estadoKeys} />}
             {cola.cuotaGroq && <CuotaGroqResumen cuota={cola.cuotaGroq} />}
 
             {/* Barra de controles: busqueda + filtros + acciones */}

@@ -210,3 +210,65 @@
 .colaIaCuotaGroq .colaIaEstadisticas {
     grid-template-columns: repeat(3, 1fr);
 }
+
+/* Estado de las API Keys Groq */
+.colaIaKeysEstado {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoTarjeta);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--borde);
+}
+
+.colaIaKeysTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.colaIaKeysList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioSm);
+}
+
+.colaIaKeyItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background: var(--fondoBase);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--borde);
+    font-size: var(--fuenteSm);
+}
+
+.colaIaKeyActiva {
+    border-color: var(--acento);
+    background: color-mix(in srgb, var(--acento) 8%, var(--fondoBase));
+}
+
+.colaIaKeyOk { color: var(--exito); }
+.colaIaKeyError { color: var(--error); }
+
+.colaIaKeyNombre {
+    font-family: monospace;
+    font-size: var(--fuenteXs);
+    color: var(--texto);
+}
+
+.colaIaKeysExtra {
+    display: flex;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    align-items: center;
+}

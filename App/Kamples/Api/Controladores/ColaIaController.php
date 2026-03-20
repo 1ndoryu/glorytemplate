@@ -76,6 +76,13 @@ class ColaIaController
             'callback' => [self::class, 'cuotaGroq'],
             'permission_callback' => $admin,
         ]);
+
+        /* Estado de las API keys Groq configuradas */
+        register_rest_route($namespace, '/admin/cola-ia/estado-keys', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'estadoKeys'],
+            'permission_callback' => $admin,
+        ]);
     }
 
     /**
@@ -281,6 +288,59 @@ class ColaIaController
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('ColaIaController::cuotaGroq fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /admin/cola-ia/estado-keys
+     * Devuelve el estado de las API keys Groq configuradas (GROQ_API_1/2/3).
+     * Permite verificar en el panel admin que las 3 keys están activas y cuál se usa ahora.
+     */
+    public static function estadoKeys(): \WP_REST_Response
+    {
+        try {
+            $nombres = ['GROQ_API_1', 'GROQ_API_2', 'GROQ_API_3'];
+            $keys = [];
+            foreach ($nombres as $nombre) {
+                $v = $_ENV[$nombre] ?? null;
+                if ($v === null) {
+                    $v = getenv($nombre) ?: null;
+                }
+                $ok = $v !== null && \str_starts_with($v, 'gsk_');
+                $keys[] = [
+                    'nombre'      => $nombre,
+                    'configurada' => $ok,
+                    'preview'     => $ok ? \substr($v, 0, 12) . '***' : null,
+                ];
+            }
+
+            /* Verificar legacy GROQ_API (Docker env var) como fallback */
+            $legacy = $_ENV['GROQ_API'] ?? null;
+            if ($legacy === null) {
+                $legacy = getenv('GROQ_API') ?: null;
+            }
+            $legacyOk = $legacy !== null && \str_starts_with($legacy, 'gsk_');
+
+            $totalOk = \count(\array_filter($keys, static fn($k) => $k['configurada']));
+            $indice = (int) get_transient('kmpl_groq_key_index');
+            $ultimoAudio = (int) get_transient('kmpl_ia_ultimo_audio');
+            $contadorDiario = (int) get_transient('kmpl_ia_daily_count');
+
+            return new \WP_REST_Response([
+                'ok'              => true,
+                'keys'            => $keys,
+                'legacy_groq_api' => [
+                    'configurada' => $legacyOk,
+                    'preview'     => $legacyOk ? \substr($legacy, 0, 12) . '***' : null,
+                ],
+                'indice_actual'       => $indice % \max(1, $totalOk),
+                'total_configuradas'  => $totalOk,
+                'ultimo_audio_ts'     => $ultimoAudio > 0 ? \date('Y-m-d H:i:s', $ultimoAudio) : null,
+                'contador_diario'     => $contadorDiario,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ColaIaController::estadoKeys fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { ItemColaIa, EstadisticasColaIa, ResultadoProcesamiento, CuotaGroq } from '../services/apiColaIa';
+import type { ItemColaIa, EstadisticasColaIa, ResultadoProcesamiento, CuotaGroq, EstadoKeysGroq } from '../services/apiColaIa';
 import {
     listarColaIa,
     obtenerEstadisticasColaIa,
@@ -13,6 +13,7 @@ import {
     reintentarTodosColaIa,
     procesarColaIaAhora,
     obtenerCuotaGroq,
+    obtenerEstadoKeys,
 } from '../services/apiColaIa';
 
 interface UseTabColaIaReturn {
@@ -20,6 +21,7 @@ interface UseTabColaIaReturn {
     items: ItemColaIa[];
     estadisticas: EstadisticasColaIa | null;
     cuotaGroq: CuotaGroq | null;
+    estadoKeys: EstadoKeysGroq | null;
     cargando: boolean;
     procesando: boolean;
 
@@ -65,6 +67,7 @@ export function useTabColaIa(): UseTabColaIaReturn {
     const [sortDir, setSortDir] = useState<'ASC' | 'DESC'>('DESC');
     const [ultimoResultado, setUltimoResultado] = useState<ResultadoProcesamiento | null>(null);
     const [cuotaGroq, setCuotaGroq] = useState<CuotaGroq | null>(null);
+    const [estadoKeys, setEstadoKeys] = useState<EstadoKeysGroq | null>(null);
 
     const ordenarPor = useCallback((col: string) => {
         setSortCol(prev => {
@@ -81,7 +84,7 @@ export function useTabColaIa(): UseTabColaIaReturn {
     const cargarDatos = useCallback(async () => {
         setCargando(true);
         try {
-            const [respItems, respStats, respCuota] = await Promise.all([
+            const [respItems, respStats, respCuota, respKeys] = await Promise.all([
                 listarColaIa(
                     pagina, 25,
                     filtroEstado || undefined,
@@ -92,6 +95,7 @@ export function useTabColaIa(): UseTabColaIaReturn {
                 ),
                 obtenerEstadisticasColaIa(),
                 obtenerCuotaGroq(),
+                obtenerEstadoKeys(),
             ]);
 
             if (respItems.ok && respItems.data) {
@@ -110,6 +114,9 @@ export function useTabColaIa(): UseTabColaIaReturn {
             }
             if (respCuota.ok && respCuota.data?.ok && respCuota.data.cuota) {
                 setCuotaGroq(respCuota.data.cuota);
+            }
+            if (respKeys.ok && respKeys.data?.ok) {
+                setEstadoKeys(respKeys.data);
             }
         } finally {
             setCargando(false);
@@ -164,6 +171,7 @@ export function useTabColaIa(): UseTabColaIaReturn {
         items,
         estadisticas,
         cuotaGroq,
+        estadoKeys,
         cargando,
         procesando,
         filtroEstado,

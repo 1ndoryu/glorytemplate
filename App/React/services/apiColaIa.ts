@@ -86,6 +86,19 @@ export interface CuotaGroq {
     resetTokens: string;
 }
 
+export interface EstadoKeysGroq {
+    keys: Array<{ nombre: string; configurada: boolean; preview: string | null }>;
+    legacy_groq_api: { configurada: boolean; preview: string | null };
+    indice_actual: number;
+    total_configuradas: number;
+    ultimo_audio_ts: string | null;
+    contador_diario: number;
+}
+
 export const obtenerCuotaGroq = async (): Promise<RespuestaApi<{ ok: boolean; cuota: CuotaGroq }>> => {
     return apiGet<{ ok: boolean; cuota: CuotaGroq }>('/admin/cola-ia/cuota-groq');
+};
+
+export const obtenerEstadoKeys = async (): Promise<RespuestaApi<{ ok: boolean } & EstadoKeysGroq>> => {
+    return apiGet<{ ok: boolean } & EstadoKeysGroq>('/admin/cola-ia/estado-keys');
 };
