@@ -86,15 +86,17 @@ lo que vamos a hacer es aumentar la velocidad de la cola de ia, creo que actualm
 
 verificar que solo haya gap para el procesamiento de audios y metadata de ia de esos audios, para cosas como comentarios, publicaciones de comunidad y moderacion para esas actividades no hay gap, pero igual usar la rotacion de api. 
 
-## 193A-44
-
-En https://kamples.com/descargas/ falta un filtro de "Mostrar solo me encantas" Esto sirve para la tab de me gusta para cuando se quiera ver solo los me encanta y ocultar temporalmente los que son me gusta.
-
-Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apaga, si se activa solo muestra "me encanta", esto puede ser global y mostrarse incluso en el feed
+## 193A-44 — COMPLETADO
+<!-- Filtro me encanta toggle corazón en descargas/favoritos/feed. Fix reaccion=encanta. Commit f30bc3c25 -->
 
 ## 193A-54
 
 el selector de idioma no tiene que tener banderas, debe ser un select, y las idomas en texto, debe ser un select usar el select personalizado de sample, el que se usa en el modal de editar samples, el landing. Vi que se hizo un intento el footer pero no, el nav del lading hay un selector de idiomas y no es un select, debe serlo y el select del footer no es el compontente de kamples!!!!!
+
+## 193A-55
+
+El icono de verificado en los perfiles no es el correcto, el de post de comunidad si y falta en los comentarios y en los nombre de conversacion de chat
+
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
