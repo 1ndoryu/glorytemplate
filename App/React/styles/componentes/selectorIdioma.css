@@ -1,0 +1,51 @@
+/* [183A-111] selectorIdioma.css — Selector de idioma (compacto y completo).
+ * Usa variables del design system de Kamples. */
+
+.selectorIdioma {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio3xs, 3px);
+}
+
+.selectorIdiomaBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio3xs, 3px);
+    padding: var(--espacio3xs, 3px) var(--espacioXs, 4px);
+    border: 1px solid transparent;
+    border-radius: var(--radioSm, 4px);
+    background: transparent;
+    color: var(--textoSecundario, #888);
+    font-size: var(--fuenteSm, 12px);
+    font-family: var(--fuentePrincipal);
+    cursor: pointer;
+    transition: background var(--transicionRapida, 150ms ease), color var(--transicionRapida, 150ms ease), border-color var(--transicionRapida, 150ms ease);
+    line-height: 1;
+}
+
+.selectorIdiomaBoton:hover {
+    background: var(--hoverSutil, rgba(255, 255, 255, 0.05));
+    color: var(--textoPrimario, #e8e1c9);
+}
+
+.selectorIdiomaBoton--activo {
+    background: var(--acentoMuted, rgba(74, 102, 91, 0.15));
+    border-color: var(--acento, #4a665b);
+    color: var(--acento, #4a665b);
+    font-weight: var(--pesoSemibold, 500);
+}
+
+.selectorIdiomaBandera {
+    font-size: 1em;
+    line-height: 1;
+}
+
+.selectorIdiomaEtiqueta {
+    font-size: var(--fuenteXs, 11px);
+    letter-spacing: 0.02em;
+}
+
+/* Variante completo: padding un poco más generoso */
+.selectorIdioma--completo .selectorIdiomaBoton {
+    padding: var(--espacioXs, 4px) var(--espacioSm, 8px);
+}

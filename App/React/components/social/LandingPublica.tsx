@@ -3,6 +3,7 @@
  * Página de bienvenida para usuarios no autenticados.
  * Secciones: Hero con CTAs, Visual Kamples, Sync, DAW, Catálogo.
  * Lógica extraída a useLandingPublica.
+ * [183A-111] i18n: useT + SelectorIdioma integrado en el footer.
  */
 
 import {Download, Search} from 'lucide-react';
@@ -13,6 +14,8 @@ import {GloryLink} from '@/core/router';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 import { useState, type KeyboardEvent } from 'react';
 import { useNavigationStore } from '@/core/router';
+import { useT } from '@app/utils/i18n';
+import { SelectorIdioma } from '@app/components/ui/SelectorIdioma';
 import '../../styles/componentes/landingPublica.css';
 
 /* Versión de assets SVG para cache-busting (incrementar al modificar los SVGs) */
@@ -33,6 +36,7 @@ const SVG_W = 1288;
 const SVG_H = 717;
 
 export const LandingPublica = (): JSX.Element => {
+    const { t } = useT();
     const {abrirAuth} = useLandingPublica();
     const navegar = useNavigationStore(s => s.navegar);
     const svgs = rutasSvg();
@@ -58,11 +62,11 @@ export const LandingPublica = (): JSX.Element => {
 
             <section className="landingHero">
                 <h1 className="landingHeroTitulo">
-                    La mejor biblioteca de samples
-                    <span className="landingHeroResaltado"> del planeta</span>
+                    {t('landing.titulo')}
+                    <span className="landingHeroResaltado">{t('landing.tituloResaltado')}</span>
                 </h1>
                 <p className="landingHeroDescripcion">
-                    Descubre, descarga y sincroniza samples. Algoritmo inteligente, comunidad de productores y DAW integrado.
+                    {t('landing.descripcion')}
                 </p>
                 {/* [183A-18] Buscador que redirige a /descubrir/?q= */}
                 <div className="landingHeroBuscador">
@@ -70,24 +74,24 @@ export const LandingPublica = (): JSX.Element => {
                     <Input
                         type="text"
                         className="landingHeroBuscadorInput"
-                        placeholder="Busca samples, géneros, BPM..."
+                        placeholder={t('landing.buscarPlaceholder')}
                         value={busqueda}
                         onChange={e => setBusqueda(e.target.value)}
                         onKeyDown={manejarTecla}
-                        aria-label="Buscar samples"
+                        aria-label={t('landing.buscar')}
                     />
                     <BotonBase variante="primario" tamano="sm" onClick={irADescubrir} type="button">
-                        Buscar
+                        {t('landing.buscar')}
                     </BotonBase>
                 </div>
                 <div className="landingHeroAcciones">
                     <BotonBase variante="secundario" tamano="md" onClick={() => abrirAuth('registro')}>
-                        Crear cuenta gratis
+                        {t('auth.crearCuentaGratis')}
                     </BotonBase>
                     <GloryLink href="/descargar" className="landingHeroDescargarEnlace">
                         <BotonBase variante="primario" tamano="md">
                             <Download size={16} />
-                            Descargar app
+                            {t('landing.descargarApp')}
                         </BotonBase>
                     </GloryLink>
                 </div>
@@ -96,7 +100,7 @@ export const LandingPublica = (): JSX.Element => {
             <section className="landingHeroVisual">
                 <img
                     src={svgs.kamples}
-                    alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado"
+                    alt={t('landing.img.kamples')}
                     className="landingSeccionSync"
                     width={SVG_W}
                     height={SVG_H}
@@ -107,12 +111,12 @@ export const LandingPublica = (): JSX.Element => {
 
             <section className="seccionSync seccionEstandar">
                 <div>
-                    <h2 className="titleSeccion">Sync en todos tus dispositivos</h2>
-                    <span className="subtitleSeccion">Sincronización bidireccional automática entre web y escritorio</span>
+                    <h2 className="titleSeccion">{t('landing.seccion.sync.titulo')}</h2>
+                    <span className="subtitleSeccion">{t('landing.seccion.sync.subtitulo')}</span>
                 </div>
                 <img
                     src={svgs.sync}
-                    alt="Sincronización bidireccional de samples entre plataformas web y escritorio"
+                    alt={t('landing.img.sync')}
                     className="landingSeccionSync"
                     width={SVG_W}
                     height={SVG_H}
@@ -123,12 +127,12 @@ export const LandingPublica = (): JSX.Element => {
 
             <section className="seccionSync seccionEstandar">
                 <div>
-                    <h2 className="titleSeccion">Mezcla en el navegador</h2>
-                    <span className="subtitleSeccion">Prueba y combina samples en el DAW integrado antes de descargar</span>
+                    <h2 className="titleSeccion">{t('landing.seccion.daw.titulo')}</h2>
+                    <span className="subtitleSeccion">{t('landing.seccion.daw.subtitulo')}</span>
                 </div>
                 <img
                     src={svgs.miniDaw}
-                    alt="DAW integrado en el navegador para mezclar y editar samples"
+                    alt={t('landing.img.daw')}
                     className="landingSeccionSync"
                     width={SVG_W}
                     height={SVG_H}
@@ -139,12 +143,12 @@ export const LandingPublica = (): JSX.Element => {
 
             <section className="seccionSync seccionEstandar">
                 <div>
-                    <h2 className="titleSeccion">Miles de samples por descubrir</h2>
-                    <span className="subtitleSeccion">Catálogo curado con algoritmo de recomendación personalizado</span>
+                    <h2 className="titleSeccion">{t('landing.seccion.catalogo.titulo')}</h2>
+                    <span className="subtitleSeccion">{t('landing.seccion.catalogo.subtitulo')}</span>
                 </div>
                 <img
                     src={svgs.rolas}
-                    alt="Catálogo de samples con portadas de canciones y algoritmo de descubrimiento"
+                    alt={t('landing.img.catalogo')}
                     className="landingSeccionSync"
                     width={SVG_W}
                     height={SVG_H}
@@ -158,19 +162,21 @@ export const LandingPublica = (): JSX.Element => {
 
             <footer className="landingFooter">
                 <p className="landingFooterTexto">
-                    Kamples es un producto de{' '}
+                    {t('landing.footer.producto')}{' '}
                     <GloryLink href="https://nakomi.studio" target="_blank" rel="noopener noreferrer" className="landingFooterEnlace">
                         Nakomi.studio
                     </GloryLink>
                 </p>
                 <nav className="landingFooterNav">
                     <GloryLink href="/privacy/" className="landingFooterNavEnlace">
-                        Privacidad
+                        {t('landing.footer.privacidad')}
                     </GloryLink>
                     <GloryLink href="/terms/" className="landingFooterNavEnlace">
-                        Términos
+                        {t('landing.footer.terminos')}
                     </GloryLink>
                 </nav>
+                {/* [183A-111] Selector de idioma en el footer de la landing */}
+                <SelectorIdioma variante="compacto" className="landingFooterIdioma" />
             </footer>
         </div>
     );

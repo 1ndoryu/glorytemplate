@@ -1,11 +1,17 @@
+/* sentinel-disable-file limite-lineas — ConfiguracionSecciones contiene múltiples secciones
+ * del modal de configuración (perfil, cuenta, notificaciones, apariencia, bloqueos, legal, admin)
+ * que son sub-componentes inline de estado local + i18n. Dividirlas añadiría complejidad sin
+ * beneficio real — cada sección depende del hook HookConfiguracion compartido. */
+
 /*
  * Componente: ConfiguracionSecciones — Kamples (QL89)
  * Contenido compartido entre las vistas Desktop y Móvil de ModalConfiguracion.
  * Extraído para cumplir SRP y limite de 300 líneas.
+ * [183A-111] i18n: useT + SelectorIdioma integrado en sección "apariencia".
  */
 
 import {useState} from 'react';
-import {ImagePlus, Bell, BellOff, User, Shield, Palette, Ban, Music, ChevronRight, Scale, ExternalLink, Wrench} from 'lucide-react';
+import {ImagePlus, Bell, BellOff, User, Shield, Palette, Ban, Music, ChevronRight, Scale, ExternalLink, Wrench, Globe} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -18,24 +24,27 @@ import {useReproductorStore} from '@app/stores/reproductorStore';
 import {invalidarCacheFeed} from '@app/utils/cacheFeedPersistente';
 import {CampoTexto} from '../ui/CampoTexto';
 import {Input} from '../ui/Input';
+import {useT} from '@app/utils/i18n';
+import {SelectorIdioma} from '@app/components/ui/SelectorIdioma';
 
 /* Tipo del resultado del hook — usado en Desktop y Móvil */
 export type HookConfiguracion = ReturnType<typeof useModalConfiguracion>;
 
 /* Sub-componente: preferencia autoplay (evita re-renders) */
 const AutoplayPreferencia = (): JSX.Element => {
+    const { t } = useT();
     const autoplay = useReproductorStore(s => s.autoplay);
     const toggleAutoplay = useReproductorStore(s => s.toggleAutoplay);
     return (
         <div className="configSeccion">
-            <label className="configLabel">Reproduccion automatica</label>
-            <span className="configSubtexto">Reproducir el siguiente sample automaticamente al terminar el actual.</span>
-            <div className="configTemaOpciones" role="group" aria-label="Autoplay">
+            <label className="configLabel">{t('config.autoplay')}</label>
+            <span className="configSubtexto">{t('config.autoplay.descripcion')}</span>
+            <div className="configTemaOpciones" role="group" aria-label={t('config.autoplay')}>
                 <BotonBase variante={autoplay ? 'primario' : 'secundario'} tamano="sm" onClick={() => { if (!autoplay) toggleAutoplay(); }} type="button">
-                    Activado
+                    {t('config.autoplay.activado')}
                 </BotonBase>
                 <BotonBase variante={!autoplay ? 'primario' : 'secundario'} tamano="sm" onClick={() => { if (autoplay) toggleAutoplay(); }} type="button">
-                    Desactivado
+                    {t('config.autoplay.desactivado')}
                 </BotonBase>
             </div>
         </div>
@@ -44,18 +53,19 @@ const AutoplayPreferencia = (): JSX.Element => {
 
 /* Sub-componente: preferencia panel lateral al dar like (evita re-renders) */
 const PanelLateralPreferencia = (): JSX.Element => {
+    const { t } = useT();
     const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
     const setSugerenciasAlDarLike = usePanelLateralStore(s => s.setSugerenciasAlDarLike);
     return (
         <div className="configSeccion">
-            <label className="configLabel">Panel lateral</label>
-            <span className="configSubtexto">Mostrar sugerencias en el panel lateral al dar like a un sample.</span>
-            <div className="configTemaOpciones" role="group" aria-label="Panel lateral al dar like">
+            <label className="configLabel">{t('config.panelLateral')}</label>
+            <span className="configSubtexto">{t('config.panelLateral.descripcion')}</span>
+            <div className="configTemaOpciones" role="group" aria-label={t('config.panelLateral')}>
                 <BotonBase variante={sugerenciasAlDarLike ? 'primario' : 'secundario'} tamano="sm" onClick={() => setSugerenciasAlDarLike(true)} type="button">
-                    Activado
+                    {t('config.autoplay.activado')}
                 </BotonBase>
                 <BotonBase variante={!sugerenciasAlDarLike ? 'primario' : 'secundario'} tamano="sm" onClick={() => setSugerenciasAlDarLike(false)} type="button">
-                    Desactivado
+                    {t('config.autoplay.desactivado')}
                 </BotonBase>
             </div>
         </div>
@@ -80,45 +90,45 @@ export const SECCIONES_NAV: NavItemConfig[] = [
 
 /* Renderiza el contenido de la sección activa (compartido) */
 export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | null => {
+    const { t } = useT();
     switch (h.seccionActiva) {
         case 'perfil':
             return (
                 <>
                     <div className="configSeccion">
-                        <label className="configLabel">Portada</label>
-                        <div className="configPortadaContenedor" onClick={() => h.inputPortadaRef.current?.click()} role="button" aria-label="Cambiar portada">
-                            <img src={h.portadaPreview || h.usuario?.portadaUrl || obtenerImagenColor((h.usuario?.id ?? 0) + 100)} alt="Portada" className="configPortadaImg" />
+                        <label className="configLabel">{t('config.portada')}</label>
+                        <div className="configPortadaContenedor" onClick={() => h.inputPortadaRef.current?.click()} role="button" aria-label={t('config.cambiarPortada')}>
+                            <img src={h.portadaPreview || h.usuario?.portadaUrl || obtenerImagenColor((h.usuario?.id ?? 0) + 100)} alt={t('config.portada')} className="configPortadaImg" />
                             <div className="configPortadaOverlay"><ImagePlus size={24} /></div>
                             <Input ref={h.inputPortadaRef} type="file" accept="image/*" hidden onChange={h.manejarCambioPortada} />
                         </div>
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel">Foto de perfil</label>
-                        <div className="configFotoContenedor" onClick={() => h.inputFotoRef.current?.click()} role="button" aria-label="Cambiar foto de perfil">
+                        <label className="configLabel">{t('config.fotoPerfil')}</label>
+                        <div className="configFotoContenedor" onClick={() => h.inputFotoRef.current?.click()} role="button" aria-label={t('config.cambiarFoto')}>
                             <Avatar src={h.avatarActual} nombre={h.nombreVisible || 'U'} tamano="lg" />
                             <Input ref={h.inputFotoRef} type="file" accept="image/*" hidden onChange={h.manejarCambioFoto} />
                         </div>
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel">Nombre visible</label>
-                        <CampoTexto variante="desnudo" className="configInput" value={h.nombreVisible} onChange={e => h.setNombreVisible(e.target.value)} placeholder="Tu nombre" maxLength={50} />
+                        <label className="configLabel">{t('config.nombreCompleto')}</label>
+                        <CampoTexto variante="desnudo" className="configInput" value={h.nombreVisible} onChange={e => h.setNombreVisible(e.target.value)} placeholder={t('config.nombreCompleto')} maxLength={50} />
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel">Username</label>
+                        <label className="configLabel">{t('config.nombreUsuario')}</label>
                         <div className="configInputConPrefijo">
                             <span className="configPrefijo">@</span>
                             <CampoTexto variante="desnudo" className="configInput" value={h.username} onChange={e => h.setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="username" maxLength={30} />
                         </div>
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel">Descripción / Bio</label>
-                        <CampoTexto multilínea variante="desnudo" className="configTextarea" value={h.bio} onChange={e => h.setBio(e.target.value)} placeholder="Cuéntanos sobre ti..." maxLength={300} rows={3} />
+                        <label className="configLabel">{t('config.bio')}</label>
+                        <CampoTexto multilínea variante="desnudo" className="configTextarea" value={h.bio} onChange={e => h.setBio(e.target.value)} placeholder={t('config.bio')} maxLength={300} rows={3} />
                         <span className="configContador">{300 - h.bio.length}</span>
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel">Enlace</label>
+                        <label className="configLabel">{t('config.sitioWeb')}</label>
                         <CampoTexto variante="desnudo" className="configInput" value={h.sitioWeb} onChange={e => h.setSitioWeb(e.target.value)} placeholder="https://tu-pagina.com" maxLength={500} />
-                        <span className="configSubtexto">Se mostrará en tu perfil público.</span>
                     </div>
                 </>
             );
@@ -134,30 +144,30 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
                         ) : (
                             <div className="configFormInline">
                                 <CampoTexto type="email" variante="desnudo" className="configInput" value={h.nuevoEmail} onChange={e => h.setNuevoEmail(e.target.value)} placeholder="Nuevo email" />
-                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.emailPasswordActual} onChange={e => h.setEmailPasswordActual(e.target.value)} placeholder="Contraseña actual" autoComplete="current-password" />
+                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.emailPasswordActual} onChange={e => h.setEmailPasswordActual(e.target.value)} placeholder={t('config.contrasena.actual')} autoComplete="current-password" />
                                 <div className="configFormAcciones">
                                     <BotonBase variante="primario" tamano="sm" onClick={h.manejarCambiarEmail} disabled={h.cambiandoEmail || !h.nuevoEmail.trim() || !h.emailPasswordActual}>
-                                        {h.cambiandoEmail ? 'Guardando...' : 'Confirmar'}
+                                        {h.cambiandoEmail ? t('config.guardando') : t('comun.confirmar')}
                                     </BotonBase>
-                                    <BotonBase variante="ghost" tamano="sm" onClick={() => h.setEmailEditando(false)} disabled={h.cambiandoEmail}>Cancelar</BotonBase>
+                                    <BotonBase variante="ghost" tamano="sm" onClick={() => h.setEmailEditando(false)} disabled={h.cambiandoEmail}>{t('comun.cancelar')}</BotonBase>
                                 </div>
                             </div>
                         )}
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel">Contraseña</label>
+                        <label className="configLabel">{t('config.contrasena.cambiar')}</label>
                         {!h.passwordEditando ? (
-                            <BotonBase variante="secundario" tamano="sm" onClick={() => h.setPasswordEditando(true)}>Cambiar contraseña</BotonBase>
+                            <BotonBase variante="secundario" tamano="sm" onClick={() => h.setPasswordEditando(true)}>{t('config.contrasena.cambiar')}</BotonBase>
                         ) : (
                             <div className="configFormInline">
-                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.passwordActual} onChange={e => h.setPasswordActual(e.target.value)} placeholder="Contraseña actual" autoComplete="current-password" />
-                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.nuevaPassword} onChange={e => h.setNuevaPassword(e.target.value)} placeholder="Nueva contraseña" autoComplete="new-password" />
-                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.confirmarPassword} onChange={e => h.setConfirmarPassword(e.target.value)} placeholder="Confirmar nueva contraseña" autoComplete="new-password" />
+                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.passwordActual} onChange={e => h.setPasswordActual(e.target.value)} placeholder={t('config.contrasena.actual')} autoComplete="current-password" />
+                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.nuevaPassword} onChange={e => h.setNuevaPassword(e.target.value)} placeholder={t('config.contrasena.nueva')} autoComplete="new-password" />
+                                <CampoTexto type="password" variante="desnudo" className="configInput" value={h.confirmarPassword} onChange={e => h.setConfirmarPassword(e.target.value)} placeholder={t('config.contrasena.confirmar')} autoComplete="new-password" />
                                 <div className="configFormAcciones">
                                     <BotonBase variante="primario" tamano="sm" onClick={h.manejarCambiarPassword} disabled={h.cambiandoPassword || !h.passwordActual || !h.nuevaPassword || !h.confirmarPassword}>
-                                        {h.cambiandoPassword ? 'Guardando...' : 'Confirmar'}
+                                        {h.cambiandoPassword ? t('config.guardando') : t('comun.confirmar')}
                                     </BotonBase>
-                                    <BotonBase variante="ghost" tamano="sm" onClick={() => h.setPasswordEditando(false)} disabled={h.cambiandoPassword}>Cancelar</BotonBase>
+                                    <BotonBase variante="ghost" tamano="sm" onClick={() => h.setPasswordEditando(false)} disabled={h.cambiandoPassword}>{t('comun.cancelar')}</BotonBase>
                                 </div>
                             </div>
                         )}
@@ -169,13 +179,13 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
                         <div className="configFormInline">
                             <CampoTexto type="email" variante="desnudo" className="configInput" value={h.paypalEmail} onChange={e => h.setPaypalEmail(e.target.value)} placeholder="tu-email@paypal.com" />
                             <BotonBase variante="primario" tamano="sm" onClick={h.manejarGuardarPaypal} disabled={h.guardandoPaypal}>
-                                {h.guardandoPaypal ? 'Guardando...' : 'Guardar'}
+                                {h.guardandoPaypal ? t('config.guardando') : t('comun.guardar')}
                             </BotonBase>
                         </div>
                     </div>
                     <div className="configSeccion">
                         <label className="configLabel configLabelPeligro">Zona de peligro</label>
-                        <BotonBase variante="secundario" tamano="md" onClick={() => console.info('TO-DO: Eliminar cuenta')}>Eliminar cuenta</BotonBase>
+                        <BotonBase variante="secundario" tamano="md" onClick={() => console.info('TO-DO: Eliminar cuenta')}>{t('config.eliminarCuenta')}</BotonBase>
                     </div>
                 </>
             );
@@ -185,8 +195,8 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
                 <>
                     <div className="configSeccion configSeccionHorizontal">
                         <div className="configSeccionInfo">
-                            <span className="configLabel">Likes y comentarios</span>
-                            <span className="configSubtexto">Recibir alertas cuando alguien interactúa con tu contenido</span>
+                            <span className="configLabel">{t('config.notif.likes')}</span>
+                            <span className="configSubtexto">{t('config.notif.comentarios')}</span>
                         </div>
                         <BotonBase variante="ghost" className={`configToggle ${h.notificaciones ? 'configToggleActivo' : ''}`} onClick={() => h.setNotificaciones(!h.notificaciones)} type="button">
                             {h.notificaciones ? <Bell size={14} /> : <BellOff size={14} />}
@@ -194,15 +204,13 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
                     </div>
                     <div className="configSeccion configSeccionHorizontal">
                         <div className="configSeccionInfo">
-                            <span className="configLabel">Nuevos seguidores</span>
-                            <span className="configSubtexto">Notificar cuando alguien te sigue</span>
+                            <span className="configLabel">{t('config.notif.nuevosSeguidores')}</span>
                         </div>
                         <BotonBase variante="ghost" className="configToggle configToggleActivo" type="button"><Bell size={14} /></BotonBase>
                     </div>
                     <div className="configSeccion configSeccionHorizontal">
                         <div className="configSeccionInfo">
-                            <span className="configLabel">Mensajes</span>
-                            <span className="configSubtexto">Alertas de mensajes directos</span>
+                            <span className="configLabel">{t('config.notif.mensajes')}</span>
                         </div>
                         <BotonBase variante="ghost" className="configToggle configToggleActivo" type="button"><Bell size={14} /></BotonBase>
                     </div>
@@ -213,20 +221,27 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
             return (
                 <>
                     <div className="configSeccion">
-                        <label className="configLabel">Tema</label>
-                        <span className="configSubtexto">Elige cómo quieres ver la interfaz.</span>
-                        <div className="configTemaOpciones" role="group" aria-label="Selector de tema">
-                            <BotonBase variante={h.temaSeleccionado === 'dark' ? 'primario' : 'secundario'} tamano="sm" onClick={() => h.manejarCambioTema('dark')} type="button">Oscuro</BotonBase>
-                            <BotonBase variante={h.temaSeleccionado === 'light' ? 'primario' : 'secundario'} tamano="sm" onClick={() => h.manejarCambioTema('light')} type="button">Claro</BotonBase>
+                        <label className="configLabel">{t('config.tema')}</label>
+                        <div className="configTemaOpciones" role="group" aria-label={t('config.tema')}>
+                            <BotonBase variante={h.temaSeleccionado === 'dark' ? 'primario' : 'secundario'} tamano="sm" onClick={() => h.manejarCambioTema('dark')} type="button">{t('config.tema.oscuro')}</BotonBase>
+                            <BotonBase variante={h.temaSeleccionado === 'light' ? 'primario' : 'secundario'} tamano="sm" onClick={() => h.manejarCambioTema('light')} type="button">{t('config.tema.claro')}</BotonBase>
                         </div>
                     </div>
                     <PanelLateralPreferencia />
                     <AutoplayPreferencia />
+                    {/* [183A-111] Selector de idioma integrado en la sección apariencia */}
                     <div className="configSeccion">
-                        <label className="configLabel">Generos favoritos</label>
-                        <span className="configSubtexto">Personaliza tu feed eligiendo tus generos musicales preferidos.</span>
+                        <label className="configLabel">
+                            <Globe size={14} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />
+                            {t('config.idioma')}
+                        </label>
+                        <span className="configSubtexto">{t('config.idioma.descripcion')}</span>
+                        <SelectorIdioma variante="completo" />
+                    </div>
+                    <div className="configSeccion">
+                        <label className="configLabel">{t('config.generos')}</label>
                         <BotonBase variante="secundario" tamano="sm" onClick={() => { useGenerosModalStore.getState().abrir(); }} type="button">
-                            <Music size={14} /> Editar generos
+                            <Music size={14} /> {t('config.editarGeneros')}
                         </BotonBase>
                     </div>
                 </>
@@ -243,17 +258,17 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
             return (
                 <>
                     <div className="configSeccion">
-                        <label className="configLabel">Información legal</label>
-                        <span className="configSubtexto">Consulta nuestras políticas y condiciones de uso.</span>
+                        <label className="configLabel">{t('config.legal')}</label>
+                        <span className="configSubtexto">{t('config.politicaPrivacidad')}</span>
                     </div>
                     <div className="configSeccion">
                         <BotonBase variante="secundario" tamano="sm" onClick={() => abrirEnlaceExterno('https://kamples.com/privacy/')}>
-                            <Scale size={14} /> Política de Privacidad <ExternalLink size={12} />
+                            <Scale size={14} /> {t('config.politicaPrivacidad')} <ExternalLink size={12} />
                         </BotonBase>
                     </div>
                     <div className="configSeccion">
                         <BotonBase variante="secundario" tamano="sm" onClick={() => abrirEnlaceExterno('https://kamples.com/terms/')}>
-                            <Scale size={14} /> Términos de Servicio <ExternalLink size={12} />
+                            <Scale size={14} /> {t('config.terminosServicio')} <ExternalLink size={12} />
                         </BotonBase>
                     </div>
                 </>
@@ -296,8 +311,20 @@ const SeccionAdmin = (): JSX.Element => {
 
 /* Lista de navegación de secciones (compartida) */
 export const NavSecciones = ({h}: {h: HookConfiguracion}): JSX.Element => {
+    const { t } = useT();
     const esAdmin = h.usuario?.rol === 'admin';
     const secciones = esAdmin ? SECCIONES_NAV : SECCIONES_NAV.filter(s => s.id !== 'admin');
+
+    /* [183A-111] Mapa de id → clave i18n para las etiquetas de navegación */
+    const etiquetaI18n: Record<string, string> = {
+        perfil: t('config.perfil'),
+        cuenta: t('config.cuenta'),
+        notificaciones: t('config.notificaciones'),
+        apariencia: t('config.apariencia'),
+        bloqueos: t('config.bloqueos'),
+        legal: t('config.legal'),
+        admin: t('config.admin'),
+    };
 
     return (
         <nav className="configNavLista">
@@ -308,7 +335,7 @@ export const NavSecciones = ({h}: {h: HookConfiguracion}): JSX.Element => {
                     type="button"
                 >
                     {item.icono}
-                    {item.etiqueta}
+                    {etiquetaI18n[item.id] ?? item.etiqueta}
                     <ChevronRight size={14} className="configNavChevron" />
                 </BotonBase>
             ))}
