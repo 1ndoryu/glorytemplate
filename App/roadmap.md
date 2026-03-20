@@ -66,11 +66,6 @@ Ubicacion: `App/docs (ignorar)/`
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
 
 
-## 193A-77
-
-filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un algoritmo eficiente y ligero, no un filtrado.
-
-
 ## 193A-93
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 

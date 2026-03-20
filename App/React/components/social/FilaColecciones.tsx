@@ -1,13 +1,16 @@
 /*
  * Componente: FilaColecciones — Kamples (C180)
  * Fila horizontal de colecciones con scroll invisible.
- * Máximo 8 colecciones, navegación al hacer click.
+ * Máximo 20 colecciones, navegación al hacer click.
+ * [193A-77] Reacciona a busqueda de filtrosStore — re-fetch backend,
+ * no filtrado client-side.
  */
 
 import { useEffect, useState } from 'react';
 import { listarColeccionesPublicas } from '@app/services/apiColecciones';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useArrastrarScroll } from '@app/hooks/useArrastrarScroll';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import type { Coleccion } from '@app/types';
 import { Avatar } from '../ui/Avatar';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
@@ -19,14 +22,16 @@ const MAX_COLECCIONES = 20;
 
 export const FilaColecciones = (): JSX.Element | null => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
+    const busqueda = useFiltrosStore(s => s.busqueda);
     /* [193A-1] useArrastrarScroll soporta touch + mouse (Capacitor WebView) */
     const contenedorRef = useArrastrarScroll<HTMLDivElement>();
 
+    /* [193A-77] Re-fetch colecciones cuando cambia la búsqueda */
     useEffect(() => {
         let activo = true;
         const cargar = async () => {
             try {
-                const resp = await listarColeccionesPublicas();
+                const resp = await listarColeccionesPublicas(busqueda || undefined);
                 if (activo && resp.ok && resp.data) {
                     setColecciones(resp.data.colecciones.slice(0, MAX_COLECCIONES));
                 }
@@ -36,7 +41,7 @@ export const FilaColecciones = (): JSX.Element | null => {
         };
         cargar();
         return () => { activo = false; };
-    }, []);
+    }, [busqueda]);
 
     if (!colecciones.length) return null;
 
