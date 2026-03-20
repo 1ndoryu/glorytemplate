@@ -119,6 +119,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             username={sample.creador.username}
                             nombreVisible={sample.creador.nombreVisible}
                             avatarUrl={sample.creador.avatarUrl}
+                            verificado={sample.creador.verificado}
                             tamanoAvatar="md"
                             mostrarUsername
                             className="detalleCabeceraPost"

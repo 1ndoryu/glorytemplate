@@ -58,6 +58,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     username={sample.creador.username}
                     nombreVisible={sample.creador.nombreVisible}
                     avatarUrl={sample.creador.avatarUrl}
+                    verificado={sample.creador.verificado}
                     className="panelDetalleAutor"
                 />
                 <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label={t('sample.panelCerrar')}>

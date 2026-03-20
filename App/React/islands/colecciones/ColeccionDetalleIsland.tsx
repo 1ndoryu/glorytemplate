@@ -158,6 +158,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                                 username={coleccion.usuario.username}
                                 nombreVisible={coleccion.usuario.nombreVisible}
                                 avatarUrl={coleccion.usuario.avatarUrl ?? undefined}
+                                verificado={coleccion.usuario.verificado}
                                 tamanoAvatar="xs"
                                 className="coleccionCreador"
                             />

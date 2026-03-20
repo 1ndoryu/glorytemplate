@@ -122,6 +122,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     <div className="perfilInfoTexto">
                         <h1 className="perfilNombre">
                             {usuario.nombreVisible}
+                            {/* [183A-115] Badge verificado en perfil */}
+                            {usuario.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
                             {usuario.plan !== 'free' && <Badge variante={usuario.plan === 'premium' ? 'premium' : 'acento'}>{usuario.plan}</Badge>}
                         </h1>
                         <p className="perfilUsername">@{usuario.username}</p>
