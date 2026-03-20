@@ -406,6 +406,52 @@ class SamplesController
             }
         }
 
+        /* [193A-82] Filtros backend adicionales — migrados desde client-side para evitar
+         * conteos incorrectos, paginación rota y el efecto visual de "filtrar y recargar".
+         * Todos requieren usuario autenticado. */
+        $uidFiltros = UsuarioHelper::obtenerIdPg();
+        $hayFiltroActivo = $soloEncanta;
+
+        if ((bool) $request->get_param('solo_wav')) {
+            $whereExtra .= " AND s." . SamplesCols::FORMATO . " = 'wav'";
+            $hayFiltroActivo = true;
+        }
+
+        if ($uidFiltros) {
+            if ((bool) $request->get_param('ocultar_descargados')) {
+                $whereExtra .= " AND NOT EXISTS (SELECT 1 FROM " . DescargasCols::TABLA . " od"
+                             . " WHERE od." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+                             . " AND od." . DescargasCols::USUARIO_ID . " = :ocultarDescUid)";
+                $extraParams['ocultarDescUid'] = $uidFiltros;
+                $hayFiltroActivo = true;
+            }
+
+            if ((bool) $request->get_param('ocultar_coleccionados')) {
+                $whereExtra .= " AND NOT EXISTS (SELECT 1 FROM " . ColeccionSamplesCols::TABLA . " oc"
+                             . " WHERE oc." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+                             . " AND oc." . ColeccionSamplesCols::USUARIO_ID . " = :ocultarColecUid)";
+                $extraParams['ocultarColecUid'] = $uidFiltros;
+                $hayFiltroActivo = true;
+            }
+
+            if ((bool) $request->get_param('ocultar_likeados')) {
+                $whereExtra .= " AND NOT EXISTS (SELECT 1 FROM " . LikesCols::TABLA . " ol"
+                             . " WHERE ol." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+                             . " AND ol." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+                             . " AND ol." . LikesCols::USUARIO_ID . " = :ocultarLikeUid)";
+                $extraParams['ocultarLikeUid'] = $uidFiltros;
+                $hayFiltroActivo = true;
+            }
+
+            if ((bool) $request->get_param('solo_de_seguidos')) {
+                $whereExtra .= " AND EXISTS (SELECT 1 FROM " . FollowsCols::TABLA . " sf"
+                             . " WHERE sf." . FollowsCols::SEGUIDO_ID . " = s." . SamplesCols::CREADOR_ID
+                             . " AND sf." . FollowsCols::SEGUIDOR_ID . " = :soloSeguidosUid)";
+                $extraParams['soloSeguidosUid'] = $uidFiltros;
+                $hayFiltroActivo = true;
+            }
+        }
+
         /* QQ2/QL24: Total en TODAS las páginas para que el frontend tenga el contador correcto.
          * Antes solo se calculaba en page 1, causando que totalServidor quedara null
          * si la primera carga venía de cache y el race condition perdía el valor. */
@@ -413,9 +459,9 @@ class SamplesController
         $totalActivos = SamplesRepository::contarConFiltros($countWhere, $extraParams);
 
         /* Intentar usar el motor de recomendación para 'descubrir' (sin búsqueda activa).
-         * [193A-80] Se omite cuando soloEncanta está activo porque el usuario quiere un
-         * subconjunto específico, no recomendaciones algorítmicas. */
-        if ($tipo === 'descubrir' && empty($busqueda) && !$soloEncanta) {
+         * [193A-82] Se omite cuando cualquier filtro backend está activo porque el usuario
+         * quiere un subconjunto específico, no recomendaciones algorítmicas. */
+        if ($tipo === 'descubrir' && empty($busqueda) && !$hayFiltroActivo) {
             $userId = UsuarioHelper::obtenerIdPg();
             KamplesLogger::info('Feed descubrir solicitado', [
                 'userId' => $userId, 'page' => $page, 'perPage' => $perPage,

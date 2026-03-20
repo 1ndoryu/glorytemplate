@@ -13,7 +13,7 @@ import { SkeletonFeed } from '@app/components/skeletons';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { LandingPublica } from '@app/components/social/LandingPublica';
 import { BlogIsland } from '../blog/BlogIsland';
-import { obtenerFeed } from '@app/services/apiSamples';
+import { obtenerFeed, type FiltrosFeedBackend } from '@app/services/apiSamples';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
@@ -122,11 +122,9 @@ export const FeedUnificado = (): JSX.Element => {
      */
     const filtrosContenido = useFiltrosContenido({
         disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados', 'ocultarColeccionados', 'ocultarReproducidos', 'ocultarLikeados', 'soloDeSeguidos'],
-        /* [193A-83] soloMeEncanta se maneja por backend (solo_encanta en /feed).
-         * Sin esto, aplicar() filtraba datos cacheados client-side causando
-         * el efecto visual de "ocultar y recargar lento" en vez del re-fetch
-         * limpio que ocurre con búsqueda y tags. */
-        servidorSide: ['soloMeEncanta'],
+        /* [193A-82] Todos los filtros que tienen equivalente SQL se manejan por backend.
+         * Solo ocultarReproducidos se queda client-side (historial en localStorage). */
+        servidorSide: ['soloMeEncanta', 'soloWav', 'ocultarDescargados', 'ocultarColeccionados', 'ocultarLikeados', 'soloDeSeguidos'],
         idsReproducidos: yaReproducidos ? idsReproducidos : undefined,
         idsSeguidos: deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined,
     });
@@ -153,27 +151,42 @@ export const FeedUnificado = (): JSX.Element => {
      * QK83: Proveedor de datos — pasa búsqueda al backend para FTS server-side.
      * El backend usa GIN indexes (QK75) para búsqueda full-text rápida (~400ms).
      * QL24: El backend ahora envía total en TODAS las páginas, no solo page 1.
-     * [193A-80] soloMeEncanta se envía al backend como solo_encanta para filtrado real.
+     * [193A-82] Todos los filtros con equivalente SQL se envían al backend.
      */
     const soloMeEncanta = filtrosContenido.estaActivo('soloMeEncanta');
+    const soloWav = filtrosContenido.estaActivo('soloWav');
+    const ocultarDescargados = filtrosContenido.estaActivo('ocultarDescargados');
+    const ocultarColeccionados = filtrosContenido.estaActivo('ocultarColeccionados');
+    const ocultarLikeados = filtrosContenido.estaActivo('ocultarLikeados');
+    const soloDeSeguidos = filtrosContenido.estaActivo('soloDeSeguidos');
+
+    /* [193A-82] Objeto estable de filtros backend — useMemo evita recrear en cada render */
+    const filtrosBackend = useMemo<FiltrosFeedBackend>(() => ({
+        soloEncanta: soloMeEncanta,
+        soloWav,
+        ocultarDescargados,
+        ocultarColeccionados,
+        ocultarLikeados,
+        soloDeSeguidos,
+    }), [soloMeEncanta, soloWav, ocultarDescargados, ocultarColeccionados, ocultarLikeados, soloDeSeguidos]);
 
     const proveedor = useCallback(async (pagina: number) => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
-        const resp = await obtenerFeed(tipo, pagina, busquedaDebounced, soloMeEncanta);
+        const resp = await obtenerFeed(tipo, pagina, busquedaDebounced, filtrosBackend);
         if (resp.total != null) setTotalServidor(resp.total);
         return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
-    }, [ordenamiento, busquedaDebounced, soloMeEncanta]);
+    }, [ordenamiento, busquedaDebounced, filtrosBackend]);
 
-    /* QL24: Resetear totalServidor al cambiar ordenamiento/búsqueda para evitar
-     * mostrar total stale de un ordenamiento anterior mientras la nueva API responde. */
+    /* QL24: Resetear totalServidor al cambiar ordenamiento/búsqueda/filtros para evitar
+     * mostrar total stale de un contexto anterior mientras la nueva API responde. */
     useEffect(() => {
         setTotalServidor(null);
-    }, [ordenamiento, busquedaDebounced, soloMeEncanta]);
+    }, [ordenamiento, busquedaDebounced, filtrosBackend]);
 
-    /* QK83: Incluir búsqueda y soloMeEncanta en clave de cache para invalidar al cambiar */
-    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${soloMeEncanta}`;
+    /* QK83: Incluir búsqueda y filtros en clave de cache para invalidar al cambiar */
+    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${soloMeEncanta}_${soloWav}_${ocultarDescargados}_${ocultarColeccionados}_${ocultarLikeados}_${soloDeSeguidos}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {

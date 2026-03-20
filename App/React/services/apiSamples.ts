@@ -61,6 +61,18 @@ export const obtenerSample = async (slug: string): Promise<RespuestaApi<Sample>>
     return apiGet<Sample>(`/samples/${slug}`);
 };
 
+/* [193A-82] Filtros backend para /feed — evitan filtrado client-side que causaba
+ * conteos incorrectos y paginación rota. ocultarReproducidos se queda client-side
+ * porque el historial vive en localStorage, no en la BD. */
+export interface FiltrosFeedBackend {
+    soloEncanta?: boolean;
+    soloWav?: boolean;
+    ocultarDescargados?: boolean;
+    ocultarColeccionados?: boolean;
+    ocultarLikeados?: boolean;
+    soloDeSeguidos?: boolean;
+}
+
 /*
  * Obtiene el feed de descubrimiento con paginación.
  */
@@ -68,7 +80,7 @@ export const obtenerFeed = async (
     tipo: 'descubrir' | 'trending' | 'recientes' = 'descubrir',
     page = 1,
     busqueda = '',
-    soloEncanta = false
+    filtrosBackend: FiltrosFeedBackend = {}
 ): Promise<RespuestaApi<SampleResumen[]>> => {
     const params: Record<string, string | number> = { tipo, page };
     if (busqueda.trim()) {
@@ -79,8 +91,13 @@ export const obtenerFeed = async (
             params.busqueda_norm = norm;
         }
     }
-    /* [193A-80] Filtro backend "solo me encanta" — reemplaza el filtrado client-side */
-    if (soloEncanta) params.solo_encanta = 1;
+    /* [193A-82] Enviar filtros backend activos */
+    if (filtrosBackend.soloEncanta) params.solo_encanta = 1;
+    if (filtrosBackend.soloWav) params.solo_wav = 1;
+    if (filtrosBackend.ocultarDescargados) params.ocultar_descargados = 1;
+    if (filtrosBackend.ocultarColeccionados) params.ocultar_coleccionados = 1;
+    if (filtrosBackend.ocultarLikeados) params.ocultar_likeados = 1;
+    if (filtrosBackend.soloDeSeguidos) params.solo_de_seguidos = 1;
     /* [193A-31] Debug score para admin: solo envía param si está activo en localStorage */
     if (typeof window !== 'undefined' && localStorage.getItem('kamples_debug_score') === '1') {
         params.debug = 1;
