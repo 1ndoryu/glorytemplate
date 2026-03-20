@@ -18,6 +18,7 @@ import {BotonBase} from '@app/components/ui/BotonBase';
 import {usePanelLateralStore} from '@app/stores/panelLateralStore';
 import {useModalConfiguracion, type SeccionConfig} from '@app/hooks/useModalConfiguracion';
 import {SeccionBloqueos} from './SeccionBloqueos';
+import {SeccionAdminVersiones} from './SeccionAdminVersiones';
 import {useGenerosModalStore} from '@app/stores/generosModalStore';
 import {abrirEnlaceExterno} from '@app/utils/plataforma';
 import {useReproductorStore} from '@app/stores/reproductorStore';
@@ -328,6 +329,8 @@ const SeccionAdmin = (): JSX.Element => {
                     <Wrench size={14} />
                 </BotonBase>
             </div>
+            {/* [2003A-16] Gestión de versiones de app directamente desde el VPS */}
+            <SeccionAdminVersiones />
         </>
     );
 };

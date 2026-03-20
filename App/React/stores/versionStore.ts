@@ -1,7 +1,8 @@
 /*
- * [Tarea Final] versionStore — Sistema de versiones multiplataforma.
+ * [Tarea Final / 2003A-16] versionStore — Sistema de versiones multiplataforma.
  * Detecta si el usuario tiene una versión desactualizada y abre el modal de actualización.
- * Fuente: /app/versions que lee kamples-sync/versions.json de GitHub (público, sin token).
+ * Fuente: GET /app/versions, que lee las versiones almacenadas en WP options del VPS.
+ * Las versiones se configuran desde el panel Admin → Configuración → Admin → Versiones de app.
  *
  * Plataformas detectadas:
  *   - 'windows': window.__KAMPLES_DESKTOP__ && !body.plataformaAndroid

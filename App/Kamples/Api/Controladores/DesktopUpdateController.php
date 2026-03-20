@@ -26,18 +26,8 @@ class DesktopUpdateController
     private const GITHUB_RELEASES_API = 'https://api.github.com/repos/AKamples/kamples-desktop-releases/releases/latest';
 
     /**
-     * [Tarea Final] URL del archivo versions.json en kamples-sync (GitHub raw, público).
-     * Para actualizar las versiones: editar este archivo en el repo 1ndoryu/kamples-sync.
-     */
-    private const GITHUB_VERSIONS_URL = 'https://raw.githubusercontent.com/1ndoryu/kamples-sync/main/versions.json';
-
-    /**
-     * Clave de transient para versiones de app (Windows, APK, web).
-     */
-    private const CACHE_VERSIONS_KEY = 'kamples_app_versions_cache';
-
-    /**
-     * Clave de WP option para override manual de versiones (vía POST admin endpoint).
+     * [2003A-16] Clave de WP option para versiones de app (Windows, APK, web).
+     * Se gestiona directamente desde el VPS via POST /admin/app/versions — sin dependencia de GitHub.
      */
     private const OPCION_VERSIONS_ALL = 'kamples_app_versions_all';
 
@@ -336,47 +326,24 @@ class DesktopUpdateController
     }
 
     /**
-     * [Tarea Final] GET /app/versions
+     * [2003A-16] GET /app/versions
      *
      * Retorna versiones y URLs de descarga de todas las plataformas.
-     * Fuente primaria: versions.json en 1ndoryu/kamples-sync (GitHub raw, público).
-     * Fallback: WP option kamples_app_versions_all (configurable via POST admin endpoint).
+     * Fuente única: WP option kamples_app_versions_all, gestionada vía
+     * POST /admin/app/versions desde el panel admin. Sin dependencia de GitHub.
      *
-     * Formato esperado de versions.json:
-     * { "windows": { "version": "0.1.0", "url": "...", "notes": "" },
-     *   "apk":     { "version": "0.1.0", "url": "...", "notes": "" },
-     *   "web":     { "version": "0.1.0", "notes": "" } }
+     * Formato: { "windows": { "version": "0.1.0", "url": "...", "notes": "" },
+     *            "apk":     { "version": "0.1.0", "url": "...", "notes": "" },
+     *            "web":     { "version": "0.1.0", "notes": "" } }
      */
     public static function obtenerVersiones(): \WP_REST_Response
     {
         try {
-            /* Cache transient para evitar requests repetidos a GitHub */
-            $cached = get_transient(self::CACHE_VERSIONS_KEY);
-            if ($cached !== false) {
-                return new \WP_REST_Response($cached, 200);
-            }
-
-            /* Leer desde kamples-sync GitHub raw (sin token, repo público) */
-            $respuesta = wp_remote_get(self::GITHUB_VERSIONS_URL, [
-                'timeout' => 5,
-                'headers' => ['User-Agent' => 'Kamples/1.0'],
-            ]);
-
-            if (!is_wp_error($respuesta) && wp_remote_retrieve_response_code($respuesta) === 200) {
-                $body = json_decode(wp_remote_retrieve_body($respuesta), true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($body)) {
-                    set_transient(self::CACHE_VERSIONS_KEY, $body, self::CACHE_TTL);
-                    return new \WP_REST_Response($body, 200);
-                }
-            }
-
-            /* Fallback: WP option configurable manualmente via POST /admin/app/versions */
             $opcion = get_option(self::OPCION_VERSIONS_ALL, null);
             if ($opcion && is_array($opcion)) {
                 return new \WP_REST_Response($opcion, 200);
             }
-
-            /* Sin datos configurados: retornar vacío (no hay changelog aún) */
+            /* Sin datos configurados aún — retornar vacío */
             return new \WP_REST_Response(['windows' => null, 'apk' => null, 'web' => null], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error obteniendo versiones app', ['error' => $e->getMessage()]);
@@ -385,11 +352,11 @@ class DesktopUpdateController
     }
 
     /**
-     * [Tarea Final] POST /admin/app/versions
+     * [2003A-16] POST /admin/app/versions
      *
-     * Override manual de versiones para casos donde GitHub raw no está disponible
-     * o para pre-staging antes de commitear versions.json.
-     * Limpia el transient para que el próximo GET lea el valor actualizado.
+     * Actualiza las versiones de todas las plataformas directamente desde el VPS.
+     * Sustituye el flujo anterior que dependía de GitHub (versions.json en kamples-sync).
+     * Solo accessible por administradores (manage_options).
      */
     public static function actualizarVersionesAdmin(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -400,7 +367,6 @@ class DesktopUpdateController
             }
 
             update_option(self::OPCION_VERSIONS_ALL, $body);
-            delete_transient(self::CACHE_VERSIONS_KEY);
 
             return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {

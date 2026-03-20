@@ -539,6 +539,40 @@ nav.configNavLista button {
     color: var(--textoTerciario);
 }
 
+/* [2003A-16] Formulario de versiones de app en SeccionAdmin */
+.configAdminVersionFila {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) 0;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.configAdminVersionFila:last-of-type {
+    border-bottom: none;
+}
+
+.configAdminVersionLabel {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoSecundario);
+}
+
+.configAdminVersionCampos {
+    display: flex;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+.configAdminVersionInput {
+    width: 100px;
+}
+
+.configAdminVersionInputUrl {
+    flex: 1;
+    min-width: 180px;
+}
+
 /* Movil */
 
 @media (max-width: 768px) {
