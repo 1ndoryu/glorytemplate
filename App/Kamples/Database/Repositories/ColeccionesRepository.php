@@ -1338,6 +1338,7 @@ class ColeccionesRepository extends BaseRepository
         $backupMeta = [
             'tipo_operacion' => 'combinacion',
             'origenId' => $origenId,
+            'destinoId' => $destinoId,
             'origenNombre' => $origen[ColeccionesCols::NOMBRE],
             'origenDescripcion' => $origen[ColeccionesCols::DESCRIPCION] ?? '',
             'origenImagenUrl' => $origen[ColeccionesCols::IMAGEN_URL] ?? null,

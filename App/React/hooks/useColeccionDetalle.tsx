@@ -308,8 +308,14 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     /* QL115: Combinación pendiente — extraído a hook separado (SRP) */
     const {
         combinacionPendiente, deshaciendoCombinacion,
-        manejarDeshacerCombinacion, manejarCombinado,
+        manejarDeshacerCombinacion, manejarCombinado: _manejarCombinadoNav,
     } = useColeccionCombinacionPendiente({ coleccionId: coleccion?.id ?? null, activa, navegar });
+
+    /* [2003A-1] Override: al combinar desde el detalle, recargar datos en vez de navegar
+     * a la misma URL (que el SPA ignora sin refetch). */
+    const manejarCombinado = useCallback((_destinoId: number) => {
+        recargarColeccionActual();
+    }, [recargarColeccionActual]);
 
     /* QL119: Callback tras eliminar — navegar a librería */
     const manejarEliminado = useCallback(() => {

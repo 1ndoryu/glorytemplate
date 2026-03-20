@@ -63,13 +63,7 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## 193A-93
 
-Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
-
-## 2003A-1 
-
-Sigue sin funcionar combinar colecciones, llevamos mucho tiempo con este problema, una y otra vez, necesita una revision profunda y documentacion. 
-
-## 2003A-3 (en planificación)
+## 2003A-3 
 
 revisar comando de ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30" realmente esta actualizado y muestra los valores reales
 
@@ -109,6 +103,10 @@ Perfil: 76ms | Conteo: 9ms
 
 Exit code: 0
 PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> 
+
+## 2003A-4
+
+Cuando hago scroll en la apk y luego intento subir, se queda pegado porque se activa lo de tirar hacia abajo para recargar, fatal, solo se tiene que activar cuando se este arriba totalmente. (Pasa con el feed de los samples y publicaciones de comunidad)
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
