@@ -307,10 +307,12 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
     const toggleMenu = useCallback(() => setMenuAbierto(prev => !prev), []);
     const cerrarMenuChat = useCallback(() => setMenuAbierto(false), []);
 
+    /* [2003A-31] Ver perfil cierra el chat y navega al perfil */
     const verPerfil = useCallback(() => {
         setMenuAbierto(false);
+        cerrarChat(chat.conversacionId);
         navegar(`/perfil/${chat.participanteUsername}/`);
-    }, [navegar, chat.participanteUsername]);
+    }, [navegar, cerrarChat, chat.conversacionId, chat.participanteUsername]);
 
     const reportar = useCallback(() => {
         setMenuAbierto(false);

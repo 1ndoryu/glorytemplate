@@ -63,6 +63,14 @@
     text-overflow: ellipsis;
 }
 
+/* [2003A-31] Nombre clickeable para ver perfil */
+.chatFlotanteNombreClickeable {
+    cursor: pointer;
+}
+.chatFlotanteNombreClickeable:hover {
+    text-decoration: underline;
+}
+
 .chatFlotanteHeaderAcciones {
     display: flex;
     gap: calc(var(--espacioXs) / 2);

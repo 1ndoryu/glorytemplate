@@ -54,8 +54,11 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     return (
         <div className="chatFlotanteVentana">
             <div className="chatFlotanteHeader">
-                <Avatar nombre={chat.nombreParticipante} src={chat.avatarUrl ?? undefined} tamano="xs" />
-                <span className="chatFlotanteNombre">{chat.nombreParticipante}</span>
+                {/* [2003A-31] Avatar y nombre clickeables → ver perfil + cerrar chat */}
+                <Avatar nombre={chat.nombreParticipante} src={chat.avatarUrl ?? undefined} tamano="xs"
+                    onClick={verPerfil} className="chatFlotanteAvatarClickeable" />
+                <span className="chatFlotanteNombre chatFlotanteNombreClickeable" onClick={verPerfil}
+                    role="button" tabIndex={0}>{chat.nombreParticipante}</span>
                 <div className="chatFlotanteHeaderAcciones">
                     <div className="chatFlotanteMenuContenedor">
                         <BotonBase variante="ghost" onClick={toggleMenu} type="button" className="chatFlotanteHeaderBtn" aria-label="Opciones">
