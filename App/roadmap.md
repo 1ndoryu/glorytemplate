@@ -83,9 +83,8 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
-## 193A-61 
-
-Lo de corazon para mostrar los samples de "me encanta" funciona mal porque es un filtrado en vez de una busqueda desde el servidor, lo cual tiene que cargar todas las imagenes y pasar horas para mostrar los me encanta, es totalmente ineficiente
+## 193A-61 — COMPLETADO
+<!-- Filtro
 
 ## 193A-62
 
