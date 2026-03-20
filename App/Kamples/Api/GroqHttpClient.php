@@ -1,4 +1,5 @@
 <?php
+/* sentinel-disable-file limite-lineas — Cliente HTTP central compartido por 3 servicios IA, concentra cURL, rotación de keys y estado rate limit */
 
 /**
  * GroqHttpClient — Cliente HTTP compartido para APIs de Groq
@@ -384,10 +385,101 @@ class GroqHttpClient
      * Obtiene API key de Groq desde variables de entorno.
      * Soporta $_ENV, getenv() y constante PHP (wp-config / .env loader).
      *
+     * [193A-43] Cuando se pide 'GROQ_API', rota entre las 3 keys disponibles
+     * (GROQ_API, GROQ_API_2, GROQ_API_3) para distribuir rate limits.
+     * Misma key durante todo el proceso PHP (cache estático), rota al final
+     * del cron via rotarApiKey().
+     *
      * @param string $nombre Nombre de la variable (default: GROQ_API)
      * @return string|null
      */
     public static function obtenerApiKey(string $nombre = 'GROQ_API'): ?string
+    {
+        /* [193A-43] Rotación entre múltiples keys Groq */
+        if ($nombre === 'GROQ_API') {
+            return self::obtenerApiKeyRotada();
+        }
+
+        return self::resolverEnvVar($nombre);
+    }
+
+    /**
+     * [193A-43] Rota entre todas las keys Groq disponibles.
+     * Cache estático dentro del mismo proceso PHP: todas las llamadas
+     * en una ejecución de cron usan la misma key.
+     */
+    private static ?string $keyRotadaCache = null;
+
+    private static function obtenerApiKeyRotada(): ?string
+    {
+        if (self::$keyRotadaCache !== null) {
+            return self::$keyRotadaCache;
+        }
+
+        $keys = self::obtenerTodasLasKeysGroq();
+        if (empty($keys)) {
+            return null;
+        }
+
+        $indice = (int) get_transient('kmpl_groq_key_index');
+        $keySeleccionada = $keys[$indice % \count($keys)];
+        self::$keyRotadaCache = $keySeleccionada;
+
+        KamplesLogger::info('GroqHttpClient: Key rotada seleccionada', [
+            'indice' => $indice % \count($keys),
+            'totalKeys' => \count($keys),
+            'preview' => \substr($keySeleccionada, 0, 12) . '***',
+        ]);
+
+        return $keySeleccionada;
+    }
+
+    /**
+     * [193A-43] Avanza el índice de rotación para la próxima ejecución.
+     * Llamar al final de cada ciclo de cron o tras completar moderación inline.
+     */
+    public static function rotarApiKey(): void
+    {
+        $keys = self::obtenerTodasLasKeysGroq();
+        if (\count($keys) <= 1) {
+            return;
+        }
+
+        $indice = (int) get_transient('kmpl_groq_key_index');
+        $nuevoIndice = ($indice + 1) % \count($keys);
+        set_transient('kmpl_groq_key_index', $nuevoIndice, DAY_IN_SECONDS);
+        self::$keyRotadaCache = null;
+
+        KamplesLogger::info('GroqHttpClient: Key rotada para próxima ejecución', [
+            'anterior' => $indice,
+            'nuevo' => $nuevoIndice,
+        ]);
+    }
+
+    /**
+     * [193A-43] Obtiene todas las keys Groq válidas de las env vars.
+     * @return string[]
+     */
+    private static function obtenerTodasLasKeysGroq(): array
+    {
+        $nombres = ['GROQ_API', 'GROQ_API_2', 'GROQ_API_3'];
+        $keys = [];
+
+        foreach ($nombres as $nombre) {
+            $key = self::resolverEnvVar($nombre);
+            if ($key !== null && \str_starts_with($key, 'gsk_')) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Resuelve una variable de entorno por nombre.
+     * Busca en $_ENV, getenv() y constantes PHP (wp-config).
+     */
+    private static function resolverEnvVar(string $nombre): ?string
     {
         $key = $_ENV[$nombre] ?? getenv($nombre) ?: null;
 
@@ -399,13 +491,6 @@ class GroqHttpClient
 
         if (!$key || $key === '') {
             return null;
-        }
-
-        /* Validar formato de keys conocidas */
-        if ($nombre === 'GROQ_API' && !\str_starts_with($key, 'gsk_')) {
-            KamplesLogger::warning("GroqHttpClient: {$nombre} no tiene formato válido (debe empezar con 'gsk_')", [
-                'keyPreview' => \substr($key, 0, 8) . '***',
-            ]);
         }
 
         return $key;

@@ -1,4 +1,5 @@
 <?php
+/* sentinel-disable-file limite-lineas — Servicio cron que gestiona cola IA con lógica de gap diferenciada por tipo, no es separable */
 
 /**
  * ProcesadorColaIA — Servicio cron para reprocesar items encolados por rate limit.
@@ -41,17 +42,17 @@ class ProcesadorColaIA
      */
     private const MAX_ITEMS_POR_EJECUCION = 5;
 
-    /* QL67: Pausa entre procesamiento de items para no saturar rate limits */
-    private const PAUSA_ENTRE_ITEMS_SEGUNDOS = 60;
+    /* [193A-43] Pausa entre items de audio. Moderación sin pausa. */
+    private const PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS = 30;
     /*
-     * [183A-56] Límite diario de procesamiento de IA.
-     * 400 items/día = 86400s / 400 = 216s mínimo entre items.
-     * Distribución: 400 items en 24h, sin importar si la cola tiene más.
+     * [193A-43] Gap mínimo entre procesamiento de audio (1 minuto).
+     * Con rotación de 3 keys se distribuye el rate limit.
+     * No aplica a moderación (comentarios/publicaciones).
      */
     private const LIMITE_DIARIO = 400;
-    private const GAP_MINIMO_SEGUNDOS = 216; /* 86400 / 400 = 216s ≈ 3.6 min */
+    private const GAP_MINIMO_AUDIO_SEGUNDOS = 60;
     private const TRANSIENT_CONTADOR_DIARIO = 'kmpl_ia_daily_count';
-    private const TRANSIENT_ULTIMO_ITEM = 'kmpl_ia_ultimo_item';
+    private const TRANSIENT_ULTIMO_AUDIO = 'kmpl_ia_ultimo_audio';
     /* Nombre del hook WP Cron */
     public const CRON_HOOK = 'kamples_cola_ia_cron';
 
@@ -122,17 +123,35 @@ class ProcesadorColaIA
             return $resultado;
         }
 
-        /* [183A-56] Verificar gap mínimo entre items */
-        $ultimoItem = (int) get_transient(self::TRANSIENT_ULTIMO_ITEM);
-        if ($ultimoItem > 0) {
-            $transcurrido = time() - $ultimoItem;
-            if ($transcurrido < self::GAP_MINIMO_SEGUNDOS) {
-                KamplesLogger::info('ProcesadorColaIA: Gap mínimo no alcanzado', [
-                    'transcurrido' => $transcurrido,
-                    'gap_requerido' => self::GAP_MINIMO_SEGUNDOS,
-                ]);
-                return $resultado;
+        /* [183A-56] Verificar gap mínimo — solo aplica a items de audio.
+         * [193A-43] Moderación (comentarios/publicaciones) procesada sin gap. */
+        $tieneItemsAudio = false;
+        $tieneItemsModeracion = false;
+        foreach ($pendientes as $item) {
+            $tipo = $item[ColaProcesamientoIaCols::TIPO] ?? '';
+            if ($tipo === ColaProcesamientoIaEnums::TIPO_SAMPLE) {
+                $tieneItemsAudio = true;
+            } else {
+                $tieneItemsModeracion = true;
             }
+        }
+
+        $puedeAudio = true;
+        $ultimoAudio = (int) get_transient(self::TRANSIENT_ULTIMO_AUDIO);
+        if ($ultimoAudio > 0 && $tieneItemsAudio) {
+            $transcurrido = time() - $ultimoAudio;
+            if ($transcurrido < self::GAP_MINIMO_AUDIO_SEGUNDOS) {
+                KamplesLogger::info('ProcesadorColaIA: Gap audio no alcanzado', [
+                    'transcurrido' => $transcurrido,
+                    'gap_requerido' => self::GAP_MINIMO_AUDIO_SEGUNDOS,
+                ]);
+                $puedeAudio = false;
+            }
+        }
+
+        /* Si solo hay audio y no puede procesarse, salir */
+        if (!$puedeAudio && !$tieneItemsModeracion) {
+            return $resultado;
         }
 
         KamplesLogger::info('ProcesadorColaIA: Iniciando procesamiento', [
@@ -140,10 +159,19 @@ class ProcesadorColaIA
         ]);
 
         foreach ($pendientes as $indice => $item) {
-            /* QL67: Pausa entre items para no saturar rate limits de Groq */
-            if ($indice > 0) {
-                KamplesLogger::info('ProcesadorColaIA: Pausa de ' . self::PAUSA_ENTRE_ITEMS_SEGUNDOS . 's antes del siguiente item');
-                \sleep(self::PAUSA_ENTRE_ITEMS_SEGUNDOS);
+            $tipoItem = $item[ColaProcesamientoIaCols::TIPO] ?? '';
+            $esAudio = ($tipoItem === ColaProcesamientoIaEnums::TIPO_SAMPLE);
+
+            /* [193A-43] Saltar items de audio si el gap no se cumplió */
+            if ($esAudio && !$puedeAudio) {
+                $resultado['omitidos']++;
+                continue;
+            }
+
+            /* [193A-43] Pausa entre items: 30s para audio, 0 para moderación */
+            if ($indice > 0 && $esAudio) {
+                KamplesLogger::info('ProcesadorColaIA: Pausa de ' . self::PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS . 's antes del siguiente audio');
+                \sleep(self::PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS);
             }
 
             /* C356: Si detectamos rate limit en item anterior, parar inmediatamente */
@@ -222,8 +250,8 @@ class ProcesadorColaIA
                 if ($exito) {
                     ColaProcesamientoIaRepository::marcarCompletado($id);
                     $resultado['exitosos']++;
-                    /* [183A-56] Registrar para límite diario y gap mínimo */
-                    self::registrarItemProcesado();
+                    /* [193A-43] Registrar para límite diario. Gap solo para audio. */
+                    self::registrarItemProcesado($esAudio);
                 } elseif (GroqHttpClient::fueRateLimited()) {
                     /*
                      * Rate limit de nuevo — marcarError gestiona backoff exponencial (QK78).
@@ -266,6 +294,9 @@ class ProcesadorColaIA
         } catch (\Throwable $e) {
             /* No bloquear el return por un error de stats */
         }
+
+        /* [193A-43] Rotar API key para la próxima ejecución */
+        GroqHttpClient::rotarApiKey();
 
         return $resultado;
     }
@@ -514,16 +545,19 @@ class ProcesadorColaIA
      * Decodifica metadata JSON del item de cola.
      */
     /**
-     * [183A-56] Registra un item procesado exitosamente: incrementa el contador diario
-     * y actualiza el timestamp de ultimo item para el control de gap minimo.
-     * El contador diario expira a medianoche; el timestamp expira en GAP_MINIMO_SEGUNDOS.
+     * [193A-43] Registra un item procesado exitosamente: incrementa el contador diario
+     * y, si es audio, actualiza el timestamp para el control de gap mínimo.
+     * El gap solo aplica a procesamiento de audio, no a moderación.
      */
-    private static function registrarItemProcesado(): void
+    private static function registrarItemProcesado(bool $esAudio = false): void
     {
         $actual = (int) \get_transient(self::TRANSIENT_CONTADOR_DIARIO);
         $segundosHastaMedianoche = \strtotime('tomorrow') - \time();
         \set_transient(self::TRANSIENT_CONTADOR_DIARIO, $actual + 1, $segundosHastaMedianoche);
-        \set_transient(self::TRANSIENT_ULTIMO_ITEM, \time(), self::GAP_MINIMO_SEGUNDOS);
+
+        if ($esAudio) {
+            \set_transient(self::TRANSIENT_ULTIMO_AUDIO, \time(), self::GAP_MINIMO_AUDIO_SEGUNDOS);
+        }
     }
 
     private static function decodificarMetadata(?string $json): array
