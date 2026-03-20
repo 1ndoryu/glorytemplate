@@ -165,6 +165,7 @@
   "error.cargarColeccionRed": "コレクション読み込みエラー",
   "error.descargar": "ダウンロード中の接続エラー",
   "error.redArrastre": "ドラッグ準備中のネットワークエラー",
+  "toast.sampleListoArrastrar": "準備完了。再度ドラッグしてシステムに書き出してください。",
   "error.redPublicar": "公開中のネットワークエラー",
   "error.redCorreccion": "修正送信中のネットワークエラー",
   "error.redExtension": "拡張送信中のネットワークエラー",

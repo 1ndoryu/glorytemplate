@@ -189,6 +189,7 @@
   "toast.codigoInvalido": "El enlace de descarga gratis no es válido.",
   "toast.descargaGratisEspera": "Tienes una descarga gratis esperando. \u00a1Inicia sesi\u00f3n para reclamarla!",
   "toast.descargaDesbloqueada": "\u00a1Descarga gratuita desbloqueada! Usa el bot\u00f3n de descarga.",
+  "toast.sampleListoArrastrar": "Listo. Arrastra el sample otra vez para exportarlo al sistema.",
   "config.titulo": "Configuración",
   "config.version": "v",
   "comun.volver": "Volver",

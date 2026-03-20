@@ -74,6 +74,14 @@ export async function registrarReproduccionDesktop(
 let iconoDragCache: string | null = null;
 
 /*
+ * Cache de archivos pre-descargados listos para drag nativo.
+ * Mapeados por sampleId → ruta temporal. Se limpian tras el primer uso.
+ */
+const dragTempCache = new Map<number, string>();
+/* Set de sampleIds cuya descarga para drag ya está en progreso (evitar duplicados) */
+const dragPreparando = new Set<number>();
+
+/*
  * Resuelve la ruta absoluta del icono para el drag nativo.
  * Usa resolveResource para obtener el icono bundled del app (32x32.png).
  */
@@ -121,40 +129,86 @@ export async function iniciarDragNativo(
 ): Promise<boolean> {
     if (!esDesktop()) return false;
 
-    /* Resolver icono de drag (se cachea tras la primera llamada) */
+    /* Resolver icono de drag (pre-cacheado en init, esta llamada es instantánea) */
     const iconoDrag = await obtenerIconoDrag();
 
-    /* Primero verificar si hay copia local */
+    /* 1. Prioridad: copia local sincronizada (la más rápida y confiable) */
     const rutaLocal = obtenerRutaLocal(sampleId);
-
     if (rutaLocal) {
         try {
-            const { exists } = await import('@tauri-apps/plugin-fs');
-            if (await exists(rutaLocal)) {
-                const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
-                await startDrag({ item: [rutaLocal], icon: iconoDrag });
-                return true;
-            }
+            const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
+            await startDrag({ item: [rutaLocal], icon: iconoDrag });
+            return true;
         } catch (err) {
-            console.warn('[DragNativo] Error con archivo local:', err);
+            console.warn('[DragNativo] Error con archivo local, probando temporal:', err);
         }
     }
 
-    /* Si no hay local, descargar primero a temp y luego drag */
+    /* 2. Fallback: archivo pre-descargado via prepararDragNativo() */
+    const rutaTemp = dragTempCache.get(sampleId);
+    if (rutaTemp) {
+        try {
+            const { exists } = await import('@tauri-apps/plugin-fs');
+            if (await exists(rutaTemp)) {
+                const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
+                await startDrag({ item: [rutaTemp], icon: iconoDrag });
+                dragTempCache.delete(sampleId); /* limpiar tras uso exitoso */
+                return true;
+            }
+            dragTempCache.delete(sampleId); /* archivo ya no existe (limpieza OS) */
+        } catch (err) {
+            console.warn('[DragNativo] Error con archivo temporal:', err);
+            dragTempCache.delete(sampleId);
+        }
+    }
+
+    /* Sin archivo disponible — llamar prepararDragNativo() primero */
+    return false;
+}
+
+/*
+ * Pre-carga el icono de drag en cache durante la inicialización de la app.
+ * Evita latencia IPC en el primer arrastre del usuario — llamar en init().
+ */
+export async function preCachearIconoDrag(): Promise<void> {
+    await obtenerIconoDrag();
+}
+
+/*
+ * [2003A-18] Descarga un sample a un archivo temporal y lo registra en cache
+ * para que el siguiente intento de drag nativo sea instantáneo.
+ *
+ * Flujo: useTarjetaSample llama esto cuando el usuario arrastra sin archivo local.
+ * La descarga ocurre en background; al completarse se muestra un toast y el
+ * próximo arrastre pasa a través de dragTempCache → startDrag() con mouse presionado.
+ *
+ * No lanza si el sample ya está siendo preparado (dedup por sampleId).
+ */
+export async function prepararDragNativo(
+    sampleId: number,
+    urlRemota: string,
+    nombreArchivo: string,
+): Promise<void> {
+    if (!esDesktop()) return;
+    if (dragPreparando.has(sampleId)) return;
+    if (dragTempCache.has(sampleId)) return;
+
+    dragPreparando.add(sampleId);
     try {
         const { tempDir } = await import('@tauri-apps/api/path');
         const { writeFile } = await import('@tauri-apps/plugin-fs');
-        const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
 
         const tempPath = `${await tempDir()}kamples_drag_${nombreArchivo}`;
         const response = await fetch(urlRemota);
+        if (!response.ok) throw new Error(`HTTP ${response.status} para ${urlRemota}`);
+
         const arrayBuffer = await response.arrayBuffer();
         await writeFile(tempPath, new Uint8Array(arrayBuffer));
-
-        await startDrag({ item: [tempPath], icon: iconoDrag });
-        return true;
+        dragTempCache.set(sampleId, tempPath);
     } catch (err) {
-        console.error('[DragNativo] Error descargando para drag:', err);
-        return false;
+        console.error('[DragNativo] Error preparando archivo para drag:', err);
+        throw err; /* relay para que el caller muestre feedback al usuario */
+    } finally {
+        dragPreparando.delete(sampleId);
     }
 }

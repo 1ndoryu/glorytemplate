@@ -77,7 +77,7 @@ import {
 } from '@desktop/services/uploadQueueService';
 
 /* Drag service — expuesto en window para drag-to-DAW/desktop nativo */
-import { iniciarDragNativo } from '@desktop/services/audioLocalService';
+import { iniciarDragNativo, prepararDragNativo, preCachearIconoDrag } from '@desktop/services/audioLocalService';
 
 /* Registrar todas las islas */
 islandRegistry.registerAll(appIslands);
@@ -209,7 +209,10 @@ async function marcarEntornoDesktop(): Promise<void> {    window.__KAMPLES_DESKT
     /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
     window.__KAMPLES_DRAG__ = {
         iniciarDragNativo,
+        prepararDragNativo,
     };
+    /* Pre-calentar icono de drag para que el primer arrastre sea instantáneo */
+    void preCachearIconoDrag();
 
     /*
      * QK77-A: Interfaz global de persistencia de auth.

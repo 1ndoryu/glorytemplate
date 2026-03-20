@@ -244,25 +244,28 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                 }
 
                 /*
-                 * QQ55: Sin archivo local — registrar descarga via API (consume
-                 * crédito si aplica) y usar la URL de streaming del original.
-                 * El endpoint retorna ruta_original (WAV) según plan del usuario.
+                 * [2003A-18] Sin archivo local: no cancelar el drag del browser
+                 * (permite drag in-app para el mezclador).
+                 * Se inicia descarga en segundo plano via prepararDragNativo().
+                 * Cuando termina, el usuario ve un toast y el próximo arrastre
+                 * pasa por dragTempCache → startDrag() con mouse aún presionado.
                  */
-                e.preventDefault();
-
                 descargarSample(sample.id).then(resp => {
                     if (resp.ok && resp.data?.url) {
                         const nombre = resp.data.nombre || `${sample.titulo}.${resp.data.formato || 'wav'}`;
-                        dragService.iniciarDragNativo(sample.id, resp.data.url, nombre)
-                            .then(() => { if (!resp.data?.yaExistia) setDescargado(true); })
-                            .catch((err: unknown) => console.error('[DragNativo] Error:', err));
+                        if (!resp.data?.yaExistia) setDescargado(true);
+                        dragService.prepararDragNativo(sample.id, resp.data.url, nombre)
+                            .then(() => {
+                                toast.info(getT()('toast.sampleListoArrastrar'));
+                            })
+                            .catch(() => void 0);
                     } else if (resp.status === 429 || resp.status === 403) {
                         toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
                     }
                 }).catch(() => {
                     toast.error(getT()('error.redArrastre'));
                 });
-                return;
+                /* No return ni preventDefault: el browser drag sigue para el mezclador */
             }
         }
 

@@ -82,6 +82,7 @@ interface Window {
     };
     __KAMPLES_DRAG__?: {
         iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean>;
+        prepararDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<void>;
     };
     __TAURI_INTERNALS__?: unknown;
 }

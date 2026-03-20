@@ -165,6 +165,8 @@
   "error.cargarColeccionRed": "Error loading collection",
   "error.descargar": "Connection error while downloading",
   "error.redArrastre": "Network error while preparing drag",
+  "toast.sampleListoArrastrar": "Ready. Drag the sample again to export it to your system.",
+  "toast.sampleListoArrastrar": "Ready. Drag the sample again to export it to your system.",
   "error.redPublicar": "Network error while publishing",
   "error.redCorreccion": "Network error while sending correction",
   "error.redExtension": "Network error while sending extension",
