@@ -79,7 +79,8 @@ class KamplesInit
         /* Cron para recálculos temporales del algoritmo (C45) */
         self::registrarCronAlgoritmo();
 
-        /* C356: Cron para reprocesar cola IA (rate limit 429) cada 15 min */
+        /* [193A-72] Cron para reprocesar cola IA cada 60s (1 audio por ejecución).
+         * Requiere system cron del host cada 1 min — ver crontab del servidor. */
         ProcesadorColaIA::registrarCron();
 
         /* D1.5: Cron para backfill de hashes SHA-256 en samples existentes */
