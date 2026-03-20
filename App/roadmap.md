@@ -77,9 +77,6 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
-## 193A-62 — COMPLETADO
-<!-- Avatar usa ImgOptimizada y imagenesColor devuelve URLs photonizadas. Commit 17e9e1c00 -->
-
 ## 193A-65 
 
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
@@ -92,11 +89,7 @@ filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, ta
 
 El antispam de las notificaciones parece muy agresivo, auditar las notificaciones, revisar porque algunas notificaciones no aparecen en la apk pero otras si, revisar que todas vayan a aparecer.
 
-## 193A-71 Urgente
-
-Por un error del scrip que genera los schema, PushSubscriptionsDTO se modifico y ahora no veo que lleguen notificaciones, no se que mas se modifico, revisa bien PushSubscriptionsDTO y restaura la version correcta para ver si se arreglan las notificaciones de la apk.
-
-## 193A-72
+## 193A-72 URGENTE TAMBIEN
 
 LA IDEA ES QUE SE PROCESE UN SAMPLE 1 POR 1 CADA MINUTO, 1 POR API, CADA UNO USA UNA API Y ROTA, PROCESA, ROTA; PROCESA ROTA Eso no es lo que veo que este pasando
 
