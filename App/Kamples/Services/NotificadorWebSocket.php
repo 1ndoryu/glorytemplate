@@ -106,6 +106,13 @@ class NotificadorWebSocket
     {
         if (self::$url === null) {
             $url = $_ENV['KAMPLES_WS_NOTIFY_URL'] ?? getenv('KAMPLES_WS_NOTIFY_URL') ?: '';
+            /* [193A-99] Verificar que la URL de notificación use HTTPS o localhost.
+             * El secret viaja en el body — si no es HTTPS, se expondría en tránsito. */
+            if ($url !== '' && !str_starts_with($url, 'https://') && !str_starts_with($url, 'http://localhost') && !str_starts_with($url, 'http://127.0.0.1')) {
+                KamplesLogger::critical('[WS Notificador] KAMPLES_WS_NOTIFY_URL debe ser HTTPS o localhost', ['url' => $url]);
+                self::$url = null;
+                return null;
+            }
             self::$url = $url ?: null;
         }
         return self::$url;

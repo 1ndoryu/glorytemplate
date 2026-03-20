@@ -71,8 +71,10 @@ class PublicacionesEscrituraController
             if ($errorImgs) return Validador::respuestaError($errorImgs);
         }
 
+        /* [193A-99] Construir array PG con escaping explícito para elementos (no addslashes genérico).
+         * esc_url_raw valida URLs; str_replace escapa \\ y \" para el literal PG TEXT[]. */
         $imagenes = !empty($body['imagenes'])
-            ? '{' . \implode(',', \array_map(fn($v) => '"' . addslashes(\esc_url_raw($v)) . '"', $body['imagenes'])) . '}'
+            ? '{' . \implode(',', \array_map(fn($v) => '"' . \str_replace(['\\', '"'], ['\\\\', '\\"'], \esc_url_raw($v)) . '"', $body['imagenes'])) . '}'
             : '{}';
         $adjuntosRaw = $body['samples_adjuntos'] ?? $body['samplesAdjuntos'] ?? [];
         $samplesAdjuntos = !empty($adjuntosRaw)
@@ -218,8 +220,9 @@ class PublicacionesEscrituraController
             $errorImgs = Validador::validarImagenesUrls($imagenesArr);
             if ($errorImgs) return Validador::respuestaError($errorImgs);
 
+            /* [193A-99] Escaping PG array explícito en vez de addslashes */
             $imagenes = !empty($imagenesArr)
-                ? '{' . \implode(',', \array_map(fn($v) => '"' . addslashes(\esc_url_raw($v)) . '"', $imagenesArr)) . '}'
+                ? '{' . \implode(',', \array_map(fn($v) => '"' . \str_replace(['\\', '"'], ['\\\\', '\\"'], \esc_url_raw($v)) . '"', $imagenesArr)) . '}'
                 : '{}';
             $campos[] = PublicacionesCols::IMAGENES . ' = :' . PublicacionesCols::IMAGENES;
             $params[PublicacionesCols::IMAGENES] = $imagenes;

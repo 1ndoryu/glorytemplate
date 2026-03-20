@@ -13,6 +13,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\NotificadorWebSocket;
 
 class WsController
@@ -38,6 +39,10 @@ class WsController
             if (!$userId) {
                 return UsuarioHelper::respuestaNoEncontrado();
             }
+
+            /* [193A-99] Rate limiting — 60 tickets/hora por usuario para evitar spam de conexiones */
+            $limitResp = RateLimiter::verificarUsuario($userId, 'ws_ticket', 60, 3600);
+            if ($limitResp) return $limitResp;
 
             $ticket = NotificadorWebSocket::generarTicket($userId);
             if (!$ticket) {

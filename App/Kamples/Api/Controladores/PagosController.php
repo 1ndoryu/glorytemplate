@@ -17,6 +17,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
@@ -245,6 +246,11 @@ class PagosController
     public static function webhook(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
+        /* [193A-99] Rate limiting por IP — previene DoS por spam de webhooks.
+         * 200/min es generoso para Stripe legítimo pero bloquea abuso masivo. */
+        $limitResp = RateLimiter::verificarIp('stripe_webhook', 200, 60);
+        if ($limitResp) return $limitResp;
+
         $payload = $request->get_body();
         $signature = $request->get_header('stripe-signature') ?? '';
 
@@ -498,6 +504,25 @@ class PagosController
         if (TransaccionesRepository::haComprado($userId, $sampleId)) {
             KamplesLogger::info('Webhook compra_sample: ya procesada (duplicado)', [
                 'userId' => $userId, 'sampleId' => $sampleId,
+            ]);
+            return;
+        }
+
+        /* [193A-99] Verificar precio contra BD — previene que metadata manipulada
+         * registre un monto diferente al precio real del sample. */
+        $sampleBd = SamplesRepository::buscarParaDescarga($sampleId);
+        if (!$sampleBd) {
+            KamplesLogger::error('Webhook compra_sample: sample no encontrado en BD', [
+                'sampleId' => $sampleId,
+            ]);
+            return;
+        }
+        $precioBd = (float) ($sampleBd[SamplesCols::PRECIO] ?? 0);
+        if (\abs($precioBd - $precio) > 0.01) {
+            KamplesLogger::critical('Webhook compra_sample: precio en metadata no coincide con BD', [
+                'sampleId' => $sampleId,
+                'precioMetadata' => $precio,
+                'precioBd' => $precioBd,
             ]);
             return;
         }

@@ -47,6 +47,22 @@ class PrecomputadorFeed
     public static function generarCtes(int $userId, array $config = []): array
     {
         $uid = (int) $userId;
+
+        /* [193A-99] Aserción de seguridad: verificar que los valores de enums usados en CTEs
+         * solo contienen caracteres seguros (alfanuméricos y guiones bajos).
+         * Los enums vienen de constantes generadas del schema — esta validación es
+         * una defensa en profundidad contra corrupción del generador. */
+        $enumsUsados = [
+            SamplesEnums::ESTADO_ACTIVO, LikesEnums::TIPO_SAMPLE,
+            LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA,
+            LikesEnums::REACCION_DISLIKE, ComentariosEnums::TIPO_SAMPLE,
+        ];
+        foreach ($enumsUsados as $ev) {
+            if (!\preg_match('/^[a-zA-Z0-9_]+$/', (string) $ev)) {
+                throw new \RuntimeException("[193A-99] Enum con caracteres inseguros detectado: {$ev}");
+            }
+        }
+
         $ctes = [];
 
         /* Nivel 0: sin dependencias */

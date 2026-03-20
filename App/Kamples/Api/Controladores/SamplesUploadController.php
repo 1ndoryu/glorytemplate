@@ -42,13 +42,13 @@ use App\Kamples\Services\ServicioCache;
 class SamplesUploadController
 {
     /* MIME types que finfo puede devolver al leer magic bytes — fuente de verdad */
+    /* [193A-99] Removido application/octet-stream del whitelist por riesgo de bypass.
+     * Si libmagic retorna octet-stream, se usan fallbacks de magic bytes por extensión. */
     private const FORMATOS_AUDIO_VALIDOS = [
         'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave',
         'audio/mpeg', 'audio/mp3',
         'audio/flac', 'audio/x-flac',
         'audio/aiff', 'audio/x-aiff',
-        /* Algunos libmagic antiguos retornan octet-stream para archivos de audio válidos */
-        'application/octet-stream',
     ];
 
     /* Extensiones aceptadas — el navegador reporta MIME de forma no fiable según OS/browser */
@@ -143,12 +143,16 @@ class SamplesUploadController
             ], 400);
         }
 
-        /* Verificar contenido real del archivo con mime_content_type() + fallback magic bytes WAV */
+        /* Verificar contenido real del archivo con mime_content_type() + fallback magic bytes */
         /* mime_content_type es más robusto que finfo::file() en PHP 8.2 con mod_php */
         $realMime = \mime_content_type($audio['tmp_name']) ?: '';
-        /* WAV puede devolver audio/x-wav — aceptar con fallback de magic bytes RIFF/WAVE */
+        /* [193A-99] Fallback por magic bytes si libmagic retorna un MIME genérico (octet-stream).
+         * Cada formato tiene su propia validación de cabecera binaria. */
         $mimeValido = \in_array($realMime, self::FORMATOS_AUDIO_VALIDOS, true)
-            || ($extension === 'wav' && self::esArchivoWav($audio['tmp_name']));
+            || ($extension === 'wav' && self::esArchivoWav($audio['tmp_name']))
+            || ($extension === 'mp3' && self::esArchivoMp3($audio['tmp_name']))
+            || ($extension === 'flac' && self::esArchivoFlac($audio['tmp_name']))
+            || (\in_array($extension, ['aiff', 'aif'], true) && self::esArchivoAiff($audio['tmp_name']));
 
         if (!$mimeValido) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'El contenido del archivo no coincide con un formato de audio válido'], 400);
@@ -614,7 +618,7 @@ class SamplesUploadController
 
     /**
      * Verifica que el archivo sea WAV comprobando los magic bytes RIFF/WAVE.
-     * Usado como fallback cuando finfo devuelve audio/x-wav (no está en la lista estándar de libmagic).
+     * Usado como fallback cuando finfo devuelve audio/x-wav o octet-stream.
      */
     private static function esArchivoWav(string $rutaTmp): bool
     {
@@ -632,6 +636,57 @@ class SamplesUploadController
             return \substr($cabecera, 0, 4) === 'RIFF' && \substr($cabecera, 8, 4) === 'WAVE';
         } catch (\Throwable $e) {
             KamplesLogger::warning('esArchivoWav: No se pudo leer magic bytes', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /* [193A-99] Magic bytes para MP3: ID3 tag (0x49 0x44 0x33) o sync word (0xFF 0xFB/0xF3/0xF2) */
+    private static function esArchivoMp3(string $rutaTmp): bool
+    {
+        try {
+            $fp = \fopen($rutaTmp, 'rb');
+            if ($fp === false) return false;
+            $cabecera = \fread($fp, 3);
+            \fclose($fp);
+            if ($cabecera === false || \strlen($cabecera) < 2) return false;
+            /* ID3v2 tag header */
+            if ($cabecera === 'ID3') return true;
+            /* MPEG audio sync word: 0xFF seguido de 0xFB, 0xF3, 0xF2, 0xE2-0xE3 */
+            $b0 = \ord($cabecera[0]);
+            $b1 = \ord($cabecera[1]);
+            return $b0 === 0xFF && ($b1 & 0xE0) === 0xE0;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /* [193A-99] Magic bytes para FLAC: 4 bytes "fLaC" */
+    private static function esArchivoFlac(string $rutaTmp): bool
+    {
+        try {
+            $fp = \fopen($rutaTmp, 'rb');
+            if ($fp === false) return false;
+            $cabecera = \fread($fp, 4);
+            \fclose($fp);
+            return $cabecera === 'fLaC';
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /* [193A-99] Magic bytes para AIFF: 4 bytes "FORM" + 4 bytes size + "AIFF" o "AIFC" */
+    private static function esArchivoAiff(string $rutaTmp): bool
+    {
+        try {
+            $fp = \fopen($rutaTmp, 'rb');
+            if ($fp === false) return false;
+            $cabecera = \fread($fp, 12);
+            \fclose($fp);
+            if ($cabecera === false || \strlen($cabecera) < 12) return false;
+            $form = \substr($cabecera, 0, 4);
+            $tipo = \substr($cabecera, 8, 4);
+            return $form === 'FORM' && ($tipo === 'AIFF' || $tipo === 'AIFC');
+        } catch (\Throwable) {
             return false;
         }
     }

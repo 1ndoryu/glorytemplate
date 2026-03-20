@@ -85,19 +85,35 @@ class RateLimiter
     /**
      * Obtener IP real del cliente (soporta proxies).
      * Público para reutilización en anti-abuso (registro IP, descargas por IP, etc.)
+     * [193A-99] Hardening: solo confiar en headers de proxy cuando REMOTE_ADDR es
+     * IP privada (indica proxy legítimo). Rechazar IPs privadas/reservadas de headers
+     * de proxy para evitar spoofing (ej: enviar X-Forwarded-For: 127.0.0.1).
      */
     public static function obtenerIp(): string
     {
-        $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'];
-        foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
-                $ip = explode(',', $_SERVER[$header])[0];
-                $ip = trim($ip);
-                if (\filter_var($ip, \FILTER_VALIDATE_IP)) {
-                    return $ip;
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $esProxy = \filter_var($remoteAddr, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE) === false;
+
+        if ($esProxy) {
+            /* REMOTE_ADDR es privado/reservado → estamos detrás de un proxy (Cloudflare/Traefik).
+             * Confiar en headers de proxy, pero rechazar IPs privadas/reservadas del header. */
+            $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP'];
+            foreach ($headers as $header) {
+                /* @codeSentinel-ignore — $_SERVER es superglobal PHP, no variable indefinida */
+                if (!empty($_SERVER[$header])) {
+                    $ip = trim(explode(',', $_SERVER[$header])[0]);
+                    if (\filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE)) {
+                        return $ip;
+                    }
                 }
             }
         }
+
+        /* Sin proxy o headers inválidos: usar REMOTE_ADDR directamente */
+        if (\filter_var($remoteAddr, \FILTER_VALIDATE_IP)) {
+            return $remoteAddr;
+        }
+
         return '127.0.0.1';
     }
 }

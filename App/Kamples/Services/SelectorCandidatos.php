@@ -49,8 +49,10 @@ class SelectorCandidatos
         $sEstado = SamplesCols::ESTADO;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
 
+        /* [193A-99] Parametrizar enum para evitar interpolación directa en SQL */
         $total = SamplesRepository::consultarValor(
-            "SELECT COUNT(*) FROM {$ts} WHERE {$sEstado} = '{$eActivo}'"
+            "SELECT COUNT(*) FROM {$ts} WHERE {$sEstado} = :estado",
+            ['estado' => $eActivo]
         );
 
         $resultado = (int) ($total ?? 0);
@@ -114,37 +116,46 @@ class SelectorCandidatos
         $lrLike = LikesEnums::REACCION_LIKE;
         $lrEncanta = LikesEnums::REACCION_ENCANTA;
 
+        /* [193A-99] Parametrizar enum y LIMITs — los valores vienen de constantes generadas
+         * pero la buena práctica es no interpolar nunca directamente en SQL. */
+        $params['candEstado'] = $eActivo;
+        $params['candMaxTrending'] = $maxTrending;
+        $params['candMaxEmbedding'] = $maxEmbedding;
+        $params['candMaxSeguidos'] = $maxSeguidos;
+        $params['candMaxTags'] = $maxTags;
+        $params['candMaxPopulares'] = $maxPopulares;
+
         $partes = [];
 
         /* Fuente 1: Trending recientes (ultimos N dias, por engagement score) */
         /* @codeSentinel-ignore INTERVAL — $intervaloDias validado con whitelist linea 92 */
         $partes[] = "(SELECT s.{$sId} AS id
             FROM {$ts} s
-            WHERE s.{$sEstado} = '{$eActivo}'
+            WHERE s.{$sEstado} = :candEstado
             AND s.{$sPubAt} > NOW() - INTERVAL '{$intervaloDias} days'
             ORDER BY (s.{$sTotLikes} * 2 + s.{$sTotRepro} + s.{$sTotDesc} * 3) DESC
-            LIMIT {$maxTrending})";
+            LIMIT :candMaxTrending)";
 
         /* Fuente 2: Similares por embedding (ANN search pgvector) */
         $perfilVector = $params['userProfileVector'] ?? null;
         if ($perfilVector !== null) {
             $partes[] = "(SELECT s.{$sId} AS id
                 FROM {$ts} s
-                WHERE s.{$sEstado} = '{$eActivo}'
+                WHERE s.{$sEstado} = :candEstado
                 AND s.{$sEmbed} IS NOT NULL
                 ORDER BY s.{$sEmbed} <=> :userProfileVector::vector
-                LIMIT {$maxEmbedding})";
+                LIMIT :candMaxEmbedding)";
         }
 
         /* Fuente 3: De creadores seguidos (ultimos por publicacion) */
         $partes[] = "(SELECT s.{$sId} AS id
             FROM {$ts} s
-            WHERE s.{$sEstado} = '{$eActivo}'
+            WHERE s.{$sEstado} = :candEstado
             AND s.{$sCreadorId} IN (
                 SELECT {$fSeguidoId} FROM {$tf} WHERE {$fSeguidorId} = :userId
             )
             ORDER BY s.{$sPubAt} DESC
-            LIMIT {$maxSeguidos})";
+            LIMIT :candMaxSeguidos)";
 
         /* Fuente 4: Afinidad por tags (overlap con top tags del usuario) */
         $topTags = self::obtenerTopTagsUsuario($userId, $perfilUsuario);
@@ -158,18 +169,18 @@ class SelectorCandidatos
             $listaTags = implode(', ', $placeholders);
             $partes[] = "(SELECT s.{$sId} AS id
                 FROM {$ts} s
-                WHERE s.{$sEstado} = '{$eActivo}'
+                WHERE s.{$sEstado} = :candEstado
                 AND s.{$sTags} && ARRAY[{$listaTags}]::text[]
                 ORDER BY s.{$sPubAt} DESC
-                LIMIT {$maxTags})";
+                LIMIT :candMaxTags)";
         }
 
         /* Fuente 5: Populares all-time (por engagement global) */
         $partes[] = "(SELECT s.{$sId} AS id
             FROM {$ts} s
-            WHERE s.{$sEstado} = '{$eActivo}'
+            WHERE s.{$sEstado} = :candEstado
             ORDER BY (s.{$sTotLikes} + s.{$sTotRepro} + s.{$sTotDesc}) DESC
-            LIMIT {$maxPopulares})";
+            LIMIT :candMaxPopulares)";
 
         /* UNION elimina duplicados automaticamente */
         $unionSql = implode("\n            UNION\n            ", $partes);
@@ -207,18 +218,24 @@ class SelectorCandidatos
         $sTags = SamplesCols::TAGS;
 
         try {
+            /* [193A-99] Parametrizar enums en query de tags del usuario */
             $resultado = SamplesRepository::consultarValor(
                 "SELECT ARRAY_AGG(DISTINCT t ORDER BY t) FROM (
                     SELECT UNNEST(s.{$sTags}) AS t
                     FROM {$tl} l
                     JOIN {$ts} s ON l.{$lTarget} = s.{$sId}
                     WHERE l.{$lUid} = :userId
-                    AND l.{$lTipo} = '{$ltSample}'
-                    AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
+                    AND l.{$lTipo} = :tipoSample
+                    AND l.{$lReacc} IN (:reacLike, :reacEncanta)
                     LIMIT 50
                 ) sub
                 LIMIT 1",
-                ['userId' => $userId]
+                [
+                    'userId' => $userId,
+                    'tipoSample' => $ltSample,
+                    'reacLike' => $lrLike,
+                    'reacEncanta' => $lrEncanta,
+                ]
             );
 
             if (!empty($resultado) && $resultado !== '{}') {

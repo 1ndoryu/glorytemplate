@@ -10,6 +10,7 @@ import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { crearArticulo, actualizarArticulo } from '@app/services/apiArticulos';
 import { toast } from '@app/stores/toastStore';
 import { getT } from '@app/utils/i18n';
+import { sanitizarHtml } from '@app/utils/sanitizarHtml';
 import type { EmbedArticulo } from '@app/types';
 
 export const useEditorArticulo = () => {
@@ -18,11 +19,12 @@ export const useEditorArticulo = () => {
     const editorRef = useRef<HTMLDivElement>(null);
 
     /* [193A-8] Inicializar contenido del editor via ref al abrir el modal.
-     * Sin dangerouslySetInnerHTML para evitar que el cursor se resetee en cada keystroke. */
+     * Sin dangerouslySetInnerHTML para evitar que el cursor se resetee en cada keystroke.
+     * [193A-99] Sanitizar HTML restaurado de localStorage para prevenir XSS persistido. */
     useEffect(() => {
         if (editorRef.current && store.abierto) {
-            /* sentinel-disable-next-line innerHTML — contenido propio del usuario (borrador localStorage) */
-            editorRef.current.innerHTML = store.contenido;
+            /* sentinel-disable-next-line innerHTML — sanitizado con sanitizarHtml() antes de asignar */
+            editorRef.current.innerHTML = sanitizarHtml(store.contenido);
         }
     }, [store.abierto]);
 
