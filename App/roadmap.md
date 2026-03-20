@@ -61,20 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-(vacío — todas las tareas completadas)
+## 2003A-36
 
-## 20A03A-30
-
-Sigue sin funcionar arrastrar audios a una carpeta desde la aplicaccion de escritorio.
-
-## 2003A-31
-
-Dar click a ver perfil desde e chat debe cerrar el chat y dar click al nombre o foto de perfil en el chat debe abrir el perfil y cerrar el chat.
-
-## 2003A-32
-
-El boton de seguir y mensaje tienen diferentes tamaños en los perfiles de usuarios, no debería, deberian ser del mismo tamaño ambos. 
-
-## 2003A-33
-
-En los menu contextuales de los perfiles, viendo los perfiles de otro debería aparecer la opcion de banear o eliminar usuario siendo yo admin.
+falta algo con 2003a-34, pues si consume credito pero no es lo que se espera totalmente, no marca como coleccionado el sample al menos no veo que el simbolo de mas se marque de rojo indicado que ya esta coleccionado (no confundir con bookmark)

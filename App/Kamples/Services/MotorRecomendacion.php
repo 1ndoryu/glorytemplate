@@ -31,6 +31,7 @@ use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Services\ServicioCache;
 use App\Kamples\Services\AlgoTimingLogger;
+use App\Kamples\Services\TagAffinityService;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
 
 class MotorRecomendacion
@@ -274,6 +275,13 @@ class MotorRecomendacion
             $perfilUsuario = PerfilUsuario::construir($userId);
             AlgoTimingLogger::marcar($userId, 'perfilUsuario');
 
+            /* [2003A-35] Si el usuario no tiene tag scores materializados,
+             * programar recálculo async para que el próximo request use el path rápido.
+             * El feed actual se sirve con el path fallback (7 CTEs inline). */
+            if (!TagAffinityService::tieneScoresRecientes($userId)) {
+                TagAffinityService::programarRecalculo($userId);
+            }
+
             if (empty($perfilUsuario['interacciones']) && ($params['min_interacciones'] ?? 5) > 0) {
                 KamplesLogger::info('Algoritmo: Usuario nuevo sin interacciones, usando feed de tendencias', [
                     'userId' => $userId, 'interacciones' => $perfilUsuario['interacciones'] ?? 0,
@@ -512,32 +520,21 @@ class MotorRecomendacion
                     WHERE s.{$sEstado} = '{$eActivo}'
                         AND ign.sample_id IS NULL"
                 . BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId)
-                . "),
-                scored AS (
-                    SELECT base_scores.*,
-                           ROW_NUMBER() OVER (PARTITION BY base_scores.{$sCreadorId} ORDER BY base_scores.score DESC) as rn,
-                           ROW_NUMBER() OVER (PARTITION BY base_scores.genero_diversidad ORDER BY base_scores.score DESC) as rn_genero
-                    FROM base_scores
-                )
-                SELECT * FROM scored
-                ORDER BY (
-                    score
-                    * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END
-                    * CASE WHEN rn_genero <= {$maxPorCategoria} THEN 1 ELSE GREATEST(0.5, 1.0 - (rn_genero - {$maxPorCategoria}) * 0.10) END
-                ) DESC
+                . ")
+                SELECT * FROM base_scores
+                ORDER BY score DESC
                 LIMIT :limit OFFSET :offset";
 
             /* [183A-80] Bulk-fetch: si el offset solicitado cabe en PAGINAS_BULK,
              * ejecutar UNA sola query con LIMIT = limite * PAGINAS_BULK, OFFSET = 0.
-             * Esto elimina el cuello de botella de OFFSET en PostgreSQL para pag2/3:
-             * top-N heapsort funciona con OFFSET=0 (O(N)), pero OFFSET>0 fuerza full sort (O(N log N)).
-             * Resultado: pag2/3 pasan de ~350ms a ~0ms (servidas desde slice en memoria).
-             * Para offsets > PAGINAS_BULK * limite, fallback al OFFSET original. */
+             * [2003A-35] Fase 3: pedir 2x resultados como buffer para diversidad PHP.
+             * Diversidad antes era 2 ROW_NUMBER() en SQL (~60ms en sorts).
+             * Ahora se aplica en PHP O(n) post-query, eliminando los 2 WindowAgg. */
             $maxBulkOffset = $limite * (self::PAGINAS_BULK - 1);
             $usarBulk = $offset <= $maxBulkOffset;
 
             if ($usarBulk) {
-                $limiteBulk = $limite * self::PAGINAS_BULK;
+                $limiteBulk = $limite * self::PAGINAS_BULK * 2;
                 /* [183A-86] Usar $queryParams completo (incluye params de señales como
                  * :bpmProm, :keyFav, embedding, etc.) con limit/offset sobrescritos.
                  * Sin esto, el prepared statement recibe 2 params cuando necesita ~8,
@@ -551,6 +548,11 @@ class MotorRecomendacion
                 /* [2003A-3-B] Capturar EXPLAIN ANALYZE para desglose detallado por CTE.
                  * Solo se ejecuta para userId 1 (no-op para el resto). */
                 AlgoTimingLogger::capturarExplain($userId, $sql, $bulkParams);
+
+                /* [2003A-35] Fase 3: aplicar diversidad en PHP (O(n) scan).
+                 * Reemplaza 2 ROW_NUMBER() OVER PARTITION BY que requerían 2 full sorts. */
+                $todoResultados = self::aplicarDiversidadPHP($todoResultados, $maxPorCreador, $maxPorCategoria, $sCreadorId);
+                $todoResultados = \array_slice($todoResultados, 0, $limite * self::PAGINAS_BULK);
 
                 KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
                     'userId' => $userId, 'totalBulk' => \count($todoResultados),
@@ -575,11 +577,18 @@ class MotorRecomendacion
                     $resultado = self::inyectarSerendipia($resultado, $userId, $config);
                 }
             } else {
-                $resultado = SamplesRepository::consultar($sql, $queryParams);
+                /* Non-bulk path: pedir 2x para buffer de diversidad */
+                $nonBulkParams = $queryParams;
+                $nonBulkParams['limit'] = $limite * 2;
+                $resultado = SamplesRepository::consultar($sql, $nonBulkParams);
                 AlgoTimingLogger::marcar($userId, 'sqlFeed');
 
                 /* [2003A-3-B] EXPLAIN ANALYZE para path sin bulk-fetch */
-                AlgoTimingLogger::capturarExplain($userId, $sql, $queryParams);
+                AlgoTimingLogger::capturarExplain($userId, $sql, $nonBulkParams);
+
+                /* [2003A-35] Diversidad en PHP + trim al límite solicitado */
+                $resultado = self::aplicarDiversidadPHP($resultado, $maxPorCreador, $maxPorCategoria, $sCreadorId);
+                $resultado = \array_slice($resultado, 0, $limite);
 
                 $resultado = self::inyectarSerendipia($resultado, $userId, $config);
                 self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
@@ -593,13 +602,15 @@ class MotorRecomendacion
 
             /* [2003A-3] Guardar medicion de timing con metadatos del contexto de ejecucion */
             AlgoTimingLogger::guardar($userId, [
-                'totalSamples'  => $totalActivos,
-                'usoCandidatos' => $usarCandidatos,
-                'usoMV'         => $usarVistaMatTrending,
-                'bulkFetch'     => $usarBulk,
-                'resultados'    => \count($resultado),
-                'limite'        => $limite,
-                'offset'        => $offset,
+                'totalSamples'     => $totalActivos,
+                'usoCandidatos'    => $usarCandidatos,
+                'usoMV'            => $usarVistaMatTrending,
+                'bulkFetch'        => $usarBulk,
+                'diversidadPHP'    => true,
+                'tagsMaterializados' => TagAffinityService::tieneScoresRecientes($userId),
+                'resultados'       => \count($resultado),
+                'limite'           => $limite,
+                'offset'           => $offset,
             ]);
 
             return $resultado;
@@ -664,6 +675,9 @@ class MotorRecomendacion
     public static function invalidarCache(int $userId): void
     {
         ServicioCache::eliminarPatron(self::CACHE_PREFIX . $userId . '_*');
+        /* [2003A-35] Invalidar tag scores materializados para que se recalculen
+         * en el próximo feed request (async via programarRecalculo). */
+        TagAffinityService::invalidar($userId);
     }
 
     /**
@@ -812,6 +826,67 @@ class MotorRecomendacion
              . " LIMIT :limit";
 
         return SamplesRepository::consultar($sql, $params);
+    }
+
+    /**
+     * [2003A-35] Fase 3: Diversidad por creador y género aplicada en PHP.
+     * Reemplaza 2 ROW_NUMBER() OVER PARTITION BY en SQL que requerían 2 full sorts
+     * de TODOS los candidatos (~60ms con 2649 samples, peor con 100K+).
+     *
+     * Lógica equivalente al SQL original:
+     * - rn = ROW_NUMBER() OVER (PARTITION BY creador_id ORDER BY score DESC)
+     *   → penaliza a partir del 4to sample del mismo creador
+     * - rn_genero = ROW_NUMBER() OVER (PARTITION BY genero_diversidad ORDER BY score DESC)
+     *   → penaliza a partir del 5to sample del mismo género
+     *
+     * Complejidad: O(n log n) por usort, n ≈ 60-120 resultados (no 2649).
+     *
+     * @param array $resultados Resultados ordenados por score raw DESC
+     * @param int $maxPorCreador Umbral de diversidad por creador (default 3)
+     * @param int $maxPorCategoria Umbral de diversidad por género (default 4)
+     * @param string $colCreadorId Nombre de la columna creador_id
+     * @return array Resultados reordenados con diversidad aplicada
+     */
+    private static function aplicarDiversidadPHP(
+        array $resultados,
+        int $maxPorCreador,
+        int $maxPorCategoria,
+        string $colCreadorId
+    ): array {
+        if (empty($resultados)) {
+            return $resultados;
+        }
+
+        /* Primer paso: contar apariciones por creador y género (items vienen en score DESC) */
+        $contadorCreador = [];
+        $contadorGenero = [];
+
+        foreach ($resultados as &$s) {
+            $creadorId = $s[$colCreadorId] ?? 0;
+            $genero = $s['genero_diversidad'] ?? 'other';
+
+            $rc = ($contadorCreador[$creadorId] ?? 0) + 1;
+            $contadorCreador[$creadorId] = $rc;
+
+            $rg = ($contadorGenero[$genero] ?? 0) + 1;
+            $contadorGenero[$genero] = $rg;
+
+            $factorCreador = $rc <= $maxPorCreador
+                ? 1.0
+                : \max(0.3, 1.0 - ($rc - $maxPorCreador) * 0.15);
+
+            $factorGenero = $rg <= $maxPorCategoria
+                ? 1.0
+                : \max(0.5, 1.0 - ($rg - $maxPorCategoria) * 0.10);
+
+            $s['score'] = (float) $s['score'] * $factorCreador * $factorGenero;
+        }
+        unset($s);
+
+        /* Re-sort por score ajustado */
+        \usort($resultados, fn($a, $b) => (float) $b['score'] <=> (float) $a['score']);
+
+        return $resultados;
     }
 
     /**

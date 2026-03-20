@@ -44,18 +44,13 @@ async fn iniciar_oauth_google(
     use std::io::{BufRead, BufReader, Write};
     use std::net::TcpListener;
 
-    /* [2003A-17] TODO: Este client_id es de tipo "Web application" en Google Cloud Console,
-     * lo que causa redirect_uri_mismatch con URIs loopback (http://127.0.0.1:PORT/callback).
-     * Google no permite loopback redirects para clientes Web desde 2022/2023.
-     * ACCIÓN NECESARIA MANUAL:
-     *   1. Ir a Google Cloud Console → APIs & Services → Credentials
-     *   2. Crear NUEVO cliente OAuth 2.0 de tipo "Desktop app"
-     *   3. Copiar el nuevo client_id y reemplazar la constante abajo
-     *   4. No hace falta client_secret para el flujo PKCE de Desktop apps
-     *   5. El backend PHP (GoogleAuthController.php) usa GOOGLE_CLIENT_ID del .env del servidor
-     *      Actualizar también esa variable si el nuevo client_id es diferente */
+    /* [2003A-25] Cliente OAuth 2.0 tipo "Desktop app" (instalado) — permite loopback redirect URIs.
+     * Tarea 2003A-17 identificó que el cliente anterior era tipo "Web application" lo que bloqueaba
+     * loopbacks en Google desde 2022. Credenciales en temp/ (gitignored), server .env actualizado.
+     * El backend PHP usa GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET del .env del servidor para
+     * intercambiar el código por tokens (client_secret nunca sale al cliente). */
     const GOOGLE_CLIENT_ID: &str =
-        "481587675160-g24onokgnnuhnghplrl1q3iscfnfc0ea.apps.googleusercontent.com";
+        "481587675160-a2iljtc8dou32rgkk8lq9chk0jtfe5fm.apps.googleusercontent.com";
 
     /* Bind en un puerto aleatorio disponible en loopback */
     let listener = TcpListener::bind("127.0.0.1:0")

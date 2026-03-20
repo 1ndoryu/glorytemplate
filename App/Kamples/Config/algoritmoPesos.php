@@ -266,7 +266,9 @@ return [
      * 5 fuentes de candidatos (cada una retorna max IDs indicados):
      */
     'candidatos' => [
-        'umbral_activacion'  => 5000,   /* Activar cuando totalActivos > este valor */
+        /* [2003A-35] Reducido de 5000 a 2000 para activar pipeline de candidatos
+         * con el catálogo actual (2649 samples). Reduce base de scoring de ~2649 a ~1000. */
+        'umbral_activacion'  => 2000,
         'max_trending'       => 300,    /* Trending recientes (14 dias) */
         'max_embedding'      => 200,    /* Similares por pgvector ANN */
         'max_seguidos'       => 200,    /* De creadores seguidos */

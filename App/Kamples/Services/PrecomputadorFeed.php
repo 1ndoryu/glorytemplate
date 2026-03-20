@@ -35,6 +35,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Services\ServicioCache;
+use App\Kamples\Services\TagAffinityService;
 
 class PrecomputadorFeed
 {
@@ -65,6 +66,11 @@ class PrecomputadorFeed
 
         $ctes = [];
 
+        /* [2003A-35] Fase 2: Detectar si user_tag_scores tiene data materializada
+         * para este usuario. Si sí, saltamos las 7 CTEs utag_* + utag_merged (ahorro ~493ms).
+         * Si no, usamos el path original como fallback seguro. */
+        $usarTagsMaterializados = TagAffinityService::tieneScoresRecientes($uid);
+
         /* Nivel 0: sin dependencias */
         $ctes['enriched'] = self::cteEnriched();
         $ctes['user_likes'] = self::cteUserLikes($uid);
@@ -73,17 +79,17 @@ class PrecomputadorFeed
         $ctes['user_comentarios'] = self::cteUserComentarios($uid);
         $ctes['followed_ids'] = self::cteFollowedIds($uid);
 
-        /* Nivel 1: dependen de enriched y/o tablas de interacción */
-        $ctes['utag_likes'] = self::cteTagLikes($uid);
-        $ctes['utag_repro'] = self::cteTagRepro($uid);
-        $ctes['utag_tiempo'] = self::cteTagTiempo($uid);
-        $ctes['utag_descargas'] = self::cteTagDescargas($uid);
-        $ctes['utag_completadas'] = self::cteTagCompletadas($uid);
-        $ctes['utag_dislikes'] = self::cteTagDislikes($uid);
-        $ctes['utag_ctx'] = self::cteTagContexto($uid);
-
-        /* [2003A-3] Nivel 1.5: merge de 7 utag CTEs en 1 para reducir JOINs de score_tags */
-        $ctes['utag_merged'] = self::cteTagMerged();
+        if (!$usarTagsMaterializados) {
+            /* Path original: 7 CTEs utag_* + merge inline. Fallback si no hay data materializada. */
+            $ctes['utag_likes'] = self::cteTagLikes($uid);
+            $ctes['utag_repro'] = self::cteTagRepro($uid);
+            $ctes['utag_tiempo'] = self::cteTagTiempo($uid);
+            $ctes['utag_descargas'] = self::cteTagDescargas($uid);
+            $ctes['utag_completadas'] = self::cteTagCompletadas($uid);
+            $ctes['utag_dislikes'] = self::cteTagDislikes($uid);
+            $ctes['utag_ctx'] = self::cteTagContexto($uid);
+            $ctes['utag_merged'] = self::cteTagMerged();
+        }
 
         /* [2003A-3] Nivel 1: colección del propietario pre-computada.
          * Elimina 2 subqueries correlacionadas en base_scores que se ejecutaban
@@ -91,8 +97,10 @@ class PrecomputadorFeed
         $ctes['col_propietario'] = self::cteColPropietario();
         $ctes['col_imagen_prop'] = self::cteColImagenPropietario();
 
-        /* Nivel 2: scores pre-agregados (eliminan subqueries correlacionadas del scoring) */
-        $ctes['score_tags'] = self::cteScoreTags();
+        /* Nivel 2: scores pre-agregados */
+        $ctes['score_tags'] = $usarTagsMaterializados
+            ? self::cteScoreTagsMaterializado($uid)
+            : self::cteScoreTags();
         $ctes['repro_peso'] = self::cteReproPeso($uid, $config);
         $ctes['likes_seguidos_cte'] = self::cteLikesSeguidos();
 
@@ -522,6 +530,27 @@ class PrecomputadorFeed
         FROM enriched e
         LEFT JOIN LATERAL (SELECT DISTINCT tag FROM unnest(e.etags) AS tag) AS t(tag) ON true
         LEFT JOIN utag_merged um ON um.tag = t.tag
+        GROUP BY e.sample_id, e.etags";
+    }
+
+    /**
+     * [2003A-35] CTE score_tags materializado: usa user_tag_scores pre-computada.
+     * Elimina LATERAL UNNEST (~493ms) al hacer JOIN directo con tabla indexada (~5ms).
+     * Mismo output que cteScoreTags() para compatibilidad con scoring expressions.
+     */
+    private static function cteScoreTagsMaterializado(int $uid): string
+    {
+        return "SELECT e.sample_id,
+            COALESCE(array_length(e.etags, 1), 0) AS etags_len,
+            LEAST(1.0, COALESCE(SUM(uts.w_likes), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS likes_score,
+            LEAST(1.0, COALESCE(SUM(uts.w_repro), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS repro_score,
+            LEAST(1.0, COALESCE(SUM(uts.w_tiempo), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS tiempo_score,
+            LEAST(1.0, COALESCE(SUM(uts.w_descargas), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS descargas_score,
+            LEAST(1.0, COALESCE(SUM(uts.w_completadas), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS completadas_score,
+            COALESCE(SUM(uts.w_dislikes), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0)) AS dislikes_raw,
+            COALESCE(SUM(CASE WHEN uts.w_ctx > 0 THEN 1 ELSE 0 END), 0)::int AS ctx_cnt
+        FROM enriched e
+        LEFT JOIN user_tag_scores uts ON uts.user_id = {$uid} AND uts.tag = ANY(e.etags)
         GROUP BY e.sample_id, e.etags";
     }
 
