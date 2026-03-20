@@ -93,9 +93,8 @@ verificar que solo haya gap para el procesamiento de audios y metadata de ia de 
 
 el selector de idioma no tiene que tener banderas, debe ser un select, y las idomas en texto, debe ser un select usar el select personalizado de sample, el que se usa en el modal de editar samples, el landing. Vi que se hizo un intento el footer pero no, el nav del lading hay un selector de idiomas y no es un select, debe serlo y el select del footer no es el compontente de kamples!!!!!
 
-## 193A-55
-
-El icono de verificado en los perfiles no es el correcto, el de post de comunidad si y falta en los comentarios y en los nombre de conversacion de chat
+## 193A-55 — COMPLETADO
+<!-- Icono verificado unificado a BadgeCheck (lucide-react) en todos los contextos + añadido en chat/mensajes. Commit e424db231 -->
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
