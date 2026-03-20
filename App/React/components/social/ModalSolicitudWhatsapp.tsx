@@ -34,9 +34,10 @@ export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
         cerrar,
     } = useSolicitudWhatsapp();
 
-    if (!abierto) return null;
-
+    /* [193A-64] useT DEBE ir antes de cualquier return condicional — Rules of Hooks */
     const { t } = useT();
+
+    if (!abierto) return null;
 
     /* Mensaje de limite diario alcanzado */
     if (!cargando && estado.limiteDiario) {
