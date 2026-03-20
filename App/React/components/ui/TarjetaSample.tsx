@@ -180,8 +180,8 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                         duracion={sample.duracion}
                         onSeek={manejarSeek}
                         tamano="sm"
-                        colorNoReproducido="#d2c8a7"
-                        colorReproducido="#4a665b"
+                        colorNoReproducido="var(--colorWaveformNoReproducido)"
+                        colorReproducido="var(--colorWaveformReproducido)"
                         anchoBarra={2}
                         espacioBarra={1}
                         simetrico

@@ -189,8 +189,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                                 duracion={sample.duracion}
                                 tamano="xl"
                                 interactivo
-                                colorNoReproducido="#d2c8a7"
-                                colorReproducido="#4a665b"
+                                colorNoReproducido="var(--colorWaveformNoReproducido)"
+                                colorReproducido="var(--colorWaveformReproducido)"
                                 anchoBarra={2}
                                 espacioBarra={1}
                                 simetrico

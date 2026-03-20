@@ -175,8 +175,8 @@ export const LandingPublica = (): JSX.Element => {
                         {t('landing.footer.terminos')}
                     </GloryLink>
                 </nav>
-                {/* [183A-111] Selector de idioma en el footer de la landing */}
-                <SelectorIdioma variante="compacto" className="landingFooterIdioma" />
+                {/* [183A-111] [193A-52] Selector de idioma pill minimalista en el footer */}
+                <SelectorIdioma variante="select" className="landingFooterIdioma" />
             </footer>
         </div>
     );

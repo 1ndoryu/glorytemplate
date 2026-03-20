@@ -114,6 +114,9 @@
     --safeAreaTop: 0px;
     --safeAreaBottom: 0px;
     --siempreBlanco: #efefef;
+    /* [193A-51] Colores de waveform — cambian en light mode */
+    --colorWaveformNoReproducido: #d2c8a7;
+    --colorWaveformReproducido: #4a665b;
 }
 
 :root[data-theme='light'] {
@@ -149,4 +152,7 @@
     --overlaySuave: rgba(0, 0, 0, 0.14);
     --sombraFlotante: 0 4px 24px rgba(0, 0, 0, 0.18);
     --siempreBlanco: #efefef;
+    /* [193A-51] Waveform en light mode: oscuro para contrastar sobre fondo blanco */
+    --colorWaveformNoReproducido: #4a4a4a;
+    --colorWaveformReproducido: #2ca173;
 }

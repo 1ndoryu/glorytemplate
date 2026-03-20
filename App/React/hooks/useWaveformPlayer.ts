@@ -73,6 +73,13 @@ const formatearTiempo = (segundos: number): string => {
     return `${min}:${sec.toString().padStart(2, '0')}`;
 };
 
+/* [193A-51] Resolver CSS custom properties (var(--nombre)) a valores hex para canvas */
+const resolverColorCSS = (color: string): string => {
+    if (!color.startsWith('var(')) return color;
+    const nombre = color.slice(4, -1).trim();
+    return getComputedStyle(document.documentElement).getPropertyValue(nombre).trim() || color;
+};
+
 export const useWaveformPlayer = ({
     picos,
     progreso,
@@ -140,11 +147,15 @@ export const useWaveformPlayer = ({
         const mitad = altoLogico / 2;
         const puntoProgreso = progreso * anchoLogico;
 
+        /* [193A-51] Resolver CSS vars para que el canvas use el color correcto en cada tema */
+        const colorNoRep = resolverColorCSS(colorNoReproducido);
+        const colorRep = resolverColorCSS(colorReproducido);
+
         for (let i = 0; i < numBarras; i++) {
             const x = i * paso;
             const altoPico = datos[i] * mitad * 0.9;
 
-            ctx.fillStyle = x < puntoProgreso ? colorReproducido : colorNoReproducido;
+            ctx.fillStyle = x < puntoProgreso ? colorRep : colorNoRep;
 
             if (simetrico) {
                 const altoMinimo = Math.max(1, altoPico);

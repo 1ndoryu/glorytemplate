@@ -1,23 +1,41 @@
-/* [183A-111] SelectorIdioma — Botones para cambiar el idioma (es/en/ja).
- * Variante 'compacto': solo bandera. Variante 'completo': bandera + nombre. */
+/* [183A-111] SelectorIdioma — Cambia el idioma activo (es/en/ja).
+ * variante='compacto': botones con bandera. variante='completo': bandera + nombre.
+ * variante='select': select nativo pill sin bandera (para la landing). [193A-52] */
 import { useIdiomaStore, type Idioma } from '@app/utils/i18n';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import '../../styles/componentes/selectorIdioma.css';
 
 interface SelectorIdiomaProps {
-    variante?: 'compacto' | 'completo';
+    variante?: 'compacto' | 'completo' | 'select';
     className?: string;
 }
 
-const IDIOMAS: Array<{ id: Idioma; bandera: string; etiqueta: string; ariaLabel: string }> = [
-    { id: 'es', bandera: '🇪🇸', etiqueta: 'ES', ariaLabel: 'Español' },
-    { id: 'en', bandera: '🇺🇸', etiqueta: 'EN', ariaLabel: 'English' },
-    { id: 'ja', bandera: '🇯🇵', etiqueta: '日本語', ariaLabel: '日本語' },
+const IDIOMAS: Array<{ id: Idioma; bandera: string; etiqueta: string; ariaLabel: string; nombre: string }> = [
+    { id: 'es', bandera: '🇪🇸', etiqueta: 'ES', ariaLabel: 'Español', nombre: 'Español' },
+    { id: 'en', bandera: '🇺🇸', etiqueta: 'EN', ariaLabel: 'English', nombre: 'English' },
+    { id: 'ja', bandera: '🇯🇵', etiqueta: '日本語', ariaLabel: '日本語', nombre: '日本語' },
 ];
 
 export const SelectorIdioma = ({ variante = 'compacto', className = '' }: SelectorIdiomaProps): JSX.Element => {
     const idioma = useIdiomaStore(s => s.idioma);
     const setIdioma = useIdiomaStore(s => s.setIdioma);
+
+    /* [193A-52] Variante select: pill nativo sin banderas */
+    if (variante === 'select') {
+        return (
+            /* sentinel-disable-next-line html-nativo-en-vez-de-componente — SelectorIdioma ES el componente base para el select de idioma */
+            <select
+                className={`selectorIdiomaPill${className ? ` ${className}` : ''}`}
+                value={idioma}
+                onChange={e => setIdioma(e.target.value as Idioma)}
+                aria-label="Seleccionar idioma"
+            >
+                {IDIOMAS.map(({ id, nombre }) => (
+                    <option key={id} value={id}>{nombre}</option>
+                ))}
+            </select>
+        );
+    }
 
     return (
         <div
