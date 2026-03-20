@@ -14,47 +14,14 @@ import { EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 import { extraerArchivosClipboard } from '@app/services/clipboardArchivos';
+import { extraerTags, generarPeaks } from '@app/utils/audioUtils';
+
+export { extraerTags, generarPeaks };
 
 const log = crearLogger('useCrearContenido');
 
 export const MAX_CARACTERES = 2000;
 export const MIN_TAGS_AUDIO = 2;
-
-/* Extraer hashtags del texto */
-export const extraerTags = (texto: string): string[] => {
-    const regex = /#(\w+)/g;
-    const tags: string[] = [];
-    let match;
-    while ((match = regex.exec(texto)) !== null) {
-        tags.push(match[1].toLowerCase());
-    }
-    return [...new Set(tags)];
-};
-
-/* Genera waveform peaks de un archivo de audio via Web Audio API */
-export const generarPeaks = async (archivo: File, barras = 60): Promise<number[]> => {
-    try {
-        const buffer = await archivo.arrayBuffer();
-        const contexto = new AudioContext();
-        const audioBuffer = await contexto.decodeAudioData(buffer);
-        const datos = audioBuffer.getChannelData(0);
-        const pasoTamano = Math.floor(datos.length / barras);
-        const peaks: number[] = [];
-        for (let i = 0; i < barras; i++) {
-            let max = 0;
-            for (let j = 0; j < pasoTamano; j++) {
-                const abs = Math.abs(datos[i * pasoTamano + j] || 0);
-                if (abs > max) max = abs;
-            }
-            peaks.push(max);
-        }
-        await contexto.close();
-        return peaks;
-    } catch (error) {
-        log.warn('No se pudieron generar peaks del audio, usando fallback', error);
-        return Array(barras).fill(0.3);
-    }
-};
 
 export interface UseCrearContenidoOpciones {
     alCompletarPublicacion?: () => void;
@@ -210,86 +177,100 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         setErrorSubida(null);
     }, [archivos, setErrorSubida]);
 
-    /* Publicar contenido (sample con audio o publicación texto/imágenes) */
+    /* Publicar contenido (sample con audio o publicación texto/imágenes)
+     * [193A-103] Audio: cierra modal inmediatamente y sube en background con toast.
+     * Texto/imágenes: se mantiene flujo síncrono (son rápidos). */
     const manejarPublicar = useCallback(async () => {
         if (publicando) return;
         const tieneContenido = contenido.trim().length > 0 || audioAdjunto || imagenes.length > 0;
         if (!tieneContenido) return;
 
-        setPublicando(true);
         setErrorSubida(null);
         setExitoSubida(false);
         const tags = extraerTags(contenido);
 
         if (audioAdjunto?.archivo && tags.length < MIN_TAGS_AUDIO) {
             setErrorSubida(`Se requieren al menos ${MIN_TAGS_AUDIO} tags (#hashtags) para subir un sample (${tags.length}/${MIN_TAGS_AUDIO}).`);
-            setPublicando(false);
             return;
         }
 
         log.info('Publicando', { tags, tieneAudio: !!audioAdjunto, imagenes: imagenes.length });
+
+        if (audioAdjunto?.archivo) {
+            /* [193A-103] Capturar datos antes de cerrar el modal y resetear el formulario.
+             * La subida continuará en background aunque el componente se desmonte. */
+            const datosSubida = {
+                audio: audioAdjunto.archivo,
+                titulo: audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
+                contenido: contenido.trim(),
+                tags,
+                permitirDescarga,
+                licenciaLibre: permitirDescarga,
+                esPremium,
+                precio: tienePrecio ? parseFloat(precio) || undefined : undefined,
+                mostrarEnComunidad,
+                portada: portadaArchivo ?? undefined,
+                ...(() => {
+                    const ctx = useCrearModalStore.getState().contextoAdjuntar;
+                    if (!ctx) return {};
+                    return {
+                        cancionOrigenId: ctx.cancionOrigenId,
+                        relacionId: ctx.relacionId,
+                        ladoRelacion: ctx.ladoRelacion,
+                        inicioSegundos: inicioSegundos !== '' ? parseFloat(inicioSegundos) : undefined,
+                        tipoElemento: tipoElemento || undefined,
+                    };
+                })(),
+            };
+
+            /* Cerrar modal y resetear inmediatamente */
+            resetear();
+            alCompletarPublicacion?.();
+            toast.info('Subiendo sample en segundo plano…');
+
+            /* Subida en background — fire and forget */
+            subirSample(datosSubida).then((resp) => {
+                if (resp.ok) {
+                    log.info('Sample subido exitosamente', resp.data);
+                    toast.exito('Tu sample fue publicado');
+                    window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_CREADO));
+                } else {
+                    log.error('Error subiendo sample', resp);
+                    toast.error(resp.error ?? 'Error al subir el sample');
+                }
+            }).catch((error) => {
+                log.error('Error inesperado subiendo sample', error);
+                toast.error('Error de conexión al subir sample');
+            });
+            return;
+        }
+
+        /* Publicación texto/imágenes — flujo síncrono (rápido) */
+        setPublicando(true);
         try {
-            if (audioAdjunto?.archivo) {
-                const resp = await subirSample({
-                    audio: audioAdjunto.archivo,
-                    titulo: audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
-                    contenido: contenido.trim(),
-                    tags,
-                    permitirDescarga,
-                    licenciaLibre: permitirDescarga,
-                    esPremium,
-                    precio: tienePrecio ? parseFloat(precio) || undefined : undefined,
-                    mostrarEnComunidad,
-                    portada: portadaArchivo ?? undefined,
-                    ...(() => {
-                        const ctx = useCrearModalStore.getState().contextoAdjuntar;
-                        if (!ctx) return {};
-                        return {
-                            cancionOrigenId: ctx.cancionOrigenId,
-                            relacionId: ctx.relacionId,
-                            ladoRelacion: ctx.ladoRelacion,
-                            inicioSegundos: inicioSegundos !== '' ? parseFloat(inicioSegundos) : undefined,
-                            tipoElemento: tipoElemento || undefined,
-                        };
-                    })(),
-                });
-                if (!resp.ok) {
-                    setErrorSubida(resp.error ?? 'Error al subir el sample');
-                    setPublicando(false);
-                    return;
+            const urlsReales: string[] = [];
+            for (const img of imagenes) {
+                const respImg = await subirImagenPublicacion(img.archivo);
+                if (respImg.ok && respImg.data?.url) {
+                    urlsReales.push(respImg.data.url);
+                } else {
+                    log.error('Error subiendo imagen', respImg);
+                    toast.error(respImg.error ?? 'Error al subir imagen');
                 }
-                log.info('Sample subido exitosamente', resp.data);
-            } else {
-                const urlsReales: string[] = [];
-                for (const img of imagenes) {
-                    const respImg = await subirImagenPublicacion(img.archivo);
-                    if (respImg.ok && respImg.data?.url) {
-                        urlsReales.push(respImg.data.url);
-                    } else {
-                        log.error('Error subiendo imagen', respImg);
-                        toast.error(respImg.error ?? 'Error al subir imagen');
-                    }
-                }
-                const resp = await crearPublicacion({
-                    tipo: 'social',
-                    contenido: contenido.trim(),
-                    imagenes: urlsReales.length > 0 ? urlsReales : undefined,
-                });
-                if (!resp.ok) {
-                    setErrorSubida(resp.error ?? 'Error al publicar');
-                    setPublicando(false);
-                    return;
-                }
-                log.info('Publicacion creada', resp.data);
             }
+            const resp = await crearPublicacion({
+                tipo: 'social',
+                contenido: contenido.trim(),
+                imagenes: urlsReales.length > 0 ? urlsReales : undefined,
+            });
+            if (!resp.ok) {
+                setErrorSubida(resp.error ?? 'Error al publicar');
+                setPublicando(false);
+                return;
+            }
+            log.info('Publicacion creada', resp.data);
 
             setExitoSubida(true);
-
-            /* C223: Notificar al feed para que refresque la lista de samples */
-            if (audioAdjunto?.archivo) {
-                window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_CREADO));
-            }
-
             setTimeout(() => {
                 setPublicando(false);
                 resetear();

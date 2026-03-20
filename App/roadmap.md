@@ -122,10 +122,6 @@ Combinar colecciones no funciona, creo que ya puse esta tarea antes, tengo colec
 
 Que en la apk no se pueda comprar samples, que directamente no salgan los samples con precio si es que es mejor. 
 
-## 193A-103
-
-Cuando publico un sample, modalCuerpo se queda abierto diciendo "subiendo" No, no se que tiene que quedar asi, se tiene que quedar el proceso de fondo y cuando se publique que aparezca un toast de "Tu sample fue publicado o algo asi"
-
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
 Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer.
