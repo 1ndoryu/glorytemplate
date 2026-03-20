@@ -11,12 +11,14 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { ContenidoCrear } from '@app/components/social/ContenidoCrear';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
+import { useT } from '@app/utils/i18n/useT';
 import type { LadoRelacion } from '@app/stores/crearModalStore';
 
 /* Paso de seleccion de lado cuando el modal se abre sin lado pre-definido */
 const SelectorLado = (): JSX.Element => {
     const ctx = useCrearModalStore(s => s.contextoAdjuntar);
     const seleccionarLado = useCrearModalStore(s => s.seleccionarLado);
+    const { t } = useT();
 
     const elegir = (cancionId: number, lado: LadoRelacion) => {
         seleccionarLado(cancionId, lado);
@@ -25,8 +27,8 @@ const SelectorLado = (): JSX.Element => {
     return (
         <div className="selectorLadoModal">
             <div className="selectorLadoIcono"><Music size={20} /></div>
-            <h3 className="selectorLadoTitulo">¿De qué canción es el sample?</h3>
-            <p className="selectorLadoDesc">El sample pertenece a la grabación de una de las dos canciones del sampleo.</p>
+            <h3 className="selectorLadoTitulo">{t('crear.selectorLado.titulo')}</h3>
+            <p className="selectorLadoDesc">{t('crear.selectorLado.desc')}</p>
             <div className="selectorLadoOpciones">
                 {ctx?.ladoDestino && (
                     <BotonBase

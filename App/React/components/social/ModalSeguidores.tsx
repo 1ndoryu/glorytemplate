@@ -12,6 +12,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { useModalSeguidores } from '@app/hooks/useModalSeguidores';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/modalSeguidores.css';
 
 export const ModalSeguidores = (): JSX.Element | null => {
@@ -19,6 +20,7 @@ export const ModalSeguidores = (): JSX.Element | null => {
     const navegar = useNavigationStore(s => s.navegar);
     const miId = useAuthStore(s => s.usuario?.id);
     const listaRef = useRef<HTMLDivElement>(null);
+    const { t } = useT();
 
     const onScroll = useCallback(() => {
         const el = listaRef.current;
@@ -32,12 +34,12 @@ export const ModalSeguidores = (): JSX.Element | null => {
     if (!abierto) return null;
 
     return (
-        <Modal abierto={abierto} onCerrar={cerrar} titulo={`Seguidores (${total})`} tamano="pequeno" className="modalSeguidores">
+        <Modal abierto={abierto} onCerrar={cerrar} titulo={t('seguidores.titulo').replace('{total}', String(total))} tamano="pequeno" className="modalSeguidores">
             <div className="seguidoresLista" ref={listaRef} onScroll={onScroll}>
                 {seguidores.length === 0 && !cargando && (
                     <div className="seguidoresVacio">
                         <Users size={32} />
-                        <p>Sin seguidores aún</p>
+                        <p>{t('seguidores.sinSeguidores')}</p>
                     </div>
                 )}
 
@@ -63,7 +65,7 @@ export const ModalSeguidores = (): JSX.Element | null => {
                                 tamano="sm"
                                 onClick={() => toggleFollow(s.id)}
                             >
-                                {s.siguiendo ? 'Siguiendo' : 'Seguir'}
+                                {s.siguiendo ? t('seguidores.siguiendo') : t('seguidores.seguir')}
                             </BotonBase>
                         )}
                     </div>

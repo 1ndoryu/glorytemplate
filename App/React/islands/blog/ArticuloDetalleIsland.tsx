@@ -20,6 +20,8 @@ import { MenuContextual } from '@app/components/ui';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
+import { eliminarArticulo } from '@app/services/apiArticulos';
+import { toast } from '@app/stores/toastStore';
 import '@app/styles/componentes/articuloDetalle.css';
 
 interface ArticuloDetalleIslandProps {
@@ -37,6 +39,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
     const navegar = useNavigationStore(s => s.navegar);
     const autenticado = useAuthStore(s => s.autenticado);
     const usuarioId = useAuthStore(s => s.usuario?.id ?? null);
+    const rolUsuario = useAuthStore(s => s.usuario?.rol ?? null);
     const abrirEdicion = useArticuloEditorStore(s => s.abrirEdicion);
 
     /* [193A-36] Autenticados vuelven a /?tab=blog (blog es tab del inicio) */
@@ -185,8 +188,8 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                     {articulo.totalComentarios > 0 && <span>{articulo.totalComentarios}</span>}
                 </BotonBase>
 
-                {/* [193A-20] Botón de más opciones solo para el autor */}
-                {usuarioId && articulo.autorId === usuarioId && (
+                {/* [193A-20+193A-45] Botón de más opciones para autor o admin */}
+                {((usuarioId && articulo.autorId === usuarioId) || rolUsuario === 'admin') && (
                     <BotonBase
                         variante="ghost"
                         tamano="ninguno"
@@ -200,8 +203,8 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                 )}
             </div>
 
-            {/* [193A-20] Menú contextual del autor */}
-            {usuarioId && articulo.autorId === usuarioId && (
+            {/* [193A-20+193A-45] Menú contextual del autor/admin */}
+            {((usuarioId && articulo.autorId === usuarioId) || rolUsuario === 'admin') && (
                 <MenuContextual
                     abierto={menu.abierto}
                     onCerrar={cerrarMenuDetalle}
@@ -228,6 +231,23 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                             etiqueta: 'Copiar enlace',
                             onClick: () => {
                                 navigator.clipboard.writeText(`${window.location.origin}/blog/${articulo.slug}/`);
+                                cerrarMenuDetalle();
+                            },
+                        },
+                        /* [193A-45] Eliminar — autor o admin */
+                        {
+                            id: 'eliminar',
+                            etiqueta: 'Eliminar',
+                            peligro: true,
+                            onClick: async () => {
+                                if (!confirm('¿Eliminar este artículo? Esta acción no se puede deshacer.')) return;
+                                const res = await eliminarArticulo(articulo.id);
+                                if (res.ok) {
+                                    toast.exito('Artículo eliminado');
+                                    navegar(autenticado ? '/?tab=blog' : '/blog');
+                                } else {
+                                    toast.error('No se pudo eliminar el artículo');
+                                }
                                 cerrarMenuDetalle();
                             },
                         },

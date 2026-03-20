@@ -19,6 +19,7 @@ import { toast } from '@app/stores/toastStore';
 import { useArrastrarScroll } from '@app/hooks/useArrastrarScroll';
 import { useAuthStore } from '@app/stores/authStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
+import { eliminarArticulo } from '@app/services/apiArticulos';
 import type { CategoriaArticulo } from '@app/types';
 import '@app/styles/componentes/blog.css';
 
@@ -62,11 +63,12 @@ const ESTADOS_MIS_ARTICULOS: { label: string; valor: 'aprobado' | 'pendiente' | 
 export const BlogIsland: React.FC = () => {
     const {
         articulos, cargando, hayMas, categoria, cambiarCategoria, cargarMas, darLike,
-        misArticulosActivo, activarMisArticulos, cambiarEstadoFiltro, borradorLocal,
+        quitarArticulo, misArticulosActivo, activarMisArticulos, cambiarEstadoFiltro, borradorLocal,
     } = useBlog();
     const navegar = useNavigationStore(s => s.navegar);
     const autenticado = useAuthStore(s => s.autenticado);
     const usuarioId = useAuthStore(s => s.usuario?.id ?? null);
+    const rolUsuario = useAuthStore(s => s.usuario?.rol ?? null);
     const abrirEdicion = useArticuloEditorStore(s => s.abrirEdicion);
 
     /* [183A-110-E] Estado local para la sub-fila de mis artículos */
@@ -139,6 +141,23 @@ export const BlogIsland: React.FC = () => {
                 cerrarMenu();
             },
         },
+        /* [193A-45] Eliminar — autor o admin */
+        ...((usuarioId && articuloMenu.autor?.id === usuarioId) || rolUsuario === 'admin' ? [{
+            id: 'eliminar',
+            etiqueta: 'Eliminar',
+            peligro: true,
+            onClick: async () => {
+                if (!confirm('¿Eliminar este artículo? Esta acción no se puede deshacer.')) return;
+                const res = await eliminarArticulo(articuloMenu.id);
+                if (res.ok) {
+                    toast.exito('Artículo eliminado');
+                    quitarArticulo(articuloMenu.id);
+                } else {
+                    toast.error('No se pudo eliminar el artículo');
+                }
+                cerrarMenu();
+            },
+        }] : []),
     ] : [];
 
     return (

@@ -12,38 +12,44 @@ import {Modal} from '@app/components/ui/Modal';
 import {useModalConfiguracion} from '@app/hooks/useModalConfiguracion';
 import {useEsMovil} from '@app/hooks/useEsMovil';
 import {useRegistrarCapa} from '@app/hooks/useRegistrarCapa';
+import {useT} from '@app/utils/i18n/useT';
 import {ContenidoSeccion, NavSecciones, SECCIONES_NAV, type HookConfiguracion} from './ConfiguracionSecciones';
 import '../../styles/componentes/modalConfiguracion.css';
 
 /* Desktop: modal clasico con panel lateral */
-const ConfiguracionDesktop = (h: HookConfiguracion): JSX.Element => (
+const ConfiguracionDesktop = (h: HookConfiguracion): JSX.Element => {
+    const { t } = useT();
+    return (
     <Modal abierto={h.abierto && h.autenticado} onCerrar={h.manejarCerrar} className="configModalLayout">
         <div className="configNavLateral">
-            <h3 className="configNavTitulo">Configuración</h3>
+            <h3 className="configNavTitulo">{t('config.titulo')}</h3>
             <NavSecciones h={h} />
         </div>
         <div className="configContenido">
             <div className="configSeccionContenido"><ContenidoSeccion h={h} /></div>
             <div className="configAcciones">
-                <BotonBase variante="ghost" onClick={h.manejarCerrar} disabled={h.guardando}>Cancelar</BotonBase>
+                <BotonBase variante="ghost" onClick={h.manejarCerrar} disabled={h.guardando}>{t('comun.cancelar')}</BotonBase>
                 <BotonBase variante="primario" onClick={h.manejarGuardar} disabled={h.guardando}>
-                    <Save size={14} /> {h.guardando ? 'Guardando...' : 'Guardar'}
+                    <Save size={14} /> {h.guardando ? t('config.guardando') : t('comun.guardar')}
                 </BotonBase>
             </div>
         </div>
     </Modal>
-);
+    );
+};
 
 /* QL89+QL101: Movil  bottom sheet parcial tipo dropdown/menu contextual */
 /* code-sentinel-disable: bottom-sheet requiere overlay custom, no el <Modal> estandar */
-const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => createPortal(
+const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => {
+    const { t } = useT();
+    return createPortal(
     <div className="configMovilOverlay" onClick={h.manejarCerrar}>
         <div className="configMovilPantalla" onClick={(e) => e.stopPropagation()}>
             {h.movilEnMenu ? (
                 <div className="configMovilNav">
                     <div className="configMovilCabecera">
-                        <h3 className="configNavTitulo">Configuración</h3>
-                        <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
+                        <h3 className="configNavTitulo">{t('config.titulo')}</h3>
+                        <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label={t('comun.cerrar')}>
                             <X size={20} />
                         </BotonBase>
                     </div>
@@ -54,17 +60,17 @@ const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => createPortal(
                     <div className="configMovilCabecera">
                         <BotonBase variante="ghost" className="configMovilVolver" onClick={h.volverAlMenuMovil} type="button">
                             <ArrowLeft size={18} />
-                            <span>{SECCIONES_NAV.find(s => s.id === h.seccionActiva)?.etiqueta ?? 'Configuración'}</span>
+                            <span>{SECCIONES_NAV.find(s => s.id === h.seccionActiva)?.etiqueta ?? t('config.titulo')}</span>
                         </BotonBase>
-                        <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
+                        <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label={t('comun.cerrar')}>
                             <X size={20} />
                         </BotonBase>
                     </div>
                     <div className="configMovilContenido"><ContenidoSeccion h={h} /></div>
                     <div className="configAcciones">
-                        <BotonBase variante="ghost" onClick={h.manejarCerrar} disabled={h.guardando}>Cancelar</BotonBase>
+                        <BotonBase variante="ghost" onClick={h.manejarCerrar} disabled={h.guardando}>{t('comun.cancelar')}</BotonBase>
                         <BotonBase variante="primario" onClick={h.manejarGuardar} disabled={h.guardando}>
-                            <Save size={14} /> {h.guardando ? 'Guardando...' : 'Guardar'}
+                            <Save size={14} /> {h.guardando ? t('config.guardando') : t('comun.guardar')}
                         </BotonBase>
                     </div>
                 </div>
@@ -72,7 +78,8 @@ const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => createPortal(
         </div>
     </div>,
     document.body
-);
+    );
+};
 
 export const ModalConfiguracion = (): JSX.Element | null => {
     const hookData = useModalConfiguracion();

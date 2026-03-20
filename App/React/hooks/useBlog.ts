@@ -167,6 +167,10 @@ export const useBlog = () => {
         cambiarCategoria,
         cargarMas,
         darLike,
+        /* [193A-45] Quitar artículo eliminado de la lista local */
+        quitarArticulo: useCallback((id: number) => {
+            setArticulos(prev => prev.filter(a => a.id !== id));
+        }, []),
         /* [183A-110-E] Mis artículos */
         misArticulosActivo,
         estadoFiltro,

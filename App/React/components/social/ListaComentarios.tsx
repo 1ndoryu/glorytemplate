@@ -11,6 +11,7 @@ import { ComentarioItem } from '@app/components/social/ComentarioItem';
 import { ComentarioAudio } from '@app/components/social/ComentarioAudio';
 import { useListaComentarios } from '@app/hooks/useListaComentarios';
 import { useVisorImagenStore } from '@app/stores/visorImagenStore';
+import { useT } from '@app/utils/i18n/useT';
 import type { Comentario } from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
 import { BotonBase } from '../ui/BotonBase';
@@ -73,6 +74,7 @@ export const ListaComentarios = ({
     });
 
     const abrirVisor = useVisorImagenStore(s => s.abrir);
+    const { t } = useT();
 
     /* [183A-100] Renderizar media dentro de ComentarioItem.
      * Imágenes abren en VisorImagen (fullscreen) en vez de nueva pestaña. */
@@ -133,7 +135,7 @@ export const ListaComentarios = ({
                                     <Mic size={12} /> {archivoAdjunto.name}
                                 </span>
                             )}
-                            <BotonBase variante="ghost" className="comentarioPreviewCerrar" onClick={limpiarAdjunto} type="button" aria-label="Quitar archivo">
+                            <BotonBase variante="ghost" className="comentarioPreviewCerrar" onClick={limpiarAdjunto} type="button" aria-label={t('comentarios.quitarAdjunto')}>
                                 <X size={12} />
                             </BotonBase>
                         </div>
@@ -143,10 +145,10 @@ export const ListaComentarios = ({
                         <div className="comentarioNuevoInput">
                             {onEnviarMultimedia && (
                                 <>
-                                    <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" title="Adjuntar imagen">
+                                    <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputImagenRef.current?.click()} type="button" aria-label={t('comentarios.adjuntarImagen')} title={t('comentarios.adjuntarImagen')}>
                                         <Image size={14} />
                                     </BotonBase>
-                                    <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" title="Adjuntar audio">
+                                    <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label={t('comentarios.adjuntarAudio')} title={t('comentarios.adjuntarAudio')}>
                                         <Mic size={14} />
                                     </BotonBase>
                                     <Input ref={inputImagenRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="comentarioInputOculto"
@@ -156,10 +158,10 @@ export const ListaComentarios = ({
                                 </>
                             )}
                             <CampoTexto ref={inputRef} 
-                                placeholder={archivoAdjunto ? 'Escribe un caption (opcional)...' : 'Escribe un comentario...'}
+                                placeholder={archivoAdjunto ? t('comentarios.captionPlaceholder') : t('comentarios.placeholder')}
                                 value={textoNuevo} onChange={e => setTextoNuevo(e.target.value)}
                                 onKeyDown={manejarKeyDown} maxLength={300} />
-                            <BotonBase variante="ghost" className="comentarioEnviarBtn" onClick={manejarEnviar} type="button" disabled={!puedeEnviar} aria-label="Enviar comentario">
+                            <BotonBase variante="ghost" className="comentarioEnviarBtn" onClick={manejarEnviar} type="button" disabled={!puedeEnviar} aria-label={t('comentarios.enviar')}>
                                 <Send size={14} />
                             </BotonBase>
                         </div>
@@ -168,7 +170,7 @@ export const ListaComentarios = ({
             )}
 
             {visibles.length === 0 && !cargando && (
-                <p className="comentariosVacio">Sin comentarios aún</p>
+                <p className="comentariosVacio">{t('comentarios.vacio')}</p>
             )}
         </div>
     );

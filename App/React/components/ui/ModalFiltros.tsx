@@ -11,6 +11,7 @@ import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { ModalAcciones } from '@app/components/ui/ModalAcciones';
 import { useFiltrosStore, type FiltroPrecio } from '@app/stores/filtrosStore';
+import { useT } from '@app/utils/i18n/useT';
 import type { FiltroContenidoDef, FiltroContenidoId } from '@app/hooks/useFiltrosContenido';
 import '../../styles/componentes/modalFiltros.css';
 
@@ -46,6 +47,7 @@ export const ModalFiltros = ({
     filtrosContenido, estaActivo, onToggleFiltro, hayFiltrosContenidoActivos, onResetContenido,
     mostrarPrecio = true,
 }: ModalFiltrosProps): JSX.Element | null => {
+    const { t } = useT();
     /* Store global — solo se lee si NO se pasan filtrosContenido */
     const yaReproducidos = useFiltrosStore(s => s.yaReproducidos);
     const likeados = useFiltrosStore(s => s.likeados);
@@ -72,10 +74,10 @@ export const ModalFiltros = ({
             onToggle: () => onToggleFiltro(f.id),
         }))
         : [
-            { id: 'yaReproducidos', etiqueta: 'Ocultar ya reproducidos', descripcion: 'No mostrar samples que ya escuchaste', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
-            { id: 'likeados', etiqueta: 'Ocultar ya likeados', descripcion: 'Excluir samples a los que diste like', icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
-            { id: 'deSeguidos', etiqueta: 'Solo de personas que sigo', descripcion: 'Ver únicamente samples de creadores que sigues', icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
-            { id: 'descargados', etiqueta: 'Ocultar ya descargados', descripcion: 'Excluir samples que ya tienes descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
+            { id: 'yaReproducidos', etiqueta: t('filtros.ocultarReproducidos'), descripcion: t('filtros.ocultarReproducidosDesc'), icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
+            { id: 'likeados', etiqueta: t('filtros.ocultarLikeados'), descripcion: t('filtros.ocultarLikeadosDesc'), icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
+            { id: 'deSeguidos', etiqueta: t('filtros.soloDeSeguidos'), descripcion: t('filtros.soloDeSeguidosDesc'), icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
+            { id: 'descargados', etiqueta: t('filtros.ocultarDescargados'), descripcion: t('filtros.ocultarDescargadosDesc'), icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
         ];
 
     const hayActivos = usarContenido
@@ -84,9 +86,9 @@ export const ModalFiltros = ({
 
     /* C274: Opciones del selector de precio */
     const opcionesPrecio: { valor: FiltroPrecio; etiqueta: string }[] = [
-        { valor: 'todos', etiqueta: 'Todos' },
-        { valor: 'gratis', etiqueta: 'Gratis' },
-        { valor: 'premium', etiqueta: 'Premium' },
+        { valor: 'todos', etiqueta: t('filtros.todos') },
+        { valor: 'gratis', etiqueta: t('filtros.gratis') },
+        { valor: 'premium', etiqueta: t('filtros.premium') },
     ];
 
     const manejarReset = useCallback(() => {
@@ -146,11 +148,11 @@ export const ModalFiltros = ({
                 <ModalAcciones>
                     {hayActivos && (
                         <BotonBase variante="secundario" onClick={manejarReset}>
-                            Limpiar filtros
+                            {t('filtros.resetear')}
                         </BotonBase>
                     )}
                     <BotonBase variante="primario" onClick={onCerrar}>
-                        Aplicar
+                        {t('filtros.aplicar')}
                     </BotonBase>
                 </ModalAcciones>
             </div>

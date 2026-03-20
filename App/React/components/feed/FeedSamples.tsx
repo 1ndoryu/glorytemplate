@@ -11,6 +11,7 @@ import { Music, WifiOff, RefreshCw } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { useT } from '@app/utils/i18n/useT';
 
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
@@ -80,6 +81,7 @@ export const FeedSamples = ({
     filtroAdicional,
     busquedaLocal = false,
 }: FeedSamplesProps): JSX.Element => {
+    const { t } = useT();
     const feed = useFeedSamples({
         proveedor,
         samplesIniciales,
@@ -143,8 +145,8 @@ export const FeedSamples = ({
             <div className={`feedSamplesContenedor ${className}`} id={id}>
                 <div className="feedSamplesOffline">
                     <WifiOff size={48} />
-                    <h3>Sin conexión a internet</h3>
-                    <p>Revisa tu conexión e intenta de nuevo.</p>
+                    <h3>{t('feed.sinConexionTitulo')}</h3>
+                    <p>{t('feed.sinConexionDesc')}</p>
                 </div>
             </div>
         );
@@ -173,7 +175,7 @@ export const FeedSamples = ({
             {!enLinea && (
                 <div className="feedSamplesBannerOffline">
                     <WifiOff size={14} />
-                    <span>Sin conexión — mostrando datos guardados</span>
+                    <span>{t('feed.sinConexionBanner')}</span>
                 </div>
             )}
 

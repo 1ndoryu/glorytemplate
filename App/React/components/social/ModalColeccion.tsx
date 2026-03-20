@@ -15,6 +15,7 @@ import { Checkbox } from '@app/components/ui/Checkbox';
 import { Input } from '@app/components/ui/Input';
 import { SelectorMenu } from '@app/components/ui/SelectorMenu';
 import { useModalColeccion } from '@app/hooks/useModalColeccion';
+import { useT } from '@app/utils/i18n/useT';
 import type { Coleccion } from '@app/types';
 import '../../styles/componentes/modalColeccion.css';
 
@@ -33,6 +34,7 @@ export const ModalColeccion = ({
     coleccion = null,
 }: ModalColeccionProps): JSX.Element | null => {
     const inputImagenRef = useRef<HTMLInputElement>(null);
+    const { t } = useT();
     const {
         esEdicion,
         nombre,
@@ -63,10 +65,10 @@ export const ModalColeccion = ({
                             role="button"
                             tabIndex={0}
                             onKeyDown={(e) => e.key === 'Enter' && inputImagenRef.current?.click()}
-                            title="Cambiar imagen de portada"
+                            title={t('coleccion.cambiarPortada')}
                         >
                             {previewImagen ? (
-                                <img src={previewImagen} alt="Portada de la colección" className="modalColeccionImagenImg" />
+                                <img src={previewImagen} alt={t('coleccion.portadaAlt')} className="modalColeccionImagenImg" />
                             ) : (
                                 <div className="modalColeccionImagenPlaceholder">
                                     <Camera size={28} />
@@ -74,7 +76,7 @@ export const ModalColeccion = ({
                             )}
                             <div className="modalColeccionImagenOverlay">
                                 <Camera size={16} />
-                                <span>Cambiar imagen</span>
+                                <span>{t('coleccion.cambiarImagen')}</span>
                             </div>
                         </div>
                         <Input
@@ -98,19 +100,19 @@ export const ModalColeccion = ({
                 )}
 
                 <CampoTexto
-                    etiqueta="Nombre"
+                    etiqueta={t('coleccion.nombre')}
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Mi colección..."
+                    placeholder={t('coleccion.nombrePlaceholder')}
                     maxLength={100}
                     autoFocus
                 />
 
                 <CampoTexto
-                    etiqueta="Descripción"
+                    etiqueta={t('coleccion.descripcion')}
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
-                    placeholder="Descripción (opcional)"
+                    placeholder={t('coleccion.descripcionPlaceholder')}
                     maxLength={300}
                 />
 
@@ -119,35 +121,35 @@ export const ModalColeccion = ({
                         checked={esPublica}
                         onChange={(e) => setEsPublica(e.target.checked)}
                     />
-                    <span>Colección pública</span>
+                    <span>{t('coleccion.publica')}</span>
                     <span className="modalColeccionPublicaHint">
-                        Otros usuarios podrán ver esta colección
+                        {t('coleccion.publicaHint')}
                     </span>
                 </label>
 
                 {/* QL114: Selector de colección padre — solo en modo edición, con opciones cargadas */}
                 {esEdicion && opcionesPadre.length > 1 && (
                     <div className="modalColeccionCampoPadre">
-                        <span className="modalColeccionCampoPadreEtiqueta">Colección padre</span>
+                        <span className="modalColeccionCampoPadreEtiqueta">{t('coleccion.padre')}</span>
                         <SelectorMenu
                             opciones={opcionesPadre}
                             valor={parentId !== null ? String(parentId) : ''}
                             onChange={(val) => setParentId(val ? Number(val) : null)}
-                            placeholder="Sin padre (raíz)"
+                            placeholder={t('coleccion.sinPadre')}
                         />
                     </div>
                 )}
 
                 <ModalAcciones>
                     <BotonBase variante="secundario" onClick={onCerrar}>
-                        Cancelar
+                        {t('comun.cancelar')}
                     </BotonBase>
                     <BotonBase
                         variante="primario"
                         onClick={manejarGuardar}
                         disabled={!nombre.trim() || guardando}
                     >
-                        {guardando ? 'Guardando...' : esEdicion ? 'Guardar' : 'Crear'}
+                        {guardando ? t('comun.guardando') : esEdicion ? t('comun.guardar') : t('coleccion.crear')}
                     </BotonBase>
                 </ModalAcciones>
             </div>

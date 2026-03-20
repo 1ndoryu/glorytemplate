@@ -11,12 +11,13 @@ import { Modal } from '@app/components/ui/Modal';
 import { DropZone, BotonBase } from '@app/components/ui';
 import { PasoMetadata, PasoSubida } from '@app/components/ui/subir';
 import { useSubirModal } from '@app/hooks/useSubirModal';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/subir.css';
 
-const nombrePaso = (n: number): string => {
-    if (n === 1) return 'Archivos';
-    if (n === 2) return 'Metadata';
-    return 'Publicar';
+const nombrePaso = (n: number, t: (k: string) => string): string => {
+    if (n === 1) return t('subir.archivos');
+    if (n === 2) return t('subir.metadata');
+    return t('subir.publicar');
 };
 
 export const SubirModal = (): JSX.Element | null => {
@@ -38,13 +39,15 @@ export const SubirModal = (): JSX.Element | null => {
         volverPaso1,
     } = useSubirModal();
 
+    const { t } = useT();
+
     if (!autenticado && abierto) {
         return (
             <Modal abierto={abierto} onCerrar={manejarCerrar} tamano="grande">
                 <div className="subirAuthAviso">
-                    <p>Inicia sesión para subir samples.</p>
+                    <p>{t('subir.iniciarSesion')}</p>
                     <BotonBase variante="primario" onClick={manejarCerrar}>
-                        Cerrar
+                        {t('subir.cerrar')}
                     </BotonBase>
                 </div>
             </Modal>
@@ -64,7 +67,7 @@ export const SubirModal = (): JSX.Element | null => {
                                 <span className="subirPasoNumero">
                                     {paso > n ? <Check size={12} /> : n}
                                 </span>
-                                {nombrePaso(n)}
+                                {nombrePaso(n, t)}
                             </div>
                             {n < 3 && <div className="subirPasoLinea" />}
                         </div>
