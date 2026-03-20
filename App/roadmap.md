@@ -82,17 +82,25 @@ filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un alg
 Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
 
 
-## 193A-92
-
-las imagenes de perfil por defecto se cambiaron(a los usuarios que no tienen imagen aun) a <img src="https://i0.wp.com/secure.gravatar.com/avatar/af13af2a3a0dffcb340412d0d95830f0ab30638181e0bc5f5f8fea9be93f0bba?strip=all&amp;quality=75&amp;resize=28%2C28" alt="Melvoft" loading="lazy" class="avatarImagen">, pedi optmizacion, si pero no que se cambiara esa, tenia otra antes por defecto.
-
-revisa el historial de avatar, restaura a cuando no usaba grevatar y optimiza asi como se optimizan el resto de imagenes.
-
-las iamgenes de colors me parece que no estan usando el cdn <img src="/wp-content/themes/glorytemplate/colors/48973f8f62134470de198bf59210b367.jpg" alt="Doom Vocal Hit 100bpm Cm" loading="lazy" class="tarjetaPortadaImg">
-
 ## 193A-93
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
+
+## 193A-94
+
+El proceso de recortes (el que genera recortes apartir de canciones y sampleos) usa un procesamiento de IA; asegurarse de que use las mismas api que rotan, y que no tengan gap para pedir info la IA (no me refiero el gap que hace para hacer las busquedas y scrapper)
+
+## 193A-95
+
+cambiar el icono de
+<button class="botonBase varianteGhost tamanoMd crearAdjuntoIcono crearAdjuntoIconoBtn" type="button" aria-label="カバー画像を添付" title="カバー画像を添付"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-music" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
+
+por uno que se entienda que es para subir imagen 
+
+y cuando tenga una imagen el tamaño cambien 
+.crearAdjuntoIcono {
+    width: 56px;
+    height: 56px !important; es necesario import 
 
 ## Antes de penultima (preferiblemente antepenultima)
 
