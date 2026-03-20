@@ -50,27 +50,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-114
-
-Es raro este error, las feedTags dentro colecciones no aparece en la aplicacion de escritorio pero si en la web
-otro detalle es que feedTags de las colecciones dentro tarda en cargar ¿esto esta optimizado? 
-
-veo que aparece despues de que esto pasa
-
-11:52:46 p.m. [vite] http proxy error: /wp-content/uploads/kamples/3/2026/03/pAlL7YD_waveform.json?v=9f562e1344ba58ae98adf5ecf5072068d7a062f47edd9ad92d1bb8891dfcaf76
-Error: read ECONNRESET
-    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
-11:53:12 p.m. [vite] http proxy error: /wp-content/uploads/kamples/3/2026/03/3ltHJt3_waveform.json?v=2d04a4bd3719a642339ad53b5e4c5593d86e1ee0aaadba53818db101b17f3a00
-Error: read ECONNRESET
-    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
-11:53:19 p.m. [vite] http proxy error: /wp-content/uploads/kamples/3/2026/03/XYJax8I_waveform.json?v=8f4599a05cdab6b746a5be1be4dae399bd75e23a9d0045156366982e16fc8608
-Error: read ECONNRESET
-    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
-11:53:34 p.m. [vite] http proxy error: /wp-content/uploads/kamples/3/2026/03/lNbnsg1_waveform.json?v=46ad7c6ea0b6a3b84bbadb4f2ae6034c1107a7e91bc008608c1013c2672d3a0b
-Error: read ECONNRESET
-    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
-11:54:41 p.m. [vite] http proxy error: /wp-json/kamples/v1/me/sync/colecciones?_t=1773892430501
-
 ## 183A-115
 
 El verificado si aparece en los nombres de usuario en sus publicaciones pero no aparece en sus nombre en los comentarios, ni tampoco en el nombre de usuario de su perfil y el de tooltop al hacer hover sobre el nombre tampoco, aqui hay incosistencia arquitectonica. 
@@ -122,9 +101,131 @@ Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apag
 
 No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los articulos, e admin puede y debería elimianr cualquier articulo
 
-## 193A-47 
+## 193A-46-A (URGENTE)
 
-Cuando hay un comentario el enlace de la notificacion es https://kamples.com/post/12/ y esta mal, las url de los post es /publicacion/ a demas dice "Alguien comentu tu publicacion" en vez de decir @usuario tal comento "tal cosa" o lo que esa pero mas discrictivo.  Pero tambien si voy a https://kamples.com/post/12/ dice Publicación no encontrada
+NO SE ARREGLO EL PROBLEMA SIGUE SALIENDo Contenido no disponible
+
+syncLogger.ts:201 [Glory] Error en isla "PerfilIsland": Error: Rendered more hooks than during the previous render.
+[Kamples Desktop] Error global: Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (react-dom.development.js:15688:13)
+    at updateCallback (react-dom.development.js:16385:14)
+    at Object.useCallback (react-dom.development.js:17033:14)
+    at useCallback (react.development.js:1646:21)
+    at PerfilIsland (PerfilIsland.tsx:85:30)
+    at renderWithHooks (react-dom.development.js:15486:18)
+    at updateFunctionComponent (react-dom.development.js:19617:20)
+    at beginWork (react-dom.development.js:21640:16)
+    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
+(anonymous) @ syncLogger.ts:201
+(anonymous) @ main.tsx:13
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+beginWork$1 @ react-dom.development.js:27490
+performUnitOfWork @ react-dom.development.js:26596
+workLoopSync @ react-dom.development.js:26505
+renderRootSync @ react-dom.development.js:26473
+performConcurrentWorkOnRoot @ react-dom.development.js:25777
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+react-dom.development.js:15688 Uncaught Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (react-dom.development.js:15688:13)
+    at updateCallback (react-dom.development.js:16385:14)
+    at Object.useCallback (react-dom.development.js:17033:14)
+    at useCallback (react.development.js:1646:21)
+    at PerfilIsland (PerfilIsland.tsx:85:30)
+    at renderWithHooks (react-dom.development.js:15486:18)
+    at updateFunctionComponent (react-dom.development.js:19617:20)
+    at beginWork (react-dom.development.js:21640:16)
+    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
+updateWorkInProgressHook @ react-dom.development.js:15688
+updateCallback @ react-dom.development.js:16385
+useCallback @ react-dom.development.js:17033
+useCallback @ react.development.js:1646
+PerfilIsland @ PerfilIsland.tsx:85
+renderWithHooks @ react-dom.development.js:15486
+updateFunctionComponent @ react-dom.development.js:19617
+beginWork @ react-dom.development.js:21640
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+beginWork$1 @ react-dom.development.js:27490
+performUnitOfWork @ react-dom.development.js:26596
+workLoopSync @ react-dom.development.js:26505
+renderRootSync @ react-dom.development.js:26473
+performConcurrentWorkOnRoot @ react-dom.development.js:25777
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+syncLogger.ts:201 [Kamples Desktop] Error global: Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (react-dom.development.js:15688:13)
+    at updateCallback (react-dom.development.js:16385:14)
+    at Object.useCallback (react-dom.development.js:17033:14)
+    at useCallback (react.development.js:1646:21)
+    at PerfilIsland (PerfilIsland.tsx:85:30)
+    at renderWithHooks (react-dom.development.js:15486:18)
+    at updateFunctionComponent (react-dom.development.js:19617:20)
+    at beginWork (react-dom.development.js:21640:16)
+    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
+(anonymous) @ syncLogger.ts:201
+(anonymous) @ main.tsx:13
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+beginWork$1 @ react-dom.development.js:27490
+performUnitOfWork @ react-dom.development.js:26596
+workLoopSync @ react-dom.development.js:26505
+renderRootSync @ react-dom.development.js:26473
+recoverFromConcurrentError @ react-dom.development.js:25889
+performConcurrentWorkOnRoot @ react-dom.development.js:25789
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+react-dom.development.js:15688 Uncaught Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (react-dom.development.js:15688:13)
+    at updateCallback (react-dom.development.js:16385:14)
+    at Object.useCallback (react-dom.development.js:17033:14)
+    at useCallback (react.development.js:1646:21)
+    at PerfilIsland (PerfilIsland.tsx:85:30)
+    at renderWithHooks (react-dom.development.js:15486:18)
+    at updateFunctionComponent (react-dom.development.js:19617:20)
+    at beginWork (react-dom.development.js:21640:16)
+    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
+updateWorkInProgressHook @ react-dom.development.js:15688
+updateCallback @ react-dom.development.js:16385
+useCallback @ react-dom.development.js:17033
+useCallback @ react.development.js:1646
+PerfilIsland @ PerfilIsland.tsx:85
+renderWithHooks @ react-dom.development.js:15486
+updateFunctionComponent @ react-dom.development.js:19617
+beginWork @ react-dom.development.js:21640
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+beginWork$1 @ react-dom.development.js:27490
+performUnitOfWork @ react-dom.development.js:26596
+workLoopSync @ react-dom.development.js:26505
+renderRootSync @ react-dom.development.js:26473
+recoverFromConcurrentError @ react-dom.development.js:25889
+performConcurrentWorkOnRoot @ react-dom.development.js:25789
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+syncLogger.ts:201 The above error occurred in the <PerfilIsland> component:
+
+    at PerfilIsland (
+
+
+## 193A-51
+
+Las waveform cuando la pagina este en white mode tienen que ser de color oscuro, se ven blanca y no contrastan
+
+## 193A-52 (en planificacion)
+
+El selector de idioma en el landing es muy feo, tiene que ser mas minimalista, te dejare un ejemplo
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
