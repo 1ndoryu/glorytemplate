@@ -83,12 +83,6 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
-## 193A-43 — COMPLETADO
-<!-- Rotación 3 keys Groq (GROQ_API_1/2/3 en .env servidor), gap audio=60s, moderación=0s. Commits 24fd9fc6f + 3b6a8118e -->
-
-## 193A-54 — COMPLETADO
-<!-- SelectorIdioma variante=select usa SelectorMenu Kamples; NavPublico usa variante=select. Commit 3031559cd -->
-
 ## 193A-61 
 
 Lo de corazon para mostrar los samples de "me encanta" funciona mal porque es un filtrado en vez de una busqueda desde el servidor, lo cual tiene que cargar todas las imagenes y pasar horas para mostrar los me encanta, es totalmente ineficiente
@@ -97,18 +91,21 @@ Lo de corazon para mostrar los samples de "me encanta" funciona mal porque es un
 
 La imagen de avatar no esta optimizada como estan optizada las demas imagenes,las imagenes temporarels de colors tampoco, 
 
-## 193A-63 — COMPLETADO
-<!-- Logs diagnóstico rotación keys + panel admin cola-IA muestra estado 3 keys. Commits f0d016cbf + 2117777ba -->
-
-## 193A-64 — COMPLETADO
-<!-- Rules of Hooks fix ModalSolicitudWhatsapp — useT antes del early return. Commit f08c28e99 -->
-
 ## 193A-65 
 
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
 
-## 193A-66 — COMPLETADO
-<!-- Rules of Hooks fix en ModalSeleccionColeccion, BarraSeleccionMultiple y ReproductorGlobal — useT antes del early return. Commits f6249aa07 + 1e8ab6249 -->
+## 193A-69
+
+filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, tambien con el dedo en movil!!
+
+## 193A-70
+
+El antispam de las notificaciones parece muy agresivo, auditar las notificaciones, revisar porque algunas notificaciones no aparecen en la apk pero otras si, revisar que todas vayan a aparecer.
+
+## 193A-71 Urgente
+
+Por un error del scrip que genera los schema, PushSubscriptionsDTO se modifico y ahora no veo que lleguen notificaciones, no se que mas se modifico, revisa bien PushSubscriptionsDTO y restaura la version correcta para ver si se arreglan las notificaciones de la apk.
 
 ## Antes de penultima (preferiblemente antepenultima)
 
@@ -117,7 +114,7 @@ Auditoría de seguridad profundad general, revisar lo mas tipico para pasar audi
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
-Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer. No pude restaurar PushSubscriptionsDTO, por favor revisa si quedo bien. Creo que las notificaciones dejaron de llegar, revisa el historial de PushSubscriptionsDTO y restaura.
+Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer. 
 
 
 ## Tarea final cuando completes todo
