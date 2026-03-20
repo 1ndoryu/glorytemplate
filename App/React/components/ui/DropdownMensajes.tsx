@@ -103,9 +103,11 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                                 />
                                 <div className="dropdownItemContenido">
                                     <span className="dropdownItemTexto">
-                                        <strong>@{conv.participante.username}</strong>
-                                        {/* [193A-55] Badge verificado en dropdown mensajes */}
-                                        {conv.participante.verificado && <BadgeCheck size={12} className="dropdownVerificado" />}
+                                        <span className="dropdownNombreConBadge">
+                                            <strong>@{conv.participante.username}</strong>
+                                            {/* [193A-55] Badge verificado en dropdown mensajes */}
+                                            {conv.participante.verificado && <BadgeCheck size={12} className="dropdownVerificado" />}
+                                        </span>
                                         {' '}{conv.ultimoMensaje}
                                     </span>
                                     <span className="dropdownItemTiempo">

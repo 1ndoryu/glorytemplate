@@ -257,13 +257,17 @@
     line-height: 1.4;
 }
 
-/* [193A-55] Icono verificado en dropdown mensajes
- * [193A-73] display:inline + vertical-align para que quede al lado del nombre,
- * no debajo — el padre usa -webkit-box para truncar líneas. */
+/* [193A-55] Icono verificado en dropdown mensajes */
+/* [193A-73] Wrapper inline-flex para que el badge quede al lado del nombre.
+ * -webkit-box del padre rompe display:inline en SVGs, pero inline-flex crea
+ * un contexto propio que respeta el layout horizontal. */
+.dropdownNombreConBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaciadoMicro, 2px);
+}
+
 .dropdownVerificado {
     color: var(--acento);
     flex-shrink: 0;
-    display: inline;
-    vertical-align: middle;
-    margin-left: 2px;
 }

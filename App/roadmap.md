@@ -69,9 +69,6 @@ Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, elim
 
 filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, tambien con el dedo en movil!!
 
-## 193A-73
-
-En dropdownItemTexto cuando hay un check de confirmado no aparece al lado del nombre sino debajo
 
 ## 193A-77
 
@@ -85,10 +82,6 @@ Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si g
 ## 193A-93
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
-
-## 193A-102
-
-Que en la apk no se pueda comprar samples, que directamente no salgan los samples con precio si es que es mejor. 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
