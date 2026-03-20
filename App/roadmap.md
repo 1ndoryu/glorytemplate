@@ -93,9 +93,13 @@ El antispam de las notificaciones parece muy agresivo, auditar las notificacione
 
 En dropdownItemTexto cuando hay un check de confirmado no aparece al lado del nombre sino debajo
 
-## 193A-76 Urgente
+## 193A-77
 
-NO APARECEN TODOS LOS TIPOS DE NOTIFICAICONES EN LA APK SOLO AGUNAS TODAS LAS NOTIFICACIONES DEBEN APARECER EN ANDROID
+filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un algoritmo eficiente y ligero, no un filtrado. 
+
+## 193A-78
+
+Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
 
 ## Antes de penultima (preferiblemente antepenultima)
 
