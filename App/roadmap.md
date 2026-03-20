@@ -9,13 +9,16 @@
 > **Repositorio:** `1ndoryu/glorytemplate`, rama `main-kamples`
 
 ## Herramientas del agente
+
 - Code Sentinel: `.agent/code-sentinel`
 - VarSense: `.agent/varsense`
 - Coolify Manager: `.agent/coolify-manager-rs`
 
 ## Documentacion legacy
+
 Los siguientes archivos son documentacion pre-v4.0. No modificar ni mover sin instruccion del usuario.
 Ubicacion: `App/docs (ignorar)/`
+
 - `algoritmo.md` -- Algoritmo de descubrimiento (6 senales, embeddings 128d)
 - `moderacion.md` -- Sistema de moderacion IA (4 capas)
 - `monetizacion.md` -- Modelo freemium, Stripe, revenue share
@@ -30,7 +33,8 @@ Ubicacion: `App/docs (ignorar)/`
 - `roadmap/lecciones.md` -- Gotchas historicos por dominio
 - `roadmap/arquitectura.md` -- Vision y stack original
 
-## Historial compactado 
+## Historial compactado
+
 - **QK1-QK105:** Sprint QK completo.
 - **QL1-QL136 + QL136-CAP:** Sprint QL completo.
 - **183A-9 al 183A-86 (2026-03-18):** Detalle completo en `App/Agente/completados/tareas-2026-03-18.md`.
@@ -44,9 +48,9 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
 - **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artículos (4 bugs), portada persiste, nombre_display→nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creación corregidos. 2026-03-19.
 - **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array→{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
-- **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-*" retornan mock local sin petición HTTP. 193A-14: ws/ticket devuelve 401 correctamente — error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
+- **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-\*" retornan mock local sin petición HTTP. 193A-14: ws/ticket devuelve 401 correctamente — error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
 
-- **183A-111 (Fases 1-3, 2026-03-19):** i18n Kamples — infraestructura (es/en/ja + store + hook + SelectorIdioma), NavPublico, TopBar, ModalAuth, TarjetaSample, PanelDetalleSample migrados (Commits 1-5). Fase 3: 31 hooks migrados con getT() + claves error.*/toast.* en los 3 JSON (Commit 7). Plan activo: `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
+- **183A-111 (Fases 1-3, 2026-03-19):** i18n Kamples — infraestructura (es/en/ja + store + hook + SelectorIdioma), NavPublico, TopBar, ModalAuth, TarjetaSample, PanelDetalleSample migrados (Commits 1-5). Fase 3: 31 hooks migrados con getT() + claves error._/toast._ en los 3 JSON (Commit 7). Plan activo: `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
 - **193A-46-A (2026-03-19):** Fix URGENTE PerfilIsland — `useCallback` declarado después de early returns violaba reglas de hooks → crash "Rendered more hooks than during the previous render". Fix: mover el hook antes de cualquier return condicional.
 - **193A-51 (2026-03-19):** Waveforms oscuras en white mode — CSS vars `--colorWaveformNoReproducido/Reproducido` + resolverColorCSS en canvas (getComputedStyle).
 - **193A-52 (2026-03-19):** Selector idioma landing → pill select minimalista sin banderas (`SelectorIdioma variante='select'`).
@@ -57,7 +61,7 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 193A-65 
+## 193A-65
 
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
 
@@ -65,40 +69,54 @@ Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, elim
 
 filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, tambien con el dedo en movil!!
 
-
 ## 193A-73
 
 En dropdownItemTexto cuando hay un check de confirmado no aparece al lado del nombre sino debajo
 
 ## 193A-77
 
-filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un algoritmo eficiente y ligero, no un filtrado. 
+filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un algoritmo eficiente y ligero, no un filtrado.
 
 ## 193A-78
 
-Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir 
+Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
 
-## 193A-82
-
-Sobre 193A-80 me hace preguntarme si los demas filtros tienen el mismo problema, pues, en ese caso habría que arreglarlos todos. 
 
 ## 193A-90
 
-crearAdjuntoPortadaPreview funciona mal, primero, cuando suba imagen esa imagen tiene que remplazar crearAdjuntoIcono, no ponerse dentro del boton, es ilogico. 
+crearAdjuntoPortadaPreview funciona mal, primero, cuando suba imagen esa imagen tiene que remplazar crearAdjuntoIcono, no ponerse dentro del boton, es ilogico.
+
+## 193A-91
+
+ID Tipo Entidad Operación Estado Intentos Error Proximo intento Creado Procesado Acciones
+851 #2932 analisis audio 0/30 - 19/3, 06:22 20/3, 01:51
+850 #2931 analisis audio 0/30 - 19/3, 06:22 20/3, 01:49
+849 #2930 analisis audio 0/30 - 19/3, 06:22 20/3, 01:47
+848 #2929 analisis audio 0/30 - 19/3, 06:22 20/3, 01:45
+847 #2928 analisis audio 0/30 - 19/3, 06:22 20/3, 01:43
+846 #2927 analisis audio 0/30 - 19/3, 06:22 20/3, 01:40
+
+sigue yendo cada 3-2 miuntos en vez de cada minuto, verifica que realmente este rotando las api por cada analisis. 
+
+## 193A-92
+
+las imagenes de perfil por defecto se cambiaron(a los usuarios que no tienen imagen aun) a <img src="https://i0.wp.com/secure.gravatar.com/avatar/af13af2a3a0dffcb340412d0d95830f0ab30638181e0bc5f5f8fea9be93f0bba?strip=all&amp;quality=75&amp;resize=28%2C28" alt="Melvoft" loading="lazy" class="avatarImagen">, pedi optmizacion, si pero no que se cambiara esa, tenia otra antes por defecto.
+
+revisa el historial de avatar, restaura a cuando no usaba grevatar y optimiza asi como se optimizan el resto de imagenes.
+
 
 ## Antes de penultima (preferiblemente antepenultima)
 
-Auditoría de seguridad profundad general, revisar lo mas tipico para pasar auditorias de seguridad, como inyecciones SQL, XSS, CSRF, autenticación, autorización, etc. Revisar especialmente cualquier parte del código que maneje datos de usuario o interacciones con el servidor, datos sensibles, etc. Hacer pruebas de penetración básicas para identificar vulnerabilidades. 
+Auditoría de seguridad profundad general, revisar lo mas tipico para pasar auditorias de seguridad, como inyecciones SQL, XSS, CSRF, autenticación, autorización, etc. Revisar especialmente cualquier parte del código que maneje datos de usuario o interacciones con el servidor, datos sensibles, etc. Hacer pruebas de penetración básicas para identificar vulnerabilidades.
 
-Hacer un plan extenso de varias partes basadas en areas como autenticación, privacidad de usuarios, etc. 
+Hacer un plan extenso de varias partes basadas en areas como autenticación, privacidad de usuarios, etc.
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
-Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer. 
-
+Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer.
 
 ## Tarea final cuando completes todo
 
-1. rehacer el instalador de la aplicación de escritorio 
-3. indicarme donde esta en nuevo instalador
-4. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar en github a traves de un token, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir pero que aperezca cada vez que recargue de actualizar. 
+1. rehacer el instalador de la aplicación de escritorio
+2. indicarme donde esta en nuevo instalador
+3. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar en github a traves de un token, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir pero que aperezca cada vez que recargue de actualizar.
