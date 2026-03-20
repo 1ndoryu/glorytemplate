@@ -53,9 +53,8 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-115
-
-El verificado si aparece en los nombres de usuario en sus publicaciones pero no aparece en sus nombre en los comentarios, ni tampoco en el nombre de usuario de su perfil y el de tooltop al hacer hover sobre el nombre tampoco, aqui hay incosistencia arquitectonica. 
+## 183A-115 — COMPLETADO
+<!-- Badge verificado consistente en comentarios, perfil, detalle sample, colección y panel. Commit 9145bee85 -->
 
 ## 193A-1
 
