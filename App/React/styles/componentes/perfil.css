@@ -9,6 +9,7 @@
     padding: var(--espacioXl);
     display: flex;
     flex-direction: column;
+    gap: var(--espacioMd);
 }
 
 /* Cabecera con portada */
@@ -119,12 +120,6 @@
     margin-bottom: var(--espacioXl);
 }
 
-/* SeccionPublicar fija debajo del header (C232) */
-.perfilSeccionPublicar {
-    margin-top: var(--espacioMd);
-    margin-bottom: var(--espacioMd);
-}
-
 /* Contenido tabs */
 .perfilContenidoTab {
     min-height: 200px;
@@ -136,7 +131,6 @@
 
 /* Responsive */
 @media (max-width: 600px) {
-
     .perfilStats {
         gap: var(--espacioLg);
     }
@@ -232,4 +226,12 @@
 .perfilVerificado {
     color: var(--acento);
     flex-shrink: 0;
+}
+
+/* Movil */
+
+@media (max-width: 768px) {
+    .perfilContenedor {
+        padding: var(--espacioMd);
+    }
 }

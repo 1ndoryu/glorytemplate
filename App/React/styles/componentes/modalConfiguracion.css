@@ -44,7 +44,6 @@
     display: flex;
     flex-direction: column;
     gap: calc(var(--espacioXs) / 2);
-    padding: var(--espacioLg);
 }
 
 .configNavItem {
@@ -527,4 +526,12 @@ nav.configNavLista button {
     display: flex;
     gap: var(--espacioSm);
     align-items: center;
+}
+
+/* Movil */
+
+@media (max-width: 768px) {
+    .configNavLista {
+        padding: var(--espacioLg);
+    }
 }

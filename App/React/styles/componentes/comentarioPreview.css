@@ -4,9 +4,10 @@
     display: flex;
     align-items: flex-start;
     gap: var(--espacioSm);
-    padding: var(--espacioSm) var(--espacioMd);
+    /* padding: var(--espacioSm) 0; */
     cursor: pointer;
-    border-top: 1px solid var(--bordeSutil);
+    opacity: 0.9;
+    /* border-top: 1px solid var(--bordeSutil); */
     transition: background var(--transicionRapida);
 }
 

@@ -30,7 +30,6 @@
 /* Tamaño md */
 .botonBase.tamanoMd {
     font-size: var(--fuenteMd);
-    padding: var(--espacioXs) var(--espacioLg);
     height: 36px;
 }
 

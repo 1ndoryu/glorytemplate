@@ -40,6 +40,9 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\ColeccionSamplesCols;
+use App\Config\Schema\_generated\FollowsCols;
 
 class SamplesController
 {
@@ -77,6 +80,11 @@ class SamplesController
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'busqueda_norm' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'solo_wav' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'ocultar_descargados' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'ocultar_coleccionados' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'ocultar_likeados' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'solo_de_seguidos' => ['required' => false, 'type' => 'boolean', 'default' => false],
             ],
         ]);
 
