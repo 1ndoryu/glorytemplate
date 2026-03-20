@@ -46,7 +46,8 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array→{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
 - **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-*" retornan mock local sin petición HTTP. 193A-14: ws/ticket devuelve 401 correctamente — error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
 
-- **183A-111 (2026-03-19):** Plan i18n Kamples completo. Ver `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
+- **183A-111 (Fases 1-3, 2026-03-19):** i18n Kamples — infraestructura (es/en/ja + store + hook + SelectorIdioma), NavPublico, TopBar, ModalAuth, TarjetaSample, PanelDetalleSample migrados (Commits 1-5). Fase 3: 31 hooks migrados con getT() + claves error.*/toast.* en los 3 JSON (Commit 7). Plan activo: `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
+- **193A-46-A (2026-03-19):** Fix URGENTE PerfilIsland — `useCallback` declarado después de early returns violaba reglas de hooks → crash "Rendered more hooks than during the previous render". Fix: mover el hook antes de cualquier return condicional.
 
 ## Tareas pendientes
 
@@ -78,12 +79,6 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
-## 193A-12
-
-PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> cd "c:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs" ; .\target\release\coolify-manager.exe deploy --name kamples --update 
-
-tarda demasiado, verifica que se puede hacer para optimizar la velocidad.
-
 ## 193A-43 
 
 en temp\apis.sh agrege 3 apis de groq, 
@@ -101,122 +96,9 @@ Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apag
 
 No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los articulos, e admin puede y debería elimianr cualquier articulo
 
-## 193A-46-A (URGENTE)
+## 193A-46-B (nueva instancia, si sigue fallando)
 
-NO SE ARREGLO EL PROBLEMA SIGUE SALIENDo Contenido no disponible
-
-syncLogger.ts:201 [Glory] Error en isla "PerfilIsland": Error: Rendered more hooks than during the previous render.
-[Kamples Desktop] Error global: Error: Rendered more hooks than during the previous render.
-    at updateWorkInProgressHook (react-dom.development.js:15688:13)
-    at updateCallback (react-dom.development.js:16385:14)
-    at Object.useCallback (react-dom.development.js:17033:14)
-    at useCallback (react.development.js:1646:21)
-    at PerfilIsland (PerfilIsland.tsx:85:30)
-    at renderWithHooks (react-dom.development.js:15486:18)
-    at updateFunctionComponent (react-dom.development.js:19617:20)
-    at beginWork (react-dom.development.js:21640:16)
-    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
-    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
-(anonymous) @ syncLogger.ts:201
-(anonymous) @ main.tsx:13
-invokeGuardedCallbackDev @ react-dom.development.js:4213
-invokeGuardedCallback @ react-dom.development.js:4277
-beginWork$1 @ react-dom.development.js:27490
-performUnitOfWork @ react-dom.development.js:26596
-workLoopSync @ react-dom.development.js:26505
-renderRootSync @ react-dom.development.js:26473
-performConcurrentWorkOnRoot @ react-dom.development.js:25777
-workLoop @ scheduler.development.js:266
-flushWork @ scheduler.development.js:239
-performWorkUntilDeadline @ scheduler.development.js:533
-react-dom.development.js:15688 Uncaught Error: Rendered more hooks than during the previous render.
-    at updateWorkInProgressHook (react-dom.development.js:15688:13)
-    at updateCallback (react-dom.development.js:16385:14)
-    at Object.useCallback (react-dom.development.js:17033:14)
-    at useCallback (react.development.js:1646:21)
-    at PerfilIsland (PerfilIsland.tsx:85:30)
-    at renderWithHooks (react-dom.development.js:15486:18)
-    at updateFunctionComponent (react-dom.development.js:19617:20)
-    at beginWork (react-dom.development.js:21640:16)
-    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
-    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
-updateWorkInProgressHook @ react-dom.development.js:15688
-updateCallback @ react-dom.development.js:16385
-useCallback @ react-dom.development.js:17033
-useCallback @ react.development.js:1646
-PerfilIsland @ PerfilIsland.tsx:85
-renderWithHooks @ react-dom.development.js:15486
-updateFunctionComponent @ react-dom.development.js:19617
-beginWork @ react-dom.development.js:21640
-callCallback2 @ react-dom.development.js:4164
-invokeGuardedCallbackDev @ react-dom.development.js:4213
-invokeGuardedCallback @ react-dom.development.js:4277
-beginWork$1 @ react-dom.development.js:27490
-performUnitOfWork @ react-dom.development.js:26596
-workLoopSync @ react-dom.development.js:26505
-renderRootSync @ react-dom.development.js:26473
-performConcurrentWorkOnRoot @ react-dom.development.js:25777
-workLoop @ scheduler.development.js:266
-flushWork @ scheduler.development.js:239
-performWorkUntilDeadline @ scheduler.development.js:533
-syncLogger.ts:201 [Kamples Desktop] Error global: Error: Rendered more hooks than during the previous render.
-    at updateWorkInProgressHook (react-dom.development.js:15688:13)
-    at updateCallback (react-dom.development.js:16385:14)
-    at Object.useCallback (react-dom.development.js:17033:14)
-    at useCallback (react.development.js:1646:21)
-    at PerfilIsland (PerfilIsland.tsx:85:30)
-    at renderWithHooks (react-dom.development.js:15486:18)
-    at updateFunctionComponent (react-dom.development.js:19617:20)
-    at beginWork (react-dom.development.js:21640:16)
-    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
-    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
-(anonymous) @ syncLogger.ts:201
-(anonymous) @ main.tsx:13
-invokeGuardedCallbackDev @ react-dom.development.js:4213
-invokeGuardedCallback @ react-dom.development.js:4277
-beginWork$1 @ react-dom.development.js:27490
-performUnitOfWork @ react-dom.development.js:26596
-workLoopSync @ react-dom.development.js:26505
-renderRootSync @ react-dom.development.js:26473
-recoverFromConcurrentError @ react-dom.development.js:25889
-performConcurrentWorkOnRoot @ react-dom.development.js:25789
-workLoop @ scheduler.development.js:266
-flushWork @ scheduler.development.js:239
-performWorkUntilDeadline @ scheduler.development.js:533
-react-dom.development.js:15688 Uncaught Error: Rendered more hooks than during the previous render.
-    at updateWorkInProgressHook (react-dom.development.js:15688:13)
-    at updateCallback (react-dom.development.js:16385:14)
-    at Object.useCallback (react-dom.development.js:17033:14)
-    at useCallback (react.development.js:1646:21)
-    at PerfilIsland (PerfilIsland.tsx:85:30)
-    at renderWithHooks (react-dom.development.js:15486:18)
-    at updateFunctionComponent (react-dom.development.js:19617:20)
-    at beginWork (react-dom.development.js:21640:16)
-    at HTMLUnknownElement.callCallback2 (react-dom.development.js:4164:14)
-    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:16)
-updateWorkInProgressHook @ react-dom.development.js:15688
-updateCallback @ react-dom.development.js:16385
-useCallback @ react-dom.development.js:17033
-useCallback @ react.development.js:1646
-PerfilIsland @ PerfilIsland.tsx:85
-renderWithHooks @ react-dom.development.js:15486
-updateFunctionComponent @ react-dom.development.js:19617
-beginWork @ react-dom.development.js:21640
-callCallback2 @ react-dom.development.js:4164
-invokeGuardedCallbackDev @ react-dom.development.js:4213
-invokeGuardedCallback @ react-dom.development.js:4277
-beginWork$1 @ react-dom.development.js:27490
-performUnitOfWork @ react-dom.development.js:26596
-workLoopSync @ react-dom.development.js:26505
-renderRootSync @ react-dom.development.js:26473
-recoverFromConcurrentError @ react-dom.development.js:25889
-performConcurrentWorkOnRoot @ react-dom.development.js:25789
-workLoop @ scheduler.development.js:266
-flushWork @ scheduler.development.js:239
-performWorkUntilDeadline @ scheduler.development.js:533
-syncLogger.ts:201 The above error occurred in the <PerfilIsland> component:
-
-    at PerfilIsland (
+<!-- COMPLETADA: la causa era useCallback después de early returns — fix commiteado 5c37636a7 -->
 
 
 ## 193A-51
