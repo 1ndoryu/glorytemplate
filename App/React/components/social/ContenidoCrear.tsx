@@ -121,12 +121,12 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {/* Audio adjunto con info */}
             {audioAdjunto && (
                 <div className="crearAdjunto">
-                    {/* [193A-90] La portada reemplaza el ícono de Music. Click abre selector
-                     * o quita la portada según el estado. No es un botón separado. */}
+                    {/* [193A-95] ImageIcon indica "subir imagen". Cuando hay portada,
+                     * la imagen la reemplaza a tamaño mayor (56x56 via CSS). */}
                     {portadaPreviewUrl ? (
                         <BotonBase
                             variante="ghost"
-                            className="crearAdjuntoIcono crearAdjuntoPortadaPreview"
+                            className="crearAdjuntoIcono crearAdjuntoPortadaPreview crearAdjuntoIconoGrande"
                             onClick={quitarPortada}
                             type="button"
                             aria-label={t('crear.quitarPortada')}
@@ -144,7 +144,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                             aria-label={t('crear.adjuntarPortada')}
                             title={t('crear.adjuntarPortada')}
                         >
-                            <Music size={18} />
+                            <ImageIcon size={18} />
                         </BotonBase>
                     )}
                     <div className="crearAdjuntoInfo">

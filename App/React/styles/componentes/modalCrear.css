@@ -172,7 +172,7 @@
     padding: 0;
 }
 
-/* [193A-90] El ícono de Music es clickeable para subir portada */
+/* [193A-90] El ícono de Image es clickeable para subir portada */
 .crearAdjuntoIconoBtn {
     cursor: pointer;
     border-radius: var(--radioMd);
@@ -181,6 +181,12 @@
 
 .crearAdjuntoIconoBtn:hover {
     background-color: var(--fondoElevado2);
+}
+
+/* [193A-95] Tamaño mayor cuando hay portada asignada */
+.crearAdjuntoIconoGrande {
+    width: 56px;
+    height: 56px;
 }
 
 .crearAdjuntoInfo {
