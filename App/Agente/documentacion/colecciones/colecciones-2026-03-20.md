@@ -41,6 +41,11 @@ Describir el sistema vigente de colecciones: lectura, edición, mezcla, jerarqu�
 - La división actúa solo sobre los samples directos de la raíz, no sobre los heredados desde hijas existentes.
 - El sync recibe `collection_created` para la nueva subcolección y `sample_removed`/`sample_added` por cada sample movido.
 
+## Combinación
+- La combinación de colecciones raíz debe resolver también las hijas del origen.
+- Si el destino ya tiene una subcolección con el mismo nombre que una hija del origen, no se renombra ni se aborta: se fusionan los samples en la hija existente del destino y se guarda backup suficiente para que el undo pueda recrear la hija original.
+- Si el destino ya es subcolección, las hijas del origen se aplanan forzosamente porque la profundidad máxima sigue siendo 2.
+
 ## Cambios recientes que afectan este dominio
 - 173A-2 a 173A-5 dejaron coherente la búsqueda entre mis colecciones, públicas y guardadas.
 - Se unificó el contador usando el total agregado del backend como fuente de verdad.
@@ -52,6 +57,7 @@ Describir el sistema vigente de colecciones: lectura, edición, mezcla, jerarqu�
 - 183A-15 añadió el guardado rápido en TarjetaColeccion reutilizando el bookmark del detalle, con estado `esta_guardada` en explorar y guardado optimista en la UI.
 - 183A-16 eliminó el segundo fetch del breadcrumb: el detalle de subcolección ahora trae `coleccion_padre` en el mismo payload inicial.
 - 193A-10 añadió volúmenes como subcolecciones hijas creadas por operación transaccional desde el detalle de la colección raíz.
+- 193A-79 endureció la combinación para que no falle por colisiones entre hijas homónimas al mezclar colecciones con volúmenes o subcolecciones equivalentes.
 
 ## Riesgos y gotchas
 - El detalle no debe confiar en campos agregados viejos si ya recibió `samples`; en ese caso el total visible debe salir del array normalizado.
@@ -59,6 +65,7 @@ Describir el sistema vigente de colecciones: lectura, edición, mezcla, jerarqu�
 - Las jerarquías deben documentarse siempre como estructura de backend primero y vista filtrada después; si se hace al revés aparecen incoherencias.
 - El split de volumen no debe tocar samples heredados de hijas existentes; si lo hace, mezcla semánticas de volumen y subcolección manual.
 - El nombre del volumen debe generarse en backend y validarse por jerarquía, no por simple coincidencia global de nombre.
+- El merge de raíces no puede limitarse a mover `parent_id`; con hijas homónimas eso dispara el índice único por jerarquía y deja la transacción en rollback completo.
 
 ## Regla Sentinel
 - No se detectó una regla nueva específica para este dominio. El riesgo principal sigue siendo de integridad transaccional y sincronización, no de un patrón estático simple.
