@@ -116,5 +116,12 @@
   "sample.comprar": "Buy {precio}",
   "sample.soloPro": "Pro only",
   "sample.coleccionar": "Collect",
-  "sample.masOpciones": "More options"
+  "sample.masOpciones": "More options",
+  "sample.verCompleto": "View full",
+  "sample.panelCerrar": "Close panel",
+  "sample.origenDelSample": "Sample origin",
+  "sample.comentariosSeccion": "Comments",
+  "sample.tambienTePodria": "You might also like",
+  "sample.etiqueta.origen": "source",
+  "sample.etiqueta.sampleo": "sample"
 }

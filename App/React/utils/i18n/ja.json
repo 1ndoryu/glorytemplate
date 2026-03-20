@@ -116,5 +116,12 @@
   "sample.comprar": "{precio}で購入",
   "sample.soloPro": "Proのみ",
   "sample.coleccionar": "コレクション",
-  "sample.masOpciones": "その他のオプション"
+  "sample.masOpciones": "その他のオプション",
+  "sample.verCompleto": "詳細を見る",
+  "sample.panelCerrar": "パネルを閉じる",
+  "sample.origenDelSample": "サンプルの出所",
+  "sample.comentariosSeccion": "コメント",
+  "sample.tambienTePodria": "あなたにおすすめ",
+  "sample.etiqueta.origen": "元曲",
+  "sample.etiqueta.sampleo": "サンプル"
 }

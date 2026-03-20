@@ -18,6 +18,8 @@ import { useRelacionDiscovery } from '@app/hooks/useRelacionDiscovery';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import type { SampleResumen } from '@app/types';
+import { useT } from '@app/utils/i18n';
+/* [183A-111] PanelDetalleSample migrado a i18n: headings, labels y etiquetas via t() */
 
 interface PanelDetalleSampleProps {
     sample: SampleResumen;
@@ -31,6 +33,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
         manejarClickWaveform, manejarSeek, manejarLike, badges,
     } = usePanelDetalleSample(sample);
 
+    const { t } = useT();
     const { relacion: relacionDiscovery } = useRelacionDiscovery(sample.id);
 
     const {
@@ -57,7 +60,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     avatarUrl={sample.creador.avatarUrl}
                     className="panelDetalleAutor"
                 />
-                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar panel">
+                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label={t('sample.panelCerrar')}>
                     <PanelRightClose size={16} />
                 </BotonBase>
             </div>
@@ -135,14 +138,14 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                         }
                     }}
                 >
-                    Ver completo
+                    {t('sample.verCompleto')}
                 </a>
             </div>
 
             {/* Discovery: canción de origen si el sample fue extraído del pipeline */}
             {relacionDiscovery && (relacionDiscovery.fuente_slug || relacionDiscovery.destino_slug) && (
                 <div className="panelDetalleDiscovery">
-                    <h4 className="panelDetalleSubtitulo">Origen del sample</h4>
+                    <h4 className="panelDetalleSubtitulo">{t('sample.origenDelSample')}</h4>
                     <div className="panelDetalleDiscoveryTarjetas">
                         {relacionDiscovery.fuente_slug && (
                             <TarjetaCancionMini
@@ -151,7 +154,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                                 slug={relacionDiscovery.fuente_slug}
                                 imagen={relacionDiscovery.fuente_imagen}
                                 anio={relacionDiscovery.fuente_anio}
-                                etiqueta="origen"
+                                etiqueta={t('sample.etiqueta.origen')}
                                 esOrigen={relacionDiscovery.ladoExtraccion === 'fuente'}
                             />
                         )}
@@ -162,7 +165,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                                 slug={relacionDiscovery.destino_slug}
                                 imagen={relacionDiscovery.destino_imagen}
                                 anio={relacionDiscovery.destino_anio}
-                                etiqueta="sampleo"
+                                etiqueta={t('sample.etiqueta.sampleo')}
                                 esOrigen={relacionDiscovery.ladoExtraccion === 'destino'}
                             />
                         )}
@@ -173,7 +176,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
             {/* C154: Comentarios ocultos por defecto, se abren con boton */}
             {comentariosVisibles && (
                 <div className="panelDetalleComentarios">
-                    <h4 className="panelDetalleSubtitulo">Comentarios</h4>
+                    <h4 className="panelDetalleSubtitulo">{t('sample.comentariosSeccion')}</h4>
                     <ListaComentarios
                         comentarios={comentarios}
                         cargando={cargandoComentarios}
@@ -233,7 +236,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
             {/* Similares */}
             {similares.length > 0 && (
                 <div className="panelDetalleSimilares">
-                    <h4 className="panelDetalleSubtitulo">También te podría gustar</h4>
+                    <h4 className="panelDetalleSubtitulo">{t('sample.tambienTePodria')}</h4>
                     <div className="panelDetalleSimilaresLista">
                         {similares.map(s => (
                             <TarjetaSample
