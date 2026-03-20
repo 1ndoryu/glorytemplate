@@ -31,10 +31,9 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
 
     const {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        esPremium, togglePremium, esContextoAdjuntar,
-        tienePrecio, setTienePrecio,
+        esContextoAdjuntar,
+        /* [2003A-2] Pendiente: restaurar esPremium, togglePremium, tienePrecio, setTienePrecio, precio, setPrecio */
         mostrarEnComunidad, setMostrarEnComunidad,
-        precio, setPrecio,
         inicioSegundos, setInicioSegundos, enContextoRelacion,
         tipoElemento, setTipoElemento,
         waveformPeaks, audioUrl,
@@ -100,23 +99,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                 </div>
             )}
 
-            {/* QQ16: Campo precio para samples con precio — aparece con toggle $ */}
-            {audioAdjunto && tienePrecio && (
-                <div className="crearPrecioContenedor">
-                    <label className="crearPrecioLabel" htmlFor="crearPrecioInput">{t('crear.precioLabel')}</label>
-                    <CampoTexto
-                        id="crearPrecioInput"
-                        type="number"
-                        min="0.50"
-                        max="99.99"
-                        step="0.01"
-                        placeholder="2.99"
-                        variante="bordado"
-                        value={precio}
-                        onChange={(e) => setPrecio(e.target.value)}
-                    />
-                </div>
-            )}
+            {/* [2003A-2] Pendiente: campo de precio para samples con precio — desactivado.
+               Restaurar bloque {audioAdjunto && tienePrecio && (...)} cuando se reactive pricing */}
 
             {/* Audio adjunto con info */}
             {audioAdjunto && (
@@ -247,10 +231,9 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {audioAdjunto && (
                 <CondicionesSample
                     permitirDescarga={permitirDescarga} setPermitirDescarga={setPermitirDescarga}
-                    esPremium={esPremium} togglePremium={togglePremium}
-                    tienePrecio={tienePrecio} setTienePrecio={setTienePrecio}
+                    /* [2003A-2] Pendiente: restaurar esPremium, togglePremium, tienePrecio, setTienePrecio, precio */
                     mostrarEnComunidad={mostrarEnComunidad} setMostrarEnComunidad={setMostrarEnComunidad}
-                    precio={precio} esContextoAdjuntar={esContextoAdjuntar}
+                    esContextoAdjuntar={esContextoAdjuntar}
                 />
             )}
 

@@ -4,29 +4,23 @@
  * Extraído de ContenidoCrear para respetar el límite de 300 líneas.
  */
 
-import { Download, Crown, Users, DollarSign } from 'lucide-react';
+import { Download, Users } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Tooltip } from '@app/components/ui/Tooltip';
 
 interface CondicionesSampleProps {
     permitirDescarga: boolean;
     setPermitirDescarga: (v: boolean) => void;
-    esPremium: boolean;
-    togglePremium: () => void;
-    tienePrecio: boolean;
-    setTienePrecio: (v: boolean) => void;
+    /* [2003A-2] Pendiente: restaurar esPremium, togglePremium, tienePrecio, setTienePrecio, precio cuando se reactive pricing */
     mostrarEnComunidad: boolean;
     setMostrarEnComunidad: (v: boolean) => void;
-    precio: string;
     esContextoAdjuntar: boolean;
 }
 
 export const CondicionesSample = ({
     permitirDescarga, setPermitirDescarga,
-    esPremium, togglePremium,
-    tienePrecio, setTienePrecio,
     mostrarEnComunidad, setMostrarEnComunidad,
-    precio, esContextoAdjuntar,
+    esContextoAdjuntar,
 }: CondicionesSampleProps): JSX.Element => {
     if (esContextoAdjuntar) {
         return (
@@ -51,37 +45,16 @@ export const CondicionesSample = ({
             <Tooltip texto={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'} posicion="bottom">
                 <BotonBase variante="ghost"
                     className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
-                    onClick={() => { if (!esPremium) setPermitirDescarga(!permitirDescarga); }}
+                    onClick={() => setPermitirDescarga(!permitirDescarga)}
                     type="button"
                     soloIcono
                     aria-label={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}
-                    disabled={esPremium}
                 >
                     <Download size={14} />
                 </BotonBase>
             </Tooltip>
-            <Tooltip texto={esPremium ? 'Solo Pro — genera ingresos al creador' : 'Sample gratuito'} posicion="bottom">
-                <BotonBase variante="ghost"
-                    className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`}
-                    onClick={togglePremium}
-                    type="button"
-                    soloIcono
-                    aria-label={esPremium ? 'Solo Pro — genera ingresos' : 'Sample gratuito'}
-                >
-                    <Crown size={14} />
-                </BotonBase>
-            </Tooltip>
-            <Tooltip texto={tienePrecio ? `Con precio $${precio || '0'} — cualquier usuario puede comprar` : 'Sin precio'} posicion="bottom">
-                <BotonBase variante="ghost"
-                    className={`crearCondicionBtn ${tienePrecio ? 'crearCondicionPrecio' : ''}`}
-                    onClick={() => setTienePrecio(!tienePrecio)}
-                    type="button"
-                    soloIcono
-                    aria-label={tienePrecio ? 'Con precio' : 'Sin precio'}
-                >
-                    <DollarSign size={14} />
-                </BotonBase>
-            </Tooltip>
+            {/* [2003A-2] Pendiente: botón PRO (Crown) desactivado. Restaurar cuando se reactive el sistema de precios */}
+            {/* [2003A-2] Pendiente: botón Precio (DollarSign) desactivado. Restaurar cuando se reactive el sistema de precios */}
             <Tooltip texto={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'} posicion="bottom">
                 <BotonBase variante="ghost"
                     className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}

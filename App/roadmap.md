@@ -69,9 +69,46 @@ Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del na
 
 Sigue sin funcionar combinar colecciones, llevamos mucho tiempo con este problema, una y otra vez, necesita una revision profunda y documentacion. 
 
-## 2003A-2
+## 2003A-3 (en planificación)
 
-Sigue saliendo la opcion de precio  y pro (crearCondiciones) en el modal de publicacion al subir un audio, no tiene que salir, ni tampoco al editar.
+revisar comando de ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30" realmente esta actualizado y muestra los valores reales
+
+Tambien hay que hacer otra revision profunda para optimizar | >> FEED pag1 (sin cache, bulk-fetch) <<            |   782.5ms | sin afectar la calidad de resultados y la frecuencia con la que se actualizan los resultados, ver consultas lentas y optimizarlas. 
+
++----------------------------------------------------+----------+
+| Componente                                         | Tiempo   |
++----------------------------------------------------+----------+
+| PerfilUsuario::construir (sin cache)               |    75.9ms |
+| Conteo samples activos (SQL COUNT)                 |     8.8ms |
+| Verificacion pgvector                              |     6.9ms |
+| SQL gen: Comportamiento (0.27)                     |     0.2ms |
+| SQL gen: Contexto (0.15)                           |     0.0ms |
+| SQL gen: Tendencias (0.12)                         |     0.0ms |
+| SQL gen: Grafo Social (0.1)                        |     0.0ms |
+| SQL gen: Similitud pgvector (0.28)                 |     0.7ms |
+| >> FEED pag1 (sin cache, bulk-fetch) <<            |   793.0ms |
+| >> FEED pag2 (bulk-cache de pag1) <<               |     1.3ms |
+| >> FEED pag3 (bulk-cache de pag1) <<               |     0.6ms |
+| Feed pag1 cache hit (todo en cache)                |     4.0ms |
+| >> samplesSimilares "Te podria gustar" (12) <<     |    51.6ms |
+| >> Secciones pagina Musica (sin cache) <<          |   288.7ms |
+| >> Mas Ideas coleccion >= 200 samples <<           |    38.8ms |
++----------------------------------------------------+----------+
+| PROMEDIO feed sin cache (3 pags)                   |   265.0ms |
++----------------------------------------------------+----------+
+
+=== RESUMEN (para documentacion) ===
+Fecha: 2026-03-20 08:47:31 | Config: ba0eb164
+Samples: 2415 | pgvector: SI | Pipeline: NO
+Feed pag1 (sin cache, bulk-fetch): 793ms | pag2 (bulk-cache): 1ms | pag3 (bulk-cache): 1ms | promedio: 265ms | cache hit: 4ms
+Te podria gustar (similares): 52ms
+Secciones musica (sin cache): 289ms
+Mas Ideas coleccion grande: 39ms
+Perfil: 76ms | Conteo: 9ms
+=== FIN ===
+
+Exit code: 0
+PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
