@@ -24,6 +24,7 @@ export const EVENTO_SAMPLE_GUARDADO_EN_COLECCION = 'kamples:sample-guardado-en-c
 export const useModalSeleccionColeccion = () => {
     const abierto = useColeccionPickerStore(s => s.abierto);
     const sample = useColeccionPickerStore(s => s.sample);
+    const samples = useColeccionPickerStore(s => s.samples);
     const posicion = useColeccionPickerStore(s => s.posicion);
     const cerrar = useColeccionPickerStore(s => s.cerrar);
 
@@ -97,22 +98,30 @@ export const useModalSeleccionColeccion = () => {
         return colecciones.some(c => c.nombre.toLowerCase() === busqueda.trim().toLowerCase());
     }, [colecciones, busqueda]);
 
+    /* [2003A-19] Agregar todos los samples seleccionados a la colección */
     const manejarAgregar = useCallback(async (coleccionId: number) => {
         if (!sample || agregando !== null) return;
         setAgregando(coleccionId);
         try {
-            const resp = await agregarSampleAColeccion(coleccionId, sample.id);
-            if (resp.ok) {
+            const targets = samples.length > 0 ? samples : [sample];
+            let exitos = 0;
+            for (const s of targets) {
+                const resp = await agregarSampleAColeccion(coleccionId, s.id);
+                if (resp.ok) exitos++;
+            }
+            if (exitos > 0) {
                 setAgregados(prev => new Set(prev).add(coleccionId));
-                log.info('Sample anadido a coleccion', { coleccionId, sampleId: sample.id });
-                window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, { detail: { sampleId: sample.id } }));
+                log.info('Samples anadidos a coleccion', { coleccionId, cantidad: exitos });
+                for (const s of targets) {
+                    window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, { detail: { sampleId: s.id } }));
+                }
             }
         } catch (err) {
             log.error('Error anadiendo a coleccion', err);
         } finally {
             setAgregando(null);
         }
-    }, [sample, agregando]);
+    }, [sample, samples, agregando]);
 
     const manejarCrear = useCallback(async () => {
         if (!busqueda.trim() || !sample || existeConNombre) return;
@@ -124,19 +133,22 @@ export const useModalSeleccionColeccion = () => {
                 esPublica: true,
             });
             if (resp.ok && resp.data) {
-                await agregarSampleAColeccion(resp.data.id, sample.id);
+                const targets = samples.length > 0 ? samples : [sample];
+                for (const s of targets) {
+                    await agregarSampleAColeccion(resp.data!.id, s.id);
+                    window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, { detail: { sampleId: s.id } }));
+                }
                 setColecciones(prev => [resp.data!, ...prev]);
                 setAgregados(prev => new Set(prev).add(resp.data!.id));
                 setBusqueda('');
-                log.info('Coleccion creada y sample anadido', { id: resp.data.id });
-                window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, { detail: { sampleId: sample.id } }));
+                log.info('Coleccion creada y samples anadidos', { id: resp.data.id, cantidad: targets.length });
             }
         } catch (err) {
             log.error('Error creando coleccion', err);
         } finally {
             setAgregando(null);
         }
-    }, [busqueda, sample, existeConNombre]);
+    }, [busqueda, sample, samples, existeConNombre]);
 
     return {
         abierto, sample, posicion, cerrar,

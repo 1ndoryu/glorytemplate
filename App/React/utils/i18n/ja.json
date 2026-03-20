@@ -456,6 +456,7 @@
 
   "seleccionMultiple.seleccionados": "{cantidad} 件選択中",
   "seleccionMultiple.darLike": "いいね",
+  "seleccionMultiple.quitarLike": "いいね解除",
   "seleccionMultiple.guardarColeccion": "コレクションに保存",
   "seleccionMultiple.descargar": "ダウンロード",
   "seleccionMultiple.eliminar": "削除",

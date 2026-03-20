@@ -456,6 +456,7 @@
 
   "seleccionMultiple.seleccionados": "{cantidad} seleccionados",
   "seleccionMultiple.darLike": "Dar like",
+  "seleccionMultiple.quitarLike": "Quitar like",
   "seleccionMultiple.guardarColeccion": "Guardar en colección",
   "seleccionMultiple.descargar": "Descargar",
   "seleccionMultiple.eliminar": "Eliminar",

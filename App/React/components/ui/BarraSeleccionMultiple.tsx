@@ -4,7 +4,7 @@
  * Mismo tamaño y estilo que el ReproductorGlobal.
  */
 
-import { Heart, Download, Trash2, FolderPlus, X, Flag, Loader2 } from 'lucide-react';
+import { Heart, HeartOff, Download, Trash2, FolderPlus, X, Loader2 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Tooltip } from '@app/components/ui/Tooltip';
 import { useBarraSeleccionMultiple } from '@app/hooks/useBarraSeleccionMultiple';
@@ -16,7 +16,9 @@ export const BarraSeleccionMultiple = (): JSX.Element | null => {
         cantidad,
         procesando,
         puedeEliminar,
+        todosConLike,
         manejarLikeTodos,
+        manejarQuitarLikeTodos,
         manejarGuardarEnColeccion,
         manejarDescargarTodos,
         manejarEliminarTodos,
@@ -39,9 +41,9 @@ export const BarraSeleccionMultiple = (): JSX.Element | null => {
                     <Loader2 size={18} className="barraSeleccionSpinner" />
                 ) : (
                     <>
-                        <Tooltip texto={t('seleccionMultiple.darLike')} posicion="top">
-                            <BotonBase variante="ghost" className="barraSeleccionBtn" onClick={manejarLikeTodos} type="button" aria-label={t('seleccionMultiple.darLike')}>
-                                <Heart size={18} />
+                        <Tooltip texto={todosConLike ? t('seleccionMultiple.quitarLike') : t('seleccionMultiple.darLike')} posicion="top">
+                            <BotonBase variante="ghost" className="barraSeleccionBtn" onClick={todosConLike ? manejarQuitarLikeTodos : manejarLikeTodos} type="button" aria-label={todosConLike ? t('seleccionMultiple.quitarLike') : t('seleccionMultiple.darLike')}>
+                                {todosConLike ? <HeartOff size={18} /> : <Heart size={18} />}
                             </BotonBase>
                         </Tooltip>
 
@@ -64,12 +66,6 @@ export const BarraSeleccionMultiple = (): JSX.Element | null => {
                                 </BotonBase>
                             </Tooltip>
                         )}
-
-                        <Tooltip texto={t('seleccionMultiple.reportar')} posicion="top">
-                            <BotonBase variante="ghost" className="barraSeleccionBtn" onClick={() => { /* TO-DO: Implementar reporte masivo */ }} type="button" aria-label={t('seleccionMultiple.reportar')}>
-                                <Flag size={18} />
-                            </BotonBase>
-                        </Tooltip>
                     </>
                 )}
             </div>

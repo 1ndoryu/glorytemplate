@@ -24,6 +24,11 @@ export function useBarraSeleccionMultiple() {
     const cantidad = seleccionados.size;
     const samplesArr = useMemo(() => Array.from(seleccionados.values()), [seleccionados]);
 
+    /* [2003A-19] Detectar si todos los seleccionados tienen like para toggle */
+    const todosConLike = useMemo(() => {
+        return samplesArr.length > 0 && samplesArr.every(s => s.liked);
+    }, [samplesArr]);
+
     const emitir = (nombre: string, detail: unknown) =>
         window.dispatchEvent(new CustomEvent(nombre, { detail }));
 
@@ -65,12 +70,10 @@ export function useBarraSeleccionMultiple() {
         setProcesando(false);
     }, [samplesArr, procesando, limpiarSeleccion]);
 
-    /* QL116: Guardar en colección — abre picker con el primer sample */
+    /* [2003A-19] Guardar en colección — abre picker con todos los seleccionados */
     const manejarGuardarEnColeccion = useCallback(() => {
         if (samplesArr.length === 0) return;
-        /* TO-DO: Cuando el picker soporte múltiples samples, pasar todos.
-         * Por ahora abre el picker con el primero — el usuario puede repetir. */
-        abrirPicker(samplesArr[0]);
+        abrirPicker(samplesArr);
     }, [samplesArr, abrirPicker]);
 
     /* [183A-73] Descargar todos los seleccionados — cross-platform */
@@ -131,6 +134,7 @@ export function useBarraSeleccionMultiple() {
         cantidad,
         procesando,
         puedeEliminar,
+        todosConLike,
         manejarLikeTodos,
         manejarQuitarLikeTodos,
         manejarGuardarEnColeccion,
