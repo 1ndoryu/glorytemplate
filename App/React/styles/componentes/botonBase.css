@@ -24,19 +24,21 @@
 .botonBase.tamanoSm {
     font-size: var(--fuenteSm);
     padding: var(--espacioSm) var(--espacioMd);
-    height: 32px;
+    height: 34px;
 }
 
 /* Tamaño md */
 .botonBase.tamanoMd {
     font-size: var(--fuenteMd);
-    height: 36px;
+    padding: var(--espacioSm) var(--espacioMd);
+    height: 34px;
 }
 
 /* Variante primario */
 .botonBase.variantePrimario {
     background-color: var(--acento-blanco);
     color: var(--textoPrimarioInverso);
+    padding: 10px 12px;
 }
 
 .botonBase.variantePrimario:hover {
