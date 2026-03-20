@@ -190,6 +190,7 @@
   "toast.descargaGratisEspera": "無料ダウンロードが待っています。ログインして受け取りましょう！",
   "toast.descargaDesbloqueada": "無料ダウンロードが解除されました！ダウンロードボタンを使用してください。",
   "config.titulo": "設定",
+  "config.version": "v",
   "comun.volver": "戻る",
   "comun.enviando": "送信中...",
   "comun.guardando": "保存中...",

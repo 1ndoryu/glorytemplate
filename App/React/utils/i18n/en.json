@@ -190,6 +190,7 @@
   "toast.descargaGratisEspera": "You have a free download waiting. Log in to claim it!",
   "toast.descargaDesbloqueada": "Free download unlocked! Use the download button.",
   "config.titulo": "Settings",
+  "config.version": "v",
   "comun.volver": "Back",
   "comun.enviando": "Sending...",
   "comun.guardando": "Saving...",

@@ -13,8 +13,25 @@ import {useModalConfiguracion} from '@app/hooks/useModalConfiguracion';
 import {useEsMovil} from '@app/hooks/useEsMovil';
 import {useRegistrarCapa} from '@app/hooks/useRegistrarCapa';
 import {useT} from '@app/utils/i18n/useT';
+import {useVersionStore} from '@app/stores/versionStore';
 import {ContenidoSeccion, NavSecciones, SECCIONES_NAV, type HookConfiguracion} from './ConfiguracionSecciones';
 import '../../styles/componentes/modalConfiguracion.css';
+
+/* [TareaFinal-B] Pie de versión en el footer del nav lateral de configuraciones.
+ * Muestra la versión del binario para la plataforma detectada (windows/apk).
+ * En web muestra la versión web si está disponible, si no, nada. */
+const VersionFooterConfig = (): JSX.Element | null => {
+    const { t } = useT();
+    const plataforma = useVersionStore(s => s.plataformaActual);
+    const versions = useVersionStore(s => s.versions);
+    const version = versions[plataforma];
+    if (!version?.version) return null;
+    return (
+        <div className="configNavVersion">
+            <span className="configNavVersionTexto">{t('config.version')} {version.version}</span>
+        </div>
+    );
+};
 
 /* Desktop: modal clasico con panel lateral */
 const ConfiguracionDesktop = (h: HookConfiguracion): JSX.Element => {
@@ -24,6 +41,7 @@ const ConfiguracionDesktop = (h: HookConfiguracion): JSX.Element => {
         <div className="configNavLateral">
             <h3 className="configNavTitulo">{t('config.titulo')}</h3>
             <NavSecciones h={h} />
+            <VersionFooterConfig />
         </div>
         <div className="configContenido">
             <div className="configSeccionContenido"><ContenidoSeccion h={h} /></div>
@@ -54,6 +72,7 @@ const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => {
                         </BotonBase>
                     </div>
                     <NavSecciones h={h} />
+                    <VersionFooterConfig />
                 </div>
             ) : (
                 <div className="configMovilDetalle">

@@ -528,6 +528,17 @@ nav.configNavLista button {
     align-items: center;
 }
 
+/* [TareaFinal-B] Footer de versión al pie del nav lateral de configuraciones */
+.configNavVersion {
+    margin-top: auto;
+    padding: var(--espacioMd) var(--espacioLg);
+}
+
+.configNavVersionTexto {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
 /* Movil */
 
 @media (max-width: 768px) {
