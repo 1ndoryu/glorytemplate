@@ -1,4 +1,4 @@
-# Auth Google y Push Android Capacitor — 2026-03-18
+# Auth Google y Push Android Capacitor — 2026-03-20
 
 ## Objetivo
 Dejar la APK Android de Kamples con login Google funcional dentro de WebView/Capacitor, registro de push nativo para recibir notificaciones con la app cerrada, y branding propio en launcher y notificaciones.
@@ -8,6 +8,7 @@ Dejar la APK Android de Kamples con login Google funcional dentro de WebView/Cap
   - Endpoint callback: /wp-json/kamples/v1/auth/google/mobile-callback
   - Endpoint polling: /wp-json/kamples/v1/auth/google/mobile-status
   - Controladores: GoogleAuthController y GoogleAuthMobileController
+  - Push Web Push/VAPID: PushController, PushSubscriptionsRepository y ServicioNotificacionesPush
 - Frontend React compartido:
   - Hook central: App/React/hooks/useAuth.ts
   - Cliente OAuth móvil: App/React/services/googleAuthMobileCapacitor.ts
@@ -29,7 +30,7 @@ Dejar la APK Android de Kamples con login Google funcional dentro de WebView/Cap
 8. useAuth persiste token y usuario en localStorage nativo para que apiCliente mande Authorization Bearer en siguientes requests.
 
 ## Por qué se usa JWT y no cookie
-El navegador externo de Google y el WebView de Capacitor no comparten la cookie de WordPress. Si el backend solo iniciara sesión vía cookie, la app volvería “autenticada” en el navegador pero anónima en el WebView. Por eso el backend devuelve JWT y el cliente nativo lo persiste localmente.
+El navegador externo de Google y el WebView de Capacitor no comparten la cookie de WordPress. Si el backend solo iniciara sesión vía cookie, la app volvería autenticada en el navegador pero anónima en el WebView. Por eso el backend devuelve JWT y el cliente nativo lo persiste localmente.
 
 ## Flujo de push Android
 1. useNotificacionesNativas inicializa registro cuando el usuario autenticado está en Android.
@@ -37,6 +38,12 @@ El navegador externo de Google y el WebView de Capacitor no comparten la cookie 
 3. El token nativo se envía al backend con /fcm/registrar.
 4. Cuando el usuario toca una push, PushNotifications.addListener('pushNotificationActionPerformed') guarda la ruta pendiente en sessionStorage.
 5. navegacionFcm recupera esa ruta y navega dentro de la app al abrirse.
+
+## Regresión 193A-71
+- El generador de schema alteró App/Config/Schema/_generated/PushSubscriptionsDTO.php y eliminó la columna p256dh del DTO generado.
+- En la misma pasada, App/Kamples/Database/Repositories/PushSubscriptionsRepository.php quedó truncado y perdió los métodos custom de registro, desregistro, lectura activa y desactivación de endpoints.
+- La reparación correcta no fue volver al DTO mutable viejo, sino restaurar la forma actual del proyecto con constructor tipado más el campo p256dh, y reinyectar los métodos custom preservando el upsert por endpoint.
+- Riesgo operativo: si vuelve a correr el generador sin revisar diffs, puede romper push aunque PHP siga sin errores de sintaxis porque la caída aparece en runtime al registrar o enviar.
 
 ## Recursos Android requeridos
 - POST_NOTIFICATIONS en AndroidManifest.xml
@@ -46,15 +53,14 @@ El navegador externo de Google y el WebView de Capacitor no comparten la cookie 
 
 ## Validación ejecutada
 - npm run type-check
-- php -l App/Kamples/Api/Controladores/GoogleAuthController.php
-- php -l App/Kamples/Api/Controladores/GoogleAuthMobileController.php
-- npm run android:sync
-- gradlew assembleDebug
+- php -l App/Config/Schema/_generated/PushSubscriptionsDTO.php
+- php -l App/Kamples/Database/Repositories/PushSubscriptionsRepository.php
 
 ## Limitaciones conocidas
 - La recepción real de push con app cerrada requiere device/emulador Android con Firebase configurado y credenciales válidas.
 - Si falta google-services.json en el entorno local, el build puede seguir funcionando por la condición actual del Gradle, pero FCM real depende de esa configuración.
 - El callback móvil usa una página puente HTML para abrir el deep link porque los validadores de seguridad internos marcan como riesgo las redirecciones directas a esquemas nativos.
+- Web Push/VAPID depende de que el generador no vuelva a truncar DTOs o repositorios custom sin revisión manual posterior.
 
 ## Regla Sentinel
-- No se necesitó una regla nueva de Glory Sentinel.
+- Candidato claro: detectar DTO generado cuya lista de columnas no coincide con su schema fuente, y detectar repositorios regenerados donde desaparecen métodos debajo de la sección custom.
