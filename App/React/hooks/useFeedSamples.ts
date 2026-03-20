@@ -117,7 +117,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         tagsAgrupados, tagsSueltos, tagsIncluidos, tagsExcluidos,
         bpmMin, bpmMax, incluirTag, excluirTag, quitarTag, setBpmRango,
         samplesFiltrados, manejarIncluirTag, manejarExcluirTag,
-    } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide: busquedaLocal });
+    /* [183A-114] tagsClientSide=true cuando ya tenemos todos los samples en cliente.
+     * Evita llamada extra a /tags/aggregates — tags se calculan de los samples cargados. */
+    } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide: busquedaLocal, tagsClientSide: busquedaLocal });
 
     /* QL87: Aplicar filtro adicional de useFiltrosContenido (WAV, me encanta, etc.) */
     const samplesPostFiltro = useMemo(

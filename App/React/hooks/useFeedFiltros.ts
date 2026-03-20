@@ -2,10 +2,13 @@
  * Hook: useFeedFiltros
  * Lógica de filtrado client-side del feed de samples: tags, BPM, precio.
  * C4: Tags agrupados vienen del backend (escalable a 1M+), no de agregación client-side.
+ * [183A-114] tagsClientSide=true: derivar tags de los samples ya cargados (sin API).
+ *   Usado en colecciones donde todos los samples están disponibles client-side.
+ *   Corrige feedTags vacíos en desktop cuando el proxy Vite falla silenciosamente.
  */
 
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
-import { extraerTagsMetadata, normalizarTag } from '@app/services/tagUtils';
+import { extraerTagsMetadata, extraerTagsAgrupadosMetadata, normalizarTag } from '@app/services/tagUtils';
 import { obtenerTagsAgregados, type TagsAgregadosResp } from '@app/services/apiSamples';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import type { SampleResumen } from '@app/types';
@@ -13,6 +16,8 @@ import type { CategoriaTag } from '@app/services/tagUtils';
 
 const MAX_TAGS_SUELTOS = 30;
 const DEBOUNCE_TAGS_MS = 400;
+/* [183A-114] Estado vacío estable (una sola referencia, no crea objeto nuevo en cada render) */
+const TAGS_VACIOS: Record<CategoriaTag, string[]> = { genero: [], instrumento: [], sentimiento: [], tipo: [], otro: [] };
 
 interface UseFeedFiltrosOpciones {
     samples: SampleResumen[];
@@ -20,9 +25,12 @@ interface UseFeedFiltrosOpciones {
     idsCreadoresIncluidos?: Set<number>;
     /** QL127: Activar filtrado textual client-side (para contextos sin busqueda server-side, ej: colecciones) */
     busquedaClientSide?: boolean;
+    /** [183A-114] Derivar tags de los samples ya cargados (sin llamada a /tags/aggregates).
+     *  Usar cuando todos los samples están disponibles client-side (busquedaLocal=true). */
+    tagsClientSide?: boolean;
 }
 
-export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide = false }: UseFeedFiltrosOpciones) {
+export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide = false, tagsClientSide = false }: UseFeedFiltrosOpciones) {
     const busqueda = useFiltrosStore(s => s.busqueda);
     const tagsIncluidos = useFiltrosStore(s => s.tagsIncluidos);
     const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
@@ -34,12 +42,16 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, b
     const quitarTag = useFiltrosStore(s => s.quitarTag);
     const setBpmRango = useFiltrosStore(s => s.setBpmRango);
 
-    /* C4: Tags agrupados desde el backend — escalable a 1M+ */
-    const vacioTags: Record<CategoriaTag, string[]> = { genero: [], instrumento: [], sentimiento: [], tipo: [], otro: [] };
-    const [tagsAgrupados, setTagsAgrupados] = useState<Record<CategoriaTag, string[]>>(vacioTags);
+    /* C4: Tags agrupados desde el backend — escalable a 1M+ (solo cuando tagsClientSide=false) */
+    const [tagsAgrupadosApi, setTagsAgrupadosApi] = useState<Record<CategoriaTag, string[]>>(TAGS_VACIOS);
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
     useEffect(() => {
+        /* [183A-114] En modo client-side los tags se derivan de samples — sin API */
+        if (tagsClientSide) {
+            clearTimeout(timerRef.current);
+            return;
+        }
         clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
             obtenerTagsAgregados({ bpmMin: bpmMin ?? undefined, bpmMax: bpmMax ?? undefined })
@@ -50,13 +62,22 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, b
                     for (const cat of Object.keys(agrupados) as CategoriaTag[]) {
                         agrupados[cat] = (datos[cat] ?? []).map((t) => t.tag);
                     }
-                    setTagsAgrupados(agrupados);
+                    setTagsAgrupadosApi(agrupados);
                 })
                 .catch(() => { /* best-effort: mantener tags anteriores */ });
         }, DEBOUNCE_TAGS_MS);
 
         return () => clearTimeout(timerRef.current);
-    }, [bpmMin, bpmMax]);
+    }, [bpmMin, bpmMax, tagsClientSide]);
+
+    /* [183A-114] Tags derivados client-side desde los samples ya cargados.
+     * Se actualiza automáticamente cuando llegan más samples — sin API call extra. */
+    const tagsAgrupadosClientSide = useMemo(
+        () => tagsClientSide ? extraerTagsAgrupadosMetadata(samples) : TAGS_VACIOS,
+        [samples, tagsClientSide],
+    );
+
+    const tagsAgrupados = tagsClientSide ? tagsAgrupadosClientSide : tagsAgrupadosApi;
 
     const tagsSueltos = useMemo(
         () => (tagsAgrupados.otro ?? []).slice(0, MAX_TAGS_SUELTOS),
