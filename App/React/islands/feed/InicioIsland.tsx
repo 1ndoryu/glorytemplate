@@ -34,8 +34,8 @@ import '../../styles/componentes/inicio.css';
 
 /* [183A-110-D] Blog como tab del inicio en vez de página separada */
 const TABS_INICIO = [
-    { id: 'inicio', etiqueta: 'Inicio' },
-    { id: 'blog', etiqueta: 'Blog' },
+    { id: 'inicio', etiqueta: 'nav.inicio' },
+    { id: 'blog', etiqueta: 'nav.blog' },
 ];
 
 export const InicioIsland = (): JSX.Element => {

@@ -8,9 +8,11 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { Modal } from '@app/components/ui/Modal';
 import { usePlanesIsland, PLANES } from '@app/hooks/usePlanesIsland';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/planes.css';
 
 export const PlanesIsland = (): JSX.Element => {
+    const { t } = useT();
     const {
         periodoAnual, setPeriodoAnual, cargando, error, setError, checkoutExito,
         autenticado, planActual, abierto, imagenPlanes, planVisible, esActualVisible,
@@ -25,14 +27,14 @@ export const PlanesIsland = (): JSX.Element => {
             <div className="planesIsland planesIslandModal" id="planesIsland">
                 <div className="planesLayoutEspecial">
                     <aside className="planesPanelImagen" id="planesPanelImagen">
-                        <img src={imagenPlanes} alt="Visual de planes Kamples" className="planesImagen" loading="lazy" />
+                        <img src={imagenPlanes} alt={t('planes.visualAlt')} className="planesImagen" loading="lazy" />
                     </aside>
 
                     <section className="planesPanelContenido" id="planesPanelContenido">
                         {checkoutExito && (
                             <div className="planesAlertaExito">
                                 <PartyPopper size={20} />
-                                <span>¡Suscripción activada! Tu plan se actualizará en unos segundos.</span>
+                                <span>{t('planes.checkoutExito')}</span>
                             </div>
                         )}
 
@@ -46,10 +48,10 @@ export const PlanesIsland = (): JSX.Element => {
                         <div className="planesToggleWrap">
                             <div className="planesToggle">
                                 <BotonBase variante="ghost" className={`planesToggleBtn ${!periodoAnual ? 'planesToggleBtnActivo' : ''}`}
-                                    onClick={() => setPeriodoAnual(false)}>Mensual</BotonBase>
+                                    onClick={() => setPeriodoAnual(false)}>{t('planes.mensual')}</BotonBase>
                                 <BotonBase variante="ghost" className={`planesToggleBtn ${periodoAnual ? 'planesToggleBtnActivo' : ''}`}
                                     onClick={() => setPeriodoAnual(true)}>
-                                    Anual<Badge>-17%</Badge>
+                                    {t('planes.anual')}<Badge>-17%</Badge>
                                 </BotonBase>
                             </div>
                         </div>
@@ -60,16 +62,16 @@ export const PlanesIsland = (): JSX.Element => {
                                 return (
                                     <div key={plan.id} className={`planTarjeta ${plan.destacado ? 'planTarjetaDestacada' : ''} ${esActual ? 'planTarjetaActual' : ''}`}>
                                         {plan.destacado && <div className="planBadgePopular" />}
-                                        {esActual && <div className="planBadgeActual"><Badge>Tu plan</Badge></div>}
+                                        {esActual && <div className="planBadgeActual"><Badge>{t('planes.tuPlan')}</Badge></div>}
                                         <div className="planPrecio">
                                             <span className="planPrecioCantidad">{obtenerPrecio(plan)}</span>
-                                            {plan.precio > 0 && <span className="planPrecioPeriodo">{periodoAnual ? '/mes (facturado anual)' : '/mes'}</span>}
-                                            {periodoAnual && plan.precio > 0 && <span className="planAhorro">Ahorras ${calcularAnual(plan.precio).ahorro}/año</span>}
+                                            {plan.precio > 0 && <span className="planPrecioPeriodo">{periodoAnual ? t('planes.periodoMensualFacturadoAnual') : t('planes.periodoMensual')}</span>}
+                                            {periodoAnual && plan.precio > 0 && <span className="planAhorro">{t('planes.ahorrasAnual', { ahorro: calcularAnual(plan.precio).ahorro })}</span>}
                                         </div>
                                         <ul className="planCaracteristicas">
                                             {plan.caracteristicas.filter(c => c.incluido).slice(0, 5).map((c) => (
                                                 <li key={c.texto} className={`planCaracteristica ${c.incluido ? 'planCaracteristicaIncluida' : 'planCaracteristicaExcluida'}`}>
-                                                    {c.incluido ? <Check size={14} /> : <X size={14} />}{c.texto}
+                                                    {c.incluido ? <Check size={14} /> : <X size={14} />}{t(c.texto)}
                                                 </li>
                                             ))}
                                         </ul>
@@ -81,7 +83,7 @@ export const PlanesIsland = (): JSX.Element => {
                         {autenticado && planActual !== 'free' && (
                             <div className="planesPortal">
                                 <BotonBase variante="secundario" onClick={manejarPortal} disabled={cargando !== null}>
-                                    <Settings size={16} />Gestionar suscripción
+                                    <Settings size={16} />{t('planes.gestionarSuscripcion')}
                                 </BotonBase>
                             </div>
                         )}
@@ -91,11 +93,11 @@ export const PlanesIsland = (): JSX.Element => {
                                 onClick={() => manejarSeleccion(planVisible.id)}
                                 disabled={esActualVisible || cargando !== null} className="planBoton">
                                 {cargando === planVisible.id ? (
-                                    <><Loader2 size={16} className="planBotonCargando" />Redirigiendo...</>
+                                    <><Loader2 size={16} className="planBotonCargando" />{t('planes.redirigiendo')}</>
                                 ) : esActualVisible ? (
                                     <><Check size={16} />{obtenerEtiquetaBoton(planVisible.id)}</>
                                 ) : esApk ? (
-                                    <>Suscríbete en la web<ExternalLink size={16} /></>
+                                    <>{t('planes.suscribeteWeb')}<ExternalLink size={16} /></>
                                 ) : (
                                     <>{obtenerEtiquetaBoton(planVisible.id)}<ArrowRight size={16} /></>
                                 )}

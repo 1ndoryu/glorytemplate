@@ -17,6 +17,7 @@ const CANCIONES_OCULTAS_FEED = new Set(['blowfly-sesame-street']);
 export function useSeccionesCanciones() {
     const [secciones, setSecciones] = useState<SeccionMusica[]>([]);
     const [cargando, setCargando] = useState(true);
+    const t = getT();
 
     useEffect(() => {
         let cancelado = false;
@@ -25,6 +26,12 @@ export function useSeccionesCanciones() {
             if (resp.ok && resp.data) {
                 const filtradas = resp.data.map(sec => ({
                     ...sec,
+                    titulo:
+                        sec.tipo === 'para_ti' ? t('musica.seccion.paraTi') :
+                        sec.tipo === 'tendencia' ? t('musica.seccion.tendencia') :
+                        sec.tipo === 'top' ? t('musica.seccion.masSampleadas') :
+                        sec.tipo === 'artistas' ? t('musica.seccion.populares') :
+                        sec.titulo,
                     canciones: sec.canciones?.filter(c => !CANCIONES_OCULTAS_FEED.has(c.slug)),
                 }));
                 setSecciones(filtradas);

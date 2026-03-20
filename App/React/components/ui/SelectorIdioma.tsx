@@ -23,6 +23,7 @@ const IDIOMAS: Array<{ id: Idioma; bandera: string; etiqueta: string; ariaLabel:
 export const SelectorIdioma = ({ variante = 'compacto', className = '' }: SelectorIdiomaProps): JSX.Element => {
     const idioma = useIdiomaStore(s => s.idioma);
     const setIdioma = useIdiomaStore(s => s.setIdioma);
+    const { t } = useT();
 
     /* [193A-54] Variante select: SelectorMenu de Kamples (sin banderas, solo texto) */
     if (variante === 'select') {

@@ -95,6 +95,74 @@ Lo de corazon para mostrar los samples de "me encanta" funciona mal porque es un
 
 La imagen de avatar no esta optimizada como estan optizada las demas imagenes,las imagenes temporarels de colors tampoco, 
 
+## 193A-63 URGENTE
+
+LA COLA DE IA DEJO DE AVANZAR DESDE QUE APLICO ## 193A-43 
+
+## 193A-64
+
+chunk-NXESFFTV.js?v=2986b4e9:521 Warning: React has detected a change in the order of Hooks called by ModalSolicitudWhatsapp. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useCallback                useCallback
+2. useCallback                useCallback
+3. useSyncExternalStore       useSyncExternalStore
+4. useDebugValue              useDebugValue
+5. useCallback                useCallback
+6. useCallback                useCallback
+7. useSyncExternalStore       useSyncExternalStore
+8. useDebugValue              useDebugValue
+9. useState                   useState
+10. useState                  useState
+11. useState                  useState
+12. useState                  useState
+13. useState                  useState
+14. useState                  useState
+15. useState                  useState
+16. useState                  useState
+17. useEffect                 useEffect
+18. useCallback               useCallback
+19. useCallback               useCallback
+20. useCallback               useCallback
+21. undefined                 useCallback
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    at ModalSolicitudWhatsapp (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/glorytemplate/App/React/components/social/ModalSolicitudWhatsapp.tsx:45:7)
+    at div
+    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx:90:3)
+    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx:23:37)
+    at RootErrorBoundary (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:55:1)
+    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:90:31)
+    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+
+2
+chunk-NXESFFTV.js?v=2986b4e9:11726 Uncaught Error: Rendered more hooks than during the previous render.
+    at useT (useT.ts:32:20)
+    at ModalSolicitudWhatsapp (ModalSolicitudWhatsapp.tsx:39:19)
+chunk-NXESFFTV.js?v=2986b4e9:14080 The above error occurred in the <ModalSolicitudWhatsapp> component:
+
+    at ModalSolicitudWhatsapp (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/glorytemplate/App/React/components/social/ModalSolicitudWhatsapp.tsx:45:7)
+    at div
+    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx:90:3)
+    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx:23:37)
+    at RootErrorBoundary (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:55:1)
+    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:90:31)
+    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, RootErrorBoundary.
+appIslands.tsx:67 [Kamples] Error de render en AppProvider: Error: Rendered more hooks than during the previous render.
+    at useT (useT.ts:32:20)
+    at ModalSolicitudWhatsapp (ModalSolicitudWhatsapp.tsx:39:19)
+ 
+    at ModalSolicitudWhatsapp (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/glorytemplate/App/React/components/social/ModalSolicitudWhatsapp.tsx:45:7)
+    at div
+    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx:90:3)
+    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx:23:37)
+    at RootErrorBoundary (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:55:1)
+    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:90:31)
+    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+
 
 ## Antes de penultima (preferiblemente antepenultima)
 

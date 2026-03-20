@@ -14,6 +14,7 @@ import { useAuthModalStore } from '@app/stores/authModalStore';
 import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 import { esAndroid, esEscritorio, abrirEnlaceExterno } from '@app/utils/plataforma';
+import { getT } from '@app/utils/i18n';
 import type { PeriodoPlan } from '@app/services/apiPagos';
 
 export type PlanId = 'free' | 'pro' | 'premium';
@@ -33,23 +34,23 @@ export interface PlanInfo {
 export const PLANES: PlanInfo[] = [
     {
         id: 'free',
-        nombre: 'Free',
+        nombre: 'planes.plan.free',
         precio: 0,
         periodo: '',
-        descripcion: 'Perfecto para empezar a explorar',
+        descripcion: 'planes.descripcion.free',
         icono: <Sparkles size={24} />,
         destacado: false,
         caracteristicas: [
-            { texto: '5 descargas por día', incluido: true },
-            { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Subidas ilimitadas', incluido: true },
-            { texto: '1 GB transferencia/mes', incluido: true },
-            { texto: 'Explorar y descubrir', incluido: true },
-            { texto: 'Perfil público', incluido: true },
-            { texto: 'Prueba gratuita 30 días', incluido: true },
-            { texto: 'Monetizar samples', incluido: false },
-            { texto: 'Analytics avanzados', incluido: false },
-            { texto: 'Revenue share', incluido: false },
+            { texto: 'planes.feature.descargas5', incluido: true },
+            { texto: 'planes.feature.wavOriginal', incluido: true },
+            { texto: 'planes.feature.subidasIlimitadas', incluido: true },
+            { texto: 'planes.feature.transferencia1gb', incluido: true },
+            { texto: 'planes.feature.explorarDescubrir', incluido: true },
+            { texto: 'planes.feature.perfilPublico', incluido: true },
+            { texto: 'planes.feature.prueba30dias', incluido: true },
+            { texto: 'planes.feature.monetizarSamples', incluido: false },
+            { texto: 'planes.feature.analyticsAvanzados', incluido: false },
+            { texto: 'planes.feature.revenueShare', incluido: false },
         ],
     },
     {
@@ -57,20 +58,20 @@ export const PLANES: PlanInfo[] = [
         nombre: 'Pro',
         precio: 5,
         periodo: '/mes',
-        descripcion: 'Para productores serios',
+        descripcion: 'planes.descripcion.pro',
         icono: <Zap size={24} />,
         destacado: true,
         caracteristicas: [
-            { texto: '50 descargas por día', incluido: true },
-            { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Subidas ilimitadas', incluido: true },
-            { texto: '10 GB transferencia/mes', incluido: true },
-            { texto: 'Perfil verificado', incluido: true },
-            { texto: 'Monetizar samples', incluido: true },
-            { texto: 'Analytics avanzados', incluido: true },
-            { texto: 'Revenue share 70/30', incluido: true },
-            { texto: 'Soporte prioritario', incluido: false },
-            { texto: 'Revenue share 80/20', incluido: false },
+            { texto: 'planes.feature.descargas50', incluido: true },
+            { texto: 'planes.feature.wavOriginal', incluido: true },
+            { texto: 'planes.feature.subidasIlimitadas', incluido: true },
+            { texto: 'planes.feature.transferencia10gb', incluido: true },
+            { texto: 'planes.feature.perfilVerificado', incluido: true },
+            { texto: 'planes.feature.monetizarSamples', incluido: true },
+            { texto: 'planes.feature.analyticsAvanzados', incluido: true },
+            { texto: 'planes.feature.revenue7030', incluido: true },
+            { texto: 'planes.feature.soportePrioritario', incluido: false },
+            { texto: 'planes.feature.revenue8020', incluido: false },
         ],
     },
     {
@@ -78,20 +79,20 @@ export const PLANES: PlanInfo[] = [
         nombre: 'Premium',
         precio: 19.99,
         periodo: '/mes',
-        descripcion: 'Sin límites, máximo control',
+        descripcion: 'planes.descripcion.premium',
         icono: <Crown size={24} />,
         destacado: false,
         caracteristicas: [
-            { texto: 'Descargas ilimitadas', incluido: true },
-            { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Subidas ilimitadas', incluido: true },
-            { texto: '50 GB transferencia/mes', incluido: true },
-            { texto: 'Perfil verificado', incluido: true },
-            { texto: 'Monetizar samples', incluido: true },
-            { texto: 'Analytics avanzados', incluido: true },
-            { texto: 'Revenue share 80/20', incluido: true },
-            { texto: 'Soporte dedicado 24/7', incluido: true },
-            { texto: 'Acceso anticipado', incluido: true },
+            { texto: 'planes.feature.descargasIlimitadas', incluido: true },
+            { texto: 'planes.feature.wavOriginal', incluido: true },
+            { texto: 'planes.feature.subidasIlimitadas', incluido: true },
+            { texto: 'planes.feature.transferencia50gb', incluido: true },
+            { texto: 'planes.feature.perfilVerificado', incluido: true },
+            { texto: 'planes.feature.monetizarSamples', incluido: true },
+            { texto: 'planes.feature.analyticsAvanzados', incluido: true },
+            { texto: 'planes.feature.revenue8020', incluido: true },
+            { texto: 'planes.feature.soporte247', incluido: true },
+            { texto: 'planes.feature.accesoAnticipado', incluido: true },
         ],
     },
 ];
@@ -109,6 +110,7 @@ const calcularAnual = (mensual: number): PrecioAnual => ({
 });
 
 export const usePlanesIsland = () => {
+    const t = getT();
     const [periodoAnual, setPeriodoAnual] = useState(false);
     const [cargando, setCargando] = useState<PlanId | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -135,7 +137,7 @@ export const usePlanesIsland = () => {
     }, []);
 
     const obtenerPrecio = (plan: PlanInfo): string => {
-        if (plan.precio === 0) return 'Gratis';
+        if (plan.precio === 0) return t('planes.gratis');
         if (periodoAnual) {
             const anual = calcularAnual(plan.precio);
             return `$${(anual.anual / 12).toFixed(2)}`;
@@ -144,11 +146,13 @@ export const usePlanesIsland = () => {
     };
 
     const obtenerEtiquetaBoton = (planId: PlanId): string => {
-        if (!autenticado) return 'Empezar';
-        if (planId === planActual) return 'Plan actual';
-        if (planId === 'free') return 'Cambiar plan';
+        if (!autenticado) return t('planes.boton.empezar');
+        if (planId === planActual) return t('planes.boton.planActual');
+        if (planId === 'free') return t('planes.boton.cambiarPlan');
         const orden: PlanId[] = ['free', 'pro', 'premium'];
-        return orden.indexOf(planId) > orden.indexOf(planActual) ? 'Mejorar plan' : 'Cambiar plan';
+        return orden.indexOf(planId) > orden.indexOf(planActual)
+            ? t('planes.boton.mejorarPlan')
+            : t('planes.boton.cambiarPlan');
     };
 
     const manejarSeleccion = async (planId: PlanId) => {
@@ -175,10 +179,10 @@ export const usePlanesIsland = () => {
                     await abrirEnlaceExterno(resultado.url);
                     cerrarPlanes();
                 } else {
-                    setError(resultado.error ?? 'Error al crear sesión de pago');
+                    setError(resultado.error ?? t('planes.error.crearSesionPago'));
                 }
             } catch {
-                setError('Error de conexión. Intenta de nuevo.');
+                setError(t('planes.error.conexionIntentaDeNuevo'));
             } finally {
                 setCargando(null);
             }
@@ -193,10 +197,10 @@ export const usePlanesIsland = () => {
             if (resultado.ok && resultado.url) {
                 window.location.href = resultado.url;
             } else {
-                setError(resultado.error ?? 'Error al crear sesión de pago');
+                setError(resultado.error ?? t('planes.error.crearSesionPago'));
             }
         } catch {
-            setError('Error de conexión. Intenta de nuevo.');
+            setError(t('planes.error.conexionIntentaDeNuevo'));
         } finally {
             setCargando(null);
         }
@@ -215,10 +219,10 @@ export const usePlanesIsland = () => {
                     window.location.href = resultado.url;
                 }
             } else {
-                setError(resultado.error ?? 'Error al abrir portal');
+                setError(resultado.error ?? t('planes.error.abrirPortal'));
             }
         } catch {
-            setError('Error de conexión');
+            setError(t('planes.error.conexion'));
         } finally {
             setCargando(null);
         }

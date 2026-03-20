@@ -33,6 +33,7 @@ import { LogoKamples } from '../ui/LogoKamples';
 import { Avatar } from '../ui/Avatar';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
@@ -46,17 +47,17 @@ export interface SidebarItemDef {
 /* QK104+QK105: Items desktop — Inicio centrado (posicion 3 de 5)
  * [183A-110-D] Blog removido del sidebar — ahora es tab en Inicio */
 const itemsDesktop: SidebarItemDef[] = [
-    { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
-    { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
-    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
-    { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
-    { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
+    { id: 'comunidad', etiqueta: 'nav.comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
+    { id: 'musica', etiqueta: 'topbar.musica', icono: <Music size={20} />, ruta: '/musica' },
+    { id: 'inicio', etiqueta: 'nav.inicio', icono: <Home size={20} />, ruta: '/' },
+    { id: 'libreria', etiqueta: 'topbar.libreria', icono: <Box size={20} />, ruta: '/libreria' },
+    { id: 'descargas', etiqueta: 'topbar.coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
 ];
 
 /* QK104: Items movil — solo navegacion basica; perfil/mensajes/notificaciones se renderizan aparte (QL16) */
 const itemsMovil: SidebarItemDef[] = [
-    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
-    { id: 'samples', etiqueta: 'Samples', icono: <Disc size={20} />, ruta: '/samples' },
+    { id: 'inicio', etiqueta: 'nav.inicio', icono: <Home size={20} />, ruta: '/' },
+    { id: 'samples', etiqueta: 'nav.samples', icono: <Disc size={20} />, ruta: '/samples' },
 ];
 
 interface SidebarProps {
@@ -70,6 +71,7 @@ export const Sidebar = ({
     items,
     onNavegar,
 }: SidebarProps): JSX.Element => {
+    const { t } = useT();
     const navegar = useNavigationStore(s => s.navegar);
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
     const abrirReporte = useReportarStore(s => s.abrir);
@@ -111,6 +113,10 @@ export const Sidebar = ({
         setMsgsAbiertos(prev => !prev);
     }, []);
 
+    const traducirEtiqueta = useCallback((etiqueta: string) => (
+        etiqueta.includes('.') ? t(etiqueta) : etiqueta
+    ), [t]);
+
     const irA = (ruta: string) => (e: React.MouseEvent) => {
         if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
             e.preventDefault();
@@ -134,9 +140,9 @@ export const Sidebar = ({
                             key={item.id}
                             href={item.ruta || '/'}
                             className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
-                            data-tooltip={item.etiqueta}
+                            data-tooltip={traducirEtiqueta(item.etiqueta)}
                             onClick={irA(item.ruta)}
-                            aria-label={item.etiqueta}
+                            aria-label={traducirEtiqueta(item.etiqueta)}
                         >
                             {item.icono}
                         </a>
@@ -150,7 +156,7 @@ export const Sidebar = ({
                                     className={`sidebarItem${totalMsgsNoLeidos > 0 ? ' sidebarItemConBadge' : ''}`}
                                     onClick={alternarMsgsMovil}
                                     type="button"
-                                    aria-label="Mensajes"
+                                    aria-label={t('config.notif.mensajes')}
                                 >
                                     <Mail size={20} />
                                     {totalMsgsNoLeidos > 0 && <span className="sidebarBadge" />}
@@ -164,7 +170,7 @@ export const Sidebar = ({
                                     className={`sidebarItem${totalNotisNoLeidas > 0 ? ' sidebarItemConBadge' : ''}`}
                                     onClick={alternarNotisMovil}
                                     type="button"
-                                    aria-label="Notificaciones"
+                                    aria-label={t('config.notificaciones')}
                                 >
                                     <Bell size={20} />
                                     {totalNotisNoLeidas > 0 && <span className="sidebarBadge" />}
@@ -176,7 +182,7 @@ export const Sidebar = ({
                                 href={`/perfil/${usuario?.username}/`}
                                 className={`sidebarItem ${activa === 'perfil' ? 'sidebarItemActivo' : ''}`}
                                 onClick={irA(`/perfil/${usuario?.username}/`)}
-                                aria-label="Perfil"
+                                aria-label={t('config.perfil')}
                             >
                                 <Avatar
                                     src={usuario?.avatarUrl ?? null}
@@ -214,12 +220,12 @@ export const Sidebar = ({
                             <BotonBase variante="ghost"
                                 key={item.id}
                                 className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
-                                data-tooltip={item.etiqueta}
+                                data-tooltip={traducirEtiqueta(item.etiqueta)}
                                 onClick={() => {
                                     onNavegar ? onNavegar(item.ruta) : navegar(item.ruta);
                                 }}
                                 type="button"
-                                aria-label={item.etiqueta}
+                                aria-label={traducirEtiqueta(item.etiqueta)}
                             >
                                 {item.icono}
                             </BotonBase>
@@ -232,9 +238,9 @@ export const Sidebar = ({
                             key={item.id}
                             href={item.ruta || '/'}
                             className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
-                            data-tooltip={item.etiqueta}
+                            data-tooltip={traducirEtiqueta(item.etiqueta)}
                             onClick={irA(item.ruta)}
-                            aria-label={item.etiqueta}
+                            aria-label={traducirEtiqueta(item.etiqueta)}
                         >
                             {item.icono}
                         </a>
