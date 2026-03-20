@@ -22,6 +22,20 @@
 
 - 2003A-3: Crear tab de administración de clientes y pagos. Reusar la tabla de columnas existente para agregar una nueva pestaña donde el admin vea todos los clientes con acciones: activar/desactivar plan, ver pagos, estado de suscripción, etc.
 
-- 2003A-4: Revisar `.sentinel-report.md` (169 violaciones, 1 error crítico). Corregir problemas reales y reportar falsos positivos para arreglar en la extensión.
-
 - 2003A-6: Testear despliegue con coolify-manager-rs. Usar VPS 2 de prueba, verificar que funciona, corregir si hay errores, luego actualizar en VPS 1.
+
+## 2003A-7
+
+Cuando intento iniciar sesion da errores de coookies y redirige al wp-admin, no quiero que el login sea con el wp-admin, debe ser fluido y que al deslogear no vaya al wp-admin. 
+
+## 2003A-8
+
+<div id="react-island-caploginisland-69bdda9185797" data-island="CapLoginIsland" data-props="{&quot;siteUrl&quot;:&quot;http:\/\/glory.local&quot;,&quot;redirectTo&quot;:&quot;\/cap-dashboard\/&quot;,&quot;registroUrl&quot;:&quot;\/cap-registro\/&quot;}" style="
+"><div data-glory-page="CapLoginIsland" style="display: block;height: 100%;"><div class="capApp capLoginPagina" id="paginaLogin">
+
+No se porque hay un espacio en blanco que envuelve la paginao sea hay un margen blanco en como si capApp capLoginPagina tuviera un margin. 
+
+## 2003A-9
+
+Cuando el inicio de sesion es incorrecto no veo un mensaje de error o algo. 
+
