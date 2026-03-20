@@ -218,43 +218,30 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         /* guardado se actualiza via EVENTO_SAMPLE_GUARDADO_EN_COLECCION cuando el picker confirma */
     }, [abrirPicker, sample]);
 
-    /*
-     * [2003A-18+2003A-27] Drag handler unificado.
-     * Desktop: verifica si hay archivo disponible (sync local O temp cache).
-     *   Si hay → e.preventDefault() + startDrag nativo (OS-level).
-     *   Si no hay → browser drag para mezclador. No descargamos automáticamente
-     *   para evitar descargas accidentales en arrastres involuntarios.
-     *   El usuario colecciona (+) para tener el sample localmente.
-     * Web: siempre browser drag para mezclador.
-     */
+    /* [2003A-30] Drag handler unificado.
+     * Desktop: SIEMPRE usa drag nativo (startDrag OS-level). iniciarDragNativo
+     * busca: sync local → temp cache → descarga bajo demanda desde rutaPreview (CDN).
+     * La descarga ocurre mientras el usuario mantiene el mouse presionado (~1-2s).
+     * No consume créditos de descarga — usa la URL de preview/CDN directamente.
+     * Web: browser drag para mezclador. */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
         if (esDesktop()) {
             const dragService = obtenerDragService();
-            const syncService = obtenerSyncService();
-
             if (dragService) {
-                const rutaLocal = syncService?.obtenerRutaLocal(sample.id);
-                const enCache = dragService.estaListoParaDrag(sample.id);
-
-                if (rutaLocal || enCache) {
-                    /* Archivo disponible: cancelar browser drag, usar nativo OS */
-                    e.preventDefault();
-                    dragService.iniciarDragNativo(
-                        sample.id,
-                        sample.rutaPreview || '',
-                        `${sample.titulo}.wav`,
-                    ).catch((err: unknown) => {
-                        console.error('[DragNativo] Error:', err);
-                    });
-                    return;
-                }
-                /* Sin archivo local — browser drag continúa para mezclador.
-                 * No se descarga automáticamente (2003A-27: evitar descargas accidentales). */
+                e.preventDefault();
+                dragService.iniciarDragNativo(
+                    sample.id,
+                    sample.rutaPreview || '',
+                    `${sample.titulo}.wav`,
+                ).catch((err: unknown) => {
+                    console.error('[DragNativo] Error:', err);
+                });
+                return;
             }
         }
 
         /*
-         * Fallback: drag in-app para mezclador (web y desktop sin drag nativo).
+         * Fallback: drag in-app para mezclador (web y desktop sin drag service).
          * Setea dataTransfer para que las pistas del mezclador reciban el drop.
          */
         e.dataTransfer.setData('application/kamples-sample', JSON.stringify(sample));
