@@ -61,11 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 2003A-15
-
-Hay un problema con la aplicación de escritorio, el deslogeo no funciona si abro y vuelvo abrir, sigue logeado, esto hay que tener cuidado porque al princpio era que la sesion no se guardaba y se salia a recargar, ahora el problema es que no se deslogea ni actualiza el sync al deslogearse.
-
-
 ## 2003A-20
 
 Este problema sucedio una vez y es probable que suceda siempre
@@ -77,3 +72,41 @@ cuando di click a reproducir una coleccion desde la lista de colecciones, y lueg
 
 El problema de hacer scroll y luego intentar subir activa la recarga persiste en la version movil android, llevamos mucho tiempo con esta tarea. 
 
+## 2003A-27
+
+¿esto es lo suficientemente detallado para encontrar problema de optimizacion? si no lo es, ajustalo, y si lo es, dejalo asi 
+
+20/03/26, 09:58:40
+Total
+1479.5 ms
+Etapa	ms	%	
+Perfil usuario	0.2 ms	0.0%	
+Generación SQL (PHP)	1.8 ms	0.1%	
+Query CTE feed (SQL)	696.2 ms	47.1%	
+Samples activos: 2649
+Resultados: 14
+Bulk-fetch: Sí
+MV trending: Sí
+Pipeline candidatos: No
+Desglose CTE (EXPLAIN ANALYZE)
+Planificación: 21.3 ms
+Ejecución: 723.9 ms
+Operaciones principales
+Operación	Total	Exclusivo	Filas
+Limit	714.5 ms	0.0 ms	36
+Sort	714.5 ms	4.4 ms	36
+Subquery Scan	710.1 ms	4.0 ms	2,566
+WindowAgg	706.1 ms	11.4 ms	2,566
+Sort	694.7 ms	31.0 ms	2,566
+WindowAgg	663.7 ms	3.0 ms	2,566
+Sort	660.7 ms	28.9 ms	2,566
+Hash Join	631.9 ms	105.7 ms	2,566
+Merge Join	526.0 ms	4.9 ms	2,566
+Merge Join	512.6 ms	1.6 ms	2,566
+Merge Join	508.2 ms	4.4 ms	2,649
+Sort	493.5 ms	22.7 ms	2,649
+Hash Join	470.8 ms	1.4 ms	2,649
+Hash Join	469.4 ms	2.0 ms	2,649
+Hash Join	466.3 ms	1.4 ms	2,649
+
+Luego hacer un plan, croe que ya habia un plan, pero hacer otro en tal caso, para pulir y reducir ese tiempo lo mas que se pueda, investigar en internet tecnicas de algoritmo avanzado, como las redes sociales son capaces de mostrar feeds con millones de usuarios y posts, no importa que tan dificil sea lo que se pueda implementar, se implementará todo lo que sea necesario, 700 ms sigue siendo demasiado teniendo en mente que vamos a escalar a 1 millon. 
