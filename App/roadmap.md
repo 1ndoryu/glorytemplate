@@ -107,33 +107,8 @@ La imagen de avatar no esta optimizada como estan optizada las demas imagenes,la
 
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
 
-## 193A-66 URGENTE 
-
-Siguen habiendo errores
-
-Error de render
-Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
-Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
-    at Kt (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:39:18415)
-    at Object.Oh [as useCallback] (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:39:21995)
-    at DC.ea.useCallback (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:10:5688)
-    at XC (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:58980)
-    at r (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:59130)
-    at Se (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:906:108280)
-    at tP (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:913:118220)
-    at hu (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:39:17820)
-    at Nu (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:3158)
-    at zg (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:45524)
-
-## 
-
-appIslands.tsx:67 [Kamples] Error de render en AppProvider: Error: Rendered more hooks than during the previous render.
-    at useT (useT.ts:32:20)
-    at ReproductorGlobal (ReproductorGlobal.tsx:34:19)
- 
-    at ReproductorGlobal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…emplate/App/React/components/ui/ReproductorGlobal.tsx?t=1773976213008:40:7)
-
-    
+## 193A-66 — COMPLETADO
+<!-- Rules of Hooks fix en ModalSeleccionColeccion, BarraSeleccionMultiple y ReproductorGlobal — useT antes del early return. Commits f6249aa07 + 1e8ab6249 -->
 
 ## Antes de penultima (preferiblemente antepenultima)
 
