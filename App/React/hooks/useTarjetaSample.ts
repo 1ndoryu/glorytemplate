@@ -218,22 +218,44 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         /* guardado se actualiza via EVENTO_SAMPLE_GUARDADO_EN_COLECCION cuando el picker confirma */
     }, [abrirPicker, sample]);
 
-    /* [2003A-30] Drag handler unificado.
-     * Desktop: SIEMPRE usa drag nativo (startDrag OS-level). iniciarDragNativo
-     * busca: sync local → temp cache → descarga bajo demanda desde rutaPreview (CDN).
-     * La descarga ocurre mientras el usuario mantiene el mouse presionado (~1-2s).
-     * No consume créditos de descarga — usa la URL de preview/CDN directamente.
+    /* [2003A-34] Drag handler con sistema de créditos.
+     * Desktop: intenta archivo local/cache primero (sin crédito).
+     * Si no hay → llama descargarSample() para consumir crédito y obtener URL.
+     * Si no hay créditos → toast + bloquear. Sin bypass de CDN.
      * Web: browser drag para mezclador. */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
         if (esDesktop()) {
             const dragService = obtenerDragService();
             if (dragService) {
                 e.preventDefault();
-                dragService.iniciarDragNativo(
-                    sample.id,
-                    sample.rutaPreview || '',
-                    `${sample.titulo}.wav`,
-                ).catch((err: unknown) => {
+                const nombre = `${sample.titulo}.wav`;
+
+                (async () => {
+                    /* 1. Intentar con archivo existente (local sync o cache, sin crédito) */
+                    const exitoLocal = await dragService.iniciarDragNativo(sample.id, nombre);
+                    if (exitoLocal) return;
+
+                    /* 2. No hay archivo local → necesita descarga via API (consume crédito si es primera vez) */
+                    const resp = await descargarSample(sample.id);
+                    if (!resp.ok) {
+                        if (resp.status === 429 || resp.status === 403) {
+                            toast.error(resp.error ?? getT()('error.limiteDescargas'));
+                            usePlanesModalStore.getState().abrir();
+                        } else {
+                            toast.error(getT()('error.descarga'));
+                        }
+                        return;
+                    }
+
+                    if (resp.data?.url) {
+                        const nombreFinal = resp.data.nombre || nombre;
+                        await dragService.descargarYArrastrar(sample.id, resp.data.url, nombreFinal);
+
+                        if (!resp.data.yaExistia) {
+                            setDescargado(true);
+                        }
+                    }
+                })().catch((err: unknown) => {
                     console.error('[DragNativo] Error:', err);
                 });
                 return;

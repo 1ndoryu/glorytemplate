@@ -77,7 +77,7 @@ import {
 } from '@desktop/services/uploadQueueService';
 
 /* Drag service — expuesto en window para drag-to-DAW/desktop nativo */
-import { iniciarDragNativo, prepararDragNativo, preCachearIconoDrag, estaListoParaDrag } from '@desktop/services/audioLocalService';
+import { iniciarDragNativo, descargarYArrastrar, prepararDragNativo, preCachearIconoDrag, estaListoParaDrag } from '@desktop/services/audioLocalService';
 
 /* Registrar todas las islas */
 islandRegistry.registerAll(appIslands);
@@ -207,8 +207,10 @@ async function marcarEntornoDesktop(): Promise<void> {    window.__KAMPLES_DESKT
         eliminarItemCola,
     };
     /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
+    /* [2003A-34] descargarYArrastrar para drag con créditos consumidos */
     window.__KAMPLES_DRAG__ = {
         iniciarDragNativo,
+        descargarYArrastrar,
         prepararDragNativo,
         estaListoParaDrag,
     };

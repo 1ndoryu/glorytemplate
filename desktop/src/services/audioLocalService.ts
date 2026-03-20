@@ -122,9 +122,13 @@ async function obtenerIconoDrag(): Promise<string> {
     return iconoDragCache;
 }
 
+/* [2003A-34] Paso 3 eliminado. Descarga directa desde CDN/preview
+ * bypaseaba el sistema de créditos — descargar sin consumir crédito.
+ * Ahora el caller (useTarjetaSample) llama descargarSample() primero
+ * para consumir el crédito, y luego pasa la URL API a descargarYArrastrar(). */
+
 export async function iniciarDragNativo(
     sampleId: number,
-    urlRemota: string,
     nombreArchivo: string,
 ): Promise<boolean> {
     if (!esDesktop()) return false;
@@ -144,7 +148,7 @@ export async function iniciarDragNativo(
         }
     }
 
-    /* 2. Fallback: archivo pre-descargado via prepararDragNativo() */
+    /* 2. Fallback: archivo pre-descargado via prepararDragNativo() o descargarYArrastrar() */
     const rutaTemp = dragTempCache.get(sampleId);
     if (rutaTemp) {
         try {
@@ -152,7 +156,6 @@ export async function iniciarDragNativo(
             if (await exists(rutaTemp)) {
                 const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
                 await startDrag({ item: [rutaTemp], icon: iconoDrag });
-                /* [2003A-30] No limpiar cache — permitir re-drag del mismo sample */
                 return true;
             }
             dragTempCache.delete(sampleId); /* archivo ya no existe (limpieza OS) */
@@ -162,32 +165,41 @@ export async function iniciarDragNativo(
         }
     }
 
-    /* [2003A-30] 3. Descarga bajo demanda desde URL remota (CDN/preview).
-     * No consume créditos de descarga — usa la URL de streaming/CDN directamente.
-     * El usuario mantiene el mouse presionado mientras se descarga (~1-2s).
-     * Tras la descarga, startDrag() inicia el drag nativo del OS. */
-    if (urlRemota) {
-        try {
-            const { tempDir } = await import('@tauri-apps/api/path');
-            const { writeFile } = await import('@tauri-apps/plugin-fs');
-
-            const tempPath = `${await tempDir()}kamples_drag_${nombreArchivo}`;
-            const response = await fetch(urlRemota);
-            if (!response.ok) throw new Error(`HTTP ${response.status} para ${urlRemota}`);
-
-            const arrayBuffer = await response.arrayBuffer();
-            await writeFile(tempPath, new Uint8Array(arrayBuffer));
-            dragTempCache.set(sampleId, tempPath);
-
-            const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
-            await startDrag({ item: [tempPath], icon: iconoDrag });
-            return true;
-        } catch (err) {
-            console.warn('[DragNativo] Error descargando para drag:', err);
-        }
-    }
-
     return false;
+}
+
+/*
+ * [2003A-34] Descarga un archivo desde una URL autorizada por la API (ya consumió crédito)
+ * y lo arrastra nativamente. El caller es responsable de haber llamado descargarSample()
+ * antes para validar créditos y obtener la URL.
+ */
+export async function descargarYArrastrar(
+    sampleId: number,
+    urlDescarga: string,
+    nombreArchivo: string,
+): Promise<boolean> {
+    if (!esDesktop() || !urlDescarga) return false;
+
+    try {
+        const iconoDrag = await obtenerIconoDrag();
+        const { tempDir } = await import('@tauri-apps/api/path');
+        const { writeFile } = await import('@tauri-apps/plugin-fs');
+
+        const tempPath = `${await tempDir()}${nombreArchivo}`;
+        const response = await fetch(urlDescarga);
+        if (!response.ok) throw new Error(`HTTP ${response.status} para ${urlDescarga}`);
+
+        const arrayBuffer = await response.arrayBuffer();
+        await writeFile(tempPath, new Uint8Array(arrayBuffer));
+        dragTempCache.set(sampleId, tempPath);
+
+        const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
+        await startDrag({ item: [tempPath], icon: iconoDrag });
+        return true;
+    } catch (err) {
+        console.warn('[DragNativo] Error descargando para drag:', err);
+        return false;
+    }
 }
 
 /*
@@ -222,7 +234,8 @@ export async function prepararDragNativo(
         const { tempDir } = await import('@tauri-apps/api/path');
         const { writeFile } = await import('@tauri-apps/plugin-fs');
 
-        const tempPath = `${await tempDir()}kamples_drag_${nombreArchivo}`;
+        /* [2003A-34] Sin prefijo kamples_drag_ — usar nombre limpio del sample */
+        const tempPath = `${await tempDir()}${nombreArchivo}`;
         const response = await fetch(urlRemota);
         if (!response.ok) throw new Error(`HTTP ${response.status} para ${urlRemota}`);
 
