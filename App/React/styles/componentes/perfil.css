@@ -117,10 +117,13 @@
 }
 
 /* [193A-78] Botón icono en acciones de perfil — sin borde ni padding extra */
-.perfilAccionIcono {
+/* [2003A-32] Especificidad .botonBase.X para vencer a .botonBase.tamanoMd (0,2,0).
+ * Ambos botones (seguir y mensaje) usan esta clase → mismo tamaño 34x34. */
+.botonBase.perfilAccionIcono {
     border: none;
     padding: var(--espacioXs);
     background: transparent;
+    width: 34px;
 }
 
 /* Tabs */

@@ -172,7 +172,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                         ) : (
                             <>
                                 {/* [193A-78] Botones solo icono — seguir y mensaje */}
-                                <BotonFollow usuarioId={usuario.id} siguiendo={usuario.siguiendo ?? false} soloIcono />
+                                {/* [2003A-32] className perfilAccionIcono compartida para igualar tamaño */}
+                                <BotonFollow usuarioId={usuario.id} siguiendo={usuario.siguiendo ?? false} soloIcono className="perfilAccionIcono" />
                                 <BotonBase
                                     variante="ghost"
                                     className="perfilAccionIcono"
@@ -191,7 +192,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                             log.error('Error al iniciar conversación', resp.error);
                                         }
                                     }}>
-                                    <MessageCircle size={18} />
+                                    <MessageCircle size={14} />
                                 </BotonBase>
                             </>
                         )}
