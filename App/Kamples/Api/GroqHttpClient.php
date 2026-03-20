@@ -467,10 +467,14 @@ class GroqHttpClient
     {
         $nombres = ['GROQ_API_1', 'GROQ_API_2', 'GROQ_API_3'];
         $keys = [];
+        $diagnostico = [];
 
         foreach ($nombres as $nombre) {
             $key = self::resolverEnvVar($nombre);
-            if ($key !== null && \str_starts_with($key, 'gsk_')) {
+            $encontrada = $key !== null && \str_starts_with($key, 'gsk_');
+            /* [193A-63] TEMP log diagnóstico rotación */
+            $diagnostico[$nombre] = $encontrada ? ('ok:' . \substr($key, 0, 10) . '***') : ('null|_ENV=' . (isset($_ENV[$nombre]) ? 'set' : 'unset') . '|getenv=' . (getenv($nombre) !== false ? 'set' : 'unset'));
+            if ($encontrada) {
                 $keys[] = $key;
             }
         }
@@ -480,8 +484,14 @@ class GroqHttpClient
             $legacy = self::resolverEnvVar('GROQ_API');
             if ($legacy !== null && \str_starts_with($legacy, 'gsk_')) {
                 $keys[] = $legacy;
+                $diagnostico['GROQ_API_fallback'] = 'ok:' . \substr($legacy, 0, 10) . '***';
+            } else {
+                $diagnostico['GROQ_API_fallback'] = 'no_encontrada';
             }
         }
+
+        /* [193A-63] TEMP — remover cuando se confirme que las 3 keys rotan */
+        KamplesLogger::info('GroqHttpClient[DIAG]: Estado keys', $diagnostico);
 
         return $keys;
     }
@@ -492,7 +502,8 @@ class GroqHttpClient
      */
     private static function resolverEnvVar(string $nombre): ?string
     {
-        $key = $_ENV[$nombre] ?? getenv($nombre) ?: null;
+        $envVal = $_ENV[$nombre] ?? null;
+        $key = $envVal !== null ? $envVal : (getenv($nombre) ?: null);
 
         if (!$key || $key === '') {
             if (\defined($nombre)) {

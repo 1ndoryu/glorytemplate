@@ -102,6 +102,14 @@ class ProcesadorColaIA
             'rateLimited' => false,
         ];
 
+        /* [193A-63] TEMP — log diagnóstico arranque cron */
+        KamplesLogger::info('ProcesadorColaIA[DIAG]: Cron iniciado', [
+            'hora' => \date('Y-m-d H:i:s'),
+            'groq_key_index' => get_transient('kmpl_groq_key_index'),
+            'ultimo_audio_transient' => get_transient(self::TRANSIENT_ULTIMO_AUDIO),
+            'contador_diario' => get_transient(self::TRANSIENT_CONTADOR_DIARIO),
+        ]);
+
         try {
             $pendientes = ColaProcesamientoIaRepository::obtenerPendientes(self::MAX_ITEMS_POR_EJECUCION);
         } catch (\Throwable $e) {
