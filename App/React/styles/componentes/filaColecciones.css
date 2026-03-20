@@ -113,7 +113,7 @@
 .filaColeccionNombre {
     font-size: var(--fuenteMd);
     font-weight: var(--pesoMedio);
-    color: var(--blanco);
+    color: var(--siempreBlanco);
     line-height: 1.2;
     -webkit-line-clamp: 2;
 }

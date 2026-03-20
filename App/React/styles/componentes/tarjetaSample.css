@@ -116,7 +116,7 @@
     cursor: pointer;
     text-align: left;
     font: inherit;
-    color: inherit;
+    
     transition: color var(--transicionRapida);
 }
 

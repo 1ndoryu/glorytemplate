@@ -113,26 +113,27 @@
     /* Safe area — overridden por plataforma Android/iOS cuando viewport-fit=cover */
     --safeAreaTop: 0px;
     --safeAreaBottom: 0px;
+    --siempreBlanco: #efefef;
 }
 
 :root[data-theme='light'] {
-    --fondoBase: #efede3;
-    --fondoElevado1: #e7e2d4;
-    --fondoElevado2: #e7e2d4;
-    --fondoElevado3: #e7e2d4;
-    --bordeSutil: #d2c8a7;
-    --bordeActivo: #4a665b;
+    --fondoBase: #ffffff;
+    --fondoElevado1: #ffffff;
+    --fondoElevado2: #ffffff;
+    --fondoElevado3: #ffffff;
+    --bordeSutil: #b1b1b1;
+    --bordeActivo: #2e2e2e;
     --textoPrimario: #171717;
     --textoSecundario: #4f4f4f;
     --textoTerciario: #6e6e6e;
     --textoPrimarioInverso: #f8f3df;
-    --blanco: #e5dfc7;
-    --negro: #0f0f0f;
-    --acento: #4a665b;
+    --blanco: #0f0f0f;
+    --negro: #efede3;
+    --acento: #2ca173;
     --acento-blanco: #4a665b;
     --acentoHover: #3e564c;
     --acentoMuted: rgba(74, 102, 91, 0.14);
-    --acentoTexto: #f8f3df;
+    --acentoTexto: #3c3b36;
     --fondoSeleccion: rgba(74, 102, 91, 0.15);
     --fondoSeleccionHover: rgba(74, 102, 91, 0.2);
     --exito: #2f8a68;
@@ -147,4 +148,5 @@
     --overlayOscuro: rgba(0, 0, 0, 0.24);
     --overlaySuave: rgba(0, 0, 0, 0.14);
     --sombraFlotante: 0 4px 24px rgba(0, 0, 0, 0.18);
+    --siempreBlanco: #efefef;
 }

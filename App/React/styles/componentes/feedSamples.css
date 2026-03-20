@@ -205,7 +205,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    color: inherit;
+    color: var(--blanco);
     font-size: var(--fuenteXs);
     font-family: inherit;
     font-weight: var(--pesoMedio);
