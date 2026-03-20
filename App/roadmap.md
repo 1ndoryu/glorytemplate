@@ -82,10 +82,6 @@ filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un alg
 Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
 
 
-## 193A-90
-
-crearAdjuntoPortadaPreview funciona mal, primero, cuando suba imagen esa imagen tiene que remplazar crearAdjuntoIcono, no ponerse dentro del boton, es ilogico.
-
 ## 193A-91
 
 ID Tipo Entidad Operación Estado Intentos Error Proximo intento Creado Procesado Acciones
