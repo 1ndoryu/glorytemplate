@@ -1228,15 +1228,23 @@ class ColeccionesRepository extends BaseRepository
         $tcs = ColeccionSamplesCols::TABLA;
         $csColId = ColeccionSamplesCols::COLECCION_ID;
         $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
-        $csUsuarioId = ColeccionSamplesCols::USUARIO_ID;
-        $csAddedAt = ColeccionSamplesCols::ADDED_AT;
 
+        /* [2003A-8] UPDATE en lugar de INSERT...SELECT: uq_usuario_sample UNIQUE(usuario_id, sample_id)
+         * impide insertar si ese par ya existe en cualquier colección del mismo usuario.
+         * INSERT fallaba porque el row del origen ya satisface ese constraint y
+         * ON CONFLICT solo cubría (coleccion_id, sample_id), no el constraint real.
+         * UPDATE solo reasigna coleccion_id sin crear nuevas tuplas → sin violación.
+         * NOT EXISTS: guarda de seguridad para el caso teórico de duplicado en destino. */
         static::ejecutar(
-            "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, {$csUsuarioId}, {$csAddedAt})"
-            . " SELECT :destId, {$csSampleId}, {$csUsuarioId}, {$csAddedAt}"
-            . " FROM {$tcs} WHERE {$csColId} = :origId"
-            . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
-            ['destId' => $destinoColeccionId, 'origId' => $origenColeccionId]
+            "UPDATE {$tcs}"
+            . " SET {$csColId} = :destId"
+            . " WHERE {$csColId} = :origId"
+            . " AND NOT EXISTS ("
+            . "   SELECT 1 FROM {$tcs} d"
+            . "   WHERE d.{$csColId} = :destId2"
+            . "   AND d.{$csSampleId} = {$tcs}.{$csSampleId}"
+            . " )",
+            ['destId' => $destinoColeccionId, 'origId' => $origenColeccionId, 'destId2' => $destinoColeccionId]
         );
     }
 
@@ -1589,25 +1597,12 @@ class ColeccionesRepository extends BaseRepository
                     $p['s' . $i] = $sid;
                 }
 
-                /* Copiar al origen */
+                /* [2003A-8] UPDATE en vez de INSERT+DELETE: evita violación de uq_usuario_sample.
+                 * Mueve los samples del destino de vuelta al origen cambiando solo coleccion_id. */
                 static::ejecutar(
-                    "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
-                    . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
-                    . " SELECT :origId, {$csSampleId}, "
-                    . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
-                    . " FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$placeholders})"
-                    . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                    "UPDATE {$tcs} SET {$csColId} = :origId"
+                    . " WHERE {$csColId} = :destId AND {$csSampleId} IN ({$placeholders})",
                     $p
-                );
-
-                /* Quitar del destino */
-                $pDel = ['destId' => $destinoId];
-                foreach ($samplesOrigenIds as $i => $sid) {
-                    $pDel['s' . $i] = $sid;
-                }
-                static::ejecutar(
-                    "DELETE FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$placeholders})",
-                    $pDel
                 );
             }
 
@@ -1647,22 +1642,11 @@ class ColeccionesRepository extends BaseRepository
                         foreach ($hijaSampleIds as $i => $sid) {
                             $hp['hs' . $i] = $sid;
                         }
+                        /* [2003A-8] UPDATE en vez de INSERT+DELETE: evita uq_usuario_sample */
                         static::ejecutar(
-                            "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
-                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
-                            . " SELECT :hijaId, {$csSampleId}, "
-                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
-                            . " FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$ph})"
-                            . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                            "UPDATE {$tcs} SET {$csColId} = :hijaId"
+                            . " WHERE {$csColId} = :destId AND {$csSampleId} IN ({$ph})",
                             $hp
-                        );
-                        $hpDel = ['destId' => $destinoId];
-                        foreach ($hijaSampleIds as $i => $sid) {
-                            $hpDel['hs' . $i] = $sid;
-                        }
-                        static::ejecutar(
-                            "DELETE FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$ph})",
-                            $hpDel
                         );
                     }
                 } elseif ($modoRestauracion === 'fusionada') {
@@ -1692,22 +1676,11 @@ class ColeccionesRepository extends BaseRepository
                         foreach ($hijaSampleIds as $i => $sid) {
                             $hp['hs' . $i] = $sid;
                         }
+                        /* [2003A-8] UPDATE en vez de INSERT+DELETE: evita uq_usuario_sample */
                         static::ejecutar(
-                            "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
-                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
-                            . " SELECT :hijaId, {$csSampleId}, "
-                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
-                            . " FROM {$tcs} WHERE {$csColId} = :destinoHijaId AND {$csSampleId} IN ({$ph})"
-                            . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                            "UPDATE {$tcs} SET {$csColId} = :hijaId"
+                            . " WHERE {$csColId} = :destinoHijaId AND {$csSampleId} IN ({$ph})",
                             $hp
-                        );
-                        $hpDel = ['destinoHijaId' => $destinoHijaId];
-                        foreach ($hijaSampleIds as $i => $sid) {
-                            $hpDel['hs' . $i] = $sid;
-                        }
-                        static::ejecutar(
-                            "DELETE FROM {$tcs} WHERE {$csColId} = :destinoHijaId AND {$csSampleId} IN ({$ph})",
-                            $hpDel
                         );
                     }
                 } else {
