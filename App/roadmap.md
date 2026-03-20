@@ -57,10 +57,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 193A-5
-
-Lo de combinar colecciones no funciona, esto claramente necesita una revisión profunda. Revisar logs en el servidor, intente combinar test 1 con test 2, ambas colecciones existen sin combinarse.
-
 ## 193A-65 
 
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
@@ -82,22 +78,13 @@ filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un alg
 
 Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir 
 
-## 193A-81
-
-841		#2922	analisis audio		0/30		-	19/3, 06:22	20/3, 01:15	
-840		#2921	analisis audio		0/30		-	19/3, 06:22	20/3, 01:10	
-839		#2920	analisis audio		0/30		-	19/3, 06:22	20/3, 01:05	
-838		#2919	analisis audio		0/30		-	19/3, 06:22	20/3, 01:00	
-837		#2918	analisis audio		0/30		-	19/3, 06:22	20/3, 00:55	
-836		#2917	analisis audio		0/30		-	19/3, 06:21	20/3, 00:50	
-835		#2916	analisis audio		0/30		-	19/3, 06:21	20/3, 00:45	
-834		#2915	analisis audio		0/30		-	19/3, 06:21	20/3, 00:40
-
-no esta funcionando cada 1 minuto sino cada 5 minutos, ya llevamos varias tareas relacionadas con esto 
-
 ## 193A-82
 
 Sobre 193A-80 me hace preguntarme si los demas filtros tienen el mismo problema, pues, en ese caso habría que arreglarlos todos. 
+
+## 193A-90
+
+crearAdjuntoPortadaPreview funciona mal, primero, cuando suba imagen esa imagen tiene que remplazar crearAdjuntoIcono, no ponerse dentro del boton, es ilogico. 
 
 ## Antes de penultima (preferiblemente antepenultima)
 
