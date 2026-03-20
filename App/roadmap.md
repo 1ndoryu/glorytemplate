@@ -93,20 +93,9 @@ En https://kamples.com/descargas/ falta un filtro de "Mostrar solo me encantas" 
 
 Pero, la lado del boton de filtro, podemos poner un corazon que se activa y apaga, si se activa solo muestra "me encanta", esto puede ser global y mostrarse incluso en el feed
 
-## 193A-45
+## 193A-54
 
-No se si lo dije antes pero falta el boton de eliminar en los 3 puntos para los articulos, e admin puede y debería elimianr cualquier articulo
-
-## 193A-46-B (nueva instancia, si sigue fallando)
-
-<!-- COMPLETADA: la causa era useCallback después de early returns — fix commiteado 5c37636a7 -->
-
-
-## 193A-51 — COMPLETADO
-<!-- waveforms oscuras en light mode via CSS vars. Commit 89b9af32b -->
-
-## 193A-52 — COMPLETADO
-<!-- selector idioma landing → pill select sin banderas. Commit 89b9af32b -->
+el selector de idioma no tiene que tener banderas, debe ser un select, y las idomas en texto, debe ser un select usar el select personalizado de sample, el que se usa en el modal de editar samples, el landing. Vi que se hizo un intento el footer pero no, el nav del lading hay un selector de idiomas y no es un select, debe serlo y el select del footer no es el compontente de kamples!!!!!
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
