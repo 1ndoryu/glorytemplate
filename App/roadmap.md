@@ -51,6 +51,10 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-51 (2026-03-19):** Waveforms oscuras en white mode — CSS vars `--colorWaveformNoReproducido/Reproducido` + resolverColorCSS en canvas (getComputedStyle).
 - **193A-52 (2026-03-19):** Selector idioma landing → pill select minimalista sin banderas (`SelectorIdioma variante='select'`).
 
+- **193A-54 (2026-03-20):** SelectorIdioma variante=select usa SelectorMenu Kamples; NavPublico usa variante=select.
+- **193A-63 (2026-03-20):** Logs diagnóstico rotación keys Groq + panel admin cola-IA muestra estado de las 3 keys, cuál está activa y último audio.
+- **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp — Rules of Hooks.
+
 ## Tareas pendientes
 
 ## 183A-115 — COMPLETADO
@@ -82,10 +86,8 @@ main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 ## 193A-43 — COMPLETADO
 <!-- Rotación 3 keys Groq (GROQ_API_1/2/3 en .env servidor), gap audio=60s, moderación=0s. Commits 24fd9fc6f + 3b6a8118e -->
 
-
-## 193A-54
-
-el selector de idioma no tiene que tener banderas, debe ser un select, y las idomas en texto, debe ser un select usar el select personalizado de sample, el que se usa en el modal de editar samples, el landing. Vi que se hizo un intento el footer pero no, el nav del lading hay un selector de idiomas y no es un select, debe serlo y el select del footer no es el compontente de kamples!!!!!
+## 193A-54 — COMPLETADO
+<!-- SelectorIdioma variante=select usa SelectorMenu Kamples; NavPublico usa variante=select. Commit 3031559cd -->
 
 ## 193A-61 
 
@@ -95,74 +97,43 @@ Lo de corazon para mostrar los samples de "me encanta" funciona mal porque es un
 
 La imagen de avatar no esta optimizada como estan optizada las demas imagenes,las imagenes temporarels de colors tampoco, 
 
-## 193A-63 URGENTE
+## 193A-63 — COMPLETADO
+<!-- Logs diagnóstico rotación keys + panel admin cola-IA muestra estado 3 keys. Commits f0d016cbf + 2117777ba -->
 
-LA COLA DE IA DEJO DE AVANZAR DESDE QUE APLICO ## 193A-43 
+## 193A-64 — COMPLETADO
+<!-- Rules of Hooks fix ModalSolicitudWhatsapp — useT antes del early return. Commit f08c28e99 -->
 
-## 193A-64
+## 193A-65 
 
-chunk-NXESFFTV.js?v=2986b4e9:521 Warning: React has detected a change in the order of Hooks called by ModalSolicitudWhatsapp. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
 
-   Previous render            Next render
-   ------------------------------------------------------
-1. useCallback                useCallback
-2. useCallback                useCallback
-3. useSyncExternalStore       useSyncExternalStore
-4. useDebugValue              useDebugValue
-5. useCallback                useCallback
-6. useCallback                useCallback
-7. useSyncExternalStore       useSyncExternalStore
-8. useDebugValue              useDebugValue
-9. useState                   useState
-10. useState                  useState
-11. useState                  useState
-12. useState                  useState
-13. useState                  useState
-14. useState                  useState
-15. useState                  useState
-16. useState                  useState
-17. useEffect                 useEffect
-18. useCallback               useCallback
-19. useCallback               useCallback
-20. useCallback               useCallback
-21. undefined                 useCallback
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+## 193A-66 URGENTE 
 
-    at ModalSolicitudWhatsapp (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/glorytemplate/App/React/components/social/ModalSolicitudWhatsapp.tsx:45:7)
-    at div
-    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx:90:3)
-    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx:23:37)
-    at RootErrorBoundary (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:55:1)
-    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:90:31)
-    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+Siguen habiendo errores
 
-2
-chunk-NXESFFTV.js?v=2986b4e9:11726 Uncaught Error: Rendered more hooks than during the previous render.
-    at useT (useT.ts:32:20)
-    at ModalSolicitudWhatsapp (ModalSolicitudWhatsapp.tsx:39:19)
-chunk-NXESFFTV.js?v=2986b4e9:14080 The above error occurred in the <ModalSolicitudWhatsapp> component:
+Error de render
+Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Kt (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:39:18415)
+    at Object.Oh [as useCallback] (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:39:21995)
+    at DC.ea.useCallback (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:10:5688)
+    at XC (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:58980)
+    at r (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:59130)
+    at Se (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:906:108280)
+    at tP (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:913:118220)
+    at hu (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:39:17820)
+    at Nu (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:3158)
+    at zg (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-F0yl8goZ.js:41:45524)
 
-    at ModalSolicitudWhatsapp (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/glorytemplate/App/React/components/social/ModalSolicitudWhatsapp.tsx:45:7)
-    at div
-    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx:90:3)
-    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx:23:37)
-    at RootErrorBoundary (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:55:1)
-    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:90:31)
-    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+## 
 
-React will try to recreate this component tree from scratch using the error boundary you provided, RootErrorBoundary.
 appIslands.tsx:67 [Kamples] Error de render en AppProvider: Error: Rendered more hooks than during the previous render.
     at useT (useT.ts:32:20)
-    at ModalSolicitudWhatsapp (ModalSolicitudWhatsapp.tsx:39:19)
+    at ReproductorGlobal (ReproductorGlobal.tsx:34:19)
  
-    at ModalSolicitudWhatsapp (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/glorytemplate/App/React/components/social/ModalSolicitudWhatsapp.tsx:45:7)
-    at div
-    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx:90:3)
-    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx:23:37)
-    at RootErrorBoundary (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:55:1)
-    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx:90:31)
-    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+    at ReproductorGlobal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…emplate/App/React/components/ui/ReproductorGlobal.tsx?t=1773976213008:40:7)
 
+    
 
 ## Antes de penultima (preferiblemente antepenultima)
 
