@@ -362,22 +362,37 @@ class SamplesModificacionController
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para eliminar este sample'], 403);
         }
 
+        /* [193A-94] Solo restar crédito si el sample era público y descargable (misma condición que al otorgarlo) */
+        $eraPublicoDescargable = !empty($sample[SamplesCols::PERMITIR_DESCARGA])
+            && !empty($sample[SamplesCols::MOSTRAR_EN_COMUNIDAD]);
+
         if ($esAdmin && !$esPropietario) {
             /* Admin eliminando sample de otro: hard-delete irreversible + limpieza archivos */
             self::eliminarArchivosFisicos($sample);
             ServicioMedia::limpiarMediaComentarios('sample', $sampleId);
             SamplesRepository::eliminarConCascada($sampleId);
+            /* [193A-94] Restar crédito al creador del sample eliminado por admin */
+            if ($eraPublicoDescargable) {
+                $creadorId = (int) $sample[SamplesCols::CREADOR_ID];
+                try {
+                    UsuariosExtRepository::decrementarCreditosBonus($creadorId);
+                } catch (\Exception $e) {
+                    KamplesLogger::warning('No se pudo restar crédito bonus al eliminar sample (admin)', ['error' => $e->getMessage()]);
+                }
+            }
         } else {
             /* QQ56: Propietario — papelera con retención 30 días. Archivos se mantienen en disco. */
             $ok = ServicioPapelera::enviarSample($sampleId);
             if (!$ok) {
                 return new \WP_REST_Response(['code' => 'error_papelera', 'message' => 'Error al enviar a papelera'], 500);
             }
-            /* C360: Restar crédito bonus por eliminar sample propio */
-            try {
-                UsuariosExtRepository::decrementarCreditosBonus($usuarioId);
-            } catch (\Exception $e) {
-                KamplesLogger::warning('No se pudo restar crédito bonus al eliminar sample', ['error' => $e->getMessage()]);
+            /* [193A-94] Restar crédito solo si el sample era público y descargable */
+            if ($eraPublicoDescargable) {
+                try {
+                    UsuariosExtRepository::decrementarCreditosBonus($usuarioId);
+                } catch (\Exception $e) {
+                    KamplesLogger::warning('No se pudo restar crédito bonus al eliminar sample', ['error' => $e->getMessage()]);
+                }
             }
         }
 

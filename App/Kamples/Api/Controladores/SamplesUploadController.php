@@ -38,6 +38,7 @@ use App\Config\Schema\_generated\RelacionesSampleEnums;
 use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 use App\Kamples\Servicios\ServicioMedia;
 use App\Kamples\Services\ServicioCache;
+use App\Kamples\Services\ServicioNotificaciones;
 
 class SamplesUploadController
 {
@@ -301,10 +302,19 @@ class SamplesUploadController
             }
         }
 
-        /* C198: Sumar 1 crédito bonus por publicar sample */
-        if ($sampleId) {
+        /* [193A-94] Sumar 1 crédito bonus solo si el sample es público y descargable.
+         * Antes (C198) se daba crédito por todo sample publicado sin condición. */
+        if ($sampleId && $permitirDescarga && $mostrarEnComunidad) {
             try {
                 UsuariosExtRepository::incrementarCreditosBonus($userId);
+                ServicioNotificaciones::crear(
+                    $userId,
+                    'credito',
+                    'Has ganado un crédito por publicar un sample público y descargable.',
+                    ['sampleId' => $sampleId, 'titulo' => $titulo],
+                    null,
+                    'Crédito ganado'
+                );
             } catch (\Exception $e) {
                 KamplesLogger::warning('No se pudo sumar crédito bonus al publicar sample', ['error' => $e->getMessage()]);
             }

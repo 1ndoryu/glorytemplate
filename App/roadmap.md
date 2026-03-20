@@ -86,10 +86,6 @@ Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si g
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
 
-## 193A-94
-
-Cada vez que un usuario publica un sample publico y descargable, solo en ese caso tiene que ganar un credito y llegarle una notificación de, has ganada un credito por tu sample. Tambien revisar que si ese sample es eliminado por el o por el admin debe perder ese credito.
-
 ## 193A-100
 
 a veces veo esto en la consola de log

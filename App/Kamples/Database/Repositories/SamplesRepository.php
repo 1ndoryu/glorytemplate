@@ -451,6 +451,7 @@ class SamplesRepository extends BaseRepository
             . ", " . SamplesCols::RUTA_ORIGINAL . ", " . SamplesCols::RUTA_OPTIMIZADA
             . ", " . SamplesCols::RUTA_PREVIEW . ", " . SamplesCols::RUTA_WAVEFORM
             . ", " . SamplesCols::TITULO
+            . ", " . SamplesCols::PERMITIR_DESCARGA . ", " . SamplesCols::MOSTRAR_EN_COMUNIDAD
             . " FROM {$tabla} WHERE " . SamplesCols::ID . " = :id",
             ['id' => $id]
         );
