@@ -458,17 +458,28 @@ class GroqHttpClient
 
     /**
      * [193A-43] Obtiene todas las keys Groq válidas de las env vars.
+     * Usa GROQ_API_1, GROQ_API_2, GROQ_API_3 (cargadas desde .env) para
+     * evitar conflicto con la var Docker GROQ_API (createImmutable no overridea).
+     * Si no hay keys numeradas, cae en GROQ_API legacy como último recurso.
      * @return string[]
      */
     private static function obtenerTodasLasKeysGroq(): array
     {
-        $nombres = ['GROQ_API', 'GROQ_API_2', 'GROQ_API_3'];
+        $nombres = ['GROQ_API_1', 'GROQ_API_2', 'GROQ_API_3'];
         $keys = [];
 
         foreach ($nombres as $nombre) {
             $key = self::resolverEnvVar($nombre);
             if ($key !== null && \str_starts_with($key, 'gsk_')) {
                 $keys[] = $key;
+            }
+        }
+
+        /* Fallback: si no hay keys numeradas, usar GROQ_API legacy (Docker env var) */
+        if (empty($keys)) {
+            $legacy = self::resolverEnvVar('GROQ_API');
+            if ($legacy !== null && \str_starts_with($legacy, 'gsk_')) {
+                $keys[] = $legacy;
             }
         }
 
