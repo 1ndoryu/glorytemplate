@@ -4,9 +4,12 @@
  * Carga el historial desde la API REST y lo expone al modal.
  *
  * [2003A-3] Creado para el modal de rendimiento del algoritmo de feed.
+ * [2003A-3-A] Fix: usar apiPeticion para enviar X-WP-Nonce y evitar 401
+ *  (current_user_can require cookie auth + nonce — fetch raw sin nonce falla).
  */
 
 import { create } from 'zustand';
+import { apiPeticion } from '@app/services/apiCliente';
 
 export interface EtapasTiming {
     perfilUsuario?: number;
@@ -28,6 +31,11 @@ export interface RegistroTiming {
         limite?: number;
         offset?: number;
     };
+}
+
+interface RespuestaTiming {
+    ok: boolean;
+    historial?: RegistroTiming[];
 }
 
 interface EstadoAlgoTiming {
@@ -57,33 +65,16 @@ export const useAlgoTimingStore = create<EstadoAlgoTiming>((set, get) => ({
 
     cargarHistorial: async () => {
         set({ cargando: true, error: null });
-        try {
-            const res = await fetch('/wp-json/kamples/v1/admin/algo-timing', {
-                credentials: 'include',
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.ok) {
-                set({ historial: data.historial ?? [] });
-            } else {
-                set({ error: 'Respuesta inválida del servidor' });
-            }
-        } catch (e) {
-            set({ error: (e instanceof Error ? e.message : 'Error de red') });
-        } finally {
-            set({ cargando: false });
+        const res = await apiPeticion<RespuestaTiming>('/admin/algo-timing', { method: 'GET' });
+        if (res.ok && res.data?.ok) {
+            set({ historial: res.data.historial ?? [], cargando: false });
+        } else {
+            set({ error: res.error ?? `HTTP ${res.status}`, cargando: false });
         }
     },
 
     limpiarHistorial: async () => {
-        try {
-            const res = await fetch('/wp-json/kamples/v1/admin/algo-timing', {
-                method: 'DELETE',
-                credentials: 'include',
-            });
-            if (res.ok) set({ historial: [] });
-        } catch {
-            /* Error de red al limpiar — ignorar, el usuario puede reintentar */
-        }
+        const res = await apiPeticion<RespuestaTiming>('/admin/algo-timing', { method: 'DELETE' });
+        if (res.ok) set({ historial: [] });
     },
 }));
