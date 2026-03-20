@@ -39,6 +39,8 @@ import { OverlaySuspension } from '../social/OverlaySuspension';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { ModalAuth } from '../auth/ModalAuth';
 import { ModalAlgoTiming } from '../ui/ModalAlgoTiming';
+import { ModalVersionDesactualizada } from '../ui/ModalVersionDesactualizada';
+import { useVersionStore } from '@app/stores/versionStore';
 import { NavPublico } from './NavPublico';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { NotificacionesToastBridge } from '../ui/NotificacionesToastBridge';
@@ -100,6 +102,13 @@ export const LayoutPrincipal = ({
     useEffect(() => {
         inicializarTemaApp();
     }, []);
+
+    /* [Tarea Final] Cargar versiones de plataformas al montar (1 vez por sesión).
+     * Detecta si la app desktop/APK está desactualizada y abre el modal. */
+    const cargarVersiones = useVersionStore(s => s.cargarVersiones);
+    useEffect(() => {
+        void cargarVersiones();
+    }, [cargarVersiones]);
 
     /* QQ49: Motor de audio global — crea y gestiona el unico HTMLAudioElement persistente */
     useMotorAudio();
@@ -254,6 +263,9 @@ export const LayoutPrincipal = ({
 
             {/* [2003A-3] Modal de métricas del algoritmo — admin only */}
             <ModalAlgoTiming />
+
+            {/* [Tarea Final] Modal de versión desactualizada — solo apps nativas (windows/apk) */}
+            <ModalVersionDesactualizada />
 
             {/* QK54: Tooltip global — cualquier elemento con data-tooltip muestra tooltip */}
             <TooltipGlobal />

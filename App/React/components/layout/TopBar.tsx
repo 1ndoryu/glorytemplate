@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box, BookOpen, Activity } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box, BookOpen, Activity, Monitor, Smartphone } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { ResultadosBusquedaRapidaDropdown } from '../ui/ResultadosBusquedaRapida';
 import { Badge } from '../ui/Badge';
@@ -31,6 +31,7 @@ import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { useAlgoTimingStore } from '@app/stores/algoTimingStore';
+import { useVersionStore } from '@app/stores/versionStore';
 import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/topbar.css';
 /* [183A-111] TopBar migrado a i18n: hamburguesaItems, menuItems, aria-labels via t() */
@@ -96,6 +97,10 @@ export const TopBar = (): JSX.Element => {
     const esAdmin = usuario?.rol === 'admin';
     const mostrarHerramientasDev = esAdmin && devModeActivo;
     const { t } = useT();
+
+    /* [Tarea Final] Versiones disponibles para los botones de descarga */
+    const versionesWindows = useVersionStore(s => s.versions.windows);
+    const versionesApk = useVersionStore(s => s.versions.apk);
     const etiquetaTab = (etiqueta: string) => (etiqueta.includes('.') ? t(etiqueta) : etiqueta);
 
     const hamburguesaItems: MenuItemDef[] = [
@@ -297,6 +302,29 @@ export const TopBar = (): JSX.Element => {
             separadorDespues: true,
             onClick: () => {
                 useSolicitudWhatsappStore.getState().abrir();
+                setMenuAbierto(false);
+            },
+        },
+        /* [Tarea Final] Botones de descarga de apps nativas — URLs desde kamples-sync/versions.json */
+        {
+            id: 'descargarWindows',
+            etiqueta: versionesWindows?.version
+                ? `${t('topbar.descargarWindows')} v${versionesWindows.version}`
+                : t('topbar.descargarWindows'),
+            icono: <Monitor size={14} />,
+            onClick: () => {
+                if (versionesWindows?.url) window.open(versionesWindows.url, '_blank', 'noopener');
+                setMenuAbierto(false);
+            },
+        },
+        {
+            id: 'descargarApk',
+            etiqueta: versionesApk?.version
+                ? `${t('topbar.descargarApk')} v${versionesApk.version}`
+                : t('topbar.descargarApk'),
+            icono: <Smartphone size={14} />,
+            onClick: () => {
+                if (versionesApk?.url) window.open(versionesApk.url, '_blank', 'noopener');
                 setMenuAbierto(false);
             },
         },
