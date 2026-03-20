@@ -119,7 +119,7 @@
 }
 
 /* QK99: Brillo sutil cuando la reaccion es "me encanta" */
-.contenedorReacciones .reaccionPrincipalEncanta {
+.contenedorReacciones .reaccionPrincipalEncanta svg {
     color: var(--error);
     filter: drop-shadow(0 0 4px var(--error));
 }
