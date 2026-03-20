@@ -9,11 +9,13 @@ Arquitectura de 2 capas para reducir falsos positivos:
 
 Modelos: rotacion automatica llama-3.3-70b -> qwen3-32b -> llama-4-scout (QL117).
 
+[193A-94] Rotacion de API keys: usa GROQ_API_1, GROQ_API_2, GROQ_API_3
+(mismas que PHP/GroqHttpClient). Si no existen, cae en GROQ_API_KEY legacy.
+Sin gap entre peticiones IA — el pipeline no necesita delays para validacion.
+
 Manejo de errores (QL111):
   - 429 rate limit / errores de red: permisivo (True) — transitorios, no bloquean pipeline.
   - Respuesta JSON invalida / KeyError: restrictivo (False) — datos no confiables, rechazar match.
-
-Requiere: GROQ_API_KEY en .env
 """
 
 import json
@@ -76,14 +78,48 @@ def _similitud_combinada(
     return sim_titulo * 0.6 + sim_artista * 0.4
 
 
+"""
+[193A-94] Rotacion de API keys Groq — mismas env vars que PHP (GROQ_API_1/2/3).
+Indice en memoria: rota por cada llamada exitosa. Sin gap entre peticiones.
+Fallback a GROQ_API_KEY legacy si no hay keys numeradas.
+"""
+_groq_key_index = 0
+
+
+def _obtener_todas_las_keys() -> list[str]:
+    """Carga todas las keys Groq validas de las env vars."""
+    keys = []
+    for nombre in ("GROQ_API_1", "GROQ_API_2", "GROQ_API_3"):
+        val = os.getenv(nombre, "").strip()
+        if val and val.startswith("gsk_"):
+            keys.append(val)
+    if not keys:
+        legacy = os.getenv("GROQ_API_KEY", "").strip()
+        if legacy and legacy.startswith("gsk_"):
+            keys.append(legacy)
+    return keys
+
+
 def _obtener_api_key() -> str | None:
-    """Lee GROQ_API_KEY de variables de entorno (via load_dotenv)."""
-    return os.getenv("GROQ_API_KEY", "").strip() or None
+    """Obtiene la key actual segun el indice de rotacion."""
+    global _groq_key_index
+    keys = _obtener_todas_las_keys()
+    if not keys:
+        return None
+    return keys[_groq_key_index % len(keys)]
+
+
+def _rotar_api_key() -> None:
+    """Avanza al siguiente indice de rotacion."""
+    global _groq_key_index
+    keys = _obtener_todas_las_keys()
+    if len(keys) > 1:
+        _groq_key_index = (_groq_key_index + 1) % len(keys)
 
 
 def habilitado() -> bool:
-    """Retorna True si la validacion Groq esta configurada."""
-    return _obtener_api_key() is not None
+    """Retorna True si hay al menos una key Groq configurada."""
+    return len(_obtener_todas_las_keys()) > 0
 
 
 def validar_match(
@@ -175,9 +211,12 @@ def _validar_con_llm(
             score_textual,
         )
         if resultado is not None:
+            _rotar_api_key()
             return resultado
         # None = error reintentable, probar siguiente modelo
 
+    # [193A-94] Todos los modelos fallaron con esta key — rotar para la siguiente llamada
+    _rotar_api_key()
     # Todos los modelos fallaron: permisivo para no bloquear pipeline
     logger.warning("Todos los modelos Groq fallaron — permitiendo sin validacion")
     return True
