@@ -64,6 +64,11 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         comentariosAbiertos, manejarClickCreador, manejarRepost,
     } = usePerfilIsland({ usernameProp });
 
+    /* [193A-30] Búsqueda por tag en perfil — fuera de early returns para cumplir reglas de hooks */
+    const manejarBuscarTag = useCallback((tag: string) => {
+        useFiltrosStore.getState().setBusqueda(tag);
+    }, []);
+
     if (cargando || (authCargando && !username)) {
         return (
             <div className="perfilContenedor">
@@ -80,11 +85,6 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
             </div>
         );
     }
-
-    /* [193A-30] Búsqueda por tag en perfil */
-    const manejarBuscarTag = useCallback((tag: string) => {
-        useFiltrosStore.getState().setBusqueda(tag);
-    }, []);
 
     /* Renderizar lista de samples para la tab activa */
     const renderizarListaSamples = (lista: SampleResumen[], mensajeVacio: string, iconoVacio: JSX.Element) => {
