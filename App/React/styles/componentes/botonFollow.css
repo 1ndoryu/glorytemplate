@@ -45,3 +45,21 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* [193A-78] Modo solo ícono — sin borde, sin padding, mismo tamaño visual.
+ * Activo cambia color para diferenciar seguir/dejar de seguir. */
+.botonFollowSoloIcono {
+    border: none;
+    padding: var(--espacioXs);
+    background: transparent;
+}
+
+.botonFollowSoloIcono.botonFollowActivo {
+    color: var(--acento);
+    background: transparent;
+}
+
+.botonFollowSoloIcono.botonFollowActivo:hover {
+    color: var(--error);
+    border: none;
+}

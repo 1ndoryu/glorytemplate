@@ -74,10 +74,6 @@ filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, ta
 
 filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un algoritmo eficiente y ligero, no un filtrado.
 
-## 193A-78
-
-Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir
-
 
 ## 193A-93
 

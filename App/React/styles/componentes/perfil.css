@@ -113,6 +113,14 @@
     display: flex;
     gap: var(--espacioSm);
     flex-shrink: 0;
+    align-items: center;
+}
+
+/* [193A-78] Botón icono en acciones de perfil — sin borde ni padding extra */
+.perfilAccionIcono {
+    border: none;
+    padding: var(--espacioXs);
+    background: transparent;
 }
 
 /* Tabs */

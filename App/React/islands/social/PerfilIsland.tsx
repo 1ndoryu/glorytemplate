@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { Music, Settings, MapPin, Link as LinkIcon, MoreHorizontal, BadgeCheck } from 'lucide-react';
+import { Music, Settings, MapPin, Link as LinkIcon, MoreHorizontal, BadgeCheck, MessageCircle } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -171,11 +171,13 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                             </BotonBase>
                         ) : (
                             <>
-                                <BotonFollow usuarioId={usuario.id} siguiendo={usuario.siguiendo ?? false} />
+                                {/* [193A-78] Botones solo icono — seguir y mensaje */}
+                                <BotonFollow usuarioId={usuario.id} siguiendo={usuario.siguiendo ?? false} soloIcono />
                                 <BotonBase
-                                    variante="secundario"
+                                    variante="ghost"
+                                    className="perfilAccionIcono"
+                                    aria-label="Enviar mensaje"
                                     onClick={async () => {
-                                        /* Iniciar o reabrir conversación con este usuario */
                                         const resp = await iniciarConversacion(usuario.id);
                                         if (resp.ok && resp.data) {
                                             abrirChat({
@@ -189,7 +191,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                             log.error('Error al iniciar conversación', resp.error);
                                         }
                                     }}>
-                                    Mensaje
+                                    <MessageCircle size={18} />
                                 </BotonBase>
                             </>
                         )}

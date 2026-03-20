@@ -12,6 +12,7 @@ interface BotonFollowProps {
     usuarioId: number;
     siguiendo?: boolean;
     tamano?: 'sm' | 'md';
+    soloIcono?: boolean;
     className?: string;
 }
 
@@ -19,22 +20,26 @@ export const BotonFollow = ({
     usuarioId,
     siguiendo: siguiendoInicial = false,
     tamano = 'md',
+    soloIcono = false,
     className = '',
 }: BotonFollowProps): JSX.Element => {
     const { siguiendo, cargando, manejarClick, clases } = useBotonFollow({
         usuarioId, siguiendoInicial, tamano, className,
     });
 
+    /* [193A-78] Tamaño del ícono según tamano */
+    const iconSize = tamano === 'sm' ? 12 : 14;
+
     return (
         <BotonBase variante="ghost"
-            className={clases}
+            className={`${clases}${soloIcono ? ' botonFollowSoloIcono' : ''}`}
             onClick={manejarClick}
             disabled={cargando}
             type="button"
             aria-label={siguiendo ? 'Dejar de seguir' : 'Seguir'}
         >
-            {siguiendo ? <UserCheck size={tamano === 'sm' ? 12 : 14} /> : <UserPlus size={tamano === 'sm' ? 12 : 14} />}
-            <span>{siguiendo ? 'Siguiendo' : 'Seguir'}</span>
+            {siguiendo ? <UserCheck size={iconSize} /> : <UserPlus size={iconSize} />}
+            {!soloIcono && <span>{siguiendo ? 'Siguiendo' : 'Seguir'}</span>}
         </BotonBase>
     );
 };
