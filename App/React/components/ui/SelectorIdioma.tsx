@@ -1,8 +1,11 @@
 /* [183A-111] SelectorIdioma — Cambia el idioma activo (es/en/ja).
  * variante='compacto': botones con bandera. variante='completo': bandera + nombre.
- * variante='select': select nativo pill sin bandera (para la landing). [193A-52] */
+ * variante='select': SelectorMenu de Kamples (custom dropdown). [193A-54]
+ * Gotcha: variante='select' requiere SelectorMenu con opciones de texto sin banderas.
+ * El select nativo HTML fue reemplazado por SelectorMenu en 193A-54. */
 import { useIdiomaStore, type Idioma } from '@app/utils/i18n';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { SelectorMenu } from '@app/components/ui/SelectorMenu';
 import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/selectorIdioma.css';
 
@@ -20,22 +23,18 @@ const IDIOMAS: Array<{ id: Idioma; bandera: string; etiqueta: string; ariaLabel:
 export const SelectorIdioma = ({ variante = 'compacto', className = '' }: SelectorIdiomaProps): JSX.Element => {
     const idioma = useIdiomaStore(s => s.idioma);
     const setIdioma = useIdiomaStore(s => s.setIdioma);
-    const { t } = useT();
 
-    /* [193A-52] Variante select: pill nativo sin banderas */
+    /* [193A-54] Variante select: SelectorMenu de Kamples (sin banderas, solo texto) */
     if (variante === 'select') {
+        const opciones = IDIOMAS.map(({ id, nombre }) => ({ valor: id, etiqueta: nombre }));
         return (
-            /* sentinel-disable-next-line html-nativo-en-vez-de-componente — SelectorIdioma ES el componente base para el select de idioma */
-            <select
-                className={`selectorIdiomaPill${className ? ` ${className}` : ''}`}
-                value={idioma}
-                onChange={e => setIdioma(e.target.value as Idioma)}
-                aria-label={t('idioma.seleccionar')}
-            >
-                {IDIOMAS.map(({ id, nombre }) => (
-                    <option key={id} value={id}>{nombre}</option>
-                ))}
-            </select>
+            <SelectorMenu
+                opciones={opciones}
+                valor={idioma}
+                onChange={v => setIdioma(v as Idioma)}
+                compacto
+                className={`selectorIdiomaMenu${className ? ` ${className}` : ''}`}
+            />
         );
     }
 

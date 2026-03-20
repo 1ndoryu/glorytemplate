@@ -1,36 +1,9 @@
 /* [183A-111] selectorIdioma.css — Selector de idioma (compacto y completo).
  * Usa variables del design system de Kamples. */
 
-/* [193A-52] Variante select: pill nativo minimalista para la landing */
-.selectorIdiomaPill {
-    appearance: none;
-    -webkit-appearance: none;
-    background: var(--fondoTarjeta, #1a1a1a);
-    border: 1px solid var(--bordeSutil, #2d2d2d);
-    border-radius: 999px;
-    color: var(--textoSecundario, #888);
-    font-size: var(--fuenteSm, 12px);
-    font-family: var(--fuentePrincipal);
-    padding: var(--espacioXs, 4px) var(--espacioMd, 14px) var(--espacioXs, 4px) var(--espacioSm, 10px);
-    cursor: pointer;
-    transition: border-color var(--transicionRapida, 150ms ease), color var(--transicionRapida, 150ms ease);
-    outline: none;
-    /* Flecha personalizada */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 26px;
-}
-
-.selectorIdiomaPill:hover,
-.selectorIdiomaPill:focus {
-    border-color: var(--acento, #4a665b);
-    color: var(--textoPrimario, #e8e1c9);
-}
-
-.selectorIdiomaPill option {
-    background: var(--fondoPrimario, #111);
-    color: var(--textoPrimario, #e8e1c9);
+/* [193A-54] Variante select: SelectorMenu de Kamples sin banderas — estilos compactos */
+.selectorIdiomaMenu {
+    min-width: 110px;
 }
 
 .selectorIdioma {

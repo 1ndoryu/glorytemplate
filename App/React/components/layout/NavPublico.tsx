@@ -103,7 +103,8 @@ export const NavPublico = (): JSX.Element => {
                         )}
                     </div>
                 )}
-                <SelectorIdioma variante="compacto" />
+                {/* [193A-54] Select sin banderas en nav */}
+                <SelectorIdioma variante="select" className="navPublicoIdioma" />
                 <BotonBase variante="ghost" tamano="md" onClick={() => abrirAuth('login')}>
                     {t('nav.iniciarSesion')}
                 </BotonBase>
