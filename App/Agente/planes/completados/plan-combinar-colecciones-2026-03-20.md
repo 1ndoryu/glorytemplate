@@ -9,7 +9,7 @@
 ## Señales verificadas
 - El merge raíz ya tuvo un fix previo por conflicto de nombre entre origen y destino.
 - La lógica actual mueve `parent_id` de todas las hijas del origen al destino sin comprobar si bajo el destino ya existe una hija homónima.
-- Los logs generales no mostraron aún evidencia suficiente del POST fallido, así que la revisión debe centrarse en el contrato transaccional y en dejar mejor trazabilidad.
+- Los logs generales no mostraron aún evidencia suficiente del POST fallido, así que la revisión se centró en el contrato transaccional y en dejar mejor trazabilidad documental del comportamiento.
 
 ## Fases
 1. Repositorio
@@ -17,12 +17,18 @@
 - Guardar backup suficiente para que `deshacerCombinacionEnTransaccion` pueda restaurar también las hijas que se fusionen con una hija existente del destino.
 
 2. Observabilidad
-- Mejorar logging o códigos de error si la combinación falla por constraint o conflicto estructural.
+- Revisar logs remotos y confirmar si había rastro del endpoint o de conflictos SQL/PHP.
 
 3. Validación
-- PHP lint y diagnostics del repositorio/controlador.
-- `npm run type-check` aunque el cambio sea backend, para asegurar que no se arrastró ninguna rotura colateral.
+- PHP lint y diagnostics del repositorio.
+- `npm run type-check`.
+- Deploy por Coolify y health check del sitio.
 
 ## Riesgos
 - Un fix parcial que solo renombre hijas evita la excepción pero degrada la semántica del merge y complica el undo.
-- Si el backup no guarda a qué hija destino se fusionó cada hija del origen, el deshacer de 7 días quedará corrupto.
+- Si el backup no guarda a qué hija destino se fusionó cada hija del origen, el deshacer de 7 días queda corrupto.
+
+## Cierre
+- Implementado el merge de hijas homónimas y la restauración asociada en undo.
+- Verificado con lint PHP, diagnostics, `npm run type-check`, deploy y health check.
+- No hubo reproducción autenticada end-to-end desde esta sesión por limitaciones del tooling remoto, así que el cierre queda documentado con esa salvedad.

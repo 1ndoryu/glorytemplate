@@ -61,7 +61,7 @@ Ubicacion: `App/docs (ignorar)/`
 
 No he pensando ni he revisado esto. Si el servidor da 500 o error, por un momento es innacesible, kamples esta caido. ¿Que pasa con el sync? Lo mas logico es que la subida se pause 5 muntos, e intente la conexion, sino, vuelva a pausar y asi sucesivamente, hasta que el servidor vuelva a estar disponible. Esto hay que revisarlo bien porque hay que protejer que cuando el modo de borrar tras subida este activo, no haya perdida de datos.
 
-## 193A-11
+Lo de combinar colecciones no funciona, esto claramente necesita una revisión profunda. Revisar logs en el servidor, intente combinar test 1 con test 2, ambas colecciones existen sin combinarse.
 
 [Violation] 'visibilitychange' handler took 169ms
 main-CvJwtydY.js:41 [Violation] 'click' handler took 171ms
@@ -92,11 +92,11 @@ filaColecciones tambien se tiene que actualizar con la busqueda, debe ser un alg
 
 Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si gap. y del mismo tamaño, uno para seguir y otro de mensaje, que se note la diferencia entre seguir y dejar de seguir 
 
-## 193A-79
+## 193A-80
 
-Lo de combinar colecciones no funciona, esto claramente necesita uan revision profunda. Revisar logs en el servidor, intente combinar test 1 con test 2, ambas colecciones existen sin conbinarse.
+EL BOTON DE CORAZON SIGUE FUNCIONANDO COMO UN FILTRO DE FRONT EN VEZ DE UNA FUNCIONALIDAD REAL <button class="botonBase varianteGhost inicioFiltrosBtn " type="button" aria-label="お気に入りのみ"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path></svg></button>
 
-## 
+YA DIJE ESTA TAREA ANTES Y NO SE CUMPLIO; LA TAGS FUNCIONA BIEN CON UN SISTEMA DE BUSQUEDA REAL; PORQUE EL BOTON DE CORAZON NO PUEDE TAMBIEN?
 
 ## Antes de penultima (preferiblemente antepenultima)
 
