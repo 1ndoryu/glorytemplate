@@ -79,22 +79,26 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
-## 193A-43 
+## 193A-43 — COMPLETADO
+<!-- Rotación 3 keys Groq (GROQ_API_1/2/3 en .env servidor), gap audio=60s, moderación=0s. Commits 24fd9fc6f + 3b6a8118e -->
 
-en temp\apis.sh agrege 3 apis de groq, 
-lo que vamos a hacer es aumentar la velocidad de la cola de ia, creo que actualmente hay un gap para la generacion metadata de los samples de 3 o 2 minutos, vamos a reducirlo a 1 minuto, pero vamos a incorporar un rotamiento de api, o sea, usa las 3 api para cada, 1 api por cada ejecucion y rota, asi se distribuye el gasto entre 3 personas y se evitan menos rate limits, es general para todos los procesamientos que usen IA, tienes que subir las 3 api al vps 
-
-verificar que solo haya gap para el procesamiento de audios y metadata de ia de esos audios, para cosas como comentarios, publicaciones de comunidad y moderacion para esas actividades no hay gap, pero igual usar la rotacion de api. 
-
-## 193A-44 — COMPLETADO
-<!-- Filtro me encanta toggle corazón en descargas/favoritos/feed. Fix reaccion=encanta. Commit f30bc3c25 -->
 
 ## 193A-54
 
 el selector de idioma no tiene que tener banderas, debe ser un select, y las idomas en texto, debe ser un select usar el select personalizado de sample, el que se usa en el modal de editar samples, el landing. Vi que se hizo un intento el footer pero no, el nav del lading hay un selector de idiomas y no es un select, debe serlo y el select del footer no es el compontente de kamples!!!!!
 
-## 193A-55 — COMPLETADO
-<!-- Icono verificado unificado a BadgeCheck (lucide-react) en todos los contextos + añadido en chat/mensajes. Commit e424db231 -->
+## 193A-61 
+
+Lo de corazon para mostrar los samples de "me encanta" funciona mal porque es un filtrado en vez de una busqueda desde el servidor, lo cual tiene que cargar todas las imagenes y pasar horas para mostrar los me encanta, es totalmente ineficiente
+
+## 193A-62
+
+La imagen de avatar no esta optimizada como estan optizada las demas imagenes,las imagenes temporarels de colors tampoco, 
+
+
+## Antes de penultima (preferiblemente antepenultima)
+
+Auditoría de seguridad profundad general, revisar lo mas tipico para pasar auditorias de seguridad, como inyecciones SQL, XSS, CSRF, autenticación, autorización, etc. Revisar especialmente cualquier parte del código que maneje datos de usuario o interacciones con el servidor, datos sensibles, etc. Hacer pruebas de penetración básicas para identificar vulnerabilidades. 
 
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
