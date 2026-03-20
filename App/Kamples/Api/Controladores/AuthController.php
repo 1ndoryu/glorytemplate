@@ -62,8 +62,9 @@ class AuthController
             /* get_json_params() falla cuando Content-Type llega modificado (nginx, WebView Android).
              * WordPress ya leyó php://input y lo almacenó en $request->body durante el routing.
              * Usar get_body() como fallback — evita releer el stream (ya consumido). */
+            /* sentinel-disable-next-line request-json-directo — campos se extraen sanitizados individualmente abajo (sanitize_text_field) */
             $body = $request->get_json_params();
-            /* sentinel-disable-next-line request-json-directo — empty() es guard PHP, no uso en capa de datos; campos se extraen sanitizados individualmente abajo */
+            /* sentinel-disable-next-line request-json-directo — empty() es guard, no pasa $body a capa de datos */
             if (empty($body)) {
                 $rawBody = $request->get_body();
                 if ($rawBody !== '' && $rawBody !== null) {
@@ -150,8 +151,9 @@ class AuthController
             if ($limitResp) return $limitResp;
 
             /* Mismo patrón que login: fallback a get_body() si get_json_params() falla */
+            /* sentinel-disable-next-line request-json-directo — campos se extraen sanitizados individualmente abajo (sanitize_user, sanitize_email) */
             $body = $request->get_json_params();
-            /* sentinel-disable-next-line request-json-directo — empty() es guard PHP, no uso en capa de datos; campos se extraen sanitizados individualmente abajo */
+            /* sentinel-disable-next-line request-json-directo — empty() es guard, no pasa $body a capa de datos */
             if (empty($body)) {
                 $rawBody = $request->get_body();
                 if ($rawBody !== '' && $rawBody !== null) {
@@ -282,15 +284,15 @@ class AuthController
                 return self::normalizarUsuario($existing);
             }
 
-            /* Crear registro nuevo — C193: incluir avatar_url de WP */
+            /* Crear registro nuevo — [193A-92] ya no se guarda Gravatar como avatar
+             * por defecto. El frontend muestra iniciales cuando avatar_url es null. */
             /* [183A-69] Guardar IP de registro para detectar cuentas múltiples. */
-            $avatarWp = get_avatar_url($wpId, ['size' => 256]) ?: null;
             UsuariosExtRepository::crearDesdeWP([
                 'wp_user_id'   => $wpId,
                 'username'     => $username,
                 'email'        => $email,
                 'display_name' => $displayName,
-                'avatar_url'   => $avatarWp,
+                'avatar_url'   => null,
                 'registro_ip'  => RateLimiter::obtenerIp(),
             ]);
 
@@ -308,15 +310,12 @@ class AuthController
 
     /**
      * Convierte snake_case de PG a camelCase para el frontend.
-     * C193: fallback a WP Gravatar si avatar_url es null.
+     * [193A-92] Ya no hay fallback a Gravatar — el frontend muestra iniciales.
      */
     public static function normalizarUsuario(array $row): array
     {
         try {
         $avatarUrl = $row[UsuariosExtCols::AVATAR_URL] ?? null;
-        if (!$avatarUrl && !empty($row[UsuariosExtCols::WP_USER_ID])) {
-            $avatarUrl = get_avatar_url((int) $row[UsuariosExtCols::WP_USER_ID], ['size' => 256]) ?: null;
-        }
 
         return [
             'id'              => (int) $row[UsuariosExtCols::ID],

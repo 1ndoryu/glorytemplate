@@ -78,15 +78,12 @@ class UsuarioHelper
      * @param int|null    $wpUserId    valor de wp_user_id para fallback
      * @return string|null
      */
+    /* [193A-92] Si el usuario no tiene avatar propio, devolver null para que
+     * el frontend muestre iniciales en vez de Gravatar genérico. */
     public static function resolverAvatarUrl(?string $avatarUrl, ?int $wpUserId = null): ?string
     {
         if ($avatarUrl && trim($avatarUrl) !== '') {
             return UrlHelper::normalizar($avatarUrl);
-        }
-
-        if ($wpUserId && $wpUserId > 0) {
-            $url = get_avatar_url($wpUserId, ['size' => 256]);
-            return $url ? (string) $url : null;
         }
 
         return null;

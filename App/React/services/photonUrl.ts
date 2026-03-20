@@ -4,7 +4,8 @@
  * con resize, quality y strip como parámetros.
  *
  * [183A-40] Usado por ImgOptimizada para optimizar imágenes automáticamente.
- * Gotcha: NO aplicar a rutas relativas (/wp-content/themes/...) ni a data: URIs.
+ * [193A-92] Rutas relativas (ej. /wp-content/themes/.../colors/) se convierten
+ *   a absolutas con window.location.origin para que Photon las procese.
  * Gotcha: En desarrollo local (localhost) devolver la URL sin modificar.
  */
 
@@ -28,8 +29,15 @@ const esLocalhost = (): boolean =>
 
 export function photonUrl(url: string, opciones: PhotonOpciones = {}): string {
     /* Casos donde no aplica Photon */
-    if (!url || !esUrlAbsoluta(url) || esLocalhost()) return url;
+    if (!url || esLocalhost()) return url;
     if (url.startsWith('data:')) return url;
+
+    /* [193A-92] Rutas relativas → absolutas para que Photon pueda procesarlas */
+    if (!esUrlAbsoluta(url) && url.startsWith('/') && typeof window !== 'undefined') {
+        url = `${window.location.origin}${url}`;
+    }
+
+    if (!esUrlAbsoluta(url)) return url;
 
     let cdnUrl: string;
 

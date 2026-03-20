@@ -218,14 +218,11 @@ class PerfilController
 
     /**
      * Convierte las keys snake_case de BD a camelCase esperado por el frontend.
-     * C193: fallback a WP Gravatar si avatar_url es null en BD.
+     * [193A-92] Ya no hay fallback a Gravatar — el frontend muestra iniciales.
      */
     private static function normalizarUsuario(array $datos): array
     {
         $avatarUrl = $datos[UsuariosExtCols::AVATAR_URL] ?? null;
-        if (!$avatarUrl && !empty($datos[UsuariosExtCols::WP_USER_ID])) {
-            $avatarUrl = get_avatar_url((int) $datos[UsuariosExtCols::WP_USER_ID], ['size' => 256]) ?: null;
-        }
 
         return [
             'id'               => (int) ($datos[UsuariosExtCols::ID] ?? 0),

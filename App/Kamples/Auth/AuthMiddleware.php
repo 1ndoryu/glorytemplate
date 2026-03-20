@@ -180,7 +180,8 @@ class AuthMiddleware
             'email' => $wpUser->user_email,
             'display_name' => $wpUser->display_name,
             'username' => $wpUser->user_login,
-            'avatar_url' => get_avatar_url($userId, ['size' => 256]),
+            /* [193A-92] No usar Gravatar — frontend muestra iniciales si null */
+            'avatar_url' => null,
         ];
     }
 
