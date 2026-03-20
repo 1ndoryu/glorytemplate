@@ -61,46 +61,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 2003A-3 (fase 2 — optimización SQL)
-
-AlgoTimingLogger ya está instrumentado y deployado. Activar el toggle "Logs de rendimiento" en Settings, cargar el feed siendo user 1, abrir el modal de métricas del algoritmo para ver el desglose real por etapa. Con esa información, identificar y optimizar la etapa más lenta (baseline: ~793ms feed pag1). Objetivo: reducir sin afectar calidad ni frecuencia de actualización de resultados.
-
-## 2003A-3-D
-
-esto es todo lo que aparece
-20/03/26, 09:19:13
-Total
-2287.3 ms
-Etapa	ms	%	
-Perfil usuario	0.6 ms	0.0%	
-Generación SQL (PHP)	1.3 ms	0.1%	
-Query CTE feed (SQL)	988.9 ms	43.2%	
-Samples activos: 2611
-Resultados: 32
-Bulk-fetch: Sí
-MV trending: Sí
-Pipeline candidatos: No
-Desglose CTE (EXPLAIN ANALYZE)
-Planificación: 19.6 ms
-Ejecución: 1192.0 ms
-Operaciones principales
-Operación	Total	Exclusivo	Filas
-Limit	1172.7 ms	0.0 ms	90
-Sort	1172.7 ms	9.7 ms	90
-Subquery Scan	1163.0 ms	8.1 ms	2,529
-WindowAgg	1155.0 ms	9.3 ms	2,529
-Sort	969.0 ms	21.2 ms	2,529
-WindowAgg	947.7 ms	3.1 ms	2,529
-Sort	944.7 ms	38.8 ms	2,529
-Hash Join	905.9 ms	97.6 ms	2,529
-Hash Join	808.3 ms	1.4 ms	2,529
-Hash Join	806.7 ms	5.4 ms	2,529
-Hash	799.5 ms	7.6 ms	2,611
-Hash Join	791.8 ms	2.7 ms	2,611
-Hash Join	787.9 ms	1.7 ms	2,611
-Hash Join	778.4 ms	1.2 ms	2,611
-Hash Join	777.2 ms	1.1 ms	2,611
-
 ## 2003A-15
 
 Hay un problema con la aplicación de escritorio, el deslogeo no funciona si abro y vuelvo abrir, sigue logeado, esto hay que tener cuidado porque al princpio era que la sesion no se guardaba y se salia a recargar, ahora el problema es que no se deslogea ni actualiza el sync al deslogearse.
