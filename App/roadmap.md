@@ -65,37 +65,87 @@ Ubicacion: `App/docs (ignorar)/`
 
 AlgoTimingLogger ya está instrumentado y deployado. Activar el toggle "Logs de rendimiento" en Settings, cargar el feed siendo user 1, abrir el modal de métricas del algoritmo para ver el desglose real por etapa. Con esa información, identificar y optimizar la etapa más lenta (baseline: ~793ms feed pag1). Objetivo: reducir sin afectar calidad ni frecuencia de actualización de resultados.
 
-# 2003A-3-A 
+## 2003A-3-B 
 
-hay un error
-/wp-json/kamples/v1/admin/algo-timing:1  Failed to load resource: the server responded with a status of 401 ()
+20/03/26, 06:30:37
+Total
+1163.6 ms
+Etapa	ms	%	
+Perfil usuario	3.8 ms	0.3%	
+Generación SQL (PHP)	12.6 ms	1.1%	
+Query CTE feed (SQL)	1135.1 ms	97.6%	
+Samples activos: 2517
+Resultados: 14
+Bulk-fetch: Sí
+MV trending: Sí
+Pipeline candidatos: No
+
+Me parece que no es muy detallado para saber que es lo que esta tardando :/ pero vemos que el valor real es mayor a como salía en el comando, claramente tiene que ser muchisimo mas detallado para saber que partes del query CTE son las que tardan más.
+
+## 2003A-15
+
+Hay un problema con la aplicación de escritorio, el deslogeo no funciona si abro y vuelvo abrir, sigue logeado, esto hay que tener cuidado porque al princpio era que la sesion no se guardaba y se salia a recargar, ahora el problema es que no se deslogea ni actualiza el sync al deslogearse.
 
 
-Exit code: 0
-PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> 
+## 2003A-17
 
-## 2003A-5
+Cuando intento iniciar sesion con google en la aplicación sale
 
-Aumenta el limite de samples de subida por usuario a 20.000 a través del sync, para pro, para free 100 
+Acceso bloqueado: la solicitud de esta aplicación no es válida
 
-Haz una pagina de price en el landing con los planes, que haya ese detalle indicando el limite de sincronizacion 100 y 20.000, free y pro, premiun no lo pongas, obviamente todo lo de premiun en cuanto a logia que sea igual a pro
 
-## 2003A-10 
+No puedes iniciar sesión porque esta aplicación de windows ha enviado una solicitud no válida. Puedes volver a intentarlo más tarde o ponerte en contacto con el desarrollador para solucionar este problema. Más información sobre este error
+Si eres desarrollador de esta app, consulta los detalles del error.
+Error 400: redirect_uri_mismatch
 
-Esta es una tarea larga tal vez o seniclla, no lo se.
+tambien veo 
 
-El proposito, es que, todos los componentes de kamples son muy buenos, necesito que sean todos agnosticos, esto puede generar errores, asi que lo mejor será simplemente duplicarlos en /Glory, el proposito es que estos componentes se pueda reutilizar en todos los proyectos, para no complicarnos la vida, simplemente podemos duplicar con mejor organización, y revisando que lo que dupliquemos en Glory sea agnostico, quiero mantener los mismos estilos tanto white y dark mode. Implica hacer una lista de todos los componentes que pueden ser utiles en otros proyecto. 
+client:390 Applying inline style violates the following Content Security Policy directive 'style-src 'self' 'unsafe-inline' 'nonce-12511269588201223981''. Note that 'unsafe-inline' is ignored if either a hash or nonce value is present in the source list. The action has been blocked.
+(anonymous) @ client:390
+(anonymous) @ client:390
+PendingScript
+(anonymous) @ main-n-JQkDHO.js:797
+fl @ syncConstants-BqpE_RaQ.js:40
+Tn @ syncConstants-BqpE_RaQ.js:40
+Sf @ syncConstants-BqpE_RaQ.js:40
+rn @ syncConstants-BqpE_RaQ.js:40
+aa @ syncConstants-BqpE_RaQ.js:40
+It @ syncConstants-BqpE_RaQ.js:38
+(anonymous) @ syncConstants-BqpE_RaQ.js:40
+client:273 Loading the stylesheet 'https://accounts.google.com/gsi/style' violates the following Content Security Policy directive: "style-src 'self' 'unsafe-inline' 'nonce-12511269588201223981'". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.
+fs @ client:273
+Ks @ client:284
+d @ main-n-JQkDHO.js:797
+script
+(anonymous) @ main-n-JQkDHO.js:797
+fl @ syncConstants-BqpE_RaQ.js:40
+Tn @ syncConstants-BqpE_RaQ.js:40
+Sf @ syncConstants-BqpE_RaQ.js:40
+rn @ syncConstants-BqpE_RaQ.js:40
+aa @ syncConstants-BqpE_RaQ.js:40
+It @ syncConstants-BqpE_RaQ.js:38
+(anonymous) @ syncConstants-BqpE_RaQ.js:40
+apiAuth-CAjG9Wmx.js:1  GET https://kamples.com/wp-json/kamples/v1/me 401 (Unauthorized)
 
-Menu contextuales, panel lateral, el nav de arriba y del lado, el modal de buscada rapida, el componente SelectorMenu me gusta mucho, todo lo que se pueda reutilizar en otro proyecto duplicarlo en Glory sin que afecte el rendimiento de Kamples. 
+y que esta imagen en la aplicacion de windows no aparece <aside class="authPanelImagen"><img src="/wp-content/themes/glorytemplate/App/Assets/images/2.jpg" alt="Kamples" class="authImagen" loading="lazy"></aside>
 
-Importante que todo tenga el mismo estilo al duplicar
+## 2003A-18
 
-## 2003A-10-A 
+La funcionalidad mas importante (que si funciona en modo de dev) de arrastrar samples a cualquier lugar, carpeta del sistema daw (hacia que se descargara en ese lugar) no funciona en la aplicacion de escritorio instalada. Problemente haya sido por el feature de selecion multiple que se hizo. (Me acabo de dar cuenta que en modo dev tampoco funciona)
 
-La funcionalidad de chat es muy buena, y la de notificaciones, esta logica sin dañarla hay que centralizarla en Glory, pero esto es peligroso, no queremos dañar todo lo que implica, es un riesgo de arquitectura pero es necesario, requiere mucho cuidado y planificación, implica si es necesario mejorar la arquitectura para que estas funcionalidades sean piezas se puedan instalar en cualquier parte, lo importante es volverlas agnossticas, que sigan funcionando exactamente igual y se puede 
+## 2003A-19
 
-## Tarea final cuando completes todo
+Lo de la seleccion multiplie si marca los like a varios pero no los quita
+solo colecciona un sample no todos los que estan coleccionados, y quita el boton de reportar de alli 
 
-1. generar el instalador de la aplicación de escritorio actualizado
-2. indicarme donde esta en nuevo instalador para probar
-3. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar en github a traves de un token, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir
+## 2003A-20
+
+Este problema sucedio una vez y es probable que suceda siempre
+
+cuando di click a reproducir una coleccion desde la lista de colecciones, y luego regrese a inicio, al reproducir algunos samples no terminan de reproducirse completo y pasan al anterior o al siguiente o cualquier otro aun teniendo la reproduccion automaticamente activada, paso en la apliaccion de escritorio, no digo que tenga que ver o que no pueda pasar en la web. 
+
+## 2003A-21 URGENTE
+
+Parece que hay algun limite de 400 samples al dia procesados, quita ese limite
+
+

@@ -48,7 +48,8 @@ class ProcesadorColaIA
      * 45s da margen de ~15s para jitter del cron y tiempo de procesamiento.
      * Con 3 keys rotando cada item, 45s es seguro contra rate limits.
      */
-    private const LIMITE_DIARIO = 400;
+    /* [2003A-21] LIMITE_DIARIO eliminado — no hay razón de negocio para limitar el procesamiento
+     * diario de samples IA. El límite era protección temporal que ya no aplica. */
     private const GAP_MINIMO_AUDIO_SEGUNDOS = 45;
     private const TRANSIENT_CONTADOR_DIARIO = 'kmpl_ia_daily_count';
     private const TRANSIENT_ULTIMO_AUDIO = 'kmpl_ia_ultimo_audio';
@@ -129,15 +130,8 @@ class ProcesadorColaIA
             return $resultado;
         }
 
-        /* [183A-56] Verificar límite diario antes de procesar */
+        /* [2003A-21] Límite diario eliminado. El contador se mantiene solo para métricas. */
         $contadorDiario = (int) get_transient(self::TRANSIENT_CONTADOR_DIARIO);
-        if ($contadorDiario >= self::LIMITE_DIARIO) {
-            KamplesLogger::info('ProcesadorColaIA: Límite diario alcanzado', [
-                'procesados_hoy' => $contadorDiario,
-                'limite' => self::LIMITE_DIARIO,
-            ]);
-            return $resultado;
-        }
 
         /* [183A-56] Verificar gap mínimo — solo aplica a items de audio.
          * [193A-43] Moderación (comentarios/publicaciones) procesada sin gap. */
