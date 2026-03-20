@@ -72,14 +72,18 @@ export function PanelSuscripcion({suscripcion, userName, userEmail, stripeConfig
     const esTrial = suscripcion && !suscripcion.haPagado && suscripcion.diasRestantes > 0 && suscripcion.diasRestantes <= 14;
     const necesitaPagar = suscripcion && !suscripcion.haPagado;
 
-    /* Redirigir al checkout de Stripe para suscribirse */
+    /* [2003A-4] Corregido: AbortController para timeout, tipado correcto de window, feedback visible */
     const irACheckout = async () => {
         setSuscribiendo(true);
         setErrorCheckout(null);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         try {
-            const nonce = (window as any).wpApiSettings?.nonce || '';
+            const wpWindow = window as unknown as { wpApiSettings?: { nonce?: string } };
+            const nonce = wpWindow.wpApiSettings?.nonce || '';
             const resp = await fetch(`${API_BASE}/stripe/checkout`, {
                 method: 'POST',
+                signal: controller.signal,
                 headers: {'X-WP-Nonce': nonce, 'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     urlExito: window.location.origin + '/cap-dashboard/?pago=exitoso',
@@ -94,8 +98,12 @@ export function PanelSuscripcion({suscripcion, userName, userEmail, stripeConfig
             }
         } catch (err) {
             console.error('[PanelSuscripcion] Error iniciando checkout:', err);
-            setErrorCheckout('Error de conexión al iniciar el pago');
+            const mensaje = err instanceof DOMException && err.name === 'AbortError'
+                ? 'La solicitud tardó demasiado. Intenta de nuevo.'
+                : 'Error de conexión al iniciar el pago';
+            setErrorCheckout(mensaje);
         } finally {
+            clearTimeout(timeout);
             setSuscribiendo(false);
         }
     };
@@ -189,22 +197,33 @@ export function PanelSuscripcion({suscripcion, userName, userEmail, stripeConfig
                                     tamano="md"
                                     disabled={!suscripcion || suscripcion.estado !== CapSuscripcionesEnums.ESTADO_ACTIVA || abriendo}
                                     onClick={async () => {
+                                        /* [2003A-4] Corregido: feedback visible al usuario si falla el portal */
                                         setAbriendo(true);
+                                        setErrorCheckout(null);
+                                        const controller = new AbortController();
+                                        const timeout = setTimeout(() => controller.abort(), 15000);
                                         try {
-                                            const nonce = (window as any).wpApiSettings?.nonce || '';
+                                            const wpWindow = window as unknown as { wpApiSettings?: { nonce?: string } };
+                                            const nonce = wpWindow.wpApiSettings?.nonce || '';
                                             const resp = await fetch(`${API_BASE}/stripe/portal`, {
                                                 method: 'POST',
+                                                signal: controller.signal,
                                                 headers: {'X-WP-Nonce': nonce, 'Content-Type': 'application/json'}
                                             });
                                             const data = await resp.json();
                                             if (resp.ok && data.url) {
                                                 window.location.href = data.url;
                                             } else {
-                                                console.error('[PanelSuscripcion] No se obtuvo URL del portal');
+                                                setErrorCheckout('No se pudo abrir el portal de pagos');
                                             }
                                         } catch (err) {
                                             console.error('[PanelSuscripcion] Error abriendo portal:', err);
+                                            const mensaje = err instanceof DOMException && err.name === 'AbortError'
+                                                ? 'La solicitud tardó demasiado. Intenta de nuevo.'
+                                                : 'Error de conexión al abrir el portal';
+                                            setErrorCheckout(mensaje);
                                         } finally {
+                                            clearTimeout(timeout);
                                             setAbriendo(false);
                                         }
                                     }}

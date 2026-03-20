@@ -100,6 +100,11 @@ class CapDisponibilidadEndpoints
             CapDisponibilidadEnums::DIA_VIERNES,
         ];
 
+        /* [2003A-4] Optimizado: validar todos los slots y hacer batch INSERT
+         * en vez de INSERT individual por slot (N+1 → 1 query). */
+        $slotsValidados = [];
+        $ahora = current_time('mysql');
+
         foreach ($datos['slots'] as $slot) {
             if (!isset($slot['dia']) || !isset($slot['hora'])) {
                 continue;
@@ -117,16 +122,18 @@ class CapDisponibilidadEndpoints
                 continue;
             }
 
-            $insertadoId = CapDisponibilidadRepository::insertar([
-                CapDisponibilidadCols::ALUMNO_ID => $alumnoId,
-                CapDisponibilidadCols::DIA => $dia,
-                CapDisponibilidadCols::HORA => $hora,
-                CapDisponibilidadCols::DISPONIBLE => $disponible ? 1 : 0,
-                CapDisponibilidadCols::CREATED_AT => current_time('mysql'),
-                CapDisponibilidadCols::UPDATED_AT => current_time('mysql'),
-            ]);
+            $slotsValidados[] = [
+                'alumno_id' => $alumnoId,
+                'dia' => $dia,
+                'hora' => $hora,
+                'disponible' => $disponible ? 1 : 0,
+                'created_at' => $ahora,
+                'updated_at' => $ahora,
+            ];
+        }
 
-            if ($insertadoId === false) {
+        if (!empty($slotsValidados)) {
+            if (!CapDisponibilidadRepository::insertarLote($slotsValidados)) {
                 $wpdb->query('ROLLBACK');
                 return new \WP_REST_Response(['error' => 'No se pudo guardar la disponibilidad'], 500);
             }

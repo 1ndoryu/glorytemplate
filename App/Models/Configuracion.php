@@ -347,25 +347,27 @@ class Configuracion
         return $validados;
     }
 
-    /**
-     * Método auxiliar para asegurar que las columnas existen (Migración on-the-fly).
-     * Usa $wpdb->prepare donde es posible y verifica retornos de ALTER TABLE.
-     */
-    public function asegurarColumnaFlexibilidad(): void
+    /* [2003A-4] Corregido: columnas hardcodeadas reemplazadas por constantes Schema,
+     * retorno cambiado de void a bool para que el caller pueda verificar éxito/fallo. */
+    public function asegurarColumnaFlexibilidad(): bool
     {
         global $wpdb;
 
         try {
+            $colHorarios = CapConfiguracionCols::HORARIOS_SEMANALES;
+            $colTimezone = CapConfiguracionCols::TIMEZONE;
+
             /* Verificar y crear columna horarios_semanales si no existe */
             $row = $wpdb->get_results($wpdb->prepare(
                 "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
                 $this->tablaConfig,
-                'horarios_semanales'
+                $colHorarios
             ));
             if (empty($row)) {
-                $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
+                $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN {$colHorarios} LONGTEXT NULL DEFAULT NULL");
                 if ($resultado === false) {
-                    error_log("[CAP Configuracion] ERROR: Fallo al crear columna horarios_semanales. DB error: {$wpdb->last_error}");
+                    error_log("[CAP Configuracion] ERROR: Fallo al crear columna {$colHorarios}. DB error: {$wpdb->last_error}");
+                    return false;
                 }
             }
 
@@ -373,16 +375,20 @@ class Configuracion
             $rowTz = $wpdb->get_results($wpdb->prepare(
                 "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
                 $this->tablaConfig,
-                'timezone'
+                $colTimezone
             ));
             if (empty($rowTz)) {
-                $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/Madrid'");
+                $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN {$colTimezone} VARCHAR(100) DEFAULT 'Europe/Madrid'");
                 if ($resultado === false) {
-                    error_log("[CAP Configuracion] ERROR: Fallo al crear columna timezone. DB error: {$wpdb->last_error}");
+                    error_log("[CAP Configuracion] ERROR: Fallo al crear columna {$colTimezone}. DB error: {$wpdb->last_error}");
+                    return false;
                 }
             }
+
+            return true;
         } catch (\Throwable $e) {
             error_log('[CAP Configuracion] ERROR en asegurarColumnaFlexibilidad: ' . $e->getMessage());
+            return false;
         }
     }
 }

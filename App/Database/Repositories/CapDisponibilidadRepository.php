@@ -77,4 +77,48 @@ class CapDisponibilidadRepository extends BaseRepository
             return false;
         }
     }
+
+    /* [2003A-4] Batch INSERT de slots de disponibilidad para evitar N+1.
+     * Recibe un array de arrays con las columnas a insertar. */
+    public static function insertarLote(array $slots): bool
+    {
+        if (empty($slots)) {
+            return true;
+        }
+
+        global $wpdb;
+        $tabla = static::tablaCompleta();
+        $colAlumnoId = CapDisponibilidadCols::ALUMNO_ID;
+        $colDia = CapDisponibilidadCols::DIA;
+        $colHora = CapDisponibilidadCols::HORA;
+        $colDisponible = CapDisponibilidadCols::DISPONIBLE;
+        $colCreatedAt = CapDisponibilidadCols::CREATED_AT;
+        $colUpdatedAt = CapDisponibilidadCols::UPDATED_AT;
+
+        $placeholders = [];
+        $valores = [];
+        foreach ($slots as $s) {
+            $placeholders[] = '(%d, %s, %s, %d, %s, %s)';
+            $valores[] = $s['alumno_id'];
+            $valores[] = $s['dia'];
+            $valores[] = $s['hora'];
+            $valores[] = $s['disponible'];
+            $valores[] = $s['created_at'];
+            $valores[] = $s['updated_at'];
+        }
+
+        $sql = "INSERT INTO {$tabla} ({$colAlumnoId}, {$colDia}, {$colHora}, {$colDisponible}, {$colCreatedAt}, {$colUpdatedAt}) VALUES " . implode(', ', $placeholders);
+
+        try {
+            $resultado = $wpdb->query($wpdb->prepare($sql, $valores));
+            if ($resultado === false) {
+                error_log("[CapDisponibilidadRepo::insertarLote] Fallo: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CapDisponibilidadRepo::insertarLote] Error: {$e->getMessage()}");
+            return false;
+        }
+    }
 }

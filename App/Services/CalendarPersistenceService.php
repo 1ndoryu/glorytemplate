@@ -74,16 +74,30 @@ class CalendarPersistenceService
 
                 $claseId = $wpdb->insert_id;
 
-                foreach ($clase['alumnos'] as $alumnoId) {
-                    $asistenciaInsertada = $wpdb->insert($tablaAsistencia, [
-                        CapAsistenciaCols::CLASE_ID => $claseId,
-                        CapAsistenciaCols::ALUMNO_ID => $alumnoId,
-                        CapAsistenciaCols::ASISTIO => 0,
-                        CapAsistenciaCols::CREATED_AT => current_time('mysql')
-                    ]);
+                /* [2003A-4] Optimizado: batch INSERT de asistencias en una sola query
+                 * en vez de INSERT individual por alumno (N+1 → 1 query por clase). */
+                if (!empty($clase['alumnos'])) {
+                    $ahora = current_time('mysql');
+                    $colClaseId = CapAsistenciaCols::CLASE_ID;
+                    $colAlumnoId = CapAsistenciaCols::ALUMNO_ID;
+                    $colAsistio = CapAsistenciaCols::ASISTIO;
+                    $colCreatedAt = CapAsistenciaCols::CREATED_AT;
 
-                    if ($asistenciaInsertada === false) {
-                        error_log("[CAP Calendar] ERROR: Fallo al insertar asistencia para clase_id={$claseId}, alumno_id={$alumnoId}. DB error: {$wpdb->last_error}");
+                    $placeholders = [];
+                    $valores = [];
+                    foreach ($clase['alumnos'] as $alumnoId) {
+                        $placeholders[] = '(%d, %d, %d, %s)';
+                        $valores[] = $claseId;
+                        $valores[] = $alumnoId;
+                        $valores[] = 0;
+                        $valores[] = $ahora;
+                    }
+
+                    $sql = "INSERT INTO {$tablaAsistencia} ({$colClaseId}, {$colAlumnoId}, {$colAsistio}, {$colCreatedAt}) VALUES " . implode(', ', $placeholders);
+                    $resultado = $wpdb->query($wpdb->prepare($sql, $valores));
+
+                    if ($resultado === false) {
+                        error_log("[CAP Calendar] ERROR: Fallo batch INSERT asistencias para clase_id={$claseId}. DB error: {$wpdb->last_error}");
                     }
                 }
 

@@ -85,6 +85,7 @@ const construirHorariosPorDefecto = (configuracion: ConfiguracionHorarios | null
 export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps) {
     const [horarios, setHorarios] = useState<HorariosSemanales>({});
     const [modificado, setModificado] = useState(false);
+    const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
 
     useEffect(() => {
         if (config) {
@@ -152,15 +153,25 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
         setModificado(true);
     };
 
+    /* [2003A-4] Corregido: try-catch con feedback visible al usuario si falla el guardado */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setErrorGuardado(null);
 
-        // Enviar como JSON stringificado
-        const exito = await onGuardar({
-            horarios_semanales: JSON.stringify(horarios)
-        });
+        try {
+            const exito = await onGuardar({
+                horarios_semanales: JSON.stringify(horarios)
+            });
 
-        if (exito) setModificado(false);
+            if (exito) {
+                setModificado(false);
+            } else {
+                setErrorGuardado('No se pudieron guardar los horarios. Intenta de nuevo.');
+            }
+        } catch (err) {
+            console.error('[PanelHorarios] Error al guardar:', err);
+            setErrorGuardado('Error al guardar los horarios');
+        }
     };
 
     const handleRestablecer = () => {
@@ -187,6 +198,9 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
             </TarjetaHeader>
             <TarjetaBody>
                 <form onSubmit={handleSubmit} className="capFormConfig">
+                    {errorGuardado && (
+                        <Alerta variante="error" className="capMb--md">{errorGuardado}</Alerta>
+                    )}
                     <Alerta variante="info" className="capMb--md">
                         Define los rangos horarios exactos para cada día. Puedes añadir múltiples tramos o dejar días libres.
                     </Alerta>
@@ -211,13 +225,15 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                                                 <div className="capHorarioCampo">
                                                     <Input tipo="text" value={rango.fin} onChange={e => handleRangoChange(dia.id, index, 'fin', e.target.value)} placeholder="14:00" etiqueta={index === 0 ? 'Fin' : undefined} />
                                                 </div>
-                                                <button
+                                                <Boton
                                                     type="button"
                                                     onClick={() => eliminarRango(dia.id, index)}
                                                     className="capBotonEliminarRango"
+                                                    variante="peligro"
+                                                    tamano="sm"
                                                     title="Eliminar tramo">
                                                     <IconoEliminar size={18} />
-                                                </button>
+                                                </Boton>
                                             </div>
                                         ))}
                                     </div>
