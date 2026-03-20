@@ -214,6 +214,9 @@ export function useLibreriaIsland() {
 
     const manejarColeccionCombinada = useCallback(() => {
         setModalCombinarAbierto(false);
+        /* [193A-101] Limpiar cache de fetch para forzar refetch al incrementar versionDatos.
+         * Sin este reset, el guard del useEffect veía tab+busqueda sin cambiar y hacía early return. */
+        ultimoFetchRef.current = null;
         setVersionDatos(prev => prev + 1);
     }, []);
 

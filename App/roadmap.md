@@ -114,10 +114,6 @@ main-8zzQ1p0i.js:906 [Kamples] 03:17:04 [ERROR] ApiCliente: GET /descargas/limit
     at $b (main-8zzQ1p0i.js:906:127658)
     at he (main-8zzQ1p0i.js:916:178350)
 
-## 193A-101
-
-Combinar colecciones no funciona, creo que ya puse esta tarea antes, tengo coleccion test 1 y test 2, ambas con 1 sample, le doy a combinar y no, ambas quedan igual, no esta funcionando.
-
 ## 193A-102
 
 Que en la apk no se pueda comprar samples, que directamente no salgan los samples con precio si es que es mejor. 
