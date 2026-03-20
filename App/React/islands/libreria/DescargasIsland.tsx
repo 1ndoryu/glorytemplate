@@ -26,7 +26,7 @@ import { BotonBase } from '../../components/ui/BotonBase';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, Heart } from 'lucide-react';
 
 /* TO-DO: Extraer lógica de vista (infoHeader, totalHeader, tabs, panel lateral)
  * a un hook useDescargasIsland.ts para cumplir SRP estricto. Pre-existente. */
@@ -72,7 +72,7 @@ const DescargasBase = (): JSX.Element => {
     /* QL87: Filtros por tab (independientes) */
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const filtrosDescargas = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarColeccionados'] });
-    const filtrosFavoritos = useFiltrosContenido({ disponibles: ['soloWav', 'ocultarDescargados', 'ocultarColeccionados'] });
+    const filtrosFavoritos = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados', 'ocultarColeccionados'] });
     const filtrosActivos = tabActiva === 'favoritos' ? filtrosFavoritos : filtrosDescargas;
 
     /* QL41: Header dinámico según tab activa */
@@ -161,6 +161,17 @@ const DescargasBase = (): JSX.Element => {
                         ordenActual={ordenColeccionados}
                         onOrdenCambiar={setOrdenColeccionados}
                     >
+                        {/* [193A-44] Toggle rápido "solo me encanta" */}
+                        <BotonBase
+                            variante="ghost"
+                            tamano="ninguno"
+                            onClick={() => filtrosDescargas.toggle('soloMeEncanta')}
+                            type="button"
+                            aria-label="Solo me encanta"
+                            className={filtrosDescargas.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}
+                        >
+                            <Heart size={16} fill={filtrosDescargas.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
+                        </BotonBase>
                         <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
                             <SlidersHorizontal size={16} />
                         </BotonBase>
@@ -186,6 +197,17 @@ const DescargasBase = (): JSX.Element => {
                         ordenActual={ordenFavoritos}
                         onOrdenCambiar={setOrdenFavoritos}
                     >
+                        {/* [193A-44] Toggle rápido "solo me encanta" */}
+                        <BotonBase
+                            variante="ghost"
+                            tamano="ninguno"
+                            onClick={() => filtrosFavoritos.toggle('soloMeEncanta')}
+                            type="button"
+                            aria-label="Solo me encanta"
+                            className={filtrosFavoritos.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}
+                        >
+                            <Heart size={16} fill={filtrosFavoritos.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
+                        </BotonBase>
                         <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
                             <SlidersHorizontal size={16} />
                         </BotonBase>

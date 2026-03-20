@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow, Heart } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
@@ -238,6 +238,18 @@ export const FeedUnificado = (): JSX.Element => {
                             </div>
                         )}
                     </div>
+
+                    {/* [193A-44] Toggle rápido "solo me encanta" en feed */}
+                    <BotonBase
+                        variante="ghost"
+                        tamano="ninguno"
+                        onClick={() => filtrosContenido.toggle('soloMeEncanta')}
+                        type="button"
+                        aria-label="Solo me encanta"
+                        className={`inicioFiltrosBtn ${filtrosContenido.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}`}
+                    >
+                        <Heart size={16} fill={filtrosContenido.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
+                    </BotonBase>
 
                     <BotonBase variante="ghost"
                         className="inicioFiltrosBtn"

@@ -274,3 +274,8 @@
     font-size: var(--fuenteXs);
     border-radius: var(--radioMd);
 }
+
+/* [193A-44] Toggle rápido "solo me encanta" — corazón activo */
+.filtroEncantaActivo {
+    color: var(--colorDanger, #e74c3c);
+}

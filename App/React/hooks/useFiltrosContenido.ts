@@ -135,7 +135,8 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
                 );
             }
             if (activos.has('soloMeEncanta')) {
-                resultado = resultado.filter(s => s.liked === true);
+                /* [193A-44] Filtrar por reaccion 'encanta', no por liked genérico */
+                resultado = resultado.filter(s => s.reaccion === 'encanta');
             }
             if (activos.has('ocultarDescargados')) {
                 resultado = resultado.filter(s => !s.yaColeccionado);
