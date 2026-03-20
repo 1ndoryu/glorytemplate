@@ -65,23 +65,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 AlgoTimingLogger ya está instrumentado y deployado. Activar el toggle "Logs de rendimiento" en Settings, cargar el feed siendo user 1, abrir el modal de métricas del algoritmo para ver el desglose real por etapa. Con esa información, identificar y optimizar la etapa más lenta (baseline: ~793ms feed pag1). Objetivo: reducir sin afectar calidad ni frecuencia de actualización de resultados.
 
-## 2003A-3-B 
-
-20/03/26, 06:30:37
-Total
-1163.6 ms
-Etapa	ms	%	
-Perfil usuario	3.8 ms	0.3%	
-Generación SQL (PHP)	12.6 ms	1.1%	
-Query CTE feed (SQL)	1135.1 ms	97.6%	
-Samples activos: 2517
-Resultados: 14
-Bulk-fetch: Sí
-MV trending: Sí
-Pipeline candidatos: No
-
-Me parece que no es muy detallado para saber que es lo que esta tardando :/ pero vemos que el valor real es mayor a como salía en el comando, claramente tiene que ser muchisimo mas detallado para saber que partes del query CTE son las que tardan más.
-
 ## 2003A-15
 
 Hay un problema con la aplicación de escritorio, el deslogeo no funciona si abro y vuelvo abrir, sigue logeado, esto hay que tener cuidado porque al princpio era que la sesion no se guardaba y se salia a recargar, ahora el problema es que no se deslogea ni actualiza el sync al deslogearse.
@@ -102,8 +85,16 @@ Este problema sucedio una vez y es probable que suceda siempre
 
 cuando di click a reproducir una coleccion desde la lista de colecciones, y luego regrese a inicio, al reproducir algunos samples no terminan de reproducirse completo y pasan al anterior o al siguiente o cualquier otro aun teniendo la reproduccion automaticamente activada, paso en la apliaccion de escritorio, no digo que tenga que ver o que no pueda pasar en la web. 
 
-## 2003A-21 URGENTE
+## 2003A-25
 
-Parece que hay algun limite de 400 samples al dia procesados, quita ese limite
+Respecto a la tarea de que en la aplicacion de escritorio no funciona autenticarse con google, aca esta lo que pediste
+temp\client_secret_481587675160-a2iljtc8dou32rgkk8lq9chk0jtfe5fm.apps.googleusercontent.com.json
+
+## 2003A-26
+
+El problema de hacer scroll y luego intentar subir activa la recarga persiste en la version movil android, llevamos mucho tiempo con esta tarea. 
 
 
+## 2003A-27
+
+Aparece "Listo. Arrastra el sample otra vez para exportarlo al sistema." Pero arrastrar por accidente activa la descargar, el arrastre minimo la activa, deberia solo descargarse cuando se arastre hacia afuera. Tampoco al arrastrar afuera funciona, antes funcionaba, no aparece el sample en donde lo arrastre.
