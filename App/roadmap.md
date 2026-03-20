@@ -61,43 +61,11 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 2003A-3 
+## 2003A-3 (fase 2 — optimización SQL)
 
-revisar comando de ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30" realmente esta actualizado y muestra los valores reales
+AlgoTimingLogger ya está instrumentado y deployado. Activar el toggle "Logs de rendimiento" en Settings, cargar el feed siendo user 1, abrir el modal de métricas del algoritmo para ver el desglose real por etapa. Con esa información, identificar y optimizar la etapa más lenta (baseline: ~793ms feed pag1). Objetivo: reducir sin afectar calidad ni frecuencia de actualización de resultados.
 
-Tambien hay que hacer otra revision profunda para optimizar | >> FEED pag1 (sin cache, bulk-fetch) <<            |   782.5ms | sin afectar la calidad de resultados y la frecuencia con la que se actualizan los resultados, ver consultas lentas y optimizarlas. 
 
-+----------------------------------------------------+----------+
-| Componente                                         | Tiempo   |
-+----------------------------------------------------+----------+
-| PerfilUsuario::construir (sin cache)               |    75.9ms |
-| Conteo samples activos (SQL COUNT)                 |     8.8ms |
-| Verificacion pgvector                              |     6.9ms |
-| SQL gen: Comportamiento (0.27)                     |     0.2ms |
-| SQL gen: Contexto (0.15)                           |     0.0ms |
-| SQL gen: Tendencias (0.12)                         |     0.0ms |
-| SQL gen: Grafo Social (0.1)                        |     0.0ms |
-| SQL gen: Similitud pgvector (0.28)                 |     0.7ms |
-| >> FEED pag1 (sin cache, bulk-fetch) <<            |   793.0ms |
-| >> FEED pag2 (bulk-cache de pag1) <<               |     1.3ms |
-| >> FEED pag3 (bulk-cache de pag1) <<               |     0.6ms |
-| Feed pag1 cache hit (todo en cache)                |     4.0ms |
-| >> samplesSimilares "Te podria gustar" (12) <<     |    51.6ms |
-| >> Secciones pagina Musica (sin cache) <<          |   288.7ms |
-| >> Mas Ideas coleccion >= 200 samples <<           |    38.8ms |
-+----------------------------------------------------+----------+
-| PROMEDIO feed sin cache (3 pags)                   |   265.0ms |
-+----------------------------------------------------+----------+
-
-=== RESUMEN (para documentacion) ===
-Fecha: 2026-03-20 08:47:31 | Config: ba0eb164
-Samples: 2415 | pgvector: SI | Pipeline: NO
-Feed pag1 (sin cache, bulk-fetch): 793ms | pag2 (bulk-cache): 1ms | pag3 (bulk-cache): 1ms | promedio: 265ms | cache hit: 4ms
-Te podria gustar (similares): 52ms
-Secciones musica (sin cache): 289ms
-Mas Ideas coleccion grande: 39ms
-Perfil: 76ms | Conteo: 9ms
-=== FIN ===
 
 Exit code: 0
 PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\.agent\coolify-manager-rs> 
@@ -108,6 +76,9 @@ Aumenta el limite de samples de subida por usuario a 20.000 a través del sync, 
 
 Haz una pagina de price en el landing con los planes, que haya ese detalle indicando el limite de sincronizacion 100 y 20.000, free y pro, premiun no lo pongas, obviamente todo lo de premiun en cuanto a logia que sea igual a pro
 
+## 2003A-10 (en planificación)
+
+Esta es una tarea de r
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
