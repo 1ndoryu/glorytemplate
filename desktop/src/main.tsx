@@ -116,6 +116,7 @@ const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unkn
     '/sampleo/': { island: 'RelacionDetalleIsland', props: { id: '' }, title: 'Sampleo', params: ':id/:slug?' },
     '/artista/': { island: 'ArtistaDetalleIsland', props: { slug: '' }, title: 'Artista', params: ':slug' },
     '/publicacion/': { island: 'PublicacionIsland', props: { publicacionId: '' }, title: 'Publicación', params: ':publicacionId' },
+    '/post/': { island: 'PublicacionIsland', props: { publicacionId: '' }, title: 'Publicación', params: ':publicacionId' },
     /* [183A-110-B] Blog routes — listado y detalle de artículos */
     '/blog/': { island: 'BlogPageIsland', props: { slug: '' }, title: 'Blog', params: ':slug?' },
     '/privacy/': { island: 'PrivacidadIsland', props: {}, title: 'Privacidad' },

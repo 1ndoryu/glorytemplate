@@ -67,9 +67,11 @@ export const useNotificacionesIsland = () => {
         (notif: Notificacion) => {
             if (!notif.leida) manejarMarcarLeida(notif.id);
 
-            /* Priorizar campo enlace del backend */
+            /* Priorizar campo enlace del backend.
+             * [193A-47] Normalizar URLs legacy /post/ → /publicacion/ */
             if (notif.enlace) {
-                navegar(notif.enlace);
+                const enlaceNormalizado = notif.enlace.replace(/^\/post\//, '/publicacion/');
+                navegar(enlaceNormalizado);
                 return;
             }
 

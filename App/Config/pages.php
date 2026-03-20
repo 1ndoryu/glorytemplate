@@ -87,7 +87,18 @@ PageManager::reactPage('publicacion', 'PublicacionIsland', function($pageId) {
     return ['publicacionId' => sanitize_text_field($pubId)];
 });
 
+/* [193A-47] Compatibilidad legacy: notificaciones antiguas guardaron /post/{id}/.
+ * Se enruta a la misma isla para evitar 404 mientras los enlaces viejos circulan. */
+PageManager::reactPage('post', 'PublicacionIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $idx = array_search('post', $partes);
+    $pubId = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
+    return ['publicacionId' => sanitize_text_field($pubId)];
+});
+
 PageManager::registrarRutaDinamica('publicacion', ':publicacionId');
+PageManager::registrarRutaDinamica('post', ':publicacionId');
 
 /*
  * C353: Explorador desactivado temporalmente.

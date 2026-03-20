@@ -25,6 +25,7 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\PublicacionesCols;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
@@ -301,13 +302,11 @@ class ComentariosEscrituraController
                 );
             }
         } elseif ($tipo === ComentariosEnums::TIPO_PUBLICACION) {
-            $pubAutorId = PublicacionesRepository::buscarAutorId($targetId);
-            if ($pubAutorId && $pubAutorId !== $userId) {
-                ServicioNotificaciones::crear(
-                    $pubAutorId, 'comentario',
-                    'Alguien comento en tu publicacion',
-                    ['commenter_id' => $userId, 'publicacion_id' => $targetId],
-                    $userId, '', "/publicacion/{$targetId}/"
+            $pubInfo = PublicacionesRepository::buscarInfoNotificacion($targetId);
+            if ($pubInfo && (int) $pubInfo[PublicacionesCols::AUTOR_ID] !== $userId) {
+                ServicioNotificaciones::nuevoComentarioPublicacion(
+                    (int) $pubInfo[PublicacionesCols::AUTOR_ID], $userId, $targetId,
+                    $pubInfo[PublicacionesCols::CONTENIDO] ?? ''
                 );
             }
         }

@@ -229,6 +229,28 @@ class ServicioNotificaciones
         );
     }
 
+    /* [193A-47] Notificación descriptiva para comentarios en publicaciones.
+     * Muestra @actor, snippet del contenido (máx 40 chars), enlace /publicacion/{id}/. */
+    public static function nuevoComentarioPublicacion(int $destinatarioId, int $actorId, int $publicacionId, string $contenido): void
+    {
+        $actorNombre = self::obtenerNombreActor($actorId);
+        $snippet = mb_strlen($contenido) > 40 ? mb_substr($contenido, 0, 40) . '…' : $contenido;
+        $snippet = trim(preg_replace('/\s+/', ' ', $snippet));
+
+        self::crear(
+            $destinatarioId,
+            'comentario',
+            $snippet ? "@{$actorNombre} comento en tu publicacion \"{$snippet}\"" : "@{$actorNombre} comento en tu publicacion",
+            [
+                'commenter_id'    => $actorId,
+                'publicacion_id'  => $publicacionId,
+            ],
+            $actorId,
+            '',
+            "/publicacion/{$publicacionId}/"
+        );
+    }
+
     public static function respuestaComentario(int $destinatarioId, int $actorId, int $comentarioPadreId, ?int $sampleId = null, ?string $sampleSlug = null): void
     {
         $actorNombre = self::obtenerNombreActor($actorId);

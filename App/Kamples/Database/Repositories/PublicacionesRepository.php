@@ -491,6 +491,18 @@ class PublicacionesRepository extends BaseRepository
         return $row ? (int) $row[PublicacionesCols::AUTOR_ID] : null;
     }
 
+    /* [193A-47] Obtener autor_id y snippet de contenido para notificaciones descriptivas. */
+    public static function buscarInfoNotificacion(int $id): ?array
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
+            . " FROM {$tabla} WHERE " . PublicacionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
     /*
      * Crear publicación nueva. Retorna ID generado.
      * $tipo y $moderacionEstado son opcionales: si no se pasan, la BD aplica defaults.
