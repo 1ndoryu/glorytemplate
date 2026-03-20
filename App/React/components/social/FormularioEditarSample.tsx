@@ -161,32 +161,11 @@ export const FormularioEditarSample = ({
                     />
                 </div>
 
-                <CampoTexto
-                    etiqueta={t('sample.form.precio')}
-                    value={formulario.precio}
-                    onChange={(e) =>
-                        setFormulario((prev) => ({
-                            ...prev,
-                            precio: (e.target as HTMLInputElement).value,
-                        }))
-                    }
-                    placeholder="0.00"
-                    type="number"
-                    disabled={!formulario.esPremium}
-                />
+                {/* [193A-104] Pendiente: input de precio desactivado. Restaurar el CampoTexto de precio aquí */}
             </div>
 
             <div className="editarFilaDoble">
-                <Checkbox
-                    label={t('sample.form.premium')}
-                    checked={formulario.esPremium}
-                    onChange={(e) =>
-                        setFormulario((prev) => ({
-                            ...prev,
-                            esPremium: e.target.checked,
-                        }))
-                    }
-                />
+                {/* [193A-104] Pendiente: checkbox Premium desactivado. Restaurar Checkbox label={t('sample.form.premium')} */}
 
                 <Checkbox
                     label={t('sample.form.permitirDescarga')}

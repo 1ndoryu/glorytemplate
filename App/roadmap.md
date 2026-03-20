@@ -126,10 +126,6 @@ Que en la apk no se pueda comprar samples, que directamente no salgan los sample
 
 Cuando publico un sample, modalCuerpo se queda abierto diciendo "subiendo" No, no se que tiene que quedar asi, se tiene que quedar el proceso de fondo y cuando se publique que aparezca un toast de "Tu sample fue publicado o algo asi"
 
-## 193A-104
-
-Ocultar y desactivar todo lo que tenga que ver con pro y precio en los samples, vamos a dejar esto con notas de "pendiente" en el codigo, esto funciona mal. Implica que el modal de publicacion quitar los iconos, en el editar las opciones, el input de precio, etc. Revisa bien. 
-
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
 Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer.

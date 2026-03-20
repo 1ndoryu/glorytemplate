@@ -162,7 +162,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     </a>
                     {noReproducido && <span className="tarjetaPuntoRojo" aria-label={t('sample.noReproducido')} />}
                     {sample.verificado && <BadgeCheck size={14} className="tarjetaVerificado" />}
-                    {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
+                    {/* [193A-104] Pendiente: badge PRO desactivado. Restaurar: {sample.esPremium && <span className="tarjetaPremium">PRO</span>} */}
                     {sample.scoreDebug && <BadgeDebugScore debug={sample.scoreDebug} />}
                 </div>
 

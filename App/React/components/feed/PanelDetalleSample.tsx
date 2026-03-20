@@ -4,7 +4,7 @@
  * Logica extraida a usePanelDetalleSample (SRP).
  */
 
-import { Heart, Download, Lock, PanelRightClose, MessageCircle } from 'lucide-react';
+import { Heart, Download, PanelRightClose, MessageCircle } from 'lucide-react';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -69,7 +69,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
             {/* Titulo */}
             <h3 className="panelDetalleTitulo">
                 {sample.titulo}
-                {sample.esPremium && <Badge variante="premium" tamano="xs">PRO</Badge>}
+                {/* [193A-104] Pendiente: badge PRO desactivado. Restaurar: {sample.esPremium && <Badge variante="premium" tamano="xs">PRO</Badge>} */}
             </h3>
 
             {/* Descripcion */}
@@ -110,16 +110,10 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     {totalLikes}
                 </BotonBase>
 
-                {sample.esPremium ? (
-                    <BotonBase variante="secundario" tamano="sm" disabled>
-                        <Lock size={14} />
-                        PRO
-                    </BotonBase>
-                ) : (
-                    <BotonBase variante="secundario" tamano="sm">
-                        <Download size={14} />
-                    </BotonBase>
-                )}
+                {/* [193A-104] Pendiente: botón PRO/Lock desactivado. Restaurar lógica sample.esPremium ternaria */}
+                <BotonBase variante="secundario" tamano="sm">
+                    <Download size={14} />
+                </BotonBase>
 
                 <BotonBase
                     variante="secundario"

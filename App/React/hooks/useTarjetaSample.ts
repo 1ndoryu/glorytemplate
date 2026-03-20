@@ -68,16 +68,12 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const [comentado, setComentado] = useState(() => !!sample.yaComentado);
     const navegar = useNavigationStore(s => s.navegar);
 
-    /*
-     * QQ16: requiereCompra es independiente de esPremium.
-     * Cualquier sample con precio > 0 que no ha sido comprado requiere checkout.
-     * Excepción: Pro users con samples premium pueden descargar gratis (el backend lo permite).
-     */
-    const requiereCompra = (sample.precio ?? 0) > 0
-        && !sample.yaComprado && !sample.esMio;
-
-    /* QQ16: Sample solo Pro (sin precio) — bloquea descarga para free users */
-    const esSoloPro = !!sample.esPremium && (sample.precio ?? 0) === 0 && !sample.esMio;
+    /* [193A-104] Pendiente: sistema de precios y PRO desactivado temporalmente.
+     * Cuando se reactive, restaurar la lógica original:
+     * requiereCompra = (sample.precio ?? 0) > 0 && !sample.yaComprado && !sample.esMio;
+     * esSoloPro = !!sample.esPremium && (sample.precio ?? 0) === 0 && !sample.esMio; */
+    const requiereCompra = false;
+    const esSoloPro = false;
 
     /*
      * Escucha evento global cuando este sample es guardado en una coleccion (boton Bookmark).

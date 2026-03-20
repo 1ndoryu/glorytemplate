@@ -38,14 +38,15 @@ interface ModalFiltrosProps {
     onToggleFiltro?: (id: FiltroContenidoId) => void;
     hayFiltrosContenidoActivos?: boolean;
     onResetContenido?: () => void;
-    /** Mostrar selector de precio (solo relevante en feed principal) */
+    /** [193A-104] Pendiente: selector de precio desactivado. Restaurar default a true cuando se reactive.  */
     mostrarPrecio?: boolean;
 }
 
 export const ModalFiltros = ({
     abierto, onCerrar,
     filtrosContenido, estaActivo, onToggleFiltro, hayFiltrosContenidoActivos, onResetContenido,
-    mostrarPrecio = true,
+    /* [193A-104] Pendiente: forzado a false. Restaurar default a true */
+    mostrarPrecio = false,
 }: ModalFiltrosProps): JSX.Element | null => {
     const { t } = useT();
     /* Store global — solo se lee si NO se pasan filtrosContenido */

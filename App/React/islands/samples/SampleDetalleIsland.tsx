@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 import {
     Pause,
     AlertCircle,
-    Crown,
+    /* [193A-104] Pendiente: Crown eliminado temporalmente (badge PRO desactivado) */
     BadgeCheck,
     ArrowLeft,
 } from 'lucide-react';
@@ -169,11 +169,12 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             {sample.verificado && (
                                 <BadgeCheck size={16} className="detalleVerificado" />
                             )}
+                            {/* [193A-104] Pendiente: badge PRO desactivado. Restaurar:
                             {sample.esPremium && (
                                 <Badge variante="premium" tamano="xs">
                                     <Crown size={14} /> PRO
                                 </Badge>
-                            )}
+                            )} */}
                         </h1>
 
                         {(() => {
@@ -248,7 +249,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         onToggleComentarios={manejarToggleComentarios}
                         descargado={descargado}
                         onDescargar={manejarDescargar}
-                        esPremiumBloqueado={!!(sample.esPremium && usuarioAuth?.plan === 'free' && !esPropietario)}
+                        /* [193A-104] Pendiente: esPremiumBloqueado desactivado. Restaurar original */
+                        esPremiumBloqueado={false}
                         onAbrirPlanes={abrirPlanes}
                         onAbrirColeccionOriginal={rutaColeccionOriginal ? () => navegar(rutaColeccionOriginal) : undefined}
                         nombreColeccionOriginal={sample.coleccionOriginal?.nombre ?? null}
