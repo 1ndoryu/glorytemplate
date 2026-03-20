@@ -57,12 +57,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 183A-115 — COMPLETADO
-<!-- Badge verificado consistente en comentarios, perfil, detalle sample, colección y panel. Commit 9145bee85 -->
-
-## 193A-1 — COMPLETADO
-<!-- Touch scroll filaColecciones: useArrastrarScroll + touch-action:manipulation. Commit bc024089a -->
-
 ## 193A-5
 
 No he pensando ni he revisado esto. Si el servidor da 500 o error, por un momento es innacesible, kamples esta caido. ¿Que pasa con el sync? Lo mas logico es que la subida se pause 5 muntos, e intente la conexion, sino, vuelva a pausar y asi sucesivamente, hasta que el servidor vuelva a estar disponible. Esto hay que revisarlo bien porque hay que protejer que cuando el modo de borrar tras subida este activo, no haya perdida de datos.
@@ -83,12 +77,8 @@ main-CvJwtydY.js:26 [Violation] 'message' handler took 1174ms
 [Violation] Forced reflow while executing JavaScript took 742ms
 main-CvJwtydY.js:41 [Violation] 'popstate' handler took 326ms
 
-## 193A-61 — COMPLETADO
-<!-- Filtro
-
-## 193A-62
-
-La imagen de avatar no esta optimizada como estan optizada las demas imagenes,las imagenes temporarels de colors tampoco, 
+## 193A-62 — COMPLETADO
+<!-- Avatar usa ImgOptimizada y imagenesColor devuelve URLs photonizadas. Commit 17e9e1c00 -->
 
 ## 193A-65 
 
@@ -105,6 +95,26 @@ El antispam de las notificaciones parece muy agresivo, auditar las notificacione
 ## 193A-71 Urgente
 
 Por un error del scrip que genera los schema, PushSubscriptionsDTO se modifico y ahora no veo que lleguen notificaciones, no se que mas se modifico, revisa bien PushSubscriptionsDTO y restaura la version correcta para ver si se arreglan las notificaciones de la apk.
+
+## 193A-72
+
+LA IDEA ES QUE SE PROCESE UN SAMPLE 1 POR 1 CADA MINUTO, 1 POR API, CADA UNO USA UNA API Y ROTA, PROCESA, ROTA; PROCESA ROTA Eso no es lo que veo que este pasando
+
+816		#2897	analisis audio		0/30		-	19/3, 06:20	20/3, 00:05	
+815		#2896	analisis audio		0/30		-	19/3, 06:20	20/3, 00:05	
+814		#2895	analisis audio		0/30		-	19/3, 06:20	20/3, 00:05	
+813		#2894	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
+812		#2893	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
+811		#2892	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
+810		#2891	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
+809		#2890	analisis audio		0/30		-	19/3, 06:20	19/3, 23:52	
+808		#2889	analisis audio		0/30		-	19/3, 06:20	19/3, 23:51	
+807		#2888	analisis audio		0/30		-	19/3, 06:20	19/3, 23:51	
+806		#2887	analisis audio		0/30		-	19/3, 06:20	19/3, 23:51	
+805		#2886	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51	
+804		#2885	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51	
+803		#2884	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51	
+802		#2883	analisis audio		0/30		-	19/3, 06:19	19/3, 23:51
 
 ## Antes de penultima (preferiblemente antepenultima)
 
