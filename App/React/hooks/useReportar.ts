@@ -15,14 +15,18 @@ interface RespuestaReporte {
     message: string;
 }
 
-/* Configuracion por tipo de reporte */
-const configPorTipo: Record<TipoReporte, { etiqueta: string; placeholder: string }> = {
-    usuario:          { etiqueta: 'Motivo del reporte',   placeholder: 'Ej: Spam, acoso, contenido inapropiado' },
-    publicacion:      { etiqueta: 'Motivo del reporte',   placeholder: 'Ej: Contenido inapropiado, spam' },
-    comentario:       { etiqueta: 'Motivo del reporte',   placeholder: 'Ej: Acoso, lenguaje ofensivo' },
-    sample:           { etiqueta: 'Motivo del reporte',   placeholder: 'Ej: Copyright, contenido inapropiado' },
-    error_plataforma: { etiqueta: 'Asunto',               placeholder: 'Ej: El reproductor no carga' },
-};
+/* [193A-65] Configuración por tipo de reporte — usa getT() para i18n */
+function configPorTipo(tipo: TipoReporte): { etiqueta: string; placeholder: string } {
+    const t = getT();
+    const configs: Record<TipoReporte, { etiqueta: string; placeholder: string }> = {
+        usuario:          { etiqueta: t('reporte.motivoReporte'), placeholder: t('reporte.placeholderUsuario') },
+        publicacion:      { etiqueta: t('reporte.motivoReporte'), placeholder: t('reporte.placeholderSample') },
+        comentario:       { etiqueta: t('reporte.motivoReporte'), placeholder: t('reporte.placeholderSample') },
+        sample:           { etiqueta: t('reporte.motivoReporte'), placeholder: t('reporte.placeholderSample') },
+        error_plataforma: { etiqueta: t('reporte.asunto'),        placeholder: t('reporte.placeholderError') },
+    };
+    return configs[tipo];
+}
 
 export function useReportar() {
     const abierto       = useReportarStore(s => s.abierto);
@@ -35,7 +39,7 @@ export function useReportar() {
     const [detalles, setDetalles] = useState('');
     const [enviando, setEnviando] = useState(false);
 
-    const config = tipo ? configPorTipo[tipo] : configPorTipo.error_plataforma;
+    const config = tipo ? configPorTipo(tipo) : configPorTipo('error_plataforma');
     const esError = tipo === 'error_plataforma';
 
     const limpiar = useCallback(() => {

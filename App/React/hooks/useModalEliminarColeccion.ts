@@ -6,6 +6,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { toast } from '@app/stores/toastStore';
 import { eliminarColeccionConOpciones } from '@app/services/apiColecciones';
+import { getT } from '@app/utils/i18n';
 import type { Coleccion, ColeccionResumen } from '@app/types';
 import type { OpcionSelector } from '@app/components/ui/SelectorMenu';
 
@@ -39,19 +40,21 @@ export function useModalEliminarColeccion({
         );
     }, [coleccion]);
 
+    /* [193A-65] i18n para opciones del selector */
+    const t = getT();
     const opcionesSamples = useMemo((): OpcionSelector[] => [
-        { valor: 'mantener', etiqueta: 'Conservar samples (solo quitar de la colección)' },
-        { valor: 'eliminar', etiqueta: 'Eliminar samples permanentemente' },
+        { valor: 'mantener', etiqueta: t('eliminar.conservarSamples') },
+        { valor: 'eliminar', etiqueta: t('eliminar.samples') },
     ], []);
 
     const opcionesManejoHijas = useMemo((): OpcionSelector[] => [
-        { valor: 'huerfanas', etiqueta: 'Convertir subcolecciones en colecciones raíz' },
-        { valor: 'eliminar', etiqueta: 'Eliminar también las subcolecciones' },
+        { valor: 'huerfanas', etiqueta: t('eliminar.convertirSubcolecciones') },
+        { valor: 'eliminar', etiqueta: t('eliminar.subcolecciones') },
     ], []);
 
     const opcionesSamplesHijas = useMemo((): OpcionSelector[] => [
-        { valor: 'mantener', etiqueta: 'Conservar samples de las subcolecciones' },
-        { valor: 'eliminar', etiqueta: 'Eliminar samples de las subcolecciones' },
+        { valor: 'mantener', etiqueta: t('eliminar.conservarSamplesSub') },
+        { valor: 'eliminar', etiqueta: t('eliminar.samplesSubcolecciones') },
     ], []);
 
     const manejarEliminar = useCallback(async () => {

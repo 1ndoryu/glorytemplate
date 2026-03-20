@@ -20,11 +20,12 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
 import { usePullToRefresh } from '@app/hooks/usePullToRefresh';
 import { useEsMovil } from '@app/hooks/useEsMovil';
+import { useT } from '@app/utils/i18n';
 import { useTooltipPerfilStore } from '@app/stores/tooltipPerfilStore';
 import type { UsuarioResumen } from '@app/types/usuario';
 import '../../styles/componentes/comunidad.css';
 
-const TABS_COMUNIDAD = [{ id: 'comunidad', etiqueta: 'Comunidad' }];
+/* [193A-65] Tabs se construyen dentro del componente para acceder a t() */
 
 /* Sub-componente: comentarios por post */
 const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: (ruta: string) => void }): JSX.Element => {
@@ -46,11 +47,7 @@ const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: 
     );
 };
 
-const filtros: { valor: FiltroComunidad; icono: typeof Users; label: string }[] = [
-    { valor: 'todos', icono: Clock, label: 'Todos' },
-    { valor: 'siguiendo', icono: Users, label: 'Siguiendo' },
-    { valor: 'populares', icono: TrendingUp, label: 'Populares' },
-];
+/* [193A-65] Filtros se construyen dentro del componente para acceder a t() */
 
 /* Contenido autenticado de la comunidad — hooks siempre se ejecutan */
 const ComunidadContenido = (): JSX.Element => {
@@ -61,7 +58,17 @@ const ComunidadContenido = (): JSX.Element => {
         recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
     } = useComunidadIsland();
 
-    useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
+    const { t } = useT();
+
+    /* [193A-65] Construir tabs y filtros con t() para i18n */
+    const tabsComunidad = [{ id: 'comunidad', etiqueta: t('social.comunidad') }];
+    const filtros: { valor: FiltroComunidad; icono: typeof Users; label: string }[] = [
+        { valor: 'todos', icono: Clock, label: t('comun.todos') },
+        { valor: 'siguiendo', icono: Users, label: t('comun.siguiendo') },
+        { valor: 'populares', icono: TrendingUp, label: t('comun.populares') },
+    ];
+
+    useTabsIsla('ComunidadIsland', tabsComunidad, 'comunidad');
 
     /* [183A-38] Pull-to-refresh en comunidad para movil */
     const esMovil = useEsMovil();

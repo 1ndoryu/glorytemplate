@@ -5,6 +5,7 @@
 
 import { UserPlus, UserCheck } from 'lucide-react';
 import { useBotonFollow } from '@app/hooks/useBotonFollow';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/botonFollow.css';
 import { BotonBase } from '../ui/BotonBase';
 
@@ -27,6 +28,7 @@ export const BotonFollow = ({
         usuarioId, siguiendoInicial, tamano, className,
     });
 
+    const { t } = useT();
     /* [193A-78] Tamaño del ícono según tamano */
     const iconSize = tamano === 'sm' ? 12 : 14;
 
@@ -36,10 +38,10 @@ export const BotonFollow = ({
             onClick={manejarClick}
             disabled={cargando}
             type="button"
-            aria-label={siguiendo ? 'Dejar de seguir' : 'Seguir'}
+            aria-label={siguiendo ? t('comun.dejarDeSeguir') : t('comun.seguir')}
         >
             {siguiendo ? <UserCheck size={iconSize} /> : <UserPlus size={iconSize} />}
-            {!soloIcono && <span>{siguiendo ? 'Siguiendo' : 'Seguir'}</span>}
+            {!soloIcono && <span>{siguiendo ? t('comun.siguiendo') : t('comun.seguir')}</span>}
         </BotonBase>
     );
 };

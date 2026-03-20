@@ -64,7 +64,7 @@ export function TooltipPerfil() {
                     )}
 
                     <span className="tooltipPerfilSeguidores">
-                        {(perfil.totalSeguidores ?? 0).toLocaleString('es')} seguidores
+                        {(perfil.totalSeguidores ?? 0).toLocaleString('es')} {t('perfil.seguidores')}
                     </span>
 
                     {!esPropio && (
@@ -73,7 +73,7 @@ export function TooltipPerfil() {
                             className="tooltipPerfilSeguirBtn"
                             onClick={manejarSeguir}
                         >
-                            {siguiendo ? 'Siguiendo' : 'Seguir'}
+                            {siguiendo ? t('comun.siguiendo') : t('comun.seguir')}
                         </BotonBase>
                     )}
                 </>

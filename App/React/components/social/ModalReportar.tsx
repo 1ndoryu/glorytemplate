@@ -12,6 +12,7 @@ import { BotonBase } from '../ui/BotonBase';
 import { Input } from '../ui/Input';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useReportar } from '@app/hooks/useReportar';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/modalReportarError.css';
 
 export const ModalReportar = (): JSX.Element | null => {
@@ -31,6 +32,8 @@ export const ModalReportar = (): JSX.Element | null => {
         cerrar,
     } = useReportar();
 
+    const { t } = useT();
+
     if (!abierto || !tipo) return null;
 
     return (
@@ -42,7 +45,7 @@ export const ModalReportar = (): JSX.Element | null => {
             <div className="reportarErrorFormulario">
                 {tipo === 'usuario' && targetNombre && (
                     <p className="reportarErrorNota" style={{ fontSize: 'var(--fuenteSm)', color: 'var(--textoPrimario)' }}>
-                        Reportando a <strong>@{targetNombre}</strong>
+                        {t('reporte.reportandoA')} <strong>@{targetNombre}</strong>
                     </p>
                 )}
 
@@ -61,7 +64,7 @@ export const ModalReportar = (): JSX.Element | null => {
                 />
 
                 <label className="reportarErrorLabel" htmlFor="reportarDetalles">
-                    {esError ? 'Descripcion' : 'Detalles adicionales (opcional)'}
+                    {esError ? t('reporte.descripcion') : t('reporte.detallesAdicionales')}
                 </label>
                 <CampoTexto
                     multilínea
@@ -81,7 +84,7 @@ export const ModalReportar = (): JSX.Element | null => {
 
                 {esError && (
                     <p className="reportarErrorNota">
-                        Se incluira automaticamente la pagina donde te encuentras.
+                        {t('reporte.seIncluyePagina')}
                     </p>
                 )}
 
@@ -91,7 +94,7 @@ export const ModalReportar = (): JSX.Element | null => {
                         onClick={cerrar}
                         type="button"
                     >
-                        Cancelar
+                        {t('comun.cancelar')}
                     </BotonBase>
                     <BotonBase
                         variante="primario"
@@ -99,7 +102,7 @@ export const ModalReportar = (): JSX.Element | null => {
                         disabled={!puedeEnviar}
                         type="button"
                     >
-                        {enviando ? 'Enviando...' : 'Enviar reporte'}
+                        {enviando ? t('reporte.enviando') : t('reporte.enviarReporte')}
                     </BotonBase>
                 </div>
             </div>

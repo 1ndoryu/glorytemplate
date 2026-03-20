@@ -77,10 +77,11 @@ export const useMenuContextualPublicacion = (
         const puedeEditar = esPropietario || esAdmin;
         const result: MenuItemDef[] = [];
 
+        const t = getT();
         /* Ir al perfil del autor */
         result.push({
             id: 'ver-perfil',
-            etiqueta: `Ir a @${post.autor.username}`,
+            etiqueta: t('menu.irAPerfil', { username: post.autor.username }),
             icono: <User size={16} />,
             href: `/perfil/${post.autor.username}/`,
             onClick: () => { navegar(`/perfil/${post.autor.username}/`); },
@@ -89,7 +90,7 @@ export const useMenuContextualPublicacion = (
         /* Copiar enlace */
         result.push({
             id: 'copiar-enlace',
-            etiqueta: 'Copiar enlace',
+            etiqueta: t('comun.copiarEnlace'),
             icono: <Link2 size={16} />,
             separadorDespues: true,
             onClick: () => {
@@ -102,7 +103,7 @@ export const useMenuContextualPublicacion = (
         if (puedeEditar) {
             result.push({
                 id: 'editar',
-                etiqueta: post.tipo === 'sample' ? 'Editar sample' : 'Editar publicación',
+                etiqueta: post.tipo === 'sample' ? t('menu.editarSample') : t('menu.editarPublicacion'),
                 icono: <Pencil size={16} />,
                 onClick: () => {
                     if (post.tipo === 'sample' && post.samplesAdjuntos?.[0]) {
@@ -118,7 +119,7 @@ export const useMenuContextualPublicacion = (
         if (esAdmin && post.moderacionEstado && post.moderacionEstado !== 'aprobado') {
             result.push({
                 id: 'aprobar',
-                etiqueta: 'Aprobar publicación',
+                etiqueta: t('menu.aprobarPublicacion'),
                 icono: <CheckCircle size={16} />,
                 onClick: async () => {
                     try {
@@ -147,7 +148,7 @@ export const useMenuContextualPublicacion = (
         if (puedeEditar) {
             result.push({
                 id: 'eliminar',
-                etiqueta: 'Eliminar publicación',
+                etiqueta: t('menu.eliminarPublicacion'),
                 icono: <Trash2 size={16} />,
                 peligro: true,
                 separadorDespues: !esPropietario,
@@ -184,7 +185,7 @@ export const useMenuContextualPublicacion = (
         if (!esPropietario && usuario) {
             result.push({
                 id: 'reportar',
-                etiqueta: 'Reportar',
+                etiqueta: t('comun.reportar'),
                 icono: <Flag size={16} />,
                 peligro: true,
                 onClick: () => {

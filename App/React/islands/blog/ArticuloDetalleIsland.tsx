@@ -22,6 +22,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { eliminarArticulo } from '@app/services/apiArticulos';
 import { toast } from '@app/stores/toastStore';
+import { useT } from '@app/utils/i18n/useT';
 import '@app/styles/componentes/articuloDetalle.css';
 
 interface ArticuloDetalleIslandProps {
@@ -41,6 +42,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
     const usuarioId = useAuthStore(s => s.usuario?.id ?? null);
     const rolUsuario = useAuthStore(s => s.usuario?.rol ?? null);
     const abrirEdicion = useArticuloEditorStore(s => s.abrirEdicion);
+    const { t } = useT();
 
     /* [193A-36] Autenticados vuelven a /?tab=blog (blog es tab del inicio) */
     const hrefBlog = autenticado ? '/?tab=blog' : '/blog';
@@ -94,10 +96,10 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
             <div className="articuloDetalleContenedor">
                 <EnlaceNavegacion href={hrefBlog} className="articuloDetalleVolver">
                     <ArrowLeft size={16} />
-                    Volver al blog
+                    {t('blog.volverAlBlog')}
                 </EnlaceNavegacion>
                 <div className="blogVacio">
-                    <p className="blogVacioTexto">{error ?? 'Artículo no encontrado'}</p>
+                    <p className="blogVacioTexto">{error ?? t('blog.articuloNoEncontrado')}</p>
                 </div>
             </div>
         );
@@ -112,7 +114,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
             {/* Volver */}
             <EnlaceNavegacion href={hrefBlog} className="articuloDetalleVolver">
                 <ArrowLeft size={16} />
-                Volver al blog
+                {t('blog.volverAlBlog')}
             </EnlaceNavegacion>
 
             {/* Cabecera */}
@@ -213,7 +215,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                     items={[
                         {
                             id: 'editar',
-                            etiqueta: 'Editar',
+                            etiqueta: t('comun.editar'),
                             onClick: () => {
                                 abrirEdicion(articulo.id, {
                                     titulo: articulo.titulo,
@@ -228,7 +230,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                         },
                         {
                             id: 'copiar',
-                            etiqueta: 'Copiar enlace',
+                            etiqueta: t('comun.copiarEnlace'),
                             onClick: () => {
                                 navigator.clipboard.writeText(`${window.location.origin}/blog/${articulo.slug}/`);
                                 cerrarMenuDetalle();
@@ -237,7 +239,7 @@ export const ArticuloDetalleIsland: React.FC<ArticuloDetalleIslandProps> = ({ sl
                         /* [193A-45] Eliminar — autor o admin */
                         {
                             id: 'eliminar',
-                            etiqueta: 'Eliminar',
+                            etiqueta: t('comun.eliminar'),
                             peligro: true,
                             onClick: async () => {
                                 if (!confirm('¿Eliminar este artículo? Esta acción no se puede deshacer.')) return;

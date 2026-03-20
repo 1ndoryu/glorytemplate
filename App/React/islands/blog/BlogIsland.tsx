@@ -21,6 +21,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
 import { eliminarArticulo } from '@app/services/apiArticulos';
 import type { CategoriaArticulo } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import '@app/styles/componentes/blog.css';
 
 /* [183A-109] Grupos de categorías para navegación rápida */
@@ -53,14 +54,15 @@ const gruposCategorias: { grupo: string; categorias: CategoriaArticulo[] }[] = [
 ];
 
 /* Etiquetas de estado para la sub-fila de Mis artículos */
-const ESTADOS_MIS_ARTICULOS: { label: string; valor: 'aprobado' | 'pendiente' | 'rechazado' | 'borrador' }[] = [
-    { label: 'Publicados', valor: 'aprobado' },
-    { label: 'Pendiente', valor: 'pendiente' },
-    { label: 'Rechazados', valor: 'rechazado' },
-    { label: 'Borradores', valor: 'borrador' },
+const ESTADOS_MIS_ARTICULOS: { claveI18n: string; valor: 'aprobado' | 'pendiente' | 'rechazado' | 'borrador' }[] = [
+    { claveI18n: 'blog.publicados', valor: 'aprobado' },
+    { claveI18n: 'blog.pendiente', valor: 'pendiente' },
+    { claveI18n: 'blog.rechazados', valor: 'rechazado' },
+    { claveI18n: 'blog.borradores', valor: 'borrador' },
 ];
 
 export const BlogIsland: React.FC = () => {
+    const { t } = useT();
     const {
         articulos, cargando, hayMas, categoria, cambiarCategoria, cargarMas, darLike,
         quitarArticulo, misArticulosActivo, activarMisArticulos, cambiarEstadoFiltro, borradorLocal,
@@ -111,7 +113,7 @@ export const BlogIsland: React.FC = () => {
         /* [193A-20] Editar — solo si el usuario autenticado es el autor */
         ...(usuarioId && articuloMenu.autor?.id === usuarioId ? [{
             id: 'editar',
-            etiqueta: 'Editar',
+            etiqueta: t('comun.editar'),
             onClick: () => {
                 abrirEdicion(articuloMenu.id, {
                     titulo: articuloMenu.titulo,
@@ -126,7 +128,7 @@ export const BlogIsland: React.FC = () => {
         }] : []),
         {
             id: 'compartir',
-            etiqueta: 'Copiar enlace',
+            etiqueta: t('comun.copiarEnlace'),
             onClick: () => {
                 navigator.clipboard.writeText(`${window.location.origin}/blog/${articuloMenu.slug}/`);
                 toast.exito('Enlace copiado');
@@ -135,7 +137,7 @@ export const BlogIsland: React.FC = () => {
         },
         {
             id: 'ver',
-            etiqueta: 'Ver artículo',
+            etiqueta: t('menu.verArticulo'),
             onClick: () => {
                 navegar(`/blog/${articuloMenu.slug}/`);
                 cerrarMenu();
@@ -144,7 +146,7 @@ export const BlogIsland: React.FC = () => {
         /* [193A-45] Eliminar — autor o admin */
         ...((usuarioId && articuloMenu.autor?.id === usuarioId) || rolUsuario === 'admin' ? [{
             id: 'eliminar',
-            etiqueta: 'Eliminar',
+            etiqueta: t('comun.eliminar'),
             peligro: true,
             onClick: async () => {
                 if (!confirm('¿Eliminar este artículo? Esta acción no se puede deshacer.')) return;
@@ -173,7 +175,7 @@ export const BlogIsland: React.FC = () => {
                         className={`blogCategoriaBtn ${!categoria && !misArticulosActivo ? 'blogCategoriaBtnActivo' : ''}`}
                         onClick={() => cambiarCategoria(undefined)}
                     >
-                        Todos
+                        {t('comun.todos')}
                     </BotonBase>
                     {gruposCategorias.map(g => (
                         <div key={g.grupo} className="blogCategoriaGrupo">
@@ -199,7 +201,7 @@ export const BlogIsland: React.FC = () => {
                             onClick={handleMisArticulos}
                         >
                             <User size={13} />
-                            Mis artículos
+                            {t('blog.misArticulos')}
                         </BotonBase>
                     )}
                 </div>
@@ -207,7 +209,7 @@ export const BlogIsland: React.FC = () => {
                 {/* [183A-110-E] Sub-fila de estado cuando Mis artículos está activo */}
                 {misArticulosActivo && (
                     <div className="blogSubCategorias">
-                        {ESTADOS_MIS_ARTICULOS.map(({ label, valor }) => (
+                        {ESTADOS_MIS_ARTICULOS.map(({ claveI18n, valor }) => (
                             <BotonBase
                                 key={valor}
                                 variante={estadoMisArticulos === valor ? 'primario' : 'ghost'}
@@ -215,7 +217,7 @@ export const BlogIsland: React.FC = () => {
                                 className={`blogCategoriaBtn blogSubCategoriaBtn ${estadoMisArticulos === valor ? 'blogCategoriaBtnActivo' : ''}`}
                                 onClick={() => handleCambiarEstado(valor)}
                             >
-                                {label}
+                                {t(claveI18n)}
                             </BotonBase>
                         ))}
                     </div>
@@ -227,14 +229,14 @@ export const BlogIsland: React.FC = () => {
                 borradorLocal ? (
                     <div className="blogBorradoresContenedor">
                         <div className="blogBorradorCard">
-                            <span className="blogBorradorBadge">Borrador local</span>
-                            <p className="blogBorradorTitulo">{(borradorLocal as { titulo?: string }).titulo || 'Sin título'}</p>
+                            <span className="blogBorradorBadge">{t('blog.borradorLocal')}</span>
+                            <p className="blogBorradorTitulo">{(borradorLocal as { titulo?: string }).titulo || t('blog.sinTitulo')}</p>
                         </div>
                     </div>
                 ) : (
                     <div className="blogVacio">
                         <BookOpen size={48} />
-                        <p className="blogVacioTexto">No tienes borradores guardados.</p>
+                        <p className="blogVacioTexto">{t('blog.sinBorradores')}</p>
                     </div>
                 )
             ) : cargando && articulos.length === 0 ? (

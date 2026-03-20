@@ -9,6 +9,7 @@ import { useState, useCallback, useRef, type KeyboardEvent } from 'react';
 import { Edit3, Trash2, Flag } from 'lucide-react';
 import { useAuthStore } from '@app/stores/authStore';
 import { useReportarStore } from '@app/stores/reportarStore';
+import { getT } from '@app/utils/i18n';
 import type { Comentario } from '@app/types/publicacion';
 import type { ComentarioAcciones } from '@app/components/social/ComentarioItem';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
@@ -48,22 +49,23 @@ export const useComentarioItem = ({ comentario, acciones, nivel = 0 }: UseComent
     }, []);
 
     /* Items del menú según permisos */
+    const t = getT();
     const menuItems: MenuItemDef[] = [];
     if (esAutor && acciones?.onEditar) {
         menuItems.push({
-            id: 'editar', etiqueta: 'Editar', icono: <Edit3 size={14} />,
+            id: 'editar', etiqueta: t('comun.editar'), icono: <Edit3 size={14} />,
             onClick: () => { setTextoEdicion(comentario.contenido ?? ''); acciones.setEditandoId?.(comentario.id); },
         });
     }
     if ((esAutor || esAdmin) && acciones?.onEliminar) {
         menuItems.push({
-            id: 'eliminar', etiqueta: 'Eliminar', icono: <Trash2 size={14} />, peligro: true,
+            id: 'eliminar', etiqueta: t('comun.eliminar'), icono: <Trash2 size={14} />, peligro: true,
             onClick: () => { acciones.onEliminar!(comentario.id); },
         });
     }
     if (!esAutor) {
         menuItems.push({
-            id: 'reportar', etiqueta: 'Reportar', icono: <Flag size={14} />, peligro: true,
+            id: 'reportar', etiqueta: t('comun.reportar'), icono: <Flag size={14} />, peligro: true,
             onClick: () => {
                 useReportarStore.getState().abrir('comentario', comentario.id);
             },

@@ -10,6 +10,7 @@ import { Upload, Link2, Flag, Scissors } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import type { RelacionDetalleCompleta } from '@app/types/cancion';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
+import { getT } from '@app/utils/i18n';
 
 interface RetornoMenuRelacion {
     menuAbierto: boolean;
@@ -55,18 +56,19 @@ export const useMenuRelacionDetalle = (
      */
     const items: MenuItemDef[] = useMemo(() => {
         if (!relacion || !autenticado) return [];
+        const t = getT();
 
         return [
             ...(opciones.esAdmin && opciones.onGenerarRecorte ? [{
                 id: 'generar-recorte',
-                etiqueta: opciones.recorteCargando ? 'Generando...' : 'Generar recorte',
+                etiqueta: opciones.recorteCargando ? t('menu.generando') : t('menu.generarRecorte'),
                 icono: React.createElement(Scissors, { size: 14 }),
                 separadorDespues: true,
                 onClick: () => { opciones.onGenerarRecorte!(); },
             }] : []),
             {
                 id: 'adjuntar-sample',
-                etiqueta: 'Adjuntar sample manual',
+                etiqueta: t('menu.adjuntarSampleManual'),
                 icono: React.createElement(Upload, { size: 14 }),
                 onClick: () => {
                     useCrearModalStore.getState().abrirConContexto({
@@ -86,14 +88,14 @@ export const useMenuRelacionDetalle = (
             },
             {
                 id: 'vincular-existente',
-                etiqueta: 'Vincular sample existente',
+                etiqueta: t('menu.vincularSample'),
                 icono: React.createElement(Link2, { size: 14 }),
                 separadorDespues: true,
                 onClick: () => setVincularAbierto(true),
             },
             {
                 id: 'reportar',
-                etiqueta: 'Reportar',
+                etiqueta: t('comun.reportar'),
                 icono: React.createElement(Flag, { size: 14 }),
                 peligro: true,
                 onClick: () => {

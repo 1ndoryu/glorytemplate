@@ -21,18 +21,18 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { TabBar } from '@app/components/ui/TabBar';
 import { SeccionConnect } from '@app/components/ui/SeccionConnect';
-import type { TabDefinicion } from '@app/components/ui';
 import type { IngresosPorPeriodo } from '@app/services/apiPagos';
 import { useDashboardCreador } from '@app/hooks/useDashboardCreador';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { Skeleton } from '@app/components/skeletons';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/dashboard.css';
 
-/* Tabs del dashboard */
-const TABS_DASHBOARD: TabDefinicion[] = [
-    { id: 'resumen', etiqueta: 'Resumen' },
-    { id: 'samples', etiqueta: 'Samples' },
-    { id: 'transacciones', etiqueta: 'Transacciones' },
+/* Tabs del dashboard — claves i18n, se traducen en render */
+const TABS_DASHBOARD: { id: string; claveI18n: string }[] = [
+    { id: 'resumen', claveI18n: 'dashboard.resumen' },
+    { id: 'samples', claveI18n: 'dashboard.samples' },
+    { id: 'transacciones', claveI18n: 'dashboard.transacciones' },
 ];
 
 /* Formatear moneda */
@@ -96,6 +96,7 @@ const GraficaIngresos = ({ datos }: { datos: IngresosPorPeriodo[] }): JSX.Elemen
 };
 
 const DashboardIslandBase = (): JSX.Element => {
+    const { t } = useT();
     const {
         tabActiva, setTabActiva, stats, topSamples, transacciones, ingresos,
         cargando, navegar, estadoConnect, balanceConnect, conectando,
@@ -108,10 +109,10 @@ const DashboardIslandBase = (): JSX.Element => {
             <div className="dashboardHeader">
                 <div className="dashboardHeaderTitulo">
                     <BarChart3 size={20} />
-                    <h1>Dashboard</h1>
+                    <h1>{t('comun.dashboard')}</h1>
                 </div>
                 <BotonBase variante="secundario" tamano="sm" onClick={() => navegar('/libreria/')}>
-                    Ir a librería
+                    {t('comun.irALibreria')}
                 </BotonBase>
             </div>
 
@@ -126,23 +127,23 @@ const DashboardIslandBase = (): JSX.Element => {
                     {/* Tarjetas de stats */}
                     <div className="dashboardStatsGrid">
                         <TarjetaStat
-                            titulo="Ingresos del mes"
+                            titulo={t('dashboard.ingresosMes')}
                             valor={stats ? formatearMoneda(stats.ingresosMes) : '$0.00'}
                             icono={<DollarSign size={16} />}
                             cambio={cambioIngresos}
                         />
                         <TarjetaStat
-                            titulo="Descargas del mes"
+                            titulo={t('dashboard.descargasMes')}
                             valor={stats ? formatearNumero(stats.descargasMes) : '0'}
                             icono={<Download size={16} />}
                         />
                         <TarjetaStat
-                            titulo="Reproducciones"
+                            titulo={t('dashboard.reproducciones')}
                             valor={stats ? formatearNumero(stats.reproduccionesMes) : '0'}
                             icono={<Headphones size={16} />}
                         />
                         <TarjetaStat
-                            titulo="Seguidores nuevos"
+                            titulo={t('dashboard.seguidoresNuevos')}
                             valor={stats ? `+${stats.seguidoresNuevosMes}` : '0'}
                             icono={<Users size={16} />}
                         />
@@ -162,7 +163,7 @@ const DashboardIslandBase = (): JSX.Element => {
                         <div className="dashboardSeccion">
                             <h2 className="dashboardSeccionTitulo">
                                 <DollarSign size={16} />
-                                Ingresos últimos 30 días
+                                {t('dashboard.ingresosUltimos30')}
                             </h2>
                             <GraficaIngresos datos={ingresos} />
                             <div className="dashboardSeccionFooter">
@@ -173,7 +174,7 @@ const DashboardIslandBase = (): JSX.Element => {
 
                     {/* Tabs */}
                     <TabBar
-                        tabs={TABS_DASHBOARD}
+                        tabs={TABS_DASHBOARD.map(tab => ({ id: tab.id, etiqueta: t(tab.claveI18n) }))}
                         activa={tabActiva}
                         onChange={setTabActiva}
                     />

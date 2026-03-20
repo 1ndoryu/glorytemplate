@@ -13,6 +13,7 @@ import '../../styles/componentes/chatFlotante.css';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { Input } from '../ui/Input';
+import { useT } from '@app/utils/i18n/useT';
 
 /* Ventana individual de chat */
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
@@ -25,6 +26,8 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
         manejarEnviar, manejarArchivo, enviarArchivoStaging, cancelarStaging, manejarKeyDown,
         toggleMenu, verPerfil, reportar, bloquear,
     } = useVentanaChat({ chat });
+
+    const { t } = useT();
 
     if (chat.minimizado) {
         return (
@@ -61,14 +64,14 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                         {menuAbierto && (
                             <div className="chatFlotanteMenu">
                                 <BotonBase variante="ghost" className="chatFlotanteMenuItem" onClick={verPerfil} type="button">
-                                    <User size={14} /><span>Ver perfil</span>
+                                    <User size={14} /><span>{t('comun.verPerfil')}</span>
                                 </BotonBase>
                                 <BotonBase variante="ghost" className="chatFlotanteMenuItem" onClick={reportar} type="button">
-                                    <Flag size={14} /><span>Reportar</span>
+                                    <Flag size={14} /><span>{t('comun.reportar')}</span>
                                 </BotonBase>
                                 <BotonBase variante="ghost" className="chatFlotanteMenuItem chatFlotanteMenuItemPeligro"
                                     onClick={bloquear} type="button">
-                                    <ShieldAlert size={14} /><span>Bloquear</span>
+                                    <ShieldAlert size={14} /><span>{t('comun.bloquear')}</span>
                                 </BotonBase>
                             </div>
                         )}
@@ -95,7 +98,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                         <Loader2 size={20} className="adminSpinner" />
                     </div>
                 ) : mensajes.length === 0 ? (
-                    <div className="chatFlotanteVacio">Inicia la conversación</div>
+                    <div className="chatFlotanteVacio">{t('chat.iniciaConversacion')}</div>
                 ) : mensajes.map(msg => (
                     <BurbujaMensaje key={msg.id} mensaje={msg} esMio={msg.remitenteId === miId} compacto />
                 ))}
@@ -134,7 +137,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                         type="button" aria-label="Adjuntar archivo" disabled={enviando}>
                         <Paperclip size={14} />
                     </BotonBase>
-                    <CampoTexto ref={inputRef}  placeholder="Escribe..." value={texto}
+                    <CampoTexto ref={inputRef}  placeholder={t('chat.escribe')} value={texto}
                         onChange={e => setTexto(e.target.value)} onKeyDown={manejarKeyDown} disabled={enviando} />
                     <BotonBase variante="ghost" tamano="ninguno" className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
                         onClick={manejarEnviar} disabled={!texto.trim() || enviando} type="button" aria-label="Enviar">

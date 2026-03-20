@@ -107,14 +107,14 @@ export const PasoMetadata = ({
             ))}
 
             <CampoTexto
-                etiqueta="Título"
+                etiqueta={t('comun.titulo')}
                 placeholder={t('metadata.nombreSample')}
                 value={metadata.titulo}
                 onChange={actualizarCampo('titulo')}
             />
 
             <CampoTexto
-                etiqueta="Descripción"
+                etiqueta={t('comun.descripcion')}
                 multilínea
                 placeholder={t('metadata.descripcionOpcional')}
                 rows={3}
@@ -124,7 +124,7 @@ export const PasoMetadata = ({
 
             <div className="subirFilaTriple">
                 <div>
-                    <span className="subirSelectLabel">Tipo</span>
+                    <span className="subirSelectLabel">{t('comun.tipo')}</span>
                     <SelectorBase
                         className="subirSelect"
                         value={metadata.tipo}
@@ -149,7 +149,7 @@ export const PasoMetadata = ({
                         value={metadata.key}
                         onChange={actualizarCampo('key')}
                     >
-                        <option value="">Detectar auto</option>
+                        <option value="">{t('metadata.detectarAuto')}</option>
                         {NOTAS.map((n) => (
                             <option key={n} value={n}>{n}</option>
                         ))}
@@ -158,7 +158,7 @@ export const PasoMetadata = ({
             </div>
 
             <div>
-                <span className="subirSelectLabel">Tags</span>
+                <span className="subirSelectLabel">{t('metadata.tags')}</span>
                 <div className="subirTags">
                     {TAGS_SUGERIDOS.map((tag) => (
                         <Badge
@@ -176,14 +176,14 @@ export const PasoMetadata = ({
 
             <div className="subirAcciones">
                 <BotonBase variante="ghost" onClick={onVolver}>
-                    Volver
+                    {t('comun.volver')}
                 </BotonBase>
                 <BotonBase
                     variante="primario"
                     disabled={!metadata.titulo.trim()}
                     onClick={onSubir}
                 >
-                    <Upload size={14} /> Publicar
+                    <Upload size={14} /> {t('subir.publicar')}
                 </BotonBase>
             </div>
         </div>

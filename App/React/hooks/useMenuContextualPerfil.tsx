@@ -13,6 +13,7 @@ import { useBloqueosStore } from '@app/stores/bloqueosStore';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { usePapeleraStore } from '@app/stores/papeleraStore';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 interface EstadoMenuPerfil {
     abierto: boolean;
@@ -70,19 +71,20 @@ export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenu
     }, []);
 
     const items = useMemo((): MenuItemDef[] => {
+        const t = getT();
         /* Modo propietario: configuración + papelera */
         if (esPropietario) {
             return [
                 {
                     id: 'configuracion',
-                    etiqueta: 'Configuración',
+                    etiqueta: t('topbar.configuracion'),
                     icono: <Settings size={16} />,
                     separadorDespues: true,
                     onClick: () => { abrirConfiguracion(); },
                 },
                 {
                     id: 'papelera',
-                    etiqueta: 'Papelera',
+                    etiqueta: t('menu.papelera'),
                     icono: <Trash2 size={16} />,
                     onClick: () => { abrirPapelera(); },
                 },
@@ -95,7 +97,7 @@ export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenu
 
         result.push({
             id: 'reportar',
-            etiqueta: 'Reportar',
+            etiqueta: t('comun.reportar'),
             icono: <Flag size={16} />,
             peligro: true,
             separadorDespues: true,
@@ -107,7 +109,7 @@ export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenu
         if (bloqueado) {
             result.push({
                 id: 'desbloquear',
-                etiqueta: 'Desbloquear',
+                etiqueta: t('comun.desbloquear'),
                 icono: <ShieldOff size={16} />,
                 onClick: async () => {
                     await desbloquear(usuario.id);
@@ -117,7 +119,7 @@ export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenu
         } else {
             result.push({
                 id: 'bloquear',
-                etiqueta: 'Bloquear',
+                etiqueta: t('comun.bloquear'),
                 icono: <ShieldAlert size={16} />,
                 peligro: true,
                 onClick: async () => {

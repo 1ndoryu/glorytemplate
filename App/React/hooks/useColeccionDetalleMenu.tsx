@@ -50,9 +50,10 @@ export function useColeccionDetalleMenu({
         const esAdmin = usuario?.rol === 'admin';
         const items: { id: string; etiqueta: string; icono: JSX.Element; onClick: () => void; peligro?: boolean; separadorDespues?: boolean }[] = [];
 
+        const t = getT();
         items.push({
             id: 'copiar-enlace',
-            etiqueta: 'Copiar enlace',
+            etiqueta: t('comun.copiarEnlace'),
             icono: <Link2 size={16} />,
             separadorDespues: true,
             onClick: () => {
@@ -64,7 +65,7 @@ export function useColeccionDetalleMenu({
         if (esPropietario || esAdmin) {
             items.push({
                 id: 'editar',
-                etiqueta: 'Editar colección',
+                etiqueta: t('menu.editarColeccion'),
                 icono: <Edit3 size={16} />,
                 onClick: () => {
                     cerrarMenuColeccion();
@@ -74,7 +75,7 @@ export function useColeccionDetalleMenu({
 
             items.push({
                 id: 'combinar',
-                etiqueta: 'Combinar colecciones',
+                etiqueta: t('menu.combinarColecciones'),
                 icono: <Combine size={16} />,
                 onClick: () => {
                     cerrarMenuColeccion();
@@ -85,7 +86,7 @@ export function useColeccionDetalleMenu({
             if (coleccion.parentId === null) {
                 items.push({
                     id: 'crear-volumen',
-                    etiqueta: 'Crear volumen',
+                    etiqueta: t('menu.crearVolumen'),
                     icono: <Plus size={16} />,
                     separadorDespues: true,
                     onClick: () => {
@@ -101,7 +102,7 @@ export function useColeccionDetalleMenu({
         if (esPropietario || esAdmin) {
             items.push({
                 id: 'eliminar',
-                etiqueta: 'Eliminar colección',
+                etiqueta: t('coleccion.menu.eliminar'),
                 icono: <Trash2 size={16} />,
                 peligro: true,
                 onClick: () => {
@@ -115,7 +116,7 @@ export function useColeccionDetalleMenu({
         if (esAdmin) {
             items.push({
                 id: 'compartir-gratis',
-                etiqueta: 'Compartir gratis',
+                etiqueta: t('menu.compartirGratis'),
                 icono: <Gift size={16} />,
                 onClick: async () => {
                     cerrarMenuColeccion();
@@ -134,7 +135,7 @@ export function useColeccionDetalleMenu({
             /* [183A-110] Admin: invalidar todos los codigos activos de esta coleccion */
             items.push({
                 id: 'invalidar-enlace',
-                etiqueta: 'Invalidar enlace gratis',
+                etiqueta: t('menu.invalidarEnlaceGratis'),
                 icono: <ShieldOff size={16} />,
                 separadorDespues: true,
                 onClick: () => {
@@ -154,7 +155,7 @@ export function useColeccionDetalleMenu({
 
         items.push({
             id: 'reportar',
-            etiqueta: 'Reportar',
+            etiqueta: t('comun.reportar'),
             icono: <Flag size={16} />,
             onClick: () => { cerrarMenuColeccion(); },
         });

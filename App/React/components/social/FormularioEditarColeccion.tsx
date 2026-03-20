@@ -5,6 +5,7 @@
 
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { Checkbox } from '@app/components/ui/Checkbox';
+import { useT } from '@app/utils/i18n/useT';
 import type { FormularioColeccion } from '@app/hooks/useEditar';
 
 interface FormularioEditarColeccionProps {
@@ -15,10 +16,12 @@ interface FormularioEditarColeccionProps {
 export const FormularioEditarColeccion = ({
     formulario,
     setFormulario,
-}: FormularioEditarColeccionProps): JSX.Element => (
+}: FormularioEditarColeccionProps): JSX.Element => {
+    const { t } = useT();
+    return (
     <>
         <CampoTexto
-            etiqueta="Nombre"
+            etiqueta={t('coleccion.nombre')}
             value={formulario.nombre}
             onChange={(e) =>
                 setFormulario((prev) => ({
@@ -26,13 +29,13 @@ export const FormularioEditarColeccion = ({
                     nombre: (e.target as HTMLInputElement).value,
                 }))
             }
-            placeholder="Mi colección..."
+            placeholder={t('coleccion.nombrePlaceholder')}
             maxLength={100}
             autoFocus
         />
 
         <CampoTexto
-            etiqueta="Descripción"
+            etiqueta={t('coleccion.descripcion')}
             value={formulario.descripcion}
             onChange={(e) =>
                 setFormulario((prev) => ({
@@ -40,12 +43,12 @@ export const FormularioEditarColeccion = ({
                     descripcion: (e.target as unknown as HTMLTextAreaElement).value,
                 }))
             }
-            placeholder="Descripción (opcional)"
+            placeholder={t('coleccion.descripcionPlaceholder')}
             maxLength={300}
         />
 
         <Checkbox
-            label="Colección pública"
+            label={t('coleccion.publica')}
             checked={formulario.esPublica}
             onChange={(e) =>
                 setFormulario((prev) => ({
@@ -55,4 +58,5 @@ export const FormularioEditarColeccion = ({
             }
         />
     </>
-);
+    );
+};

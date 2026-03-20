@@ -10,6 +10,7 @@ import Avatar from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BadgeCheck } from 'lucide-react';
 import { useCardPerfil } from '@app/hooks/useCardPerfil';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/cardPerfil.css';
 
 interface CardPerfilProps {
@@ -21,6 +22,8 @@ interface CardPerfilProps {
 export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
     const { perfil, cargando, siguiendo, cardRef, esPropio, manejarSeguir, irAPerfil } =
         useCardPerfil({ username, onCerrar, onNavegar });
+
+    const { t } = useT();
 
     return (
         /* sentinel-disable-next-line componente-artesanal — popover posicionado, no un modal centrado. Modal lo centraria incorrectamente. */
@@ -34,9 +37,9 @@ export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
             aria-label={`Perfil de ${username}`}
         >
             {cargando ? (
-                <div className="cardPerfilCargando">Cargando...</div>
+                <div className="cardPerfilCargando">{t('perfil.cargando')}</div>
             ) : !perfil ? (
-                <div className="cardPerfilCargando">No disponible</div>
+                <div className="cardPerfilCargando">{t('perfil.noDisponible')}</div>
             ) : (
                 <>
                     <div className="cardPerfilCabecera">
@@ -59,7 +62,7 @@ export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
                     )}
 
                     <span className="cardPerfilSeguidores">
-                        {(perfil.totalSeguidores ?? 0).toLocaleString('es')} seguidores
+                        {(perfil.totalSeguidores ?? 0).toLocaleString('es')} {t('perfil.seguidores')}
                     </span>
 
                     {!esPropio && (
@@ -68,7 +71,7 @@ export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
                             className="cardPerfilSeguirBtn"
                             onClick={manejarSeguir}
                         >
-                            {siguiendo ? 'Siguiendo' : 'Seguir'}
+                            {siguiendo ? t('comun.siguiendo') : t('comun.seguir')}
                         </BotonBase>
                     )}
                 </>

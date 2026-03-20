@@ -13,6 +13,7 @@
 
 import { Badge } from '@app/components/ui/Badge';
 import type { ColeccionResumen } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/filtroSubcolecciones.css';
 
 export interface FiltroSubcoleccionesProps {
@@ -26,6 +27,7 @@ export const FiltroSubcolecciones = ({
     activa,
     onChange,
 }: FiltroSubcoleccionesProps): JSX.Element | null => {
+    const { t } = useT();
     if (subcolecciones.length === 0) return null;
 
     return (
@@ -38,7 +40,7 @@ export const FiltroSubcolecciones = ({
                 interactivo
                 onClick={() => onChange(null)}
             >
-                Todos
+                {t('comun.todos')}
             </Badge>
 
             {subcolecciones.map(sub => (
