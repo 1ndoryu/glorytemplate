@@ -16,11 +16,14 @@ import { useAuth } from '../../hooks/useAuth';
 import { useModalAuth } from '../../hooks/useModalAuth';
 import '../../styles/componentes/authModal.css';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
+import { useT } from '@app/utils/i18n';
+/* [183A-111] ModalAuth migrado a i18n: FormularioLogin, FormularioRegistro y ModalAuth via t() */
 
 const imagenAuth = resolverRutaAsset('/wp-content/themes/glorytemplate/App/Assets/images/2.jpg');
 
 /* Formulario de Login */
 const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {
+    const { t } = useT();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { cargando, error, iniciarSesion, googleBotonRef, esGoogleNativo, loginGoogleNativo } = useAuth();
@@ -32,7 +35,7 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
 
     return (
         <div className="authFormContenedor">
-            <h2 className="authTitulo">Inicia sesión</h2>
+            <h2 className="authTitulo">{t('auth.login.titulo')}</h2>
 
             {/* QL32: En desktop/APK, Google GSI no funciona en WebView; mostrar boton propio */}
             {esGoogleNativo ? (
@@ -45,19 +48,19 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
                     type="button"
                 >
                     <IconoGoogle />
-                    Continuar con Google
+                    {t('auth.continuarConGoogle')}
                 </BotonBase>
             ) : (
                 <div ref={googleBotonRef} className="authGoogleBtnContenedor" />
             )}
 
-            <div className="authSeparador">o</div>
+            <div className="authSeparador">{t('auth.o')}</div>
 
             {error && <div className="authError">{error}</div>}
 
             <form className="authFormulario" onSubmit={manejarSubmit}>
                 <CampoTexto
-                    etiqueta="Email o usuario"
+                    etiqueta={t('auth.emailOUsuario')}
                     type="text"
                     placeholder="tu@email.com"
                     value={email}
@@ -66,9 +69,9 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
                 />
 
                 <CampoTexto
-                    etiqueta="Contraseña"
+                    etiqueta={t('auth.contrasena')}
                     type="password"
-                    placeholder="Tu contraseña"
+                    placeholder={t('auth.contrasenaPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -80,14 +83,14 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
                     anchoCompleto
                     cargando={cargando}
                 >
-                    Iniciar sesión
+                    {t('auth.iniciarSesion')}
                 </BotonBase>
             </form>
 
             <p className="authFooter">
-                ¿No tienes cuenta?{' '}
+                {t('auth.noTienesCuenta')}{' '}
                 <BotonBase variante="ghost" type="button" className="authEnlace" onClick={onCambiar}>
-                    Regístrate gratis
+                    {t('auth.registrateGratis')}
                 </BotonBase>
             </p>
         </div>
@@ -96,6 +99,7 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
 
 /* Formulario de Registro (simplificado: username, email, password) */
 const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {
+    const { t } = useT();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -108,7 +112,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 
     return (
         <div className="authFormContenedor">
-            <h2 className="authTitulo">Crea tu cuenta</h2>
+            <h2 className="authTitulo">{t('auth.registro.titulo')}</h2>
 
             {/* QL32: En desktop/APK, Google GSI no funciona en WebView; mostrar boton propio */}
             {esGoogleNativo ? (
@@ -121,19 +125,19 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
                     type="button"
                 >
                     <IconoGoogle />
-                    Continuar con Google
+                    {t('auth.continuarConGoogle')}
                 </BotonBase>
             ) : (
                 <div ref={googleBotonRef} className="authGoogleBtnContenedor" />
             )}
 
-            <div className="authSeparador">o</div>
+            <div className="authSeparador">{t('auth.o')}</div>
 
             {error && <div className="authError">{error}</div>}
 
             <form className="authFormulario" onSubmit={manejarSubmit}>
                 <CampoTexto
-                    etiqueta="Nombre de usuario"
+                    etiqueta={t('config.nombreUsuario')}
                     placeholder="tu_usuario"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -141,7 +145,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
                 />
 
                 <CampoTexto
-                    etiqueta="Email"
+                    etiqueta={t('auth.email')}
                     type="email"
                     placeholder="tu@email.com"
                     value={email}
@@ -150,9 +154,9 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
                 />
 
                 <CampoTexto
-                    etiqueta="Contraseña"
+                    etiqueta={t('auth.contrasena')}
                     type="password"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={t('auth.contrasenaMin')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -164,14 +168,14 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
                     anchoCompleto
                     cargando={cargando}
                 >
-                    Crear cuenta
+                    {t('auth.registro')}
                 </BotonBase>
             </form>
 
             <p className="authFooter">
-                ¿Ya tienes cuenta?{' '}
+                {t('auth.yaTienesCuenta')}{' '}
                 <BotonBase variante="ghost" type="button" className="authEnlace" onClick={onCambiar}>
-                    Inicia sesión
+                    {t('auth.iniciarSesion')}
                 </BotonBase>
             </p>
         </div>
