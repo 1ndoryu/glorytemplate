@@ -41,13 +41,15 @@ class ProcesadorColaIA
     private const MAX_ITEMS_POR_EJECUCION = 15;
     private const MAX_AUDIOS_POR_EJECUCION = 1;
     /*
-     * [193A-91] Gap reducido a 50s para que el cron de 60s no salte ciclos.
-     * Con el gap anterior de 60s, el cron se disparaba ~1-3s después del minuto
-     * y encontraba el transient aún vivo, perdiendo un ciclo completo.
-     * Con 3 keys rotando cada item, 50s de gap es seguro contra rate limits.
+     * [193A-91] Gap reducido a 45s para que el cron de 60s no salte ciclos.
+     * El procesamiento de un audio tarda ~10s (envío a Groq + respuesta), y el
+     * transient se setea DESPUÉS del procesamiento. Con gap=50s y cron=60s, hay
+     * un margen de ~10s que a veces no es suficiente (se vio transcurrido=49).
+     * 45s da margen de ~15s para jitter del cron y tiempo de procesamiento.
+     * Con 3 keys rotando cada item, 45s es seguro contra rate limits.
      */
     private const LIMITE_DIARIO = 400;
-    private const GAP_MINIMO_AUDIO_SEGUNDOS = 50;
+    private const GAP_MINIMO_AUDIO_SEGUNDOS = 45;
     private const TRANSIENT_CONTADOR_DIARIO = 'kmpl_ia_daily_count';
     private const TRANSIENT_ULTIMO_AUDIO = 'kmpl_ia_ultimo_audio';
     /* Nombre del hook WP Cron */
