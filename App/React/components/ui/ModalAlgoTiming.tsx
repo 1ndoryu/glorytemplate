@@ -1,23 +1,14 @@
-/*
- * ModalAlgoTiming — Modal de métricas del algoritmo de recomendación.
- *
- * Solo visible para admin con el toggle "Logs de rendimiento" activo.
- * Tres tabs:
- *  - Última medición: desglose completo por etapa con %, barra visual.
- *  - Promedio: promedio por etapa a través de todo el historial.
- *  - Historial: tabla de todas las mediciones con timestamp y total ms.
- * Permite limpiar el historial y refrescar los datos.
- *
+/* ModalAlgoTiming — Modal de métricas del algoritmo de recomendación (admin only).
+ * Tres tabs: última medición, promedio, historial. Historial en WP options.
  * [2003A-3] Creado para profiling del algoritmo de feed.
- * Gotcha: el historial vive en WP options server-side, por lo que persiste
- * entre recargas. Cada cargar del feed de userId 1 (sin cache) genera una entrada.
- */
+ * [2003A-3-B] Desglose EXPLAIN extraído a DesgloseExplain.tsx. */
 
 import { useState } from 'react';
 import { RefreshCw, Trash2, Activity } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useAlgoTimingStore, type RegistroTiming } from '@app/stores/algoTimingStore';
+import { DesgloseExplain } from '@app/components/ui/DesgloseExplain';
 import '../../styles/componentes/modalAlgoTiming.css';
 
 type TabTiming = 'ultima' | 'promedio' | 'historial';
@@ -108,6 +99,9 @@ const TabUltima = ({ registro }: { registro: RegistroTiming }): JSX.Element => {
                 <span>MV trending: <strong>{registro.meta?.usoMV ? 'Sí' : 'No'}</strong></span>
                 <span>Pipeline candidatos: <strong>{registro.meta?.usoCandidatos ? 'Sí' : 'No'}</strong></span>
             </div>
+
+            {/* [2003A-3-B] Desglose EXPLAIN ANALYZE del CTE feed */}
+            {registro.explain && <DesgloseExplain explain={registro.explain} />}
         </div>
     );
 };

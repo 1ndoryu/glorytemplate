@@ -18,6 +18,25 @@ export interface EtapasTiming {
     [key: string]: number | undefined;
 }
 
+/* [2003A-3-B] Nodo del EXPLAIN ANALYZE de PostgreSQL */
+export interface NodoExplain {
+    etiqueta: string;
+    tipo: string;
+    totalMs: number;
+    exclusivoMs: number;
+    filas: number;
+    profundidad: number;
+    esCte: boolean;
+    buffers: number;
+}
+
+/* [2003A-3-B] Datos de EXPLAIN ANALYZE parseados */
+export interface ExplainData {
+    planificacionMs: number;
+    ejecucionMs: number;
+    nodos: NodoExplain[];
+}
+
 export interface RegistroTiming {
     ts: string;
     totalMs: number;
@@ -31,6 +50,7 @@ export interface RegistroTiming {
         limite?: number;
         offset?: number;
     };
+    explain?: ExplainData;
 }
 
 interface RespuestaTiming {

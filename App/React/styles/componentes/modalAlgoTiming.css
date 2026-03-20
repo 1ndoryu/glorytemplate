@@ -43,7 +43,7 @@
 
 .algoTimingTabs {
     display: flex;
-    gap: 2px;
+    gap: var(--espacio2xs);
     border-bottom: 1px solid var(--bordeSutil);
 }
 
@@ -57,7 +57,7 @@
     cursor: pointer;
     font-family: var(--fuentePrincipal);
     transition: color var(--transicionRapida), border-color var(--transicionRapida);
-    margin-bottom: -1px;
+    margin-bottom: calc(-1 * var(--espacioMinimo));
 }
 
 .algoTimingTab:hover {
@@ -170,14 +170,14 @@
 .algoTimingBarra {
     height: 4px;
     background: var(--fondoElevado1);
-    border-radius: 2px;
+    border-radius: var(--espacio2xs);
     overflow: hidden;
 }
 
 .algoTimingBarraRelleno {
     height: 100%;
-    border-radius: 2px;
-    transition: width var(--transicionMedia);
+    border-radius: var(--espacio2xs);
+    transition: width var(--transicionNormal);
 }
 
 .algoTimingBarraRelleno.timingBajo { background: var(--exito); }
@@ -231,4 +231,27 @@
 
 .algoTimingRotando {
     animation: algoTimingGirar 1s linear infinite;
+}
+
+/* [2003A-3-B] Sección EXPLAIN ANALYZE */
+.algoTimingExplain {
+    margin-top: var(--espacioLg);
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeClaro);
+}
+
+.algoTimingExplainTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    margin: 0 0 var(--espacioSm);
+}
+
+.algoTimingExplainSubtitulo {
+    font-size: var(--fuenteXs);
+    font-weight: 600;
+    color: var(--textoTerciario);
+    margin: var(--espacioMd) 0 var(--espacioXs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

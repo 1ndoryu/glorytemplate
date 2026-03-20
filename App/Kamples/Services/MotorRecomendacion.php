@@ -547,6 +547,10 @@ class MotorRecomendacion
                 $todoResultados = SamplesRepository::consultar($sql, $bulkParams);
                 AlgoTimingLogger::marcar($userId, 'sqlFeed');
 
+                /* [2003A-3-B] Capturar EXPLAIN ANALYZE para desglose detallado por CTE.
+                 * Solo se ejecuta para userId 1 (no-op para el resto). */
+                AlgoTimingLogger::capturarExplain($userId, $sql, $bulkParams);
+
                 KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
                     'userId' => $userId, 'totalBulk' => \count($todoResultados),
                     'paginasBulk' => self::PAGINAS_BULK,
@@ -572,6 +576,10 @@ class MotorRecomendacion
             } else {
                 $resultado = SamplesRepository::consultar($sql, $queryParams);
                 AlgoTimingLogger::marcar($userId, 'sqlFeed');
+
+                /* [2003A-3-B] EXPLAIN ANALYZE para path sin bulk-fetch */
+                AlgoTimingLogger::capturarExplain($userId, $sql, $queryParams);
+
                 $resultado = self::inyectarSerendipia($resultado, $userId, $config);
                 self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
             }
