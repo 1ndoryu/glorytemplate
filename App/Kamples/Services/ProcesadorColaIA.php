@@ -6,10 +6,11 @@
  *
  * C356: Cuando Groq devuelve 429, los items (samples, publicaciones, comentarios)
  * se encolan en cola_procesamiento_ia. Este servicio se ejecuta via WP Cron
- * cada 15 minutos y reprocesa items pendientes en orden FIFO.
+ * cada minuto y reprocesa la cola manteniendo FIFO.
  *
  * Comportamiento:
- * - Procesa hasta MAX_ITEMS_POR_EJECUCION items por run (free tier Groq)
+ * - Revisa una ventana FIFO de MAX_ITEMS_POR_EJECUCION items por run
+ * - Procesa como máximo 1 sample de audio por ejecución
  * - Respeta proximo_intento (no procesa items antes de tiempo)
  * - Si detecta rate limit durante el procesamiento, se detiene inmediatamente
  * - Marca items como completado/error segun resultado
@@ -35,15 +36,10 @@ use App\Kamples\KamplesLogger;
 
 class ProcesadorColaIA
 {
-    /*
-     * [193A-76] Con rotación por ítem y 3 keys disponibles, 15 items por run
-     * es seguro: ~5 por key por ejecución, sin exceder rate limits por key.
-     */
+    /* [193A-72] Seguimos consultando una ventana amplia para preservar FIFO,
+     * pero solo se permite 1 audio por ejecución. */
     private const MAX_ITEMS_POR_EJECUCION = 15;
-
-    /* [193A-76] Reducido de 30s a 5s: la rotación de key por ítem distribuye
-     * el rate limit entre keys, haciendo innecesaria la pausa larga. */
-    private const PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS = 5;
+    private const MAX_AUDIOS_POR_EJECUCION = 1;
     /*
      * [193A-43] Gap mínimo entre procesamiento de audio (1 minuto).
      * Con rotación de 3 keys se distribuye el rate limit.
@@ -56,9 +52,9 @@ class ProcesadorColaIA
     /* Nombre del hook WP Cron */
     public const CRON_HOOK = 'kamples_cola_ia_cron';
 
-    /* Intervalo: cada 15 minutos */
-    public const CRON_INTERVALO = 'kamples_15min';
-    public const CRON_INTERVALO_SEGUNDOS = 900;
+    /* [193A-72] La cola IA debe dispararse cada minuto, no en ráfagas de 15 min. */
+    public const CRON_INTERVALO = 'kamples_1min';
+    public const CRON_INTERVALO_SEGUNDOS = 60;
 
     /**
      * Registra el hook de WP Cron para procesamiento de la cola IA.
@@ -71,7 +67,7 @@ class ProcesadorColaIA
             if (!isset($schedules[self::CRON_INTERVALO])) {
                 $schedules[self::CRON_INTERVALO] = [
                     'interval' => self::CRON_INTERVALO_SEGUNDOS,
-                    'display'  => 'Kamples: cada 15 minutos (Cola IA)',
+                    'display'  => 'Kamples: cada 1 minuto (Cola IA)',
                 ];
             }
             return $schedules;
@@ -79,6 +75,15 @@ class ProcesadorColaIA
 
         /* Registrar accion del cron */
         add_action(self::CRON_HOOK, [self::class, 'procesar']);
+
+        /* [193A-72] Migrar automáticamente cualquier schedule legacy de 15 min. */
+        $eventoActual = \function_exists('wp_get_scheduled_event')
+            ? \wp_get_scheduled_event(self::CRON_HOOK)
+            : null;
+
+        if ($eventoActual && (($eventoActual->schedule ?? null) !== self::CRON_INTERVALO || ((int) ($eventoActual->interval ?? 0)) !== self::CRON_INTERVALO_SEGUNDOS)) {
+            \wp_unschedule_event((int) $eventoActual->timestamp, self::CRON_HOOK, $eventoActual->args ?? []);
+        }
 
         /* Programar si no existe */
         if (!wp_next_scheduled(self::CRON_HOOK)) {
@@ -135,7 +140,7 @@ class ProcesadorColaIA
          * [193A-43] Moderación (comentarios/publicaciones) procesada sin gap. */
         $tieneItemsAudio = false;
         $tieneItemsModeracion = false;
-        foreach ($pendientes as $item) {
+        foreach ($pendientes as $indice => $item) {
             $tipo = $item[ColaProcesamientoIaCols::TIPO] ?? '';
             if ($tipo === ColaProcesamientoIaEnums::TIPO_SAMPLE) {
                 $tieneItemsAudio = true;
@@ -166,7 +171,9 @@ class ProcesadorColaIA
             'pendientes' => \count($pendientes),
         ]);
 
-        foreach ($pendientes as $indice => $item) {
+        $audiosProcesadosEnEjecucion = 0;
+
+        foreach ($pendientes as $item) {
             $tipoItem = $item[ColaProcesamientoIaCols::TIPO] ?? '';
             $esAudio = ($tipoItem === ColaProcesamientoIaEnums::TIPO_SAMPLE);
 
@@ -176,10 +183,10 @@ class ProcesadorColaIA
                 continue;
             }
 
-            /* [193A-43] Pausa entre items: 30s para audio, 0 para moderación */
-            if ($indice > 0 && $esAudio) {
-                KamplesLogger::info('ProcesadorColaIA: Pausa de ' . self::PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS . 's antes del siguiente audio');
-                \sleep(self::PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS);
+            /* [193A-72] Máximo 1 audio por ejecución. Evita ráfagas con el mismo minuto. */
+            if ($esAudio && $audiosProcesadosEnEjecucion >= self::MAX_AUDIOS_POR_EJECUCION) {
+                $resultado['omitidos']++;
+                continue;
             }
 
             /* C356: Si detectamos rate limit en item anterior, parar inmediatamente */
@@ -214,6 +221,9 @@ class ProcesadorColaIA
             GroqHttpClient::resetearEstadoRateLimit();
 
             $resultado['procesados']++;
+            if ($esAudio) {
+                $audiosProcesadosEnEjecucion++;
+            }
             $exito = false;
 
             try {
