@@ -238,6 +238,8 @@
   "planes.feature.descargasIlimitadas": "Descargas ilimitadas",
   "planes.feature.wavOriginal": "Calidad WAV original",
   "planes.feature.subidasIlimitadas": "Subidas ilimitadas",
+  "planes.feature.sincronizacion100": "100 samples de sincronización",
+  "planes.feature.sincronizacion20k": "20.000 samples de sincronización",
   "planes.feature.transferencia1gb": "1 GB transferencia/mes",
   "planes.feature.transferencia10gb": "10 GB transferencia/mes",
   "planes.feature.transferencia50gb": "50 GB transferencia/mes",

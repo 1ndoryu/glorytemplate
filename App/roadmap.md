@@ -65,6 +65,10 @@ Ubicacion: `App/docs (ignorar)/`
 
 AlgoTimingLogger ya está instrumentado y deployado. Activar el toggle "Logs de rendimiento" en Settings, cargar el feed siendo user 1, abrir el modal de métricas del algoritmo para ver el desglose real por etapa. Con esa información, identificar y optimizar la etapa más lenta (baseline: ~793ms feed pag1). Objetivo: reducir sin afectar calidad ni frecuencia de actualización de resultados.
 
+# 2003A-3-A 
+
+hay un error
+/wp-json/kamples/v1/admin/algo-timing:1  Failed to load resource: the server responded with a status of 401 ()
 
 
 Exit code: 0
@@ -76,16 +80,22 @@ Aumenta el limite de samples de subida por usuario a 20.000 a través del sync, 
 
 Haz una pagina de price en el landing con los planes, que haya ese detalle indicando el limite de sincronizacion 100 y 20.000, free y pro, premiun no lo pongas, obviamente todo lo de premiun en cuanto a logia que sea igual a pro
 
-## 2003A-10 (en planificación)
+## 2003A-10 
 
-Esta es una tarea de r
+Esta es una tarea larga tal vez o seniclla, no lo se.
 
-## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
+El proposito, es que, todos los componentes de kamples son muy buenos, necesito que sean todos agnosticos, esto puede generar errores, asi que lo mejor será simplemente duplicarlos en /Glory, el proposito es que estos componentes se pueda reutilizar en todos los proyectos, para no complicarnos la vida, simplemente podemos duplicar con mejor organización, y revisando que lo que dupliquemos en Glory sea agnostico, quiero mantener los mismos estilos tanto white y dark mode. Implica hacer una lista de todos los componentes que pueden ser utiles en otros proyecto. 
 
-Hay un error grave como el comando que genera los schema y repositories, vi que lo ejecuaste una vez y se borraron algunas cosas que restaure despues, cuando todas las tareas anteriores esten listas, tienes que correrlo sin hacer pull y revisar los cambios que hizo porque hay cosas raras que no debería de hacer.
+Menu contextuales, panel lateral, el nav de arriba y del lado, el modal de buscada rapida, el componente SelectorMenu me gusta mucho, todo lo que se pueda reutilizar en otro proyecto duplicarlo en Glory sin que afecte el rendimiento de Kamples. 
+
+Importante que todo tenga el mismo estilo al duplicar
+
+## 2003A-10-A 
+
+La funcionalidad de chat es muy buena, y la de notificaciones, esta logica sin dañarla hay que centralizarla en Glory, pero esto es peligroso, no queremos dañar todo lo que implica, es un riesgo de arquitectura pero es necesario, requiere mucho cuidado y planificación, implica si es necesario mejorar la arquitectura para que estas funcionalidades sean piezas se puedan instalar en cualquier parte, lo importante es volverlas agnossticas, que sigan funcionando exactamente igual y se puede 
 
 ## Tarea final cuando completes todo
 
-1. rehacer el instalador de la aplicación de escritorio
-2. indicarme donde esta en nuevo instalador
-3. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar en github a traves de un token, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir pero que aperezca cada vez que recargue de actualizar.
+1. generar el instalador de la aplicación de escritorio actualizado
+2. indicarme donde esta en nuevo instalador para probar
+3. Agregar 2 botones en el menu contextual de usuario en el nav para descargar el instalador y la apk. Esto tiene que actualizarse cuando vayamos a subir una nueva versión, podemos gestionarla aqui en el propio github de https://github.com/1ndoryu/kamples-sync pero sin complicarnos la vida, nada de eso de publicar en github a traves de un token, etc, gestionamos las versiones internamente en nuestro propio github, detectamos versiones y actualizamos los links de descarga en el menu contextual. Tambien ahora que lo pienso falta un sistema de version que aparezca en el menu contextual, sería 3 versionados, el instalador de windows, la apk, y la versión web, cada uno con su propio número de versión, y que se actualicen automáticamente cuando subamos una nueva versión, aparecería en el menu contextual de usuario y en las configuraicones pero claro aparecera especificamente para el tipo de dispositivo. Se me ocurre que cuando el usuario tenga una version desactualizada le aparezca un modal que pueda omitir

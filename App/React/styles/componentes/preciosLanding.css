@@ -1,0 +1,171 @@
+/*
+ * preciosLanding.css — Estilos para PreciosLandingIsland.
+ * [2003A-5] Página pública de comparación de planes Free vs Pro.
+ */
+
+.preciosLanding {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: var(--espacio3xl) var(--espacioLg);
+}
+
+/* Hero */
+.preciosHero {
+    text-align: center;
+    margin-bottom: var(--espacio3xl);
+}
+
+.preciosTitulo {
+    font-size: var(--fuente2xl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0 0 var(--espacioSm);
+}
+
+.preciosSubtitulo {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+/* Tabla */
+.preciosTabla {
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+/* Grid de columnas: feature (auto) + free (1fr) + pro (1fr) */
+.preciosEncabezados,
+.preciosFila {
+    display: grid;
+    grid-template-columns: 1fr 160px 160px;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.preciosFila:last-child {
+    border-bottom: none;
+}
+
+.preciosFilaDestacada {
+    background: color-mix(in srgb, var(--acento) 8%, transparent);
+}
+
+/* Columnas */
+.preciosColFeature {
+    padding: var(--espacioSm) var(--espacioLg);
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    display: flex;
+    align-items: center;
+}
+
+.preciosColPlan {
+    padding: var(--espacioSm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    border-left: 1px solid var(--bordeSutil);
+}
+
+.preciosIconoCol {
+    flex-direction: row;
+    justify-content: center;
+}
+
+.preciosColDestacado {
+    background: color-mix(in srgb, var(--acento) 5%, transparent);
+}
+
+/* Encabezados de plan */
+.preciosPlanHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    color: var(--textoPrimario);
+    padding-top: var(--espacioLg);
+}
+
+.preciosPlanNombre {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoBold);
+}
+
+.preciosPlanPrecio {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin: var(--espacioXs) 0;
+}
+
+.preciosMonto {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.preciosPeriodo {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+.preciosCta {
+    margin-bottom: var(--espacioLg);
+    width: 100%;
+    justify-content: center;
+}
+
+/* Badge destacado */
+.preciosBadgeDestacado {
+    background: var(--acento);
+    color: var(--acentoTexto);
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoBold);
+    padding: 2px 10px;
+    border-radius: var(--radioFull);
+    margin-top: var(--espacioSm);
+    align-self: center;
+}
+
+/* Íconos check/x */
+.preciosCheck {
+    color: var(--exito);
+    display: flex;
+    align-items: center;
+}
+
+.preciosX {
+    color: var(--textoTerciario);
+    display: flex;
+    align-items: center;
+}
+
+/* Nota pie */
+.preciosNota {
+    text-align: center;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    margin-top: var(--espacioLg);
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+    .preciosEncabezados,
+    .preciosFila {
+        grid-template-columns: 1fr 110px 110px;
+    }
+
+    .preciosColFeature {
+        padding: var(--espacioSm);
+        font-size: var(--fuenteXs);
+    }
+
+    .preciosMonto {
+        font-size: var(--fuenteLg);
+    }
+
+    .preciosTitulo {
+        font-size: var(--fuenteXl);
+    }
+}

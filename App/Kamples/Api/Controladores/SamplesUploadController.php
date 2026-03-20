@@ -36,6 +36,7 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\RelacionesSampleEnums;
 use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
+use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Servicios\ServicioMedia;
 use App\Kamples\Services\ServicioCache;
 use App\Kamples\Services\ServicioNotificaciones;
@@ -111,6 +112,26 @@ class SamplesUploadController
 
             $limitResp = RateLimiter::verificarUsuario($pgId, 'subir_sample', 5000, 3600);
             if ($limitResp) return $limitResp;
+
+            /* [2003A-5] Límite de samples por plan: free=100, pro/premium=20.000.
+             * Se comprueba ANTES del upload para no gastar I/O en uploads rechazados.
+             * Gotcha: total_samples es contador desnormalizado — se actualiza al insertar/eliminar. */
+            $usuarioDatos = UsuarioHelper::obtenerPorId($pgId);
+            $planUsuario  = $usuarioDatos[UsuariosExtCols::PLAN] ?? 'free';
+            $totalActual  = (int)($usuarioDatos[UsuariosExtCols::TOTAL_SAMPLES] ?? 0);
+            $limiteMax    = ($planUsuario === 'pro' || $planUsuario === 'premium') ? 20000 : 100;
+            if ($totalActual >= $limiteMax) {
+                $mensajeLimite = $planUsuario === 'free'
+                    ? "Alcanzaste el límite de {$limiteMax} samples del plan Free. Actualiza a Pro para subir hasta 20.000."
+                    : "Alcanzaste el límite de {$limiteMax} samples de tu plan.";
+                return new \WP_REST_Response([
+                    'ok'     => false,
+                    'code'   => 'limite_samples_alcanzado',
+                    'error'  => $mensajeLimite,
+                    'limite' => $limiteMax,
+                    'actual' => $totalActual,
+                ], 403);
+            }
         }
 
         $archivos = $request->get_file_params();

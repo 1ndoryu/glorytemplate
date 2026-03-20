@@ -77,6 +77,9 @@ PageManager::reactPage('reproductor', 'ReproductorIsland');
 PageManager::reactPage('descubrir', 'DescubrirIsland');
 PageManager::reactPage('colecciones', 'ColeccionesIsland');
 PageManager::reactPage('planes', 'PlanesIsland');
+
+/* [2003A-5] Página pública de precios — Free vs Pro con límites de sincronización */
+PageManager::reactPage('precios', 'PreciosLandingIsland');
 PageManager::reactPage('comunidad', 'ComunidadIsland');
 
 PageManager::reactPage('publicacion', 'PublicacionIsland', function($pageId) {

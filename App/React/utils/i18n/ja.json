@@ -238,6 +238,8 @@
   "planes.feature.descargasIlimitadas": "無制限ダウンロード",
   "planes.feature.wavOriginal": "オリジナルWAV品質",
   "planes.feature.subidasIlimitadas": "無制限アップロード",
+  "planes.feature.sincronizacion100": "100サンプル同期",
+  "planes.feature.sincronizacion20k": "20,000サンプル同期",
   "planes.feature.transferencia1gb": "月1GB転送",
   "planes.feature.transferencia10gb": "月10GB転送",
   "planes.feature.transferencia50gb": "月50GB転送",

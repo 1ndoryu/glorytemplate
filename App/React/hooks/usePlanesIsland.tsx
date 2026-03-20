@@ -43,7 +43,7 @@ export const PLANES: PlanInfo[] = [
         caracteristicas: [
             { texto: 'planes.feature.descargas5', incluido: true },
             { texto: 'planes.feature.wavOriginal', incluido: true },
-            { texto: 'planes.feature.subidasIlimitadas', incluido: true },
+            { texto: 'planes.feature.sincronizacion100', incluido: true },
             { texto: 'planes.feature.transferencia1gb', incluido: true },
             { texto: 'planes.feature.explorarDescubrir', incluido: true },
             { texto: 'planes.feature.perfilPublico', incluido: true },
@@ -64,7 +64,7 @@ export const PLANES: PlanInfo[] = [
         caracteristicas: [
             { texto: 'planes.feature.descargas50', incluido: true },
             { texto: 'planes.feature.wavOriginal', incluido: true },
-            { texto: 'planes.feature.subidasIlimitadas', incluido: true },
+            { texto: 'planes.feature.sincronizacion20k', incluido: true },
             { texto: 'planes.feature.transferencia10gb', incluido: true },
             { texto: 'planes.feature.perfilVerificado', incluido: true },
             { texto: 'planes.feature.monetizarSamples', incluido: true },
@@ -85,7 +85,7 @@ export const PLANES: PlanInfo[] = [
         caracteristicas: [
             { texto: 'planes.feature.descargasIlimitadas', incluido: true },
             { texto: 'planes.feature.wavOriginal', incluido: true },
-            { texto: 'planes.feature.subidasIlimitadas', incluido: true },
+            { texto: 'planes.feature.sincronizacion20k', incluido: true },
             { texto: 'planes.feature.transferencia50gb', incluido: true },
             { texto: 'planes.feature.perfilVerificado', incluido: true },
             { texto: 'planes.feature.monetizarSamples', incluido: true },

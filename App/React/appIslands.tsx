@@ -31,6 +31,7 @@ import {ChatIsland} from './islands/mensajes/ChatIsland';
 import {DashboardCreadorIsland} from './islands/admin/DashboardCreadorIsland';
 import {AdminPanelIsland} from './islands/admin/AdminPanelIsland';
 import {PlanesIsland} from './islands/planes/PlanesIsland';
+import {PreciosLandingIsland} from './islands/planes/PreciosLandingIsland';
 import {ColeccionDetalleIsland} from './islands/colecciones/ColeccionDetalleIsland';
 import {ComunidadIsland} from './islands/comunidad/ComunidadIsland';
 import {PublicacionIsland} from './islands/social/PublicacionIsland';
@@ -121,6 +122,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     ChatIsland: ChatIsland as React.ComponentType<Record<string, unknown>>,
     DashboardCreadorIsland: DashboardCreadorIsland as React.ComponentType<Record<string, unknown>>,
     PlanesIsland: PlanesIsland as React.ComponentType<Record<string, unknown>>,
+    PreciosLandingIsland: PreciosLandingIsland as React.ComponentType<Record<string, unknown>>,
     ColeccionDetalleIsland: ColeccionDetalleIsland as React.ComponentType<Record<string, unknown>>,
     ComunidadIsland: ComunidadIsland as React.ComponentType<Record<string, unknown>>,
     PublicacionIsland: PublicacionIsland as React.ComponentType<Record<string, unknown>>,

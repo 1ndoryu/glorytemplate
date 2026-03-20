@@ -25,12 +25,15 @@ class StripeService
     private const MAX_REINTENTOS = 3;
 
     /* [183A-96+183A-99] Configuración de planes.
-     * Free/Pro: 80/20 (20% comisión plataforma). Premium: 100/0 (sin comisión). */
+     * Free/Pro: 80/20 (20% comisión plataforma). Premium: 100/0 (sin comisión).
+     * [2003A-5] max_samples: total acumulado de samples que puede subir/sincronizar el usuario.
+     * Premium = misma lógica que Pro (20.000). */
     private const PLANES = [
         'pro' => [
             'precio_mensual'    => 5.00,
             'descargas_dia'     => 50,
             'subidas_mes'       => -1, /* ilimitadas */
+            'max_samples'       => 20000,
             'transferencia_gb'  => 10,
             'revenue_share'     => 0.80,
         ],
@@ -38,6 +41,7 @@ class StripeService
             'precio_mensual'    => 19.99,
             'descargas_dia'     => -1, /* ilimitadas */
             'subidas_mes'       => -1,
+            'max_samples'       => 20000,
             'transferencia_gb'  => 50,
             'revenue_share'     => 1.00,
         ],
@@ -45,6 +49,7 @@ class StripeService
             'precio_mensual'    => 0,
             'descargas_dia'     => 5,
             'subidas_mes'       => -1, /* ilimitadas */
+            'max_samples'       => 100,
             'transferencia_gb'  => 1,
             'revenue_share'     => 0.80,
             'prueba_gratuita'   => 30, /* días */
