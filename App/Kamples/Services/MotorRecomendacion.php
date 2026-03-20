@@ -479,6 +479,8 @@ class MotorRecomendacion
 
         $joinsPrecomputo = PrecomputadorFeed::joinsPrecomputo();
 
+        $sImagen = SamplesCols::IMAGEN_URL;
+
         $sql = "WITH {$ctesPrecomputoPrefijo}{$cteCandidatosSql},
                 base_scores AS (
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
@@ -489,14 +491,13 @@ class MotorRecomendacion
                            uc.sample_id IS NOT NULL AS ya_guardado_en_coleccion,
                            ucom.sample_id IS NOT NULL AS ya_comentado,
                            (s.{$sCreadorId} = {$userId_int}) AS es_mio,
-                           /* [183A-67] imagen_coleccion_propietario faltaba en el feed personalizado.
-                            * Sin esto, los samples sin imagen_url directa mostraban colors temporales
-                            * en vez de la portada de la coleccion del creador. */
-                           " . \App\Kamples\Api\Helpers\NormalizadorSample::sqlImagenColeccionPropietario() . " AS imagen_coleccion_propietario,
-                           /* [183A-83] coleccion_original_json faltaba en el feed inteligente.
-                            * Sin esto, panelColeccionPortada no mostraba info de la coleccion
-                            * en samples del feed algoritmico (solo funcionaba en recientes). */
-                           " . \App\Kamples\Api\Helpers\NormalizadorSample::sqlColeccionOriginalJson() . " AS coleccion_original_json,
+                           /* [2003A-3] Reemplazadas subqueries correlacionadas por CTEs pre-computadas.
+                            * Antes: 2 subqueries × 2,611 samples = 5,222 ejecuciones.
+                            * Ahora: 2 CTEs + 2 LEFT JOINs = 2 scans. */
+                           CASE WHEN s.{$sImagen} IS NOT NULL THEN NULL ELSE cip.col_imagen_url END AS imagen_coleccion_propietario,
+                           CASE WHEN cp.sample_id IS NOT NULL
+                               THEN json_build_object('id', cp.col_id, 'nombre', cp.col_nombre, 'slug', cp.col_slug, 'imagen_url', cp.col_imagen_url)
+                               ELSE NULL END AS coleccion_original_json,
                            /* [193A-33] Género dominante para diversidad: primer género en metadata JSONB.
                             * COALESCE a 'other' si no tiene, para que la partición no ignore samples sin género. */
                            LOWER(COALESCE(

@@ -82,6 +82,15 @@ class PrecomputadorFeed
         $ctes['utag_dislikes'] = self::cteTagDislikes($uid);
         $ctes['utag_ctx'] = self::cteTagContexto($uid);
 
+        /* [2003A-3] Nivel 1.5: merge de 7 utag CTEs en 1 para reducir JOINs de score_tags */
+        $ctes['utag_merged'] = self::cteTagMerged();
+
+        /* [2003A-3] Nivel 1: colección del propietario pre-computada.
+         * Elimina 2 subqueries correlacionadas en base_scores que se ejecutaban
+         * 2,611 veces cada una (~500-900ms de ahorro). */
+        $ctes['col_propietario'] = self::cteColPropietario();
+        $ctes['col_imagen_prop'] = self::cteColImagenPropietario();
+
         /* Nivel 2: scores pre-agregados (eliminan subqueries correlacionadas del scoring) */
         $ctes['score_tags'] = self::cteScoreTags();
         $ctes['repro_peso'] = self::cteReproPeso($uid, $config);
@@ -123,6 +132,8 @@ class PrecomputadorFeed
              . "                    LEFT JOIN repro_peso rp ON s.{$sId} = rp.sample_id\n"
              . "                    LEFT JOIN likes_seguidos_cte ls ON s.{$sId} = ls.sample_id\n"
              . "                    LEFT JOIN ignored_samples ign ON s.{$sId} = ign.sample_id\n"
+             . "                    LEFT JOIN col_propietario cp ON s.{$sId} = cp.sample_id\n"
+             . "                    LEFT JOIN col_imagen_prop cip ON s.{$sId} = cip.sample_id\n"
              . "                    ";
     }
 
@@ -492,8 +503,8 @@ class PrecomputadorFeed
     /* ========== CTEs Nivel 2: Scores Pre-agregados ========== */
 
     /**
-     * CTE score_tags: pre-agrega todos los tag overlaps en un solo pass via UNNEST + JOIN.
-     * Elimina 7 subqueries correlacionadas del scoring (SubPlans 7-13 en EXPLAIN).
+     * CTE score_tags: pre-agrega todos los tag overlaps en un solo pass.
+     * [2003A-3] Optimizado: usa utag_merged (1 JOIN) en vez de 7 LEFT JOINs individuales.
      * Columnas: likes_score, repro_score, tiempo_score, descargas_score,
      *           completadas_score, dislikes_raw, ctx_cnt, etags_len.
      */
@@ -501,22 +512,16 @@ class PrecomputadorFeed
     {
         return "SELECT e.sample_id,
             COALESCE(array_length(e.etags, 1), 0) AS etags_len,
-            LEAST(1.0, COALESCE(SUM(utl.peso), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS likes_score,
-            LEAST(1.0, COALESCE(SUM(utr.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS repro_score,
-            LEAST(1.0, COALESCE(SUM(utt.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS tiempo_score,
-            LEAST(1.0, COALESCE(SUM(utd.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS descargas_score,
-            LEAST(1.0, COALESCE(SUM(utco.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS completadas_score,
-            COALESCE(SUM(utdi.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0)) AS dislikes_raw,
-            COUNT(uctx.tag)::int AS ctx_cnt
+            LEAST(1.0, COALESCE(SUM(um.w_likes), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS likes_score,
+            LEAST(1.0, COALESCE(SUM(um.w_repro), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS repro_score,
+            LEAST(1.0, COALESCE(SUM(um.w_tiempo), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS tiempo_score,
+            LEAST(1.0, COALESCE(SUM(um.w_descargas), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS descargas_score,
+            LEAST(1.0, COALESCE(SUM(um.w_completadas), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS completadas_score,
+            COALESCE(SUM(um.w_dislikes), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0)) AS dislikes_raw,
+            COALESCE(SUM(CASE WHEN um.w_ctx > 0 THEN 1 ELSE 0 END), 0)::int AS ctx_cnt
         FROM enriched e
         LEFT JOIN LATERAL (SELECT DISTINCT tag FROM unnest(e.etags) AS tag) AS t(tag) ON true
-        LEFT JOIN utag_likes utl ON utl.tag = t.tag
-        LEFT JOIN utag_repro utr ON utr.tag = t.tag
-        LEFT JOIN utag_tiempo utt ON utt.tag = t.tag
-        LEFT JOIN utag_descargas utd ON utd.tag = t.tag
-        LEFT JOIN utag_completadas utco ON utco.tag = t.tag
-        LEFT JOIN utag_dislikes utdi ON utdi.tag = t.tag
-        LEFT JOIN utag_ctx uctx ON uctx.tag = t.tag
+        LEFT JOIN utag_merged um ON um.tag = t.tag
         GROUP BY e.sample_id, e.etags";
     }
 
@@ -655,5 +660,99 @@ class PrecomputadorFeed
                         AND l.{$lTarget} = r.{$trSid}
                         AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
                 )";
+    }
+
+    /* [2003A-3] CTE utag_merged: merge 7 utag CTEs en 1 tabla tag → 7 scores.
+     * score_tags ahora hace 1 LEFT JOIN en vez de 7, reduciendo hash builds y probes. */
+    private static function cteTagMerged(): string
+    {
+        return "SELECT tag,
+            COALESCE(SUM(w_likes), 0)::float AS w_likes,
+            COALESCE(SUM(w_repro), 0)::float AS w_repro,
+            COALESCE(SUM(w_tiempo), 0)::float AS w_tiempo,
+            COALESCE(SUM(w_descargas), 0)::float AS w_descargas,
+            COALESCE(SUM(w_completadas), 0)::float AS w_completadas,
+            COALESCE(SUM(w_dislikes), 0)::float AS w_dislikes,
+            GREATEST(SUM(w_ctx), 0)::int AS w_ctx
+        FROM (
+            SELECT tag, peso::float AS w_likes, 0::float AS w_repro, 0::float AS w_tiempo,
+                   0::float AS w_descargas, 0::float AS w_completadas, 0::float AS w_dislikes, 0 AS w_ctx
+            FROM utag_likes
+            UNION ALL
+            SELECT tag, 0, freq::float, 0, 0, 0, 0, 0 FROM utag_repro
+            UNION ALL
+            SELECT tag, 0, 0, freq::float, 0, 0, 0, 0 FROM utag_tiempo
+            UNION ALL
+            SELECT tag, 0, 0, 0, freq::float, 0, 0, 0 FROM utag_descargas
+            UNION ALL
+            SELECT tag, 0, 0, 0, 0, freq::float, 0, 0 FROM utag_completadas
+            UNION ALL
+            SELECT tag, 0, 0, 0, 0, 0, freq::float, 0 FROM utag_dislikes
+            UNION ALL
+            SELECT tag, 0, 0, 0, 0, 0, 0, 1 FROM utag_ctx
+        ) combined
+        GROUP BY tag";
+    }
+
+    /* [2003A-3] CTE col_propietario: primera colección del creador para cada sample activo.
+     * Elimina la subquery correlacionada sqlColeccionOriginalJson() que se ejecutaba
+     * 2,611 veces (una por sample candidato). Ahora es 1 scan + DISTINCT ON. */
+    private static function cteColPropietario(): string
+    {
+        $ts = SamplesCols::TABLA;
+        $sId = SamplesCols::ID;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $csTabla = ColeccionSamplesCols::TABLA;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csAddedAt = ColeccionSamplesCols::ADDED_AT;
+        $cTabla = ColeccionesCols::TABLA;
+        $cId = ColeccionesCols::ID;
+        $cNombre = ColeccionesCols::NOMBRE;
+        $cSlug = ColeccionesCols::SLUG;
+        $cUsuarioId = ColeccionesCols::USUARIO_ID;
+        $cImagenUrl = ColeccionesCols::IMAGEN_URL;
+
+        return "SELECT DISTINCT ON (cs.{$csSampleId})
+            cs.{$csSampleId} AS sample_id,
+            c.{$cId} AS col_id, c.{$cNombre} AS col_nombre,
+            c.{$cSlug} AS col_slug, c.{$cImagenUrl} AS col_imagen_url
+        FROM {$csTabla} cs
+        JOIN {$cTabla} c ON cs.{$csColId} = c.{$cId}
+        JOIN {$ts} s2 ON cs.{$csSampleId} = s2.{$sId} AND c.{$cUsuarioId} = s2.{$sCreadorId}
+        WHERE s2.{$sEstado} = '{$eActivo}'
+        ORDER BY cs.{$csSampleId}, cs.{$csAddedAt} ASC";
+    }
+
+    /* [2003A-3] CTE col_imagen_prop: primera colección CON imagen del propietario.
+     * Elimina la subquery correlacionada sqlImagenColeccionPropietario().
+     * Filtro adicional: c.imagen_url IS NOT NULL (porque busca la portada de coleccion
+     * como fallback cuando el sample no tiene imagen directa). */
+    private static function cteColImagenPropietario(): string
+    {
+        $ts = SamplesCols::TABLA;
+        $sId = SamplesCols::ID;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $csTabla = ColeccionSamplesCols::TABLA;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csAddedAt = ColeccionSamplesCols::ADDED_AT;
+        $cTabla = ColeccionesCols::TABLA;
+        $cId = ColeccionesCols::ID;
+        $cUsuarioId = ColeccionesCols::USUARIO_ID;
+        $cImagenUrl = ColeccionesCols::IMAGEN_URL;
+
+        return "SELECT DISTINCT ON (cs.{$csSampleId})
+            cs.{$csSampleId} AS sample_id,
+            c.{$cImagenUrl} AS col_imagen_url
+        FROM {$csTabla} cs
+        JOIN {$cTabla} c ON cs.{$csColId} = c.{$cId}
+        JOIN {$ts} s2 ON cs.{$csSampleId} = s2.{$sId} AND c.{$cUsuarioId} = s2.{$sCreadorId}
+        WHERE s2.{$sEstado} = '{$eActivo}' AND c.{$cImagenUrl} IS NOT NULL
+        ORDER BY cs.{$csSampleId}, cs.{$csAddedAt} ASC";
     }
 }
