@@ -21,9 +21,10 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
         manejarAgregar, manejarCrear,
     } = useModalSeleccionColeccion();
 
-    if (!abierto || !sample) return null;
-
+    /* [193A-66] useT DEBE ir antes de cualquier return condicional — Rules of Hooks */
     const { t } = useT();
+
+    if (!abierto || !sample) return null;
 
     /* Posición contextual ajustada al viewport */
     const estiloPanel: React.CSSProperties | undefined = posicion
