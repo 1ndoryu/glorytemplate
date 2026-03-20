@@ -257,8 +257,13 @@
     line-height: 1.4;
 }
 
-/* [193A-55] Icono verificado en dropdown mensajes */
+/* [193A-55] Icono verificado en dropdown mensajes
+ * [193A-73] display:inline + vertical-align para que quede al lado del nombre,
+ * no debajo — el padre usa -webkit-box para truncar líneas. */
 .dropdownVerificado {
     color: var(--acento);
     flex-shrink: 0;
+    display: inline;
+    vertical-align: middle;
+    margin-left: 2px;
 }
