@@ -7,6 +7,7 @@ import { AlertCircle, Clock, ChevronUp, ChevronDown, RotateCcw } from 'lucide-re
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
 import type { ItemColaIa, EstadisticasColaIa, CuotaGroq } from '../../services/apiColaIa';
+import { useT } from '@app/utils/i18n/useT';
 
 /* Mapa de colores para badges de estado */
 export const COLORES_ESTADO: Record<string, 'exito' | 'advertencia' | 'error' | 'info' | 'neutro'> = {
@@ -34,30 +35,33 @@ const formatearFecha = (fecha: string | null): string => {
 };
 
 /* Resumen de estadisticas */
-export const EstadisticasResumen = ({ stats }: { stats: EstadisticasColaIa }): JSX.Element => (
-    <div className="colaIaEstadisticas">
-        <div className="colaIaStat">
-            <span className="colaIaStatNumero">{stats.total}</span>
-            <span className="colaIaStatLabel">Total</span>
+export const EstadisticasResumen = ({ stats }: { stats: EstadisticasColaIa }): JSX.Element => {
+    const { t } = useT();
+    return (
+        <div className="colaIaEstadisticas">
+            <div className="colaIaStat">
+                <span className="colaIaStatNumero">{stats.total}</span>
+                <span className="colaIaStatLabel">{t('admin.cola.total')}</span>
+            </div>
+            <div className="colaIaStat colaIaStatPendiente">
+                <span className="colaIaStatNumero">{stats.pendientes}</span>
+                <span className="colaIaStatLabel">{t('admin.cola.pendientes')}</span>
+            </div>
+            <div className="colaIaStat colaIaStatProcesando">
+                <span className="colaIaStatNumero">{stats.procesando}</span>
+                <span className="colaIaStatLabel">{t('admin.cola.procesando')}</span>
+            </div>
+            <div className="colaIaStat colaIaStatExito">
+                <span className="colaIaStatNumero">{stats.completados_hoy}</span>
+                <span className="colaIaStatLabel">{t('admin.cola.completadosHoy')}</span>
+            </div>
+            <div className="colaIaStat colaIaStatError">
+                <span className="colaIaStatNumero">{stats.errores + stats.en_reintento}</span>
+                <span className="colaIaStatLabel">{t('admin.cola.errores')}</span>
+            </div>
         </div>
-        <div className="colaIaStat colaIaStatPendiente">
-            <span className="colaIaStatNumero">{stats.pendientes}</span>
-            <span className="colaIaStatLabel">Pendientes</span>
-        </div>
-        <div className="colaIaStat colaIaStatProcesando">
-            <span className="colaIaStatNumero">{stats.procesando}</span>
-            <span className="colaIaStatLabel">Procesando</span>
-        </div>
-        <div className="colaIaStat colaIaStatExito">
-            <span className="colaIaStatNumero">{stats.completados_hoy}</span>
-            <span className="colaIaStatLabel">Completados hoy</span>
-        </div>
-        <div className="colaIaStat colaIaStatError">
-            <span className="colaIaStatNumero">{stats.errores + stats.en_reintento}</span>
-            <span className="colaIaStatLabel">Errores</span>
-        </div>
-    </div>
-);
+    );
+};
 
 /* Cuota de Groq */
 export const CuotaGroqResumen = ({ cuota }: { cuota: CuotaGroq }): JSX.Element => {

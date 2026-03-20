@@ -9,6 +9,7 @@ import { Music, Disc3, ArrowRight, User, BadgeCheck, Loader2, FolderOpen } from 
 import { BotonBase } from './BotonBase';
 import { Avatar } from './Avatar';
 import { useResultadosBusquedaRapida } from '@app/hooks/useResultadosBusquedaRapida';
+import { useT } from '@app/utils/i18n/useT';
 import type {
     ResultadoCancion,
     ResultadoSample,
@@ -35,6 +36,8 @@ export const ResultadosBusquedaRapidaDropdown = ({
 }: ResultadosBusquedaRapidaProps): JSX.Element | null => {
     const { contenedorRef, irA } = useResultadosBusquedaRapida({ visible, onCerrar });
 
+    const { t } = useT();
+
     if (!visible) return null;
 
     const { todos } = resultados;
@@ -49,7 +52,7 @@ export const ResultadosBusquedaRapidaDropdown = ({
             )}
 
             {sinResultados && !cargando && (
-                <div className="busquedaRapidaVacio">Sin resultados</div>
+                <div className="busquedaRapidaVacio">{t('busqueda.sinResultados')}</div>
             )}
 
             {todos.map((item, idx) => (

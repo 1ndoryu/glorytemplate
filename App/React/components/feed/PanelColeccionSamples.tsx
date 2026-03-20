@@ -12,6 +12,7 @@ import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { SampleResumen, Coleccion } from '@app/types';
 import { BotonBase } from '../ui/BotonBase';
+import { useT } from '@app/utils/i18n/useT';
 
 interface PanelColeccionSamplesProps {
     coleccion: Coleccion;
@@ -22,6 +23,8 @@ export const PanelColeccionSamples = ({ coleccion }: PanelColeccionSamplesProps)
     const [cargando, setCargando] = useState(true);
     const navegar = useNavigationStore(s => s.navegar);
     const cerrar = usePanelLateralStore(s => s.cerrar);
+
+    const { t } = useT();
 
     useEffect(() => {
         let activo = true;
@@ -49,15 +52,15 @@ export const PanelColeccionSamples = ({ coleccion }: PanelColeccionSamplesProps)
                     <FolderOpen size={16} />
                     <span>{coleccion.nombre}</span>
                 </div>
-                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar">
+                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label={t('comun.cerrar')}>
                     <X size={16} />
                 </BotonBase>
             </div>
 
             {cargando ? (
-                <div className="panelSugerenciasCargando">Cargando samples...</div>
+                <div className="panelSugerenciasCargando">{t('panel.coleccion.cargando')}</div>
             ) : samples.length === 0 ? (
-                <div className="panelSugerenciasVacio">Esta colección no tiene samples</div>
+                <div className="panelSugerenciasVacio">{t('panel.coleccion.vacio')}</div>
             ) : (
                 <div className="panelSugerenciasLista">
                     {/* [183A-70] className panelDetalleTarjetaMini para tarjeta compacta (igual que "También te podría gustar" en PanelDetalleSample) */}

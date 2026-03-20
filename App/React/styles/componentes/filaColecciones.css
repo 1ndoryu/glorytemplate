@@ -12,8 +12,8 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
     padding-bottom: var(--espacioXs);
-    /* En touch, permitir scroll vertical de la pagina sobre este elemento */
-    touch-action: pan-y;
+    /* [193A-1] manipulation permite scroll horizontal nativo en touch (APK) */
+    touch-action: manipulation;
     cursor: grab;
 }
 

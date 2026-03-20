@@ -14,6 +14,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { SampleResumen } from '@app/types';
 import { BotonBase } from '../ui/BotonBase';
 import { ImgOptimizada } from '../ui/ImgOptimizada';
+import { useT } from '@app/utils/i18n/useT';
 
 interface PanelSugerenciasProps {
     sample: SampleResumen;
@@ -25,6 +26,8 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
     const navegar = useNavigationStore(s => s.navegar);
     const cerrar = usePanelLateralStore(s => s.cerrar);
     const coleccion = sample.coleccionOriginal ?? null;
+
+    const { t } = useT();
 
     useEffect(() => {
         let activo = true;
@@ -46,9 +49,9 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
             <div className="panelSugerenciasCabecera">
                 <div className="panelSugerenciasTitulo">
                     <Sparkles size={16} />
-                    <span>También te podría gustar</span>
+                    <span>{t('sugerencias.titulo')}</span>
                 </div>
-                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar">
+                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label={t('comun.cerrar')}>
                     <X size={16} />
                 </BotonBase>
             </div>
@@ -82,9 +85,9 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
             )}
 
             {cargando ? (
-                <div className="panelSugerenciasCargando">Buscando sugerencias...</div>
+                <div className="panelSugerenciasCargando">{t('sugerencias.cargando')}</div>
             ) : sugerencias.length === 0 ? (
-                <div className="panelSugerenciasVacio">No hay sugerencias disponibles</div>
+                <div className="panelSugerenciasVacio">{t('sugerencias.sinSugerencias')}</div>
             ) : (
                 <div className="panelSugerenciasLista">
                     {sugerencias.map(s => (

@@ -7,10 +7,13 @@
 import { useOverlaySuspension } from '@app/hooks/useOverlaySuspension';
 import { BotonBase } from '../ui/BotonBase';
 import { ShieldAlert, LogOut, Clock, Trash2 } from 'lucide-react';
+import { useT } from '@app/utils/i18n/useT';
 import '@app/styles/componentes/overlaySuspension.css';
 
 export const OverlaySuspension = (): JSX.Element | null => {
     const { visible, suspension, textoTiempo, cerrarSesion } = useOverlaySuspension();
+
+    const { t } = useT();
 
     if (!visible || !suspension) return null;
 
@@ -25,8 +28,8 @@ export const OverlaySuspension = (): JSX.Element | null => {
 
                 <h2 className="overlaySuspensionTitulo">
                     {enEliminacion
-                        ? 'Tu cuenta será eliminada'
-                        : 'Cuenta suspendida'}
+                        ? t('suspension.seraEliminada')
+                        : t('suspension.cuentaSuspendida')}
                 </h2>
 
                 {suspension.razon && (
@@ -38,7 +41,7 @@ export const OverlaySuspension = (): JSX.Element | null => {
                 {suspension.suspendidoHasta && (
                     <div className="overlaySuspensionTimer">
                         <Clock size={16} />
-                        <span>Tiempo restante: <strong>{textoTiempo}</strong></span>
+                        <span>{t('suspension.tiempoRestante')} <strong>{textoTiempo}</strong></span>
                     </div>
                 )}
 
@@ -46,7 +49,7 @@ export const OverlaySuspension = (): JSX.Element | null => {
                     <div className="overlaySuspensionTimer overlaySuspensionTimerPeligro">
                         <Trash2 size={16} />
                         <span>
-                            Eliminación programada: {new Date(suspension.seraEliminadoEn).toLocaleDateString('es', {
+                            {t('suspension.eliminacionProgramada')} {new Date(suspension.seraEliminadoEn).toLocaleDateString('es', {
                                 day: 'numeric', month: 'long', year: 'numeric'
                             })}
                         </span>
@@ -60,12 +63,12 @@ export const OverlaySuspension = (): JSX.Element | null => {
                         type="button"
                     >
                         <LogOut size={16} />
-                        Cerrar sesión
+                        {t('suspension.cerrarSesion')}
                     </BotonBase>
                 </div>
 
                 <p className="overlaySuspensionNota">
-                    Si crees que esto es un error, contacta al soporte.
+                    {t('suspension.errorContactar')}
                 </p>
             </div>
         </div>

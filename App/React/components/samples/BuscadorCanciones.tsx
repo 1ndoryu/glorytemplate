@@ -11,6 +11,7 @@ import { buscarCanciones } from '../../services/apiCanciones';
 import type { Cancion } from '../../types/cancion';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { BotonBase } from '../ui/BotonBase';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/buscadorCanciones.css';
 
 interface BuscadorCancionesProps {
@@ -32,6 +33,7 @@ export function BuscadorCanciones({
     const [abierto, setAbierto] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const contenedorRef = useRef<HTMLDivElement>(null);
+    const { t } = useT();
 
     /* Cierra la lista al hacer click fuera */
     useEffect(() => {
@@ -100,7 +102,7 @@ export function BuscadorCanciones({
                         tamano="ninguno"
                         className="buscadorCancionQuitar"
                         onClick={() => onSeleccionar(null)}
-                        aria-label="Quitar canción seleccionada"
+                        aria-label={t('busqueda.quitarCancion')}
                         type="button"
                     >
                         <X size={14} />
@@ -118,7 +120,7 @@ export function BuscadorCanciones({
             {cargando && (
                 <div className="buscadorCargando">
                     <Search size={14} />
-                    <span>Buscando...</span>
+                    <span>{t('busqueda.buscando')}</span>
                 </div>
             )}
 
@@ -146,7 +148,7 @@ export function BuscadorCanciones({
 
                     {resultados.length === 0 && query.length >= 2 && (
                         <li className="buscadorSinResultados">
-                            <span>No se encontró "{query}"</span>
+                            <span>{t('busqueda.noEncontrado').replace('{q}', query)}</span>
                             {onAgregarNueva && (
                                 <BotonBase
                                     variante="ghost"

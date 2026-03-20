@@ -15,6 +15,7 @@ import { darLike } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 import '../../styles/componentes/modalSugerenciasLike.css';
 import { BotonBase } from '../ui/BotonBase';
+import { useT } from '@app/utils/i18n/useT';
 
 export const ModalSugerenciasLike = (): JSX.Element | null => {
     const abierto = useSugerenciasLikeStore(s => s.abierto);
@@ -28,6 +29,8 @@ export const ModalSugerenciasLike = (): JSX.Element | null => {
         await darLike('sample', sampleId, reaccion ?? 'like');
     }, []);
 
+    const { t } = useT();
+
     if (!abierto) return null;
 
     return (
@@ -37,7 +40,7 @@ export const ModalSugerenciasLike = (): JSX.Element | null => {
                     <div className="sugerenciasLikeIcono">
                         <Sparkles size={20} />
                     </div>
-                    <h3 className="sugerenciasLikeTitulo">También te podría gustar</h3>
+                    <h3 className="sugerenciasLikeTitulo">{t('sugerencias.titulo')}</h3>
                     {sampleOrigen && (
                         <p className="sugerenciasLikeSubtitulo">
                             Basado en tu like a &ldquo;{sampleOrigen.titulo}&rdquo;
@@ -47,7 +50,7 @@ export const ModalSugerenciasLike = (): JSX.Element | null => {
                         className="sugerenciasLikeCerrar"
                         onClick={cerrar}
                         type="button"
-                        aria-label="Cerrar sugerencias"
+                        aria-label={t('sugerencias.cerrar')}
                     >
                         <X size={16} />
                     </BotonBase>
@@ -56,11 +59,11 @@ export const ModalSugerenciasLike = (): JSX.Element | null => {
                 <div className="sugerenciasLikeLista">
                     {cargando ? (
                         <div className="sugerenciasLikeCargando">
-                            <p>Buscando samples similares…</p>
+                            <p>{t('sugerencias.cargandoSimilares')}</p>
                         </div>
                     ) : sugerencias.length === 0 ? (
                         <div className="sugerenciasLikeVacio">
-                            <p>No se encontraron samples similares.</p>
+                            <p>{t('sugerencias.sinSimilares')}</p>
                         </div>
                     ) : (
                         sugerencias.map((s) => (

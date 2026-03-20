@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { listarColeccionesPublicas } from '@app/services/apiColecciones';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
-import { useScrollHorizontal } from '@app/hooks/useScrollHorizontal';
+import { useArrastrarScroll } from '@app/hooks/useArrastrarScroll';
 import type { Coleccion } from '@app/types';
 import { Avatar } from '../ui/Avatar';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
@@ -19,7 +19,8 @@ const MAX_COLECCIONES = 20;
 
 export const FilaColecciones = (): JSX.Element | null => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
-    const { contenedorRef, iniciarArrastre, moverArrastre, finalizarArrastre } = useScrollHorizontal();
+    /* [193A-1] useArrastrarScroll soporta touch + mouse (Capacitor WebView) */
+    const contenedorRef = useArrastrarScroll<HTMLDivElement>();
 
     useEffect(() => {
         let activo = true;
@@ -43,10 +44,6 @@ export const FilaColecciones = (): JSX.Element | null => {
         <div
             className="filaColecciones"
             ref={contenedorRef}
-            onMouseDown={(e) => iniciarArrastre(e.clientX)}
-            onMouseMove={(e) => moverArrastre(e.clientX)}
-            onMouseUp={finalizarArrastre}
-            onMouseLeave={finalizarArrastre}
         >
             {colecciones.map((col) => (
                 <EnlaceNavegacion

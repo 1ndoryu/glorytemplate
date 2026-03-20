@@ -14,12 +14,15 @@ import { useCodigoGratisStore } from '@app/stores/codigoGratisStore';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useNavigationStore } from '@/core/router/navigationStore';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/modalCodigoExpirado.css';
 
 export const ModalCodigoExpirado = (): JSX.Element | null => {
     const infoExpirado = useCodigoGratisStore((s) => s.infoExpirado);
     const limpiarExpirado = useCodigoGratisStore((s) => s.limpiarExpirado);
     const navegar = useNavigationStore((s) => s.navegar);
+
+    const { t } = useT();
 
     if (!infoExpirado) return null;
 
@@ -35,13 +38,11 @@ export const ModalCodigoExpirado = (): JSX.Element | null => {
         <Modal abierto onCerrar={limpiarExpirado} tamano="pequeno">
             <div className="modalCodigoExpiradoCuerpo">
                 <p className="modalCodigoExpiradoTexto">
-                    Lo siento, el contenido que intentas descargar es antiguo, y hace tiempo que se
-                    eliminó por alguna extraña razón, pero <strong>recibiste 50 créditos gratis de
-                    compensación</strong>.
+                    {t('codigo.expirado.texto')}
                 </p>
                 {infoExpirado.nombreItem && (
                     <p className="modalCodigoExpiradoNombre">
-                        Estabas buscando: <em>{infoExpirado.nombreItem}</em>
+                        {t('codigo.expirado.buscabas')} <em>{infoExpirado.nombreItem}</em>
                     </p>
                 )}
                 <div className="modalCodigoExpiradoAcciones">
@@ -49,13 +50,13 @@ export const ModalCodigoExpirado = (): JSX.Element | null => {
                         variante="primario"
                         onClick={manejarVerRecomendaciones}
                     >
-                        Ver recomendaciones
+                        {t('codigo.expirado.verRecomendaciones')}
                     </BotonBase>
                     <BotonBase
                         variante="secundario"
                         onClick={limpiarExpirado}
                     >
-                        Cerrar
+                        {t('comun.cerrar')}
                     </BotonBase>
                 </div>
             </div>

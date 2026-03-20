@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { ModalReporteLegal } from './ModalReporteLegal';
 import type { DatosReporteLegal } from '../../services/apiReporteLegal';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/botonReporteLegal.css';
 
 interface BotonReporteLegalProps {
@@ -25,6 +26,7 @@ export function BotonReporteLegal({
     className = '',
 }: BotonReporteLegalProps): JSX.Element {
     const [abierto, setAbierto] = useState(false);
+    const { t } = useT();
 
     return (
         <>
@@ -32,11 +34,11 @@ export function BotonReporteLegal({
                 type="button"
                 className={`botonReporteLegal ${className}`}
                 onClick={() => setAbierto(true)}
-                title="Reclamar derechos de autor (DMCA)"
-                aria-label="Abrir formulario de reclamacion legal"
+                title={t('legal.reclamar')}
+                aria-label={t('legal.formulario')}
             >
                 <ShieldAlert size={14} />
-                <span className="botonReporteLegalTexto">Reclamar derechos</span>
+                <span className="botonReporteLegalTexto">{t('legal.reclamar')}</span>
             </button>
 
             <ModalReporteLegal
