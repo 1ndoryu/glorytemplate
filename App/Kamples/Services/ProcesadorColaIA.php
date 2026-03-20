@@ -36,14 +36,14 @@ use App\Kamples\KamplesLogger;
 class ProcesadorColaIA
 {
     /*
-     * Limite conservador para free tier Groq.
-     * Cada sample usa ~2 calls (Whisper + LLM), cada moderacion ~1-3 calls.
-     * 5 items ~= 10-15 API calls, suficiente para no exceder limites RPM.
+     * [193A-76] Con rotación por ítem y 3 keys disponibles, 15 items por run
+     * es seguro: ~5 por key por ejecución, sin exceder rate limits por key.
      */
-    private const MAX_ITEMS_POR_EJECUCION = 5;
+    private const MAX_ITEMS_POR_EJECUCION = 15;
 
-    /* [193A-43] Pausa entre items de audio. Moderación sin pausa. */
-    private const PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS = 30;
+    /* [193A-76] Reducido de 30s a 5s: la rotación de key por ítem distribuye
+     * el rate limit entre keys, haciendo innecesaria la pausa larga. */
+    private const PAUSA_ENTRE_ITEMS_AUDIO_SEGUNDOS = 5;
     /*
      * [193A-43] Gap mínimo entre procesamiento de audio (1 minuto).
      * Con rotación de 3 keys se distribuye el rate limit.
@@ -284,6 +284,10 @@ class ProcesadorColaIA
                 ]);
                 $resultado['errores']++;
             }
+
+            /* [193A-76] Rotar key después de cada ítem para que el siguiente use una key distinta.
+             * rotarApiKey() ya limpia $keyRotadaCache internamente, forzando re-selección. */
+            GroqHttpClient::rotarApiKey();
         }
 
         KamplesLogger::info('ProcesadorColaIA: Procesamiento completado', $resultado);
@@ -302,9 +306,6 @@ class ProcesadorColaIA
         } catch (\Throwable $e) {
             /* No bloquear el return por un error de stats */
         }
-
-        /* [193A-43] Rotar API key para la próxima ejecución */
-        GroqHttpClient::rotarApiKey();
 
         return $resultado;
     }

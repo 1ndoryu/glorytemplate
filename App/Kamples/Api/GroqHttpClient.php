@@ -435,8 +435,9 @@ class GroqHttpClient
     }
 
     /**
-     * [193A-43] Avanza el índice de rotación para la próxima ejecución.
-     * Llamar al final de cada ciclo de cron o tras completar moderación inline.
+     * [193A-43] Avanza el índice de rotación al siguiente.
+     * [193A-76] Llamar después de CADA ítem procesado — no solo al final del cron.
+     * Limpia $keyRotadaCache para que el siguiente ítem use la key nueva.
      */
     public static function rotarApiKey(): void
     {
