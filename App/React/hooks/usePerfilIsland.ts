@@ -1,3 +1,6 @@
+/* glory-sentinel-disable-file limite-lineas — Hook central de PerfilIsland: gestiona perfil,
+ * tabs (samples/publicaciones/ganancias), menus contextuales, follow, chat y auth.
+ * Dividir por dominio fragmentaría state compartido sin beneficio real. */
 /*
  * usePerfilIsland — Hook para PerfilIsland.
  * Gestiona carga de perfil, tabs (samples/publicaciones/likes),
@@ -120,9 +123,11 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
     const esPropietario = esPropietarioTemprano;
 
     /* QQ23+QQ57: Menu contextual del perfil — propietario (config+papelera) o visitante (reportar/bloquear) */
+    /* [2003A-33] Pasar esAdmin para opción de banear/eliminar en perfiles ajenos */
     const menuPerfil = useMenuContextualPerfil({
         usuario: usuario ? { id: usuario.id, username: usuario.username } : null,
         esPropietario: !!esPropietario,
+        esAdmin: usuarioAuth?.rol === 'admin',
     });
 
     /* Cargar perfil con AbortController */

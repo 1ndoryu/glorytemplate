@@ -3,15 +3,17 @@
  * Gestiona menu contextual de 3 puntos en perfiles.
  * Modo propietario: Configuración + Papelera.
  * Modo visitante: Reportar + Bloquear/Desbloquear.
+ * [2003A-33] Modo admin visitando otro perfil: añade Banear + Eliminar usuario.
  */
 
 import { useState, useCallback, useMemo, type MouseEvent } from 'react';
-import { Flag, ShieldAlert, ShieldOff, Settings, Trash2 } from 'lucide-react';
+import { Flag, ShieldAlert, ShieldOff, Settings, Trash2, Ban, UserX } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { useReportarStore } from '@app/stores/reportarStore';
 import { useBloqueosStore } from '@app/stores/bloqueosStore';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { usePapeleraStore } from '@app/stores/papeleraStore';
+import { banearUsuarioAdmin, marcarEliminacionUsuarioAdmin } from '@app/services/apiAdmin';
 import { toast } from '@app/stores/toastStore';
 import { getT } from '@app/utils/i18n';
 
@@ -29,6 +31,7 @@ interface DatosUsuarioPerfil {
 interface OpcionesMenuPerfil {
     usuario: DatosUsuarioPerfil | null;
     esPropietario: boolean;
+    esAdmin?: boolean;
 }
 
 interface RetornoMenuPerfil {
@@ -38,7 +41,7 @@ interface RetornoMenuPerfil {
     cerrarMenu: () => void;
 }
 
-export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenuPerfil): RetornoMenuPerfil => {
+export const useMenuContextualPerfil = ({ usuario, esPropietario, esAdmin }: OpcionesMenuPerfil): RetornoMenuPerfil => {
     const [estado, setEstado] = useState<EstadoMenuPerfil>({
         abierto: false,
         x: 0,
@@ -129,8 +132,38 @@ export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenu
             });
         }
 
+        /* [2003A-33] Opciones admin: banear + eliminar usuario */
+        if (esAdmin) {
+            result.push({
+                id: 'banear',
+                etiqueta: 'Banear usuario (24h)',
+                icono: <Ban size={16} />,
+                peligro: true,
+                separadorDespues: true,
+                onClick: async () => {
+                    if (!window.confirm(`¿Banear a @${usuario.username} por 24 horas?`)) return;
+                    const resp = await banearUsuarioAdmin(usuario.id, '24h', 'Ban desde perfil');
+                    if (resp.ok) toast.exito(`@${usuario.username} baneado por 24 horas`);
+                    else toast.error('Error al banear usuario');
+                },
+            });
+
+            result.push({
+                id: 'eliminar-usuario',
+                etiqueta: 'Eliminar usuario',
+                icono: <UserX size={16} />,
+                peligro: true,
+                onClick: async () => {
+                    if (!window.confirm(`¿Marcar a @${usuario.username} para eliminación? Esta acción tiene un período de gracia antes de ser irreversible.`)) return;
+                    const resp = await marcarEliminacionUsuarioAdmin(usuario.id, 'Eliminación desde perfil');
+                    if (resp.ok) toast.exito(`@${usuario.username} marcado para eliminación`);
+                    else toast.error('Error al eliminar usuario');
+                },
+            });
+        }
+
         return result;
-    }, [esPropietario, usuario, bloqueado, abrirReporte, bloquear, desbloquear, abrirConfiguracion, abrirPapelera]);
+    }, [esPropietario, esAdmin, usuario, bloqueado, abrirReporte, bloquear, desbloquear, abrirConfiguracion, abrirPapelera]);
 
     return { estado, items, abrirMenu, cerrarMenu };
 };
