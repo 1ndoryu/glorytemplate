@@ -70,10 +70,6 @@ AlgoTimingLogger ya está instrumentado y deployado. Activar el toggle "Logs de 
 Hay un problema con la aplicación de escritorio, el deslogeo no funciona si abro y vuelvo abrir, sigue logeado, esto hay que tener cuidado porque al princpio era que la sesion no se guardaba y se salia a recargar, ahora el problema es que no se deslogea ni actualiza el sync al deslogearse.
 
 
-## 2003A-18
-
-La funcionalidad mas importante (que si funciona en modo de dev) de arrastrar samples a cualquier lugar, carpeta del sistema daw (hacia que se descargara en ese lugar) no funciona en la aplicacion de escritorio instalada. Problemente haya sido por el feature de selecion multiple que se hizo. (Me acabo de dar cuenta que en modo dev tampoco funciona)
-
 ## 2003A-19
 
 Lo de la seleccion multiplie si marca los like a varios pero no los quita
@@ -93,8 +89,3 @@ temp\client_secret_481587675160-a2iljtc8dou32rgkk8lq9chk0jtfe5fm.apps.googleuser
 ## 2003A-26
 
 El problema de hacer scroll y luego intentar subir activa la recarga persiste en la version movil android, llevamos mucho tiempo con esta tarea. 
-
-
-## 2003A-27
-
-Aparece "Listo. Arrastra el sample otra vez para exportarlo al sistema." Pero arrastrar por accidente activa la descargar, el arrastre minimo la activa, deberia solo descargarse cuando se arastre hacia afuera. Tampoco al arrastrar afuera funciona, antes funcionaba, no aparece el sample en donde lo arrastre.
