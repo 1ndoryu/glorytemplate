@@ -4,9 +4,13 @@
  * con overflow-x. Mouse drag no es nativo — esta implementación lo simula.
  * Touch ya funciona nativamente con overflow-x, pero se refuerza para
  * Capacitor WebView donde a veces falla.
+ * [193A-69] Click prevention: si el usuario arrastra >5px, se intercepta el
+ * click siguiente para evitar que EnlaceNavegacion/links naveguen.
  */
 
 import { useEffect, useRef, type RefObject } from 'react';
+
+const UMBRAL_DRAG = 5;
 
 export function useArrastrarScroll<T extends HTMLElement>(): RefObject<T> {
     const ref = useRef<T>(null);
@@ -18,9 +22,11 @@ export function useArrastrarScroll<T extends HTMLElement>(): RefObject<T> {
         let activo = false;
         let startX = 0;
         let scrollLeft = 0;
+        let arrastrado = false;
 
         const iniciar = (clientX: number) => {
             activo = true;
+            arrastrado = false;
             startX = clientX;
             scrollLeft = el.scrollLeft;
             el.style.cursor = 'grabbing';
@@ -30,6 +36,7 @@ export function useArrastrarScroll<T extends HTMLElement>(): RefObject<T> {
         const mover = (clientX: number) => {
             if (!activo) return;
             const diff = clientX - startX;
+            if (Math.abs(diff) > UMBRAL_DRAG) arrastrado = true;
             el.scrollLeft = scrollLeft - diff;
         };
 
@@ -55,6 +62,15 @@ export function useArrastrarScroll<T extends HTMLElement>(): RefObject<T> {
             mover(e.touches[0].clientX);
         };
 
+        /* [193A-69] Interceptar click tras drag real para evitar navegación */
+        const onClickCapture = (e: MouseEvent) => {
+            if (arrastrado) {
+                e.preventDefault();
+                e.stopPropagation();
+                arrastrado = false;
+            }
+        };
+
         el.addEventListener('mousedown', onMouseDown);
         el.addEventListener('mousemove', onMouseMove);
         el.addEventListener('mouseup', terminar);
@@ -62,6 +78,7 @@ export function useArrastrarScroll<T extends HTMLElement>(): RefObject<T> {
         el.addEventListener('touchstart', onTouchStart, { passive: true });
         el.addEventListener('touchmove', onTouchMove, { passive: true });
         el.addEventListener('touchend', terminar);
+        el.addEventListener('click', onClickCapture, true);
 
         return () => {
             el.removeEventListener('mousedown', onMouseDown);
@@ -71,6 +88,7 @@ export function useArrastrarScroll<T extends HTMLElement>(): RefObject<T> {
             el.removeEventListener('touchstart', onTouchStart);
             el.removeEventListener('touchmove', onTouchMove);
             el.removeEventListener('touchend', terminar);
+            el.removeEventListener('click', onClickCapture, true);
         };
     }, []);
 

@@ -65,10 +65,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 Veo cosas como "todos", siguiendo, populares, copiar enlace, editar sample, eliminar, reportar, ir a, comunidad, etc hardcode sin multiidioma, "por" "asunto" "descripcion" "cancelar" "reporte"
 
-## 193A-69
-
-filaColecciones no se puede arrastrar horizontalmente con el mouse, debería, tambien con el dedo en movil!!
-
 
 ## 193A-77
 
