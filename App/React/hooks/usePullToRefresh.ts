@@ -1,6 +1,6 @@
 /*
  * Hook: usePullToRefresh — QL109
- * Pull-to-refresh nativo via touch events para mobile.
+ * Pull-to-refresh via touch events para mobile.
  *
  * Comportamiento:
  * - Se activa solo cuando el scroll esta en el top (scrollTop <= 5).
@@ -8,33 +8,32 @@
  * - Threshold alto (80px) y resistencia (0.4) evitan activacion accidental.
  * - El caller indica cuando termina el refresco para ocultar el indicador.
  *
- * [183A-74] Fix: obtenerScrollTop ya no usa Math.max de multiples fuentes.
- * Si el elemento tiene scroll propio (scrollHeight > clientHeight), usa el.scrollTop.
- * Si no, usa window.scrollY. Esto evita que se active al subir despues de bajar
- * y corrige incompatibilidades con WebView (Capacitor/APK).
- *
- * [2003A-4] Fix: obtenerScrollTop ahora verifica con getComputedStyle si el elemento
- * REALMENTE hace scroll (overflow auto/scroll). Si el div es alto pero no tiene
- * overflow-y propio (ej: feedSamplesContenedor, comunidadFeed), el scroll es el window.
- * Sin este fix, el.scrollTop siempre es 0 aunque el usuario esté scrolleado abajo,
- * lo que hacía que PTR se activara en cualquier momento, no solo desde el top.
+ * [2003A-26 fix definitivo] Dos bugs corregidos:
+ * 1) obtenerScrollTop caia a window.scrollY (siempre 0 en SPA) cuando el div
+ *    no tenia overflow-y: auto. Ahora busca el ancestro scrollable real
+ *    (.areaContenido o .contenedorContenido) recorriendo padres del DOM.
+ * 2) El useEffect usaba elementoRef (useRef) que no dispara re-render.
+ *    Cuando FeedSamples hacia early return (skeleton) sin el ref, y luego
+ *    montaba el div con ref, useEffect no re-ejecutaba porque sus deps
+ *    [habilitado, umbral, resistencia] no cambiaban → listeners nunca se
+ *    registraban. Ahora usa useState para el elemento, forzando re-ejecucion.
  */
 
 import { useRef, useCallback, useState, useEffect } from 'react';
 
-/* [183A-74] [2003A-4] Determina el scroll top real del contexto.
- * Verifica si el elemento tiene overflow-y scrollable computado (no solo si es alto).
- * Si el div no tiene overflow-y: auto/scroll, el scroll es window. */
-function obtenerScrollTop(el: HTMLElement): number {
-    const overflow = window.getComputedStyle(el).overflowY;
-    const tieneScrollPropio =
-        (overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay') &&
-        el.scrollHeight > el.clientHeight + 1;
-
-    if (tieneScrollPropio) {
-        return el.scrollTop;
+/* Busca el primer ancestro con overflow-y scrollable.
+ * En Kamples, .areaContenido o .contenedorContenido son los scroll containers
+ * reales, pero los refs de PTR apuntan a divs internos sin overflow. */
+function buscarAncestroScrollable(el: HTMLElement): HTMLElement | null {
+    let padre = el.parentElement;
+    while (padre && padre !== document.documentElement) {
+        const overflow = window.getComputedStyle(padre).overflowY;
+        if (overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay') {
+            return padre;
+        }
+        padre = padre.parentElement;
     }
-    return window.scrollY || document.documentElement.scrollTop || 0;
+    return null;
 }
 
 interface PullToRefreshOpciones {
@@ -65,33 +64,54 @@ export function usePullToRefresh({
 }: PullToRefreshOpciones): PullToRefreshResultado {
     const [refrescando, setRefrescando] = useState(false);
     const [distanciaArrastre, setDistanciaArrastre] = useState(0);
+    /* useState en vez de useRef: cuando el componente hace early return sin ref
+     * (ej: FeedSamples con skeleton) y luego monta el div, el cambio de null→div
+     * dispara re-render y useEffect re-ejecuta para registrar listeners. */
+    const [elemento, setElemento] = useState<HTMLElement | null>(null);
     const touchStartY = useRef(0);
     const arrastrando = useRef(false);
     const distanciaRef = useRef(0);
-    const elementoRef = useRef<HTMLElement | null>(null);
     const refrescandoRef = useRef(false);
     const onRefrescarRef = useRef(onRefrescar);
+    const contenedorScrollRef = useRef<HTMLElement | null>(null);
     onRefrescarRef.current = onRefrescar;
 
     const contenedorRef = useCallback((nodo: HTMLElement | null) => {
-        elementoRef.current = nodo;
+        setElemento(nodo);
     }, []);
 
     useEffect(() => {
-        const el = elementoRef.current;
+        const el = elemento;
         if (!el || !habilitado) return;
 
+        /* Cachear el ancestro scrollable una vez en mount.
+         * Si el propio elemento tiene overflow-y: auto/scroll, usarlo directamente.
+         * Si no (caso comun: comunidadFeed, feedSamplesContenedor), buscar
+         * el ancestro real (areaContenido, contenedorContenido). */
+        const overflowEl = window.getComputedStyle(el).overflowY;
+        const elTieneScroll = overflowEl === 'auto' || overflowEl === 'scroll' || overflowEl === 'overlay';
+
+        if (!elTieneScroll) {
+            contenedorScrollRef.current = buscarAncestroScrollable(el);
+        } else {
+            contenedorScrollRef.current = null;
+        }
+
+        const obtenerScroll = (): number => {
+            if (elTieneScroll) return el.scrollTop;
+            if (contenedorScrollRef.current) return contenedorScrollRef.current.scrollTop;
+            return window.scrollY || document.documentElement.scrollTop || 0;
+        };
+
         const alIniciarTouch = (e: TouchEvent) => {
-            if (obtenerScrollTop(el) > 5 || refrescandoRef.current) return;
+            if (obtenerScroll() > 5 || refrescandoRef.current) return;
             touchStartY.current = e.touches[0].clientY;
             arrastrando.current = true;
         };
 
         const alMoverTouch = (e: TouchEvent) => {
             if (!arrastrando.current) return;
-            /* [183A-74] Re-verificar scroll en cada movimiento. Si el contenido
-             * ya no está en top (por inercia de scroll o rebote), cancelar el gesto. */
-            if (obtenerScrollTop(el) > 5) {
+            if (obtenerScroll() > 5) {
                 arrastrando.current = false;
                 distanciaRef.current = 0;
                 setDistanciaArrastre(0);
@@ -142,8 +162,9 @@ export function usePullToRefresh({
             el.removeEventListener('touchmove', alMoverTouch);
             el.removeEventListener('touchend', alTerminarTouch);
             el.removeEventListener('touchcancel', alTerminarTouch);
+            contenedorScrollRef.current = null;
         };
-    }, [habilitado, umbral, resistencia]);
+    }, [elemento, habilitado, umbral, resistencia]);
 
     return { contenedorRef, refrescando, distanciaArrastre };
 }

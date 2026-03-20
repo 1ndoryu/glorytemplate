@@ -61,4 +61,5 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-(vacío — todas las tareas completadas)
+- 2003A-28: Fix definitivo pull-to-refresh — publicaciones siempre activa, samples nunca activa
+- 2003A-29: Build nueva APK y escritorio con el fix aplicado
