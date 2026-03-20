@@ -60,3 +60,8 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp — Rules of Hooks.
 
 ## Tareas pendientes
+
+
+## 2003A-37
+
+el problema con la anterior tarea 36, es que se marca y consume el credito justa al arrastrar haciendo un minimo arrastre sin nisiquiera haber movido el archivo, se que esto debe ser dificil, tambien falta una confirmacion visual 
