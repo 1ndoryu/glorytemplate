@@ -9,7 +9,6 @@
     padding: var(--espacioXl);
     display: flex;
     flex-direction: column;
-    gap: var(--espacioXl);
 }
 
 /* Cabecera con portada */

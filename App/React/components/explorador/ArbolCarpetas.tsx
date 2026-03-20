@@ -6,6 +6,7 @@
 
 import { type RefObject } from 'react';
 import { FolderOpen, Folder, FolderClosed, ChevronDown, ChevronRight, FolderPlus } from 'lucide-react';
+import { useT } from '@app/utils/i18n/useT';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 
@@ -56,10 +57,12 @@ export const ArbolCarpetas = ({
     manejarDragOver,
     manejarDragLeave,
     manejarDropEnCarpeta,
-}: ArbolCarpetasProps): JSX.Element => (
+}: ArbolCarpetasProps): JSX.Element => {
+    const { t } = useT();
+    return (
     <div className="exploradorCarpetas">
         <div className="exploradorCarpetaCabecera">
-            <h3 className="exploradorCarpetaTitulo">Carpetas</h3>
+            <h3 className="exploradorCarpetaTitulo">{t('sync.carpetas')}</h3>
             <BotonBase
                 variante="ghost"
                 tamano="sm"
@@ -67,7 +70,7 @@ export const ArbolCarpetas = ({
                 className="exploradorCrearCarpetaBtn"
                 onClick={() => setCrearCarpetaAbierto((prev: boolean) => !prev)}
                 type="button"
-                title="Crear carpeta"
+                title={t('sync.crearCarpeta')}
             >
                 <FolderPlus size={16} />
             </BotonBase>
@@ -79,7 +82,7 @@ export const ArbolCarpetas = ({
                     ref={inputCrearRef as RefObject<HTMLInputElement>}
                     className="exploradorCrearCarpetaInput"
                     type="text"
-                    placeholder={carpetaActiva ? 'Nombre subcarpeta...' : 'Nombre carpeta...'}
+                    placeholder={carpetaActiva ? t('sync.nombreSubcarpeta') : t('sync.nombreCarpeta')}
                     value={nuevaCarpetaNombre}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNuevaCarpetaNombre(e.target.value)}
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -96,7 +99,7 @@ export const ArbolCarpetas = ({
                     type="button"
                     disabled={!nuevaCarpetaNombre.trim()}
                 >
-                    Crear
+                    {t('comun.crear')}
                 </BotonBase>
             </div>
         )}
@@ -182,4 +185,5 @@ export const ArbolCarpetas = ({
             </div>
         )}
     </div>
-);
+    );
+};

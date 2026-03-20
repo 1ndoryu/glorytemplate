@@ -14,10 +14,12 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { useUrlFiltros } from '@app/hooks/useUrlFiltros';
+import { getT } from '@app/utils/i18n';
 
 const TABS_DESCUBRIR = [{ id: 'descubrir', etiqueta: 'Explorar' }];
 
 export const useDescubrirIsland = () => {
+    const t = getT();
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [totalServidor, setTotalServidor] = useState<number | null>(null);
@@ -84,10 +86,10 @@ export const useDescubrirIsland = () => {
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {
-            return periodoDestacados === 'mes' ? 'Top Mensual' : 'Top Semanal';
+            return periodoDestacados === 'mes' ? t('feed.orden.topMensual') : t('feed.orden.topSemanal');
         }
-        return ordenamiento === 'recientes' ? 'Recientes' : 'Inteligente';
-    }, [ordenamiento, periodoDestacados]);
+        return ordenamiento === 'recientes' ? t('feed.orden.recientes') : t('feed.orden.inteligente');
+    }, [ordenamiento, periodoDestacados, t]);
 
     return {
         filtrosAbierto,

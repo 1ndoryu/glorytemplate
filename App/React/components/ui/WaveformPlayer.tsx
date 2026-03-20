@@ -6,6 +6,7 @@
  */
 
 import { useWaveformPlayer } from '../../hooks/useWaveformPlayer';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/waveform.css';
 
 type TamanoWaveform = 'sm' | 'md' | 'lg' | 'xl';
@@ -79,6 +80,8 @@ export const WaveformPlayer = ({
         simetrico,
     });
 
+    const { t } = useT();
+
     return (
         <div
             ref={contenedorRef}
@@ -90,7 +93,7 @@ export const WaveformPlayer = ({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progreso * 100)}
-            aria-label="Progreso del audio"
+            aria-label={t('waveform.progreso')}
         >
             <canvas ref={canvasRef} className="waveformCanvas" />
             {interactivo && hoverX !== null && (

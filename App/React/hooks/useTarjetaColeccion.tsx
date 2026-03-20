@@ -29,6 +29,7 @@ export function useTarjetaColeccion({
     onCombinar,
     onEliminar,
 }: UseTarjetaColeccionOpciones) {
+    const t = getT();
     const usuario = useAuthStore(s => s.usuario);
     const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number }>({
         abierto: false, x: 0, y: 0,
@@ -117,7 +118,7 @@ export function useTarjetaColeccion({
         const items = [
             {
                 id: 'copiar-enlace',
-                etiqueta: 'Copiar enlace',
+                etiqueta: t('coleccion.menu.copiarEnlace'),
                 icono: <Link2 size={16} />,
                 separadorDespues: true,
                 onClick: () => {
@@ -129,7 +130,7 @@ export function useTarjetaColeccion({
         if (onEditar) {
             items.push({
                 id: 'editar',
-                etiqueta: 'Editar colección',
+                etiqueta: t('coleccion.menu.editar'),
                 icono: <Edit3 size={16} />,
                 separadorDespues: false,
                 onClick: () => onEditar(coleccion),
@@ -139,7 +140,7 @@ export function useTarjetaColeccion({
         if (onCombinar) {
             items.push({
                 id: 'combinar',
-                etiqueta: 'Combinar colecciones',
+                etiqueta: t('coleccion.menu.combinar'),
                 icono: <Combine size={16} />,
                 separadorDespues: false,
                 onClick: () => onCombinar(coleccion),
@@ -149,7 +150,7 @@ export function useTarjetaColeccion({
         if (onEliminar) {
             items.push({
                 id: 'eliminar',
-                etiqueta: 'Eliminar colección',
+                etiqueta: t('coleccion.menu.eliminar'),
                 icono: <Trash2 size={16} />,
                 separadorDespues: false,
                 onClick: () => onEliminar(coleccion),
@@ -158,7 +159,7 @@ export function useTarjetaColeccion({
 
         items.push({
             id: 'reportar',
-            etiqueta: 'Reportar',
+            etiqueta: t('seleccionMultiple.reportar'),
             icono: <Flag size={16} />,
             separadorDespues: false,
             onClick: () => undefined,

@@ -12,6 +12,7 @@ import { EstadoVacio } from '../ui/EstadoVacio';
 import { Badge } from '../ui/Badge';
 import { TarjetaDuplicado } from './TarjetaDuplicado';
 import { usePanelDuplicados } from '../../hooks/usePanelDuplicados';
+import { useT } from '@app/utils/i18n/useT';
 import type { GrupoDuplicados } from '../../services/apiAdmin';
 import '../../styles/componentes/duplicadosAdmin.css';
 
@@ -97,6 +98,7 @@ const GrupoColapsable = ({ grupo, procesandoId, onAccion }: {
 export const TabDuplicadosAdmin = (): JSX.Element => {
     const dup = usePanelDuplicados();
     const sentinelaRef = useRef<HTMLDivElement>(null);
+    const { t } = useT();
     /* Siempre ref a la ultima version de cargarMas para el observer */
     const cargarMasRef = useRef(dup.cargarMas);
     useEffect(() => { cargarMasRef.current = dup.cargarMas; }, [dup.cargarMas]);
@@ -117,7 +119,7 @@ export const TabDuplicadosAdmin = (): JSX.Element => {
             {/* Contador resumen */}
             <div className="dupResumen">
                 <span className="dupResumenNumero">{dup.total}</span>
-                <span className="dupResumenLabel">duplicados pendientes de revisión</span>
+                <span className="dupResumenLabel">{t('admin.duplicados.titulo')}</span>
             </div>
 
             {/* Barra de filtros y acciones */}
@@ -146,7 +148,7 @@ export const TabDuplicadosAdmin = (): JSX.Element => {
                         {dup.backfillEnCurso
                             ? <Loader2 size={14} className="adminSpinner" />
                             : <Hash size={14} />}
-                        Backfill hashes
+                        {t('admin.duplicados.backfill')}
                     </BotonBase>
 
                     <BotonBase
@@ -157,7 +159,7 @@ export const TabDuplicadosAdmin = (): JSX.Element => {
                         title="Recargar lista"
                     >
                         <RefreshCw size={14} />
-                        Recargar
+                        {t('admin.recargar')}
                     </BotonBase>
                 </div>
             </div>

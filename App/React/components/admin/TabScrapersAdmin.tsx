@@ -13,6 +13,7 @@ import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabScrapersAdmin } from '@app/hooks/useTabScrapersAdmin';
 import { Checkbox } from '../ui/Checkbox';
+import { useT } from '@app/utils/i18n/useT';
 import { useState, useMemo } from 'react';
 import '../../styles/componentes/adminTablas.css';
 
@@ -89,6 +90,7 @@ export const TabScrapersAdmin = (): JSX.Element => {
     const tab = useTabScrapersAdmin();
     const totalPaginas = Math.ceil(tab.total / POR_PAGINA);
     const [menuColumnasAbierto, setMenuColumnasAbierto] = useState(false);
+    const { t } = useT();
 
     /* QK66: Construir opciones de estado dinámicamente */
     const opcionesEstado = useMemo((): OpcionSelector[] => {
@@ -128,7 +130,7 @@ export const TabScrapersAdmin = (): JSX.Element => {
                     <CampoTexto
                         className="adminTablaDatosBusqueda"
                         variante="bordado"
-                        placeholder="Buscar por URL, tipo o error..."
+                        placeholder={t('admin.buscar.scrapers')}
                         value={tab.busqueda}
                         onChange={(e) => tab.cambiarBusqueda(e.target.value)}
                     />
@@ -143,7 +145,7 @@ export const TabScrapersAdmin = (): JSX.Element => {
                         variante="ghost"
                         tamano="ninguno"
                         className="adminBotonAccion"
-                        title="Refrescar"
+                        title={t('admin.refrescar')}
                         onClick={tab.refrescar}
                         type="button"
                     >

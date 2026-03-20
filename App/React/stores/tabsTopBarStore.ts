@@ -19,18 +19,20 @@ export interface TabTopBar {
 interface EstadoTabsTopBar {
     tabs: TabTopBar[];
     activa: string;
+    islaTabsActual: string | null;
     /* Memoria de última tab seleccionada por isla (persistencia keep-alive) */
     tabsPorIsla: Record<string, string>;
     setTabs: (tabs: TabTopBar[], activaInicial?: string, islaId?: string) => void;
     setActiva: (id: string) => void;
     /* Registra la tab activa para una isla en la memoria keep-alive */
     guardarTabIsla: (islaId: string, tabId: string) => void;
-    limpiar: () => void;
+    limpiar: (islaId?: string) => void;
 }
 
 export const useTabsTopBarStore = create<EstadoTabsTopBar>((set, get) => ({
     tabs: [],
     activa: '',
+    islaTabsActual: null,
     tabsPorIsla: {},
     setTabs: (tabs, activaInicial, islaId) => {
         /* QK56: Prioridad de restauración: URL param > memoria keep-alive > inicial */
@@ -48,12 +50,19 @@ export const useTabsTopBarStore = create<EstadoTabsTopBar>((set, get) => ({
                 tabRestaurada = tabsPorIsla[islaId];
             }
         }
-        set({ tabs, activa: tabRestaurada });
+        set({ tabs, activa: tabRestaurada, islaTabsActual: islaId ?? null });
     },
     setActiva: (activa) => set({ activa }),
     guardarTabIsla: (islaId, tabId) =>
         set(state => ({
             tabsPorIsla: { ...state.tabsPorIsla, [islaId]: tabId },
         })),
-    limpiar: () => set({ tabs: [], activa: '' }),
+    limpiar: (islaId) =>
+        set(state => {
+            if (islaId && state.islaTabsActual !== islaId) {
+                return state;
+            }
+
+            return { ...state, tabs: [], activa: '', islaTabsActual: null };
+        }),
 }));

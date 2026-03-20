@@ -8,6 +8,7 @@
 import { useState, useRef } from 'react';
 import { Play, Pause, Music, ExternalLink } from 'lucide-react';
 import type { Mensaje, MediaMetadataSample } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import { BotonBase } from '../components/ui/BotonBase';
 import { useVisorImagenStore } from '../stores/visorImagenStore';
 
@@ -43,6 +44,7 @@ const BurbujaImagen = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {
 
 /* Burbuja de audio */
 const BurbujaAudio = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {
+    const { t } = useT();
     const audioRef = useRef<HTMLAudioElement>(null);
     const [reproduciendo, setReproduciendo] = useState(false);
     const [progreso, setProgreso] = useState(0);
@@ -84,7 +86,7 @@ const BurbujaAudio = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {
                 onClick={alternarReproduccion} 
                 tamano="ninguno"
                 type="button"
-                aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
+                aria-label={reproduciendo ? t('sample.pausar') : t('sample.reproducir')}
             >
                 {reproduciendo ? <Pause size={16} /> : <Play size={16} />}
             </BotonBase>

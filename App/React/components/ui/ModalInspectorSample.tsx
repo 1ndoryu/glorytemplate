@@ -12,6 +12,7 @@ import {Modal} from './Modal';
 import {Avatar} from './Avatar';
 import type {Sample, SampleResumen} from '@app/types';
 import {obtenerSample} from '@app/services/apiSamples';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/modalInspector.css';
 import { BotonBase } from './BotonBase';
 import { SeccionExtraccionInspector } from './SeccionExtraccionInspector';
@@ -50,6 +51,7 @@ const Campo = ({etiqueta, valor, numerico, ancho}: {etiqueta: string; valor: str
 };
 
 export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspectorSampleProps): JSX.Element | null => {
+    const { t } = useT();
     const [jsonVisible, setJsonVisible] = useState(false);
     const [jsonIaVisible, setJsonIaVisible] = useState(false);
     const [sampleCompleto, setSampleCompleto] = useState<Sample | null>(null);
@@ -188,15 +190,15 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         </div>
                         <div className="inspectorGrid">
                             <Campo etiqueta="Nombre Base" valor={String(m.nombreArchivoBase || m.nombre_archivo_base || '—')} ancho />
-                            <Campo etiqueta="Generos" valor={
+                            <Campo etiqueta={t('metadata.generos')} valor={
                                 Array.isArray(m.genero) ? m.genero.join(', ') :
                                 typeof m.genero === 'string' ? m.genero : null
                             } ancho />
-                            <Campo etiqueta="Instrumentos" valor={
+                            <Campo etiqueta={t('metadata.instrumentos')} valor={
                                 Array.isArray(m.instrumentos) ? m.instrumentos.join(', ') :
                                 typeof m.instrumentos === 'string' ? m.instrumentos : null
                             } ancho />
-                            <Campo etiqueta="Emoción" valor={String(m.emocion || m.emocion_es || (Array.isArray(m.sentimiento) ? m.sentimiento.join(', ') : '') || '—')} ancho />
+                            <Campo etiqueta={t('metadata.emocion')} valor={String(m.emocion || m.emocion_es || (Array.isArray(m.sentimiento) ? m.sentimiento.join(', ') : '') || '—')} ancho />
                             <Campo etiqueta="Artista Vibes" valor={
                                 Array.isArray(m.artista_vibes || m.artistaVibes)
                                     ? (m.artista_vibes as string[] || m.artistaVibes as string[]).join(', ')
@@ -212,18 +214,18 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                             } ancho />
                             <Campo etiqueta="BPM Confianza" valor={m.bpmConfianza as number ?? m.bpm_confianza as number ?? null} numerico />
                             <Campo etiqueta="Key Confianza" valor={m.keyConfianza as number ?? m.key_confianza as number ?? null} numerico />
-                            <Campo etiqueta="Carpeta Primaria" valor={String(m.carpetaPrimaria || m.carpeta_primaria || '—')} />
-                            <Campo etiqueta="Carpeta Secundaria" valor={String(m.carpetaSecundaria || m.carpeta_secundaria || '—')} />
+                            <Campo etiqueta={t('metadata.carpetaPrimaria')} valor={String(m.carpetaPrimaria || m.carpeta_primaria || '—')} />
+                            <Campo etiqueta={t('metadata.carpetaSecundaria')} valor={String(m.carpetaSecundaria || m.carpeta_secundaria || '—')} />
                         </div>
                         {Boolean(m.descripcion || m.descripcionEs || m.descripcion_es || m.descripcionIA) && (
                             <div className="inspectorMetadataIA">
-                                <strong>Descripcion IA:</strong>{' '}
+                                <strong>{t('metadata.descripcionIa')}:</strong>{' '}
                                 {String(m.descripcion_es || m.descripcionEs || m.descripcion || m.descripcionIA)}
                             </div>
                         )}
                         {Boolean(m.descripcionCorta || m.descripcion_corta || m.descripcionCortaEs || m.descripcion_corta_es) && (
                             <div className="inspectorMetadataIA">
-                                <strong>Descripcion Corta:</strong>{' '}
+                                <strong>{t('metadata.descripcionCorta')}:</strong>{' '}
                                 {String(m.descripcion_corta_es || m.descripcionCortaEs || m.descripcion_corta || m.descripcionCorta)}
                             </div>
                         )}

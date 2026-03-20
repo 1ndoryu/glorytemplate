@@ -50,6 +50,6 @@ export function useTabsIsla(
 
     /* Limpiar al desmontar (si el keep-alive descarta esta isla) */
     useEffect(() => {
-        return () => limpiar();
-    }, [limpiar]);
+        return () => limpiar(islaId);
+    }, [limpiar, islaId]);
 }

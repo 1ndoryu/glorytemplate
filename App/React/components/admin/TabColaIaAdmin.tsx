@@ -11,6 +11,7 @@ import { SelectorMenu } from '../ui/SelectorMenu';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useTabColaIa } from '../../hooks/useTabColaIa';
+import { useT } from '@app/utils/i18n/useT';
 import {
     EstadisticasResumen,
     CuotaGroqResumen,
@@ -51,6 +52,7 @@ const COLUMNAS = [
 
 export const TabColaIaAdmin = (): JSX.Element => {
     const cola = useTabColaIa();
+    const { t } = useT();
 
     return (
         <div className="tabColaIa">
@@ -65,7 +67,7 @@ export const TabColaIaAdmin = (): JSX.Element => {
                         <CampoTexto
                             className="adminUsuariosBusqueda"
                             variante="bordado"
-                            placeholder="Buscar en operación, error, metadata..."
+                            placeholder={t('admin.buscar.colaIa')}
                             value={cola.busqueda}
                             onChange={(e) => cola.setBusqueda(e.target.value)}
                         />
@@ -83,14 +85,14 @@ export const TabColaIaAdmin = (): JSX.Element => {
                 </div>
                 <div className="colaIaBotones">
                     <BotonBase onClick={cola.recargar} variante="secundario" disabled={cola.cargando}>
-                        <RefreshCw size={14} /> Recargar
+                        <RefreshCw size={14} /> {t('admin.recargar')}
                     </BotonBase>
                     <BotonBase onClick={cola.reintentarTodos} variante="secundario" disabled={cola.procesando}>
-                        <RotateCcw size={14} /> Reintentar todos
+                        <RotateCcw size={14} /> {t('admin.reintentar')}
                     </BotonBase>
                     <BotonBase onClick={cola.procesarAhora} variante="primario" disabled={cola.procesando}>
                         {cola.procesando ? <Loader2 size={14} className="adminSpinner" /> : <Play size={14} />}
-                        Procesar ahora
+                        {t('admin.procesarAhora')}
                     </BotonBase>
                 </div>
             </div>
@@ -116,7 +118,7 @@ export const TabColaIaAdmin = (): JSX.Element => {
 
             {!cola.cargando && cola.items.length === 0 && (
                 <EstadoVacio
-                    mensaje="No hay items en la cola con los filtros seleccionados."
+                    mensaje={t('admin.colaVacia')}
                     icono={<CheckCircle size={24} />}
                 />
             )}

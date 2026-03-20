@@ -11,12 +11,8 @@ import { SelectorMenu, type OpcionSelector } from '@app/components/ui/SelectorMe
 import { BotonBase } from '@app/components/ui/BotonBase';
 import type { FormularioSample } from '@app/hooks/useEditar';
 import type { TipoSample } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import { ImageIcon, X } from 'lucide-react';
-
-const OPCIONES_TIPO: OpcionSelector[] = [
-    { valor: 'loop', etiqueta: 'Loop' },
-    { valor: 'oneshot', etiqueta: 'One Shot' },
-];
 
 interface FormularioEditarSampleProps {
     formulario: FormularioSample;
@@ -35,6 +31,11 @@ export const FormularioEditarSample = ({
     onLimpiarImagen,
     inputImagenRef,
 }: FormularioEditarSampleProps): JSX.Element => {
+    const { t } = useT();
+    const opcionesTipo: OpcionSelector[] = [
+        { valor: 'loop', etiqueta: 'Loop' },
+        { valor: 'oneshot', etiqueta: 'One Shot' },
+    ];
     /* La imagen a mostrar: preview local si hay archivo nuevo, sino la existente */
     const imagenVisible = imagenPreview ?? formulario.imagenUrl;
 
@@ -75,7 +76,7 @@ export const FormularioEditarSample = ({
                                 soloIcono
                                 onClick={onLimpiarImagen}
                                 type="button"
-                                aria-label="Quitar imagen nueva"
+                                aria-label={t('sample.form.quitarImagenNueva')}
                                 className="editarImagenQuitar"
                             >
                                 <X size={14} />
@@ -91,7 +92,7 @@ export const FormularioEditarSample = ({
                         className="editarImagenVacia"
                     >
                         <ImageIcon size={16} />
-                        Agregar imagen
+                        {t('sample.agregarImagen')}
                     </BotonBase>
                 )}
                 {/* sentinel-disable-next-line html-nativo-en-vez-de-componente — input type=file oculto activado programaticamente, CampoTexto no soporta file inputs */}
@@ -105,7 +106,7 @@ export const FormularioEditarSample = ({
             </div>
 
             <CampoTexto
-                etiqueta="Título"
+                etiqueta={t('sample.form.titulo')}
                 value={formulario.titulo}
                 onChange={(e) =>
                     setFormulario((prev) => ({
@@ -113,13 +114,13 @@ export const FormularioEditarSample = ({
                         titulo: (e.target as HTMLInputElement).value,
                     }))
                 }
-                placeholder="Nombre del sample"
+                placeholder={t('sample.form.nombrePlaceholder')}
                 maxLength={200}
                 autoFocus
             />
 
             <CampoTexto
-                etiqueta="Descripción"
+                etiqueta={t('sample.form.descripcion')}
                 value={formulario.descripcion}
                 onChange={(e) =>
                     setFormulario((prev) => ({
@@ -127,14 +128,14 @@ export const FormularioEditarSample = ({
                         descripcion: (e.target as HTMLTextAreaElement).value,
                     }))
                 }
-                placeholder="Descripción del sample (opcional)"
+                placeholder={t('sample.form.descripcionPlaceholder')}
                 maxLength={1000}
                 multilínea
             />
 
             <div className="editarGrupo">
                 <CampoTexto
-                    etiqueta="Tags"
+                    etiqueta={t('sample.form.tags')}
                     value={formulario.tags}
                     onChange={(e) =>
                         setFormulario((prev) => ({
@@ -142,17 +143,17 @@ export const FormularioEditarSample = ({
                             tags: (e.target as HTMLInputElement).value,
                         }))
                     }
-                    placeholder="trap, dark, 808, ambient"
+                    placeholder={t('sample.form.tagsPlaceholder')}
                     maxLength={500}
                 />
-                <span className="editarTagsHint">Separados por comas. Mínimo 2 tags.</span>
+                <span className="editarTagsHint">{t('sample.form.tagsHint')}</span>
             </div>
 
             <div className="editarFilaDoble">
                 <div className="editarGrupo">
                     <SelectorMenu
-                        etiqueta="Tipo"
-                        opciones={OPCIONES_TIPO}
+                        etiqueta={t('sample.form.tipo')}
+                        opciones={opcionesTipo}
                         valor={formulario.tipo}
                         onChange={(v) =>
                             setFormulario((prev) => ({ ...prev, tipo: v as TipoSample }))
@@ -161,7 +162,7 @@ export const FormularioEditarSample = ({
                 </div>
 
                 <CampoTexto
-                    etiqueta="Precio"
+                    etiqueta={t('sample.form.precio')}
                     value={formulario.precio}
                     onChange={(e) =>
                         setFormulario((prev) => ({
@@ -177,7 +178,7 @@ export const FormularioEditarSample = ({
 
             <div className="editarFilaDoble">
                 <Checkbox
-                    label="Premium"
+                    label={t('sample.form.premium')}
                     checked={formulario.esPremium}
                     onChange={(e) =>
                         setFormulario((prev) => ({
@@ -188,7 +189,7 @@ export const FormularioEditarSample = ({
                 />
 
                 <Checkbox
-                    label="Permitir descarga"
+                    label={t('sample.form.permitirDescarga')}
                     checked={formulario.permitirDescarga}
                     onChange={(e) =>
                         setFormulario((prev) => ({

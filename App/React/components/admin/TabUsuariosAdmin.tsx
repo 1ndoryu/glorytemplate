@@ -17,6 +17,7 @@ import { EstadoVacio } from '../ui/EstadoVacio';
 import { ModalSuspenderAdmin } from './ModalSuspenderAdmin';
 import { useTabUsuariosAdmin } from '@app/hooks/useTabUsuariosAdmin';
 import { KpisCompactosAdmin } from './KpisCompactosAdmin';
+import { useT } from '@app/utils/i18n/useT';
 
 interface TabUsuariosAdminProps {
     kpis?: KpisAdmin | null;
@@ -84,6 +85,8 @@ export const TabUsuariosAdmin = ({
         onRefrescar,
     });
 
+    const { t } = useT();
+
     return (
         <div>
             {/* QK46: KPIs compactos movidos desde TabResumen */}
@@ -96,7 +99,7 @@ export const TabUsuariosAdmin = ({
                     <CampoTexto
                         className="adminUsuariosBusqueda"
                         variante="bordado"
-                        placeholder="Buscar por nombre, username o email..."
+                        placeholder={t('admin.buscar.usuarios')}
                         value={busqueda}
                         onChange={(e) => onCambiarBusqueda(e.target.value)}
                     />
@@ -127,7 +130,7 @@ export const TabUsuariosAdmin = ({
                         <tr>
                             <td colSpan={8}>
                                 <EstadoVacio
-                                    mensaje="No se encontraron usuarios"
+                                    mensaje={t('admin.sinResultados')}
                                     icono={<Search size={24} />}
                                 />
                             </td>
@@ -137,7 +140,7 @@ export const TabUsuariosAdmin = ({
                         <tr key={u.id}>
                             <td>
                                 <div className="adminUsuarioFila">
-                                    <a href={`/perfil/${u.username}/`} target="_blank" rel="noopener noreferrer" className="adminUsuarioPerfilLink" title="Ver perfil">
+                                    <a href={`/perfil/${u.username}/`} target="_blank" rel="noopener noreferrer" className="adminUsuarioPerfilLink" title={t('admin.verPerfil')}>
                                         {u.avatar_url ? (
                                             <img src={u.avatar_url} alt="" className="adminUsuarioAvatar" />
                                         ) : (

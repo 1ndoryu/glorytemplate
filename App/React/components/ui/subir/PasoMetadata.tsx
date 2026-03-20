@@ -9,6 +9,7 @@ import { Music, X, Upload } from 'lucide-react';
 import { CampoTexto, BotonBase, Badge } from '@app/components/ui';
 import type { TipoSample } from '@app/types';
 import { SelectorBase } from '../SelectorBase';
+import { useT } from '@app/utils/i18n/useT';
 
 interface ArchivoSubida {
     archivo: File;
@@ -66,6 +67,7 @@ export const PasoMetadata = ({
     onVolver,
     onSubir,
 }: Props): JSX.Element => {
+    const { t } = useT();
     const actualizarCampo = useCallback(
         (campo: keyof MetadataSample) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
             onMetadataChange({ ...metadata, [campo]: e.target.value });
@@ -97,7 +99,7 @@ export const PasoMetadata = ({
                         className="subirPreviewEliminar"
                         onClick={() => onEliminarArchivo(i)}
                         type="button"
-                        aria-label="Eliminar archivo"
+                        aria-label={t('metadata.eliminarArchivo')}
                     >
                         <X size={16} />
                     </BotonBase>
@@ -106,7 +108,7 @@ export const PasoMetadata = ({
 
             <CampoTexto
                 etiqueta="Título"
-                placeholder="Nombre del sample"
+                placeholder={t('metadata.nombreSample')}
                 value={metadata.titulo}
                 onChange={actualizarCampo('titulo')}
             />
@@ -114,7 +116,7 @@ export const PasoMetadata = ({
             <CampoTexto
                 etiqueta="Descripción"
                 multilínea
-                placeholder="Describe tu sample (opcional)"
+                placeholder={t('metadata.descripcionOpcional')}
                 rows={3}
                 value={metadata.descripcion}
                 onChange={actualizarCampo('descripcion')}

@@ -12,9 +12,11 @@ import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { FilaColecciones } from '@app/components/social/FilaColecciones';
 import { useDescubrirIsland } from '@app/hooks/useDescubrirIsland';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/inicio.css';
 
 export const DescubrirIsland = (): JSX.Element => {
+    const { t } = useT();
     const {
         filtrosAbierto, setFiltrosAbierto,
         menuOrdenamiento, setMenuOrdenamiento,
@@ -38,8 +40,8 @@ export const DescubrirIsland = (): JSX.Element => {
                     {(totalServidor != null || conteoFiltrado > 0) && (
                         <span className="inicioTagsContador">
                             {busqueda.trim()
-                                ? `${conteoFiltrado} de ${totalServidor ?? conteoFiltrado} samples`
-                                : `${totalServidor ?? conteoFiltrado} samples`
+                                ? t('feed.contadorDeSamples', { actual: conteoFiltrado, total: totalServidor ?? conteoFiltrado })
+                                : t('feed.contadorSamples', { total: totalServidor ?? conteoFiltrado })
                             }
                         </span>
                     )}
@@ -64,28 +66,28 @@ export const DescubrirIsland = (): JSX.Element => {
                                     onClick={() => { setOrdenamiento('inteligente'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Inteligente
+                                    {t('feed.orden.inteligente')}
                                 </BotonBase>
                                 <BotonBase variante="ghost"
                                     className={ordenamiento === 'recientes' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('recientes'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Recientes
+                                    {t('feed.orden.recientes')}
                                 </BotonBase>
                                 <BotonBase variante="ghost"
                                     className={ordenamiento === 'destacados' && periodoDestacados === 'semana' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('semana'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Top Semanal
+                                    {t('feed.orden.topSemanal')}
                                 </BotonBase>
                                 <BotonBase variante="ghost"
                                     className={ordenamiento === 'destacados' && periodoDestacados === 'mes' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('mes'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Top Mensual
+                                    {t('feed.orden.topMensual')}
                                 </BotonBase>
                             </div>
                         )}
@@ -96,7 +98,7 @@ export const DescubrirIsland = (): JSX.Element => {
                         onClick={() => setFiltrosAbierto(true)}
                         tamano="ninguno"
                         type="button"
-                        aria-label="Filtros"
+                        aria-label={t('feed.filtros')}
                     >
                         <SlidersHorizontal size={16} />
                     </BotonBase>
@@ -108,7 +110,7 @@ export const DescubrirIsland = (): JSX.Element => {
                 claveCache={claveCache}
                 mostrarTags
                 infiniteScroll
-                mensajeVacio="No se encontraron samples."
+                mensajeVacio={t('feed.noSeEncontraronSamples')}
                 idsExcluidos={idsExcluidosCombinados}
                 idsCreadoresIncluidos={autenticado && deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
                 onConteoChange={setConteoFiltrado}

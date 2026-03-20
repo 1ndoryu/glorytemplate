@@ -11,6 +11,7 @@ import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { useNavigationStore } from '@/core/router';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { toast } from '@app/stores/toastStore';
+import { getT } from '@app/utils/i18n';
 
 interface EstadoMenuCancion {
     abierto: boolean;
@@ -62,21 +63,22 @@ function construirItems(
     cancion: Cancion,
     navegar: (ruta: string) => void,
 ): MenuItemDef[] {
+    const t = getT();
     const hrefCancion = `/cancion/${cancion.slug}`;
     const items: MenuItemDef[] = [
         {
             id: 'ver-cancion',
-            etiqueta: 'Ver canción',
+            etiqueta: t('cancion.menu.verCancion'),
             href: hrefCancion,
             onClick: () => navegar(hrefCancion),
         },
         {
             id: 'copiar-enlace',
-            etiqueta: 'Copiar enlace',
+            etiqueta: t('cancion.menu.copiarEnlace'),
             onClick: () => {
                 const url = `${window.location.origin}${hrefCancion}`;
                 copiarAlPortapapeles(url);
-                toast.exito('Enlace copiado');
+                toast.exito(t('cancion.toast.enlaceCopiado'));
             },
         },
     ];
@@ -85,7 +87,7 @@ function construirItems(
         const hrefArtista = `/artista/${cancion.artistaSlug}`;
         items.push({
             id: 'ver-artista',
-            etiqueta: 'Ver artista',
+            etiqueta: t('cancion.menu.verArtista'),
             href: hrefArtista,
             onClick: () => navegar(hrefArtista),
         });
@@ -94,7 +96,7 @@ function construirItems(
     if (cancion.whosampledUrl) {
         items.push({
             id: 'abrir-whosampled',
-            etiqueta: 'Abrir en WhoSampled',
+            etiqueta: t('cancion.menu.abrirWhoSampled'),
             separadorDespues: false,
             onClick: () => {
                 window.open(cancion.whosampledUrl!, '_blank', 'noopener,noreferrer');

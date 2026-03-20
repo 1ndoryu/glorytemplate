@@ -8,6 +8,7 @@ import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { useComentarios } from '@app/hooks/useComentarios';
 import type { TipoReaccion, SampleResumen } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import { BotonBase } from '../ui/BotonBase';
 
 type RetornoComentarios = ReturnType<typeof useComentarios>;
@@ -41,6 +42,7 @@ export function SampleDetalleAcciones({
     onAbrirMenu, sample,
     seccionComentarios, onClickAutorComentario,
 }: SampleDetalleAccionesProps): JSX.Element {
+    const { t } = useT();
     return (
         <>
             <div className="detalleAcciones">
@@ -56,7 +58,7 @@ export function SampleDetalleAcciones({
                         }`}
                         onClick={onLike}
                         type="button"
-                        aria-label={liked ? 'Quitar like' : 'Dar like'}
+                        aria-label={liked ? t('sample.quitarLike') : t('sample.darLike')}
                     >
                         <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
                     </BotonBase>
@@ -66,7 +68,7 @@ export function SampleDetalleAcciones({
                     className="detalleAccionPlano"
                     onClick={onToggleComentarios}
                     type="button"
-                    aria-label="Comentarios"
+                    aria-label={t('sample.comentariosSeccion')}
                 >
                     <MessageCircle size={18} />
                 </BotonBase>
@@ -75,7 +77,7 @@ export function SampleDetalleAcciones({
                     className={`detalleAccionPlano ${descargado ? 'detalleAccionPlanoDescargado' : ''}`}
                     onClick={onDescargar}
                     type="button"
-                    aria-label="Descargar sample"
+                    aria-label={t('sample.menu.descargarArchivo')}
                 >
                     <Download size={18} />
                 </BotonBase>
@@ -85,8 +87,8 @@ export function SampleDetalleAcciones({
                         className="detalleAccionPlano"
                         onClick={onAbrirColeccionOriginal}
                         type="button"
-                        aria-label={`Abrir colección original ${nombreColeccionOriginal}`}
-                        title={`Abrir colección original ${nombreColeccionOriginal}`}
+                        aria-label={t('sample.detalle.abrirColeccionOriginal', { nombre: nombreColeccionOriginal })}
+                        title={t('sample.detalle.abrirColeccionOriginal', { nombre: nombreColeccionOriginal })}
                     >
                         <FolderTree size={18} />
                     </BotonBase>
@@ -97,7 +99,7 @@ export function SampleDetalleAcciones({
                         className="detalleAccionPlano detalleAccionPlanoActivo"
                         onClick={onAbrirPlanes}
                         type="button"
-                        aria-label="Requiere plan Pro"
+                        aria-label={t('sample.requierePlanPro')}
                     >
                         <Lock size={18} />
                     </BotonBase>
@@ -108,7 +110,7 @@ export function SampleDetalleAcciones({
                     className="detalleAccionPlano"
                     onClick={(e) => onAbrirMenu(e as React.MouseEvent, sample)}
                     type="button"
-                    aria-label="Más opciones"
+                    aria-label={t('comun.masOpciones')}
                 >
                     <MoreHorizontal size={18} />
                 </BotonBase>

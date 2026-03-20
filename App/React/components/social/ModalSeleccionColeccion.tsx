@@ -11,6 +11,7 @@ import '../../styles/componentes/modalSeleccionColeccion.css';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { ImgOptimizada } from '../ui/ImgOptimizada';
+import { useT } from '@app/utils/i18n/useT';
 
 export const ModalSeleccionColeccion = (): JSX.Element | null => {
     const {
@@ -21,6 +22,8 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
     } = useModalSeleccionColeccion();
 
     if (!abierto || !sample) return null;
+
+    const { t } = useT();
 
     /* Posición contextual ajustada al viewport */
     const estiloPanel: React.CSSProperties | undefined = posicion
@@ -38,7 +41,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                 <div className="seleccionColeccionBuscador">
                     <Search size={14} className="seleccionColeccionBuscadorIcono" />
                     <CampoTexto  value={busqueda} onChange={e => setBusqueda(e.target.value)}
-                        placeholder="Buscar o crear colección..." className="seleccionColeccionInput"
+                        placeholder={t('coleccion.buscarOCrear')} className="seleccionColeccionInput"
                         maxLength={100} autoFocus
                         onKeyDown={e => {
                             if (e.key === 'Enter' && busqueda.trim() && !existeConNombre) manejarCrear();
@@ -76,7 +79,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                         })}
                         {colecciones.length === 0 && !cargando && (
                             <div className="seleccionColeccionVacio">
-                                {busqueda.trim() ? 'Sin resultados' : 'No tienes colecciones'}
+                                {busqueda.trim() ? t('coleccion.sinResultados') : t('coleccion.sinColecciones')}
                             </div>
                         )}
                     </div>
@@ -91,7 +94,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                 )}
 
                 {busqueda.trim() && existeConNombre && (
-                    <div className="seleccionColeccionAlerta">Ya tienes una colección con ese nombre</div>
+                    <div className="seleccionColeccionAlerta">{t('coleccion.nombreDuplicado')}</div>
                 )}
             </div>
         </div>

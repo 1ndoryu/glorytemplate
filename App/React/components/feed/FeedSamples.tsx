@@ -70,7 +70,7 @@ export const FeedSamples = ({
     virtualizar = false,
     maxRenderizados = 50,
     alturaTarjeta = 72,
-    mensajeVacio = 'No se encontraron samples.',
+    mensajeVacio,
     accionVacia,
     className = '',
     id,
@@ -82,6 +82,7 @@ export const FeedSamples = ({
     busquedaLocal = false,
 }: FeedSamplesProps): JSX.Element => {
     const { t } = useT();
+    const mensajeVacioFinal = mensajeVacio ?? t('feed.noSeEncontraronSamples');
     const feed = useFeedSamples({
         proveedor,
         samplesIniciales,
@@ -200,7 +201,7 @@ export const FeedSamples = ({
             {feed.samplesFiltrados.length === 0 ? (
                 <div className="feedSamplesVacio">
                     <Music size={48} className="feedSamplesVacioIcono" />
-                    <p>{mensajeVacio}</p>
+                    <p>{mensajeVacioFinal}</p>
                     {accionVacia}
                 </div>
             ) : (

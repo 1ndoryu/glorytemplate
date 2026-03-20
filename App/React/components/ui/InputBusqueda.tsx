@@ -9,6 +9,7 @@ import { useInputBusqueda } from '../../hooks/useInputBusqueda';
 import '../../styles/componentes/inputBusqueda.css';
 import { BotonBase } from './BotonBase';
 import { CampoTexto } from './CampoTexto';
+import { useT } from '@app/utils/i18n/useT';
 
 interface InputBusquedaProps {
     placeholder?: string;
@@ -21,7 +22,7 @@ interface InputBusquedaProps {
 }
 
 export const InputBusqueda = ({
-    placeholder = 'Buscar samples...',
+    placeholder,
     valor: valorExterno,
     onChange,
     debounceMs = 300,
@@ -29,6 +30,8 @@ export const InputBusqueda = ({
     className = '',
     autoFocus = false,
 }: InputBusquedaProps): JSX.Element => {
+    const { t } = useT();
+    const resolvedPlaceholder = placeholder ?? t('comun.buscar') + '...';
     const {
         valorInterno,
         inputRef,
@@ -52,7 +55,7 @@ export const InputBusqueda = ({
             <CampoTexto
                 ref={inputRef}
                 className="inputBusqueda"
-                placeholder={placeholder}
+                placeholder={resolvedPlaceholder}
                 value={valorInterno}
                 onChange={manejarCambio}
              />

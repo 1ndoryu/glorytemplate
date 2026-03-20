@@ -12,6 +12,7 @@ import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, A
 import { useDropdownNotificaciones } from '../../hooks/useDropdownNotificaciones';
 import type { NotificacionUI } from '@app/types/notificaciones';
 import { useEsMovil } from '@app/hooks/useEsMovil';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/dropdownPanel.css';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
@@ -60,6 +61,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
         manejarClickNotif,
     } = useDropdownNotificaciones({ onCerrar });
     const esMovil = useEsMovil();
+    const { t } = useT();
 
     return (
         <>
@@ -68,7 +70,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                 {esMovil && (
                     <div className="dropdownPanelCabecera">
                         <span className="dropdownPanelTitulo">Notificaciones</span>
-                        <button className="dropdownPanelCerrar" onClick={onCerrar} type="button" aria-label="Cerrar">
+                        <button className="dropdownPanelCerrar" onClick={onCerrar} type="button" aria-label={t('notificaciones.cerrar')}>
                             <X size={20} />
                         </button>
                     </div>
@@ -77,12 +79,12 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                     {cargando && !notificacionesCargadas ? (
                         <div className="dropdownPanelVacio">
                             <Loader2 size={28} className="adminSpinner" />
-                            <p>Cargando...</p>
+                            <p>{t('comun.cargando')}</p>
                         </div>
                     ) : notificaciones.length === 0 ? (
                         <div className="dropdownPanelVacio">
                             <Bell size={28} />
-                            <p>Sin notificaciones</p>
+                            <p>{t('notificaciones.sinNotificaciones')}</p>
                         </div>
                     ) : (
                         notificaciones.map((noti) => {

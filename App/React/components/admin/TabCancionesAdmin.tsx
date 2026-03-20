@@ -10,6 +10,7 @@ import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabCancionesAdmin } from '@app/hooks/useTabCancionesAdmin';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/cancionesAdmin.css';
 
 /* Formatear fecha ISO a formato corto legible */
@@ -34,6 +35,7 @@ export const TabCancionesAdmin = (): JSX.Element => {
 
     const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
     const esBusqueda = busqueda.trim().length >= 2;
+    const { t } = useT();
 
     return (
         <div className="tabCancionesAdmin">
@@ -44,15 +46,15 @@ export const TabCancionesAdmin = (): JSX.Element => {
                     <CampoTexto
                         className="adminUsuariosBusqueda"
                         variante="bordado"
-                        placeholder="Buscar por título o artista..."
+                        placeholder={t('admin.buscar.canciones')}
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
                     />
                 </div>
                 <div className="cancionesAdminBotones">
-                    <span className="cancionesAdminTotal">{total} canciones</span>
+                    <span className="cancionesAdminTotal">{t('admin.canciones', { total: String(total) })}</span>
                     <BotonBase onClick={recargar} variante="secundario" disabled={cargando}>
-                        <RefreshCw size={14} /> Recargar
+                        <RefreshCw size={14} /> {t('admin.recargar')}
                     </BotonBase>
                 </div>
             </div>

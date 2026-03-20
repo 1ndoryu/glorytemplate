@@ -13,6 +13,7 @@ import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { FiltroColumna, type OpcionFiltro } from '../ui/FiltroColumna';
 import { useTabColaExtraccionAdmin } from '@app/hooks/useTabColaExtraccionAdmin';
+import { useT } from '@app/utils/i18n/useT';
 import { Checkbox } from '../ui/Checkbox';
 import { useState, useMemo } from 'react';
 import '../../styles/componentes/adminTablas.css';
@@ -88,6 +89,7 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
     const tab = useTabColaExtraccionAdmin();
     const totalPaginas = Math.ceil(tab.total / POR_PAGINA);
     const [menuColumnasAbierto, setMenuColumnasAbierto] = useState(false);
+    const { t } = useT();
 
     /* QK66: Construir opciones de estado dinámicamente desde estadosCuenta */
     const opcionesEstado = useMemo((): OpcionSelector[] => {
@@ -141,7 +143,7 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                     <CampoTexto
                         className="adminTablaDatosBusqueda"
                         variante="bordado"
-                        placeholder="Buscar por YouTube ID, Spotify ID o error..."
+                        placeholder={t('admin.buscar.colaExtraccion')}
                         value={tab.busqueda}
                         onChange={(e) => tab.cambiarBusqueda(e.target.value)}
                     />
@@ -156,7 +158,7 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                         variante="ghost"
                         tamano="ninguno"
                         className="adminBotonAccion"
-                        title="Refrescar"
+                        title={t('admin.refrescar')}
                         onClick={tab.refrescar}
                         type="button"
                     >

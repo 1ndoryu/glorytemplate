@@ -11,10 +11,12 @@ import { ModalAcciones } from '@app/components/ui/ModalAcciones';
 import { Badge } from '@app/components/ui/Badge';
 import { useCorregirIAStore } from '@app/stores/corregirIAStore';
 import { useCorregirIA } from '@app/hooks/useCorregirIA';
+import { useT } from '@app/utils/i18n/useT';
 import { Sparkles } from 'lucide-react';
 import '../../styles/componentes/modalCorregirIA.css';
 
 export const ModalCorregirIA = (): JSX.Element | null => {
+    const { t } = useT();
     const abierto = useCorregirIAStore(s => s.abierto);
     const sample = useCorregirIAStore(s => s.sample);
     const cerrar = useCorregirIAStore(s => s.cerrar);
@@ -26,12 +28,12 @@ export const ModalCorregirIA = (): JSX.Element | null => {
     /* Metadata actual para contexto visual */
     const metaActual = sample.metadata ?? {};
     const camposActuales = [
-        { clave: 'Título', valor: sample.titulo },
-        { clave: 'Tags', valor: Array.isArray(sample.tags) ? sample.tags.join(', ') : '' },
+        { clave: t('sample.form.titulo'), valor: sample.titulo },
+        { clave: t('sample.form.tags'), valor: Array.isArray(sample.tags) ? sample.tags.join(', ') : '' },
         { clave: 'BPM', valor: sample.bpm?.toString() ?? 'N/A' },
         { clave: 'Key', valor: sample.key ?? 'N/A' },
-        { clave: 'Género', valor: Array.isArray(metaActual.genero) ? (metaActual.genero as string[]).join(', ') : 'N/A' },
-        { clave: 'Emoción', valor: typeof metaActual.emocion === 'string' ? metaActual.emocion : 'N/A' },
+        { clave: t('metadata.generos'), valor: Array.isArray(metaActual.genero) ? (metaActual.genero as string[]).join(', ') : 'N/A' },
+        { clave: t('metadata.emocion'), valor: typeof metaActual.emocion === 'string' ? metaActual.emocion : 'N/A' },
     ];
 
     return (
@@ -39,17 +41,16 @@ export const ModalCorregirIA = (): JSX.Element | null => {
             <div className="corregirIAContenedor">
                 <div className="corregirIACabecera">
                     <Sparkles size={20} className="corregirIAIcono" />
-                    <h3 className="corregirIATitulo">Corregir metadata IA</h3>
+                    <h3 className="corregirIATitulo">{t('metadata.corregirIaTitle')}</h3>
                 </div>
 
                 <p className="corregirIADescripcion">
-                    Este sample fue generado automáticamente. Si la IA cometió errores en el título,
-                    tags, género u otros datos, escribe las correcciones necesarias.
+                    {t('metadata.corregirIaDesc')}
                 </p>
 
                 {/* Metadata actual como referencia */}
                 <div className="corregirIAMetadataActual">
-                    <span className="corregirIASubtitulo">Metadata actual</span>
+                    <span className="corregirIASubtitulo">{t('metadata.actual')}</span>
                     <div className="corregirIACampos">
                         {camposActuales.map(c => (
                             <div key={c.clave} className="corregirIACampo">
@@ -63,12 +64,12 @@ export const ModalCorregirIA = (): JSX.Element | null => {
                 {/* Input de instrucciones */}
                 <div className="corregirIAGrupo">
                     <label className="corregirIALabel" htmlFor="instrucciones-ia">
-                        Instrucciones de corrección
+                        {t('metadata.instruccionesCorreccion')}
                     </label>
                     <textarea
                         id="instrucciones-ia"
                         className="corregirIATextarea"
-                        placeholder="Ej: El título correcto es 'Artista - Canción'. El género es hip-hop, no jazz. Los tags deberían incluir 'boom bap'..."
+                        placeholder={t('metadata.instruccionesPlaceholder')}
                         value={instrucciones}
                         onChange={e => setInstrucciones(e.target.value)}
                         rows={4}
@@ -82,14 +83,14 @@ export const ModalCorregirIA = (): JSX.Element | null => {
 
                 <ModalAcciones>
                     <BotonBase variante="secundario" onClick={cerrar} disabled={enviando}>
-                        Cancelar
+                        {t('comun.cancelar')}
                     </BotonBase>
                     <BotonBase
                         variante="primario"
                         onClick={enviar}
                         disabled={enviando || instrucciones.trim().length < 5}
                     >
-                        {enviando ? 'Corrigiendo...' : 'Enviar corrección'}
+                        {enviando ? t('metadata.corrigiendo') : t('metadata.enviarCorreccion')}
                     </BotonBase>
                 </ModalAcciones>
             </div>

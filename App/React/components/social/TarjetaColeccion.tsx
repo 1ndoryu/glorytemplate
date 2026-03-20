@@ -18,6 +18,7 @@ import { MenuContextual } from '../ui/MenuContextual';
 import { BotonBase } from '../ui/BotonBase';
 import '../../styles/componentes/tarjetaColeccion.css';
 import { ImgOptimizada } from '../ui/ImgOptimizada';
+import { useT } from '@app/utils/i18n/useT';
 
 interface TarjetaColeccionProps {
     coleccion: Coleccion;
@@ -43,6 +44,7 @@ export const TarjetaColeccion = ({
     onEliminar,
     className = '',
 }: TarjetaColeccionProps): JSX.Element => {
+    const { t } = useT();
     const {
         menu,
         guardada,
@@ -116,7 +118,7 @@ export const TarjetaColeccion = ({
                 <div className="tarjetaColeccionPortada">
                     <ImgOptimizada src={imagenPortada} alt={coleccion.nombre} w={300} quality={80} />
                     {esSubcoleccion && (
-                        <span className="tarjetaColeccionSubBadge" title="Subcoleccion">
+                        <span className="tarjetaColeccionSubBadge" title={t('coleccion.subcoleccion')}>
                             <FolderTree size={12} />
                         </span>
                     )}
@@ -127,7 +129,7 @@ export const TarjetaColeccion = ({
                                 className={`tarjetaColeccionPreviewBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
                                 onClick={manejarPreview}
                                 type="button"
-                                aria-label={esPreviewActiva ? 'Detener preview' : 'Preview coleccion'}
+                                aria-label={esPreviewActiva ? t('coleccion.detenerPreview') : t('coleccion.preview')}
                                 disabled={cargandoPreview}
                             >
                                 {iconoPreview}
@@ -139,7 +141,7 @@ export const TarjetaColeccion = ({
                 <div className="tarjetaColeccionInfo">
                     <div className="tarjetaColeccionCabecera">
                         <span className="tarjetaColeccionNombre">{coleccion.nombre}</span>
-                        <span className="tarjetaColeccionVisibilidad" title={coleccion.esPublica ? 'Publica' : 'Privada'}>
+                        <span className="tarjetaColeccionVisibilidad" title={coleccion.esPublica ? t('coleccion.publicaBadge') : t('coleccion.privadaBadge')}>
                             {coleccion.esPublica ? <Globe size={12} /> : <Lock size={12} />}
                         </span>
                     </div>
@@ -162,7 +164,7 @@ export const TarjetaColeccion = ({
                         className={`tarjetaColeccionLikeBtn ${likeada ? 'tarjetaColeccionLikeBtnActiva' : ''}`}
                         onClick={manejarToggleLike}
                         type="button"
-                        aria-label={likeada ? 'Quitar like de colección' : 'Dar like a colección'}
+                        aria-label={likeada ? t('coleccion.quitarLike') : t('coleccion.darLike')}
                         cargando={likeando}
                     >
                         <Heart size={16} fill={likeada ? 'currentColor' : 'none'} />
@@ -174,7 +176,7 @@ export const TarjetaColeccion = ({
                         className={`tarjetaColeccionGuardarBtn ${guardada ? 'tarjetaColeccionGuardarBtnActiva' : ''}`}
                         onClick={manejarToggleGuardada}
                         type="button"
-                        aria-label={guardada ? 'Quitar de guardadas' : 'Guardar colección'}
+                        aria-label={guardada ? t('coleccion.quitarGuardadas') : t('sample.guardarColeccion')}
                         cargando={guardando}
                     >
                         <Bookmark size={16} fill={guardada ? 'currentColor' : 'none'} />
@@ -187,7 +189,7 @@ export const TarjetaColeccion = ({
                         className="tarjetaColeccionMenuBtn"
                         onClick={() => abrirColeccionPanel(coleccion)}
                         type="button"
-                        aria-label="Ver samples en panel lateral"
+                        aria-label={t('coleccion.verSamplesPanel')}
                     >
                         <PanelRight size={16} />
                     </BotonBase>
@@ -199,7 +201,7 @@ export const TarjetaColeccion = ({
                         className={`tarjetaColeccionMenuBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
                         onClick={manejarPreview}
                         type="button"
-                        aria-label={esPreviewActiva ? 'Detener preview' : 'Reproducir colección'}
+                        aria-label={esPreviewActiva ? t('coleccion.detenerPreview') : t('coleccion.reproducir')}
                         disabled={cargandoPreview}
                     >
                         {cargandoPreview ? <Loader2 size={16} className="tarjetaColeccionSpinner" /> :
@@ -211,7 +213,7 @@ export const TarjetaColeccion = ({
                     className="tarjetaColeccionMenuBtn"
                     onClick={abrirMenu}
                     type="button"
-                    aria-label="Opciones de coleccion"
+                    aria-label={t('coleccion.opciones')}
                 >
                     <MoreVertical size={16} />
                 </BotonBase>

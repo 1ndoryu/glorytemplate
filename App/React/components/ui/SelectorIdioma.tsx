@@ -3,6 +3,7 @@
  * variante='select': select nativo pill sin bandera (para la landing). [193A-52] */
 import { useIdiomaStore, type Idioma } from '@app/utils/i18n';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/selectorIdioma.css';
 
 interface SelectorIdiomaProps {
@@ -19,6 +20,7 @@ const IDIOMAS: Array<{ id: Idioma; bandera: string; etiqueta: string; ariaLabel:
 export const SelectorIdioma = ({ variante = 'compacto', className = '' }: SelectorIdiomaProps): JSX.Element => {
     const idioma = useIdiomaStore(s => s.idioma);
     const setIdioma = useIdiomaStore(s => s.setIdioma);
+    const { t } = useT();
 
     /* [193A-52] Variante select: pill nativo sin banderas */
     if (variante === 'select') {
@@ -28,7 +30,7 @@ export const SelectorIdioma = ({ variante = 'compacto', className = '' }: Select
                 className={`selectorIdiomaPill${className ? ` ${className}` : ''}`}
                 value={idioma}
                 onChange={e => setIdioma(e.target.value as Idioma)}
-                aria-label="Seleccionar idioma"
+                aria-label={t('idioma.seleccionar')}
             >
                 {IDIOMAS.map(({ id, nombre }) => (
                     <option key={id} value={id}>{nombre}</option>
@@ -41,7 +43,7 @@ export const SelectorIdioma = ({ variante = 'compacto', className = '' }: Select
         <div
             className={`selectorIdioma selectorIdioma--${variante}${className ? ` ${className}` : ''}`}
             role="group"
-            aria-label="Seleccionar idioma"
+            aria-label={t('idioma.seleccionar')}
         >
             {IDIOMAS.map(({ id, bandera, etiqueta, ariaLabel }) => (
                 <BotonBase

@@ -8,6 +8,7 @@
 import { type ReactNode, useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/selectorMenu.css';
 
 export interface OpcionSelector {
@@ -31,18 +32,20 @@ export const SelectorMenu = ({
     opciones,
     valor,
     onChange,
-    placeholder = 'Seleccionar...',
+    placeholder,
     className = '',
     disabled = false,
     compacto = false,
     etiqueta,
 }: SelectorMenuProps): JSX.Element => {
+    const { t } = useT();
+    const resolvedPlaceholder = placeholder ?? t('selector.seleccionar');
     const [abierto, setAbierto] = useState(false);
     const [posicion, setPosicion] = useState({ top: 0, left: 0, width: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
 
     const opcionActual = opciones.find(o => o.valor === valor);
-    const textoMostrado = opcionActual?.etiqueta ?? placeholder;
+    const textoMostrado = opcionActual?.etiqueta ?? resolvedPlaceholder;
 
     /* Calcular posición al abrir */
     const abrir = useCallback(() => {

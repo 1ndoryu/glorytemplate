@@ -15,6 +15,7 @@ import '../../styles/componentes/reproductorIsland.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import { Input } from '../../components/ui/Input';
+import { useT } from '@app/utils/i18n/useT';
 
 /* Formatear segundos a mm:ss */
 const formatearTiempo = (segundos: number): string => {
@@ -25,6 +26,7 @@ const formatearTiempo = (segundos: number): string => {
 };
 
 export const ReproductorIsland = (): JSX.Element => {
+    const { t } = useT();
     const sampleActual = useReproductorStore(s => s.sampleActual);
     const contexto = useReproductorStore(s => s.contexto);
     const reproduciendo = useReproductorStore(s => s.reproduciendo);
@@ -138,19 +140,19 @@ export const ReproductorIsland = (): JSX.Element => {
 
                     {/* Controles */}
                     <div className="reproductorIslandControles">
-                        <BotonBase variante="ghost" className={`reproductorIslandBtn ${aleatorio ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
+                        <BotonBase variante="ghost" className={`reproductorIslandBtn ${aleatorio ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label={t('reproductor.aleatorio')}>
                             <Shuffle size={18} />
                         </BotonBase>
-                        <BotonBase variante="ghost" className="reproductorIslandBtn" onClick={anterior} type="button" aria-label="Anterior">
+                        <BotonBase variante="ghost" className="reproductorIslandBtn" onClick={anterior} type="button" aria-label={t('reproductor.anterior')}>
                             <SkipBack size={22} />
                         </BotonBase>
-                        <BotonBase variante="ghost" className="reproductorIslandPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
+                        <BotonBase variante="ghost" className="reproductorIslandPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? t('reproductor.pausar') : t('reproductor.reproducir')}>
                             {reproduciendo ? <Pause size={28} /> : <Play size={28} />}
                         </BotonBase>
-                        <BotonBase variante="ghost" className="reproductorIslandBtn" onClick={siguiente} type="button" aria-label="Siguiente">
+                        <BotonBase variante="ghost" className="reproductorIslandBtn" onClick={siguiente} type="button" aria-label={t('reproductor.siguiente')}>
                             <SkipForward size={22} />
                         </BotonBase>
-                        <BotonBase variante="ghost" className={`reproductorIslandBtn ${repetir ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
+                        <BotonBase variante="ghost" className={`reproductorIslandBtn ${repetir ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label={t('reproductor.repetir')}>
                             <Repeat size={18} />
                         </BotonBase>
                     </div>
@@ -160,7 +162,7 @@ export const ReproductorIsland = (): JSX.Element => {
                         <BotonBase variante="ghost" className="reproductorIslandBtn reproductorIslandBtnSm" onClick={toggleMute} type="button">
                             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </BotonBase>
-                        <Input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volumen} onChange={e => setVolumen(Number(e.target.value))} className="reproductorIslandSlider" aria-label="Volumen" />
+                        <Input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volumen} onChange={e => setVolumen(Number(e.target.value))} className="reproductorIslandSlider" aria-label={t('reproductor.volumen')} />
                     </div>
                 </div>
 

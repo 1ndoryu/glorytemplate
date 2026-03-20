@@ -29,6 +29,7 @@ import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
 import { FilaColecciones } from '@app/components/social/FilaColecciones';
 import { ComunidadIsland } from '../comunidad/ComunidadIsland';
 import { useEsMovil } from '@app/hooks/useEsMovil';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/inicio.css';
 
 /* [183A-110-D] Blog como tab del inicio en vez de página separada */
@@ -77,6 +78,7 @@ export const InicioIsland = (): JSX.Element => {
 /* Feed unificado: barra de control + FeedSamples centralizado */
 /* QK104: Exportado para reutilización en FeedSamplesIsland (mobile) */
 export const FeedUnificado = (): JSX.Element => {
+    const { t } = useT();
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [totalServidor, setTotalServidor] = useState<number | null>(null);
@@ -167,10 +169,10 @@ export const FeedUnificado = (): JSX.Element => {
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {
-            return periodoDestacados === 'mes' ? 'Top Mensual' : 'Top Semanal';
+            return periodoDestacados === 'mes' ? t('feed.orden.topMensual') : t('feed.orden.topSemanal');
         }
-        return ordenamiento === 'recientes' ? 'Recientes' : 'Inteligente';
-    }, [ordenamiento, periodoDestacados]);
+        return ordenamiento === 'recientes' ? t('feed.orden.recientes') : t('feed.orden.inteligente');
+    }, [ordenamiento, periodoDestacados, t]);
 
     return (
         <div className="inicioContenedor" id="seccionInicio">
@@ -186,8 +188,8 @@ export const FeedUnificado = (): JSX.Element => {
                     {(totalServidor !== null || conteoFiltrado > 0) && (
                         <span className="inicioTagsContador">
                             {busqueda.trim()
-                                ? `${conteoFiltrado} de ${totalServidor ?? conteoFiltrado} samples`
-                                : `${totalServidor ?? conteoFiltrado} samples`
+                                ? t('feed.contadorDeSamples', { actual: conteoFiltrado, total: totalServidor ?? conteoFiltrado })
+                                : t('feed.contadorSamples', { total: totalServidor ?? conteoFiltrado })
                             }
                         </span>
                     )}
@@ -212,28 +214,28 @@ export const FeedUnificado = (): JSX.Element => {
                                     onClick={() => { setOrdenamiento('inteligente'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Inteligente
+                                    {t('feed.orden.inteligente')}
                                 </BotonBase>
                                 <BotonBase variante="ghost"
                                     className={ordenamiento === 'recientes' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('recientes'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Recientes
+                                    {t('feed.orden.recientes')}
                                 </BotonBase>
                                 <BotonBase variante="ghost"
                                     className={ordenamiento === 'destacados' && periodoDestacados === 'semana' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('semana'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Top Semanal
+                                    {t('feed.orden.topSemanal')}
                                 </BotonBase>
                                 <BotonBase variante="ghost"
                                     className={ordenamiento === 'destacados' && periodoDestacados === 'mes' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('mes'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
-                                    Top Mensual
+                                    {t('feed.orden.topMensual')}
                                 </BotonBase>
                             </div>
                         )}
@@ -245,7 +247,7 @@ export const FeedUnificado = (): JSX.Element => {
                         tamano="ninguno"
                         onClick={() => filtrosContenido.toggle('soloMeEncanta')}
                         type="button"
-                        aria-label="Solo me encanta"
+                        aria-label={t('feed.soloMeEncanta')}
                         className={`inicioFiltrosBtn ${filtrosContenido.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}`}
                     >
                         <Heart size={16} fill={filtrosContenido.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
@@ -256,7 +258,7 @@ export const FeedUnificado = (): JSX.Element => {
                         onClick={() => setFiltrosAbierto(true)}
                         tamano="ninguno"
                         type="button"
-                        aria-label="Filtros"
+                        aria-label={t('feed.filtros')}
                     >
                         <SlidersHorizontal size={16} />
                     </BotonBase>
@@ -269,14 +271,14 @@ export const FeedUnificado = (): JSX.Element => {
                 claveCache={claveCache}
                 mostrarTags
                 infiniteScroll
-                mensajeVacio="No se encontraron samples."
+                mensajeVacio={t('feed.noSeEncontraronSamples')}
                 idsExcluidos={idsExcluidosCombinados}
                 idsCreadoresIncluidos={deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
                 onConteoChange={setConteoFiltrado}
                 filtroAdicional={filtrosContenido.aplicar}
                 accionVacia={
                     <BotonBase variante="primario" onClick={() => abrirCrear()}>
-                        Sube el primero
+                        {t('feed.subeElPrimero')}
                     </BotonBase>
                 }
             />

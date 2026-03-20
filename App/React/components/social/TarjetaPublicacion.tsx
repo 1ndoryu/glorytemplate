@@ -16,6 +16,7 @@ import { ComentarioPreview } from '@app/components/social/ComentarioPreview';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import { useAuthStore } from '@app/stores/authStore';
 import { useHoverPerfil } from '@app/hooks/useHoverPerfil';
+import { useT } from '@app/utils/i18n/useT';
 import { formatearTiempoRelativo } from '@app/utils/tiempo';
 import type { Publicacion, SampleResumen, TipoReaccion } from '@app/types';
 import '../../styles/componentes/tarjetaPublicacion.css';
@@ -60,6 +61,7 @@ export const TarjetaPublicacion = ({
 }: TarjetaPublicacionProps): JSX.Element => {
     /* Hover card de perfil sobre el nombre del autor */
     const hoverAutor = useHoverPerfil(publicacion.autor.username);
+    const { t } = useT();
 
     /* Lightbox interno — igual que ComunidadIsland */
     const [imagenAbierta, setImagenAbierta] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export const TarjetaPublicacion = ({
             {publicacion.repostOriginal && (
                 <div className="tarjetaPubRepostIndicador">
                     <Repeat2 size={12} />
-                    <span>{publicacion.autor.nombreVisible} reposteó</span>
+                    <span>{t('publicacion.reposteo', { nombre: publicacion.autor.nombreVisible })}</span>
                 </div>
             )}
 
@@ -115,7 +117,7 @@ export const TarjetaPublicacion = ({
                         <EnlaceNavegacion
                             href={`/perfil/${publicacion.autor.username}/`}
                             className="tarjetaPubNombreEnlace"
-                            aria-label={`Ir al perfil de ${publicacion.autor.nombreVisible}`}
+                            aria-label={t('publicacion.irAlPerfil', { nombre: publicacion.autor.nombreVisible })}
                             onMouseEnter={hoverAutor.onMouseEnter}
                             onMouseLeave={hoverAutor.onMouseLeave}
                             onClick={() => {
@@ -136,7 +138,7 @@ export const TarjetaPublicacion = ({
                                 <EnlaceNavegacion
                                     href={`/publicacion/${publicacion.id}/`}
                                     className="tarjetaPubFechaEnlace"
-                                    aria-label={`Ver publicación del ${formatearTiempoRelativo(publicacion.creadoAt)}`}
+                                    aria-label={t('publicacion.verPublicacion', { fecha: formatearTiempoRelativo(publicacion.creadoAt) })}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onClickFecha?.(publicacion.id);
@@ -156,7 +158,7 @@ export const TarjetaPublicacion = ({
                     )}
                     {onMenu && (
                         <BotonBase variante="ghost" className="tarjetaPubMenuBtn"
-                            onClick={(e) => onMenu(e, publicacion)} type="button" aria-label="Más opciones">
+                            onClick={(e) => onMenu(e, publicacion)} type="button" aria-label={t('comun.masOpciones')}>
                             <MoreHorizontal size={18} />
                         </BotonBase>
                     )}
@@ -189,9 +191,9 @@ export const TarjetaPublicacion = ({
                                 e.preventDefault();
                                 manejarDobleClickImagen(publicacion.id);
                             }}
-                            aria-label="Ver imagen"
+                            aria-label={t('publicacion.verImagen')}
                         >
-                            <ImgOptimizada src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
+                            <ImgOptimizada src={url} alt={t('publicacion.imagenAdjunta')} className="tarjetaPubImg" loading="lazy" />
                         </a>
                     ))}
                 </div>
@@ -296,13 +298,13 @@ export const TarjetaPublicacion = ({
 
             {/* Lightbox interno */}
             {imagenAbierta && (
-                <div className="imagenLightbox" onClick={() => setImagenAbierta(null)} role="dialog" aria-modal="true" aria-label="Vista ampliada">
-                    <BotonBase variante="ghost" className="imagenLightboxCerrar" onClick={() => setImagenAbierta(null)} aria-label="Cerrar">
+                <div className="imagenLightbox" onClick={() => setImagenAbierta(null)} role="dialog" aria-modal="true" aria-label={t('publicacion.vistaAmpliada')}>
+                    <BotonBase variante="ghost" className="imagenLightboxCerrar" onClick={() => setImagenAbierta(null)} aria-label={t('comun.cerrar')}>
                         <X size={24} />
                     </BotonBase>
                     <img
                         src={imagenAbierta}
-                        alt="Imagen ampliada"
+                        alt={t('publicacion.imagenAmpliada')}
                         className="imagenLightboxImg"
                         onClick={e => e.stopPropagation()}
                     />

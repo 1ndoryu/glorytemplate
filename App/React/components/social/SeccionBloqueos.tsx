@@ -9,12 +9,15 @@ import { Ban } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useBloqueosStore } from '@app/stores/bloqueosStore';
+import { useT } from '@app/utils/i18n/useT';
 
 export const SeccionBloqueos = (): JSX.Element => {
     const bloqueados = useBloqueosStore(s => s.bloqueados);
     const cargado = useBloqueosStore(s => s.cargado);
     const cargar = useBloqueosStore(s => s.cargar);
     const desbloquear = useBloqueosStore(s => s.desbloquear);
+
+    const { t } = useT();
 
     useEffect(() => {
         if (!cargado) cargar();
@@ -23,7 +26,7 @@ export const SeccionBloqueos = (): JSX.Element => {
     if (!cargado) {
         return (
             <div className="configSeccion">
-                <span className="configSubtexto">Cargando bloqueos...</span>
+                <span className="configSubtexto">{t('bloqueos.cargando')}</span>
             </div>
         );
     }
@@ -32,8 +35,8 @@ export const SeccionBloqueos = (): JSX.Element => {
         return (
             <div className="configSeccion configSeccionVacia">
                 <Ban size={32} />
-                <span className="configLabel">Sin bloqueos</span>
-                <span className="configSubtexto">No tienes usuarios bloqueados.</span>
+                <span className="configLabel">{t('bloqueos.sinBloqueos')}</span>
+                <span className="configSubtexto">{t('bloqueos.sinBloqueosDesc')}</span>
             </div>
         );
     }

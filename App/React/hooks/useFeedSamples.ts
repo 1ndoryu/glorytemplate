@@ -55,11 +55,11 @@ export interface UseFeedSamplesOpciones {
 }
 
 export const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
-    tipo: 'Tipo',
-    genero: 'Género',
-    instrumento: 'Instrumento',
-    sentimiento: 'Sentimiento',
-    otro: 'Tags',
+    tipo: 'filtros.categoria.tipo',
+    genero: 'filtros.categoria.genero',
+    instrumento: 'filtros.categoria.instrumento',
+    sentimiento: 'filtros.categoria.sentimiento',
+    otro: 'filtros.categoria.tags',
 };
 
 export const CATEGORIAS_SELECT: CategoriaTag[] = ['genero', 'instrumento', 'tipo'];

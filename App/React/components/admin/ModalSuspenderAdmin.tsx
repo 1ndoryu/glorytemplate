@@ -9,6 +9,7 @@ import { Modal } from '../ui/Modal';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { SelectorMenu, type OpcionSelector } from '../ui/SelectorMenu';
+import { useT } from '@app/utils/i18n/useT';
 import type { UsuarioAdmin } from '@app/services/apiAdmin';
 
 type AccionSuspension = 'suspender' | 'eliminar' | null;
@@ -39,10 +40,11 @@ export const ModalSuspenderAdmin = ({
 }: ModalSuspenderAdminProps): JSX.Element | null => {
     const [horas, setHoras] = useState('48');
     const [razon, setRazon] = useState('');
+    const { t } = useT();
 
     const titulo = accion === 'eliminar'
-        ? `Marcar eliminación: @${usuario?.username ?? ''}`
-        : `Suspender: @${usuario?.username ?? ''}`;
+        ? t('admin.suspender.tituloEliminar', { username: usuario?.username ?? '' })
+        : t('admin.suspender.tituloSuspender', { username: usuario?.username ?? '' });
 
     const manejarConfirmar = async () => {
         if (!razon.trim()) return;
@@ -58,7 +60,7 @@ export const ModalSuspenderAdmin = ({
     const pie = (
         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
             <BotonBase variante="ghost" onClick={onCerrar} disabled={procesando} type="button">
-                Cancelar
+                {t('comun.cancelar')}
             </BotonBase>
             <BotonBase
                 variante={accion === 'eliminar' ? 'peligro' : 'primario'}
@@ -67,10 +69,10 @@ export const ModalSuspenderAdmin = ({
                 type="button"
             >
                 {procesando
-                    ? 'Procesando...'
+                    ? t('admin.suspender.procesando')
                     : accion === 'eliminar'
-                        ? 'Marcar eliminación'
-                        : 'Suspender'}
+                        ? t('admin.suspender.botonEliminar')
+                        : t('admin.suspender.botonSuspender')}
             </BotonBase>
         </div>
     );
@@ -90,7 +92,7 @@ export const ModalSuspenderAdmin = ({
                             htmlFor="duracionSuspension"
                             style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.85rem', color: 'var(--textoSecundario)' }}
                         >
-                            Duración
+                            {t('admin.suspender.duracion')}
                         </label>
                         <SelectorMenu
                             opciones={OPCIONES_DURACION}
@@ -106,12 +108,12 @@ export const ModalSuspenderAdmin = ({
                         htmlFor="razonSuspension"
                         style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.85rem', color: 'var(--textoSecundario)' }}
                     >
-                        Razón {accion === 'eliminar' ? 'de eliminación' : 'de suspensión'}
+                        {accion === 'eliminar' ? t('admin.suspender.razonEliminacion') : t('admin.suspender.razonSuspension')}
                     </label>
                     <CampoTexto
                         id="razonSuspension"
                         variante="bordado"
-                        placeholder="Describe la razón..."
+                        placeholder={t('admin.suspender.razonPlaceholder')}
                         value={razon}
                         onChange={(e) => setRazon(e.target.value)}
                         disabled={procesando}

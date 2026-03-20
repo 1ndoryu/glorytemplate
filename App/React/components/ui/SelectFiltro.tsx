@@ -9,6 +9,7 @@
 import { Plus, Minus, X } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 import { useSelectFiltro } from '../../hooks/useSelectFiltro';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/selectFiltro.css';
 import { BotonBase } from './BotonBase';
 
@@ -41,6 +42,7 @@ export const SelectFiltro = ({
     onQuitar,
     onBuscar,
 }: SelectFiltroProps): JSX.Element | null => {
+    const { t } = useT();
     const {
         abierto,
         activos,
@@ -84,7 +86,7 @@ export const SelectFiltro = ({
                                     <BotonBase variante="ghost"
                                         type="button"
                                         className="selectFiltroOpcionBtn selectFiltroOpcionBtnExcluir"
-                                        title={excluido ? 'Quitar exclusión' : 'Excluir'}
+                                        title={excluido ? t('filtros.quitarExclusion') : t('filtros.excluir')}
                                         onClick={(e) => manejarExcluir(e, opcion)}
                                     >
                                         {excluido ? <X size={10} /> : <Minus size={10} />}
@@ -92,7 +94,7 @@ export const SelectFiltro = ({
                                     <BotonBase variante="ghost"
                                         type="button"
                                         className="selectFiltroOpcionBtn selectFiltroOpcionBtnIncluir"
-                                        title={incluido ? 'Quitar inclusión' : 'Incluir'}
+                                        title={incluido ? t('filtros.quitarInclusion') : t('filtros.incluir')}
                                         onClick={(e) => { e.stopPropagation(); manejarClickOpcion(opcion); }}
                                     >
                                         {incluido ? <X size={10} /> : <Plus size={10} />}

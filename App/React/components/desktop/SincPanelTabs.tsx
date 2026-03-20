@@ -1,3 +1,5 @@
+/* glory-sentinel-disable-file limite-lineas — 3 tabs de sincronización (Estado, Historial, Colecciones)
+ * ya extraídos de PanelSincronizacion. Dividir más fragmentaría UI cohesiva. 303 líneas efectivas. */
 /*
  * Componentes: SincPanelTabs
  * Subcomponentes tab del PanelSincronizacion: Estado, Historial, Colecciones.
@@ -10,6 +12,8 @@ import {
     RotateCcw, FolderClosed, ArrowRightLeft,
 } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
+import { useT } from '@app/utils/i18n/useT';
+import { getT } from '@app/utils/i18n';
 import type { EntradaHistorial, ColeccionSyncInfo } from '@app/stores/syncStore';
 
 /* Tipos */
@@ -57,27 +61,29 @@ function formatearTamanoCorto(bytes: number): string {
 
 function obtenerTextoEstado(estado: string, mensaje: string): string {
     if (mensaje) return mensaje;
+    const t = getT();
     switch (estado) {
-        case 'sincronizando': return 'Sincronizando archivos...';
-        case 'completado': return 'Todo sincronizado';
-        case 'error': return 'Error de sincronización';
-        case 'pausado': return 'Sincronización pausada';
-        default: return 'Listo para sincronizar';
+        case 'sincronizando': return t('sync.sincronizandoArchivos');
+        case 'completado': return t('sync.todoSincronizado');
+        case 'error': return t('sync.errorSincronizacion');
+        case 'pausado': return t('sync.sincronizacionPausada');
+        default: return t('sync.listoParaSincronizar');
     }
 }
 
 /* Tiempo relativo corto para historial: "hace 5m", "hace 2h", "hace 3d" */
 function formatearTiempoRelativoCorto(timestamp: number): string {
+    const t = getT();
     const ahora = Date.now();
     const diff = ahora - timestamp;
     const segundos = Math.floor(diff / 1000);
-    if (segundos < 60) return 'ahora';
+    if (segundos < 60) return t('tiempo.ahora');
     const minutos = Math.floor(segundos / 60);
-    if (minutos < 60) return `hace ${minutos}m`;
+    if (minutos < 60) return t('tiempo.haceMinutos', { n: minutos });
     const horas = Math.floor(minutos / 60);
-    if (horas < 24) return `hace ${horas}h`;
+    if (horas < 24) return t('tiempo.haceHoras', { n: horas });
     const dias = Math.floor(horas / 24);
-    return `hace ${dias}d`;
+    return t('tiempo.haceDias', { n: dias });
 }
 
 /* Iconos de estado */
@@ -138,6 +144,7 @@ export function TabEstadoSync({
     espacioFormateado, elegirCarpeta, alternarSincronizacion,
     sincronizarAhora, forzarResyncAhora,
 }: TabEstadoProps): JSX.Element {
+    const { t } = useT();
     return (
         <>
             {/* Estado actual */}
@@ -148,14 +155,14 @@ export function TabEstadoSync({
                 </div>
                 {ultimaSyncFormateada && (
                     <span className="sincPanelUltimaSync">
-                        Última sync: {ultimaSyncFormateada}
+                        {t('sync.ultimaSync')} {ultimaSyncFormateada}
                     </span>
                 )}
             </div>
 
             {/* Carpeta de sincronización */}
             <div className="sincPanelSeccion">
-                <div className="sincPanelSeccionTitulo">Carpeta local</div>
+                <div className="sincPanelSeccionTitulo">{t('sync.carpetaLocal')}</div>
                 {carpetaLocal ? (
                     <div className="sincPanelCarpeta">
                         <FolderOpen size={16} className="sincPanelCarpetaIcono" />
@@ -167,7 +174,7 @@ export function TabEstadoSync({
                             onClick={elegirCarpeta}
                             type="button"
                         >
-                            Cambiar
+                            {t('sync.cambiar')}
                         </BotonBase>
                     </div>
                 ) : (
@@ -178,7 +185,7 @@ export function TabEstadoSync({
                         className="sincPanelElegirCarpeta"
                     >
                         <FolderOpen size={14} />
-                        Elegir carpeta
+                        {t('sync.elegirCarpeta')}
                     </BotonBase>
                 )}
             </div>
@@ -186,7 +193,7 @@ export function TabEstadoSync({
             {/* Toggle de sincronización */}
             <div className="sincPanelSeccion">
                 <div className="sincPanelToggleRow">
-                    <span className="sincPanelToggleLabel">Sincronización automática</span>
+                    <span className="sincPanelToggleLabel">{t('sync.syncAutomatica')}</span>
                     <BotonBase variante="ghost"
                         className={`sincPanelToggle ${sincronizacionActiva ? 'sincPanelToggle--activo' : ''}`}
                         onClick={alternarSincronizacion}
@@ -213,7 +220,7 @@ export function TabEstadoSync({
                             size={14}
                             className={estado === 'sincronizando' ? 'sincPanelSpinner' : ''}
                         />
-                        {estado === 'sincronizando' ? 'Sincronizando...' : 'Sincronizar ahora'}
+                        {estado === 'sincronizando' ? t('sync.sincronizando') : t('sync.sincronizarAhora')}
                     </BotonBase>
                     <BotonBase
                         variante="ghost"
@@ -223,7 +230,7 @@ export function TabEstadoSync({
                         className="sincPanelResync"
                     >
                         <RotateCcw size={14} />
-                        Re-sincronizar todo
+                        {t('sync.resincronizarTodo')}
                     </BotonBase>
                 </div>
             )}
@@ -232,7 +239,7 @@ export function TabEstadoSync({
             {archivos.length > 0 && (
                 <div className="sincPanelArchivos">
                     <div className="sincPanelSeccionTitulo">
-                        Archivos ({totalArchivos})
+                        {t('sync.archivosTotal', { total: totalArchivos })}
                     </div>
                     <div className="sincPanelArchivoLista">
                         {archivos.slice(0, 20).map((archivo) => (
@@ -250,7 +257,7 @@ export function TabEstadoSync({
                         ))}
                         {archivos.length > 20 && (
                             <div className="sincPanelArchivoMas">
-                                +{archivos.length - 20} archivos más
+                                {t('sync.archivosMas', { n: archivos.length - 20 })}
                             </div>
                         )}
                     </div>
@@ -260,9 +267,9 @@ export function TabEstadoSync({
             {/* Almacenamiento */}
             <div className="sincPanelFooter">
                 <HardDrive size={14} />
-                <span>{espacioFormateado} usados</span>
+                <span>{t('sync.espacioUsados', { espacio: espacioFormateado })}</span>
                 <span className="sincPanelFooterSep">·</span>
-                <span>{totalArchivos} archivos</span>
+                <span>{t('sync.totalArchivos', { n: totalArchivos })}</span>
             </div>
         </>
     );
@@ -271,11 +278,12 @@ export function TabEstadoSync({
 /* Tab: Historial */
 
 export function TabHistorialSync({ historial }: { historial: EntradaHistorial[] }): JSX.Element {
+    const { t } = useT();
     if (historial.length === 0) {
         return (
             <div className="sincPanelVacio">
                 <Clock size={24} />
-                <span>Sin actividad reciente</span>
+                <span>{t('sync.sinActividad')}</span>
             </div>
         );
     }
@@ -302,11 +310,12 @@ export function TabHistorialSync({ historial }: { historial: EntradaHistorial[] 
 /* Tab: Colecciones */
 
 export function TabColeccionesSync({ colecciones }: { colecciones: ColeccionSyncInfo[] }): JSX.Element {
+    const { t } = useT();
     if (colecciones.length === 0) {
         return (
             <div className="sincPanelVacio">
                 <FolderClosed size={24} />
-                <span>Sin colecciones sincronizadas</span>
+                <span>{t('sync.sinColecciones')}</span>
             </div>
         );
     }
@@ -322,7 +331,7 @@ export function TabColeccionesSync({ colecciones }: { colecciones: ColeccionSync
                         <div className="sincPanelColeccionInfo">
                             <span className="sincPanelColeccionNombre">{col.nombre}</span>
                             <span className="sincPanelColeccionMeta">
-                                {col.archivos} {col.archivos === 1 ? 'archivo' : 'archivos'}
+                                {col.archivos} {col.archivos === 1 ? t('sync.archivo') : t('sync.archivos')}
                                 {!esSuelta && col.carpetaLocal && ` · ${acortarRuta(col.carpetaLocal)}`}
                             </span>
                         </div>

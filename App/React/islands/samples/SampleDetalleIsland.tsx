@@ -37,6 +37,7 @@ import { useSampleAudio } from '@app/hooks/useSampleAudio';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useCodigosGratis } from '@app/hooks/useCodigosGratis';
 import type { SampleResumen } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/sampleDetalle.css';
 
 const TABS_SAMPLE_DETALLE = [{ id: 'sample', etiqueta: 'Sample' }];
@@ -46,6 +47,7 @@ interface SampleDetalleProps {
 }
 
 export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX.Element => {
+    const { t } = useT();
     const {
         sample, cargando, error, liked, reaccionActual, descargado,
         comentariosVisibles, setComentariosVisibles, esPropietario,
@@ -149,7 +151,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         }}
                         role="button"
                         tabIndex={0}
-                        aria-label={reproduciendo ? 'Pausar sample' : 'Reproducir sample'}
+                        aria-label={reproduciendo ? t('cancion.pausarSample') : t('cancion.reproducirSample')}
                     >
                         <img
                             src={sample.imagenUrl || obtenerImagenColor(sample.id)}
@@ -157,7 +159,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             className="detallePortadaImg"
                         />
                         <span className={`detallePortadaEstado ${reproduciendo ? 'detallePortadaEstadoActivo' : ''}`}>
-                            {reproduciendo ? <><Pause size={14} /> Sonando</> : 'Click para reproducir'}
+                            {reproduciendo ? <><Pause size={14} /> {t('sample.detalle.sonando')}</> : t('sample.detalle.clickParaReproducir')}
                         </span>
                     </div>
 

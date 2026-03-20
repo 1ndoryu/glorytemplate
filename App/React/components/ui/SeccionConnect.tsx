@@ -13,6 +13,7 @@ import {
     DollarSign,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { useT } from '@app/utils/i18n/useT';
 import type { DatosConnect, BalanceConnect } from '@app/services/apiPagos';
 
 interface SeccionConnectProps {
@@ -32,13 +33,14 @@ export const SeccionConnect = ({
 }: SeccionConnectProps): JSX.Element => {
     if (!estadoConnect) return <></>;
 
+    const { t } = useT();
     const { estado, cargosActivos, payoutsActivos, detalle, requerimientosPendientes } = estadoConnect;
 
     return (
         <div className="dashboardSeccion dashboardConnect">
             <h2 className="dashboardSeccionTitulo">
                 <CreditCard size={16} />
-                Configuración de pagos
+                {t('connect.titulo')}
             </h2>
 
             <div className="dashboardConnectEstado">
@@ -46,8 +48,8 @@ export const SeccionConnect = ({
                     <div className="dashboardConnectBanner dashboardConnectBannerInfo">
                         <AlertCircle size={16} />
                         <div className="dashboardConnectBannerTexto">
-                            <strong>Configura Stripe para recibir pagos</strong>
-                            <span>Conecta tu cuenta de Stripe para empezar a ganar dinero con tus samples.</span>
+                            <strong>{t('connect.configuraStripe')}</strong>
+                            <span>{t('connect.configuraStripeDesc')}</span>
                         </div>
                         <BotonBase
                             variante="primario"
@@ -56,7 +58,7 @@ export const SeccionConnect = ({
                             disabled={conectando}
                         >
                             {conectando ? (
-                                <><Loader2 size={14} className="dashboardSpinner" /> Conectando...</>
+                                <><Loader2 size={14} className="dashboardSpinner" /> {t('connect.conectando')}</>
                             ) : (
                                 <><CreditCard size={14} /> Configurar Stripe</>
                             )}
@@ -68,7 +70,7 @@ export const SeccionConnect = ({
                     <div className="dashboardConnectBanner dashboardConnectBannerAdvertencia">
                         <AlertCircle size={16} />
                         <div className="dashboardConnectBannerTexto">
-                            <strong>Onboarding incompleto</strong>
+                            <strong>{t('connect.onboardingIncompleto')}</strong>
                             <span>
                                 Tienes {requerimientosPendientes ?? 0} dato(s) pendiente(s) por completar en Stripe.
                             </span>
@@ -80,9 +82,9 @@ export const SeccionConnect = ({
                             disabled={conectando}
                         >
                             {conectando ? (
-                                <><Loader2 size={14} className="dashboardSpinner" /> Cargando...</>
+                                <><Loader2 size={14} className="dashboardSpinner" /> {t('comun.cargando')}</>
                             ) : (
-                                <>Completar configuración</>
+                                <>{t('connect.completarConfig')}</>
                             )}
                         </BotonBase>
                     </div>
@@ -92,7 +94,7 @@ export const SeccionConnect = ({
                     <div className="dashboardConnectBanner dashboardConnectBannerExito">
                         <CheckCircle size={16} />
                         <div className="dashboardConnectBannerTexto">
-                            <strong>Stripe conectado</strong>
+                            <strong>{t('connect.stripeConectado')}</strong>
                             <span>
                                 {cargosActivos && payoutsActivos
                                     ? 'Tu cuenta está activa y recibiendo pagos.'

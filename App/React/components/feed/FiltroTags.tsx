@@ -17,6 +17,7 @@ import { SelectorBPM } from '@app/components/ui/SelectorBPM';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import { ETIQUETAS_CATEGORIA, CATEGORIAS_SELECT } from '@app/hooks/useFeedSamples';
+import { useT } from '@app/utils/i18n/useT';
 import type { CategoriaTag } from '@app/services/tagUtils';
 
 export interface FiltroTagsProps {
@@ -49,6 +50,7 @@ export const FiltroTags = ({
     onBuscarTag,
     className = '',
 }: FiltroTagsProps): JSX.Element => {
+    const { t } = useT();
     const { listaTagsRef, arrastrandoTags, iniciarArrastre, moverArrastre, finalizarArrastre } = useFeedArrastreTags();
 
     /* QL9: Ordenar tags — incluidos primero, excluidos segundo, inactivos al final */
@@ -68,14 +70,14 @@ export const FiltroTags = ({
             className={`feedTagItem ${tagsIncluidos.includes(tag) ? 'feedTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'feedTagItemExcluido' : ''}`}
         >
             <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonRestar"
-                aria-label={`Excluir tag ${tag}`}
+                aria-label={t('filtros.excluirTag', { tag })}
                 onMouseDown={e => e.stopPropagation()}
                 onClick={e => { e.stopPropagation(); onBuscarTag ? onBuscarTag('-' + tag) : onExcluirTag(tag); }}
             >
                 <Minus size={10} />
             </BotonBase>
             <span className="feedTagTexto" role="button" tabIndex={0}
-                aria-label={`Incluir tag ${tag}`}
+                aria-label={t('filtros.incluirTag', { tag })}
                 onMouseDown={e => e.stopPropagation()}
                 onClick={e => { e.stopPropagation(); onBuscarTag ? onBuscarTag(tag) : onIncluirTag(tag); }}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onBuscarTag ? onBuscarTag(tag) : onIncluirTag(tag); } }}
@@ -83,7 +85,7 @@ export const FiltroTags = ({
                 {tag}
             </span>
             <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonSumar"
-                aria-label={`Incluir tag ${tag}`}
+                aria-label={t('filtros.incluirTag', { tag })}
                 onMouseDown={e => e.stopPropagation()}
                 onClick={e => { e.stopPropagation(); onBuscarTag ? onBuscarTag(tag) : onIncluirTag(tag); }}
             >
@@ -102,7 +104,7 @@ export const FiltroTags = ({
                     return (
                         <SelectFiltro
                             key={cat}
-                            etiqueta={ETIQUETAS_CATEGORIA[cat]}
+                            etiqueta={t(ETIQUETAS_CATEGORIA[cat])}
                             opciones={opciones}
                             tagsIncluidos={tagsIncluidos}
                             tagsExcluidos={tagsExcluidos}

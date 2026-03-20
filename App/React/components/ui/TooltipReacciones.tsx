@@ -8,6 +8,7 @@
 import { useCallback, type MouseEvent, type ReactNode } from 'react';
 import { Heart, Sparkles, ThumbsDown } from 'lucide-react';
 import type { TipoReaccion } from '@app/types';
+import { useT } from '@app/utils/i18n/useT';
 import '@app/styles/componentes/tooltipReacciones.css';
 import { BotonBase } from './BotonBase';
 
@@ -18,11 +19,17 @@ interface TooltipReaccionesProps {
     children: ReactNode;
 }
 
-const OPCIONES: { tipo: TipoReaccion; icono: typeof Heart; etiqueta: string }[] = [
-    { tipo: 'like', icono: Heart, etiqueta: 'Me gusta' },
-    { tipo: 'encanta', icono: Sparkles, etiqueta: 'Me encanta' },
-    { tipo: 'dislike', icono: ThumbsDown, etiqueta: 'No me gusta' },
+const OPCIONES_BASE: { tipo: TipoReaccion; icono: typeof Heart }[] = [
+    { tipo: 'like', icono: Heart },
+    { tipo: 'encanta', icono: Sparkles },
+    { tipo: 'dislike', icono: ThumbsDown },
 ];
+
+const ETIQUETAS_REACCION: Record<TipoReaccion, string> = {
+    like: 'reacciones.meGusta',
+    encanta: 'reacciones.meEncanta',
+    dislike: 'reacciones.noMeGusta',
+};
 
 export const TooltipReacciones = ({
     reaccionActual,
@@ -30,6 +37,7 @@ export const TooltipReacciones = ({
     onQuitar,
     children,
 }: TooltipReaccionesProps): JSX.Element => {
+    const { t } = useT();
     const manejarClick = useCallback(
         (e: MouseEvent, tipo: TipoReaccion) => {
             e.stopPropagation();
@@ -48,23 +56,26 @@ export const TooltipReacciones = ({
     return (
         <div className="contenedorReacciones">
             {children}
-            <div className="tooltipReacciones" role="toolbar" aria-label="Reacciones">
-                {OPCIONES.map(({ tipo, icono: Icono, etiqueta }) => (
-                    <BotonBase variante="ghost"
-                        key={tipo}
-                        className={`tooltipReaccionBtn ${reaccionActual === tipo ? 'tooltipReaccionActiva' : ''}`}
-                        data-reaccion={tipo}
-                        onClick={(e) => manejarClick(e, tipo)}
-                        type="button"
-                        aria-label={etiqueta}
-                        title={etiqueta}
-                    >
-                        <Icono
-                            size={18}
-                            fill={reaccionActual === tipo ? 'currentColor' : 'none'}
-                        />
-                    </BotonBase>
-                ))}
+            <div className="tooltipReacciones" role="toolbar" aria-label={t('reacciones.reacciones')}>
+                {OPCIONES_BASE.map(({ tipo, icono: Icono }) => {
+                    const etiqueta = t(ETIQUETAS_REACCION[tipo]);
+                    return (
+                        <BotonBase variante="ghost"
+                            key={tipo}
+                            className={`tooltipReaccionBtn ${reaccionActual === tipo ? 'tooltipReaccionActiva' : ''}`}
+                            data-reaccion={tipo}
+                            onClick={(e) => manejarClick(e, tipo)}
+                            type="button"
+                            aria-label={etiqueta}
+                            title={etiqueta}
+                        >
+                            <Icono
+                                size={18}
+                                fill={reaccionActual === tipo ? 'currentColor' : 'none'}
+                            />
+                        </BotonBase>
+                    );
+                })}
             </div>
         </div>
     );

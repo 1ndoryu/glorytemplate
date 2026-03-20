@@ -18,6 +18,7 @@ import { CondicionesSample } from '@app/components/social/CondicionesSample';
 import '@app/styles/componentes/modalCrear.css';
 import { CampoTexto } from '../ui/CampoTexto';
 import { Input } from '../ui/Input';
+import { useT } from '@app/utils/i18n/useT';
 
 interface ContenidoCrearProps {
     autoFocus?: boolean;
@@ -52,6 +53,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
         portadaPreviewUrl, adjuntarPortada, quitarPortada, inputPortadaRef,
     } = useCrearContenido({ alCompletarPublicacion });
 
+    const { t } = useT();
+
     return (
         <div
             className="crearContenido"
@@ -70,7 +73,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             <CampoTexto multilínea
                 ref={textareaRef}
                 className="crearTextarea"
-                placeholder={placeholder ?? '¿Qué estás creando? Usa # para agregar tags'}
+                placeholder={placeholder ?? t('crear.placeholder')}
                 value={contenido}
                 onChange={manejarCambioTexto}
                 onPaste={manejarPegar}
@@ -92,15 +95,15 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {audioAdjunto && (
                 <div className={`crearTagsContador ${tagsInsuficientes ? 'crearTagsInsuficientes' : 'crearTagsSuficientes'}`}>
                     {tagsInsuficientes
-                        ? `Agrega al menos 2 tags (#hashtags) para subir tu sample (${tags.length}/2)`
-                        : `${tags.length} tags`}
+                        ? t('crear.tagsInsuficientes', { cantidad: String(tags.length) })
+                        : t('crear.tags', { cantidad: String(tags.length) })}
                 </div>
             )}
 
             {/* QQ16: Campo precio para samples con precio — aparece con toggle $ */}
             {audioAdjunto && tienePrecio && (
                 <div className="crearPrecioContenedor">
-                    <label className="crearPrecioLabel" htmlFor="crearPrecioInput">Precio (USD)</label>
+                    <label className="crearPrecioLabel" htmlFor="crearPrecioInput">{t('crear.precioLabel')}</label>
                     <CampoTexto
                         id="crearPrecioInput"
                         type="number"
@@ -130,8 +133,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                             className="crearAdjuntoPortadaPreview"
                             onClick={quitarPortada}
                             type="button"
-                            aria-label="Quitar portada"
-                            title="Quitar portada"
+                            aria-label={t('crear.quitarPortada')}
+                            title={t('crear.quitarPortada')}
                         >
                             <img src={portadaPreviewUrl} alt="Portada" />
                             <span className="crearAdjuntoPortadaQuitar"><X size={10} /></span>
@@ -142,13 +145,13 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                             className="crearAdjuntoBtn"
                             onClick={() => inputPortadaRef.current?.click()}
                             type="button"
-                            aria-label="Adjuntar portada"
-                            title="Adjuntar imagen de portada"
+                            aria-label={t('crear.adjuntarPortada')}
+                            title={t('crear.adjuntarPortada')}
                         >
                             <ImagePlus size={14} />
                         </BotonBase>
                     )}
-                    <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={quitarAudio} type="button" aria-label="Quitar audio">
+                    <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={quitarAudio} type="button" aria-label={t('crear.quitarAudio')}>
                         <X size={14} />
                     </BotonBase>
                 </div>
@@ -189,7 +192,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {audioAdjunto && enContextoRelacion && (
                 <div className="crearTimingContenedor">
                     <Clock size={14} className="crearTimingIcono" />
-                    <label className="crearTimingLabel" htmlFor="crearTimingInput">Inicio en canción original (seg)</label>
+                    <label className="crearTimingLabel" htmlFor="crearTimingInput">{t('crear.inicioCancion')}</label>
                     <CampoTexto
                         id="crearTimingInput"
                         type="number"
@@ -207,11 +210,11 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {audioAdjunto && enContextoRelacion && (
                 <div className="crearPrecioContenedor">
                     <SelectorMenu
-                        etiqueta="Elemento sampleado (opcional)"
+                        etiqueta={t('crear.elementoSampleado')}
                         valor={tipoElemento}
                         onChange={(v) => setTipoElemento(v as TipoElemento)}
                         opciones={[
-                            { valor: '', etiqueta: 'Sin especificar' },
+                            { valor: '', etiqueta: t('crear.sinEspecificar') },
                             ...Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => ({ valor, etiqueta })),
                         ]}
                     />
@@ -224,7 +227,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     {imagenes.map((img, i) => (
                         <div className="crearImagenItem" key={img.url}>
                             <img src={img.url} alt={`Imagen ${i + 1}`} />
-                            <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => quitarImagen(i)} type="button" aria-label="Quitar imagen">
+                            <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => quitarImagen(i)} type="button" aria-label={t('crear.quitarImagen')}>
                                 <X size={12} />
                             </BotonBase>
                         </div>
@@ -236,7 +239,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {arrastrando && (
                 <div className="crearDropOverlay">
                     <Music size={32} />
-                    <span>Suelta archivos aquí</span>
+                    <span>{t('crear.sueltaArchivos')}</span>
                 </div>
             )}
 
@@ -264,24 +267,24 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {exitoSubida && (
                 <div className="crearMensajeExito">
                     <CheckCircle size={16} />
-                    <span>{audioAdjunto ? 'Sample subido correctamente' : 'Publicación creada'}</span>
+                    <span>{audioAdjunto ? t('crear.sampleSubido') : t('crear.publicacionCreada')}</span>
                 </div>
             )}
 
             {/* Barra de acciones */}
             <div className="crearAcciones">
                 <div className="crearAccionesIzquierda">
-                    <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" disabled={!!audioAdjunto}>
+                    <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputAudioRef.current?.click()} type="button" aria-label={t('crear.adjuntarAudio')} disabled={!!audioAdjunto}>
                         <Music size={18} />
                     </BotonBase>
-                    <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" disabled={imagenes.length >= maxImagenes}>
+                    <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputImagenRef.current?.click()} type="button" aria-label={t('crear.adjuntarImagen')} disabled={imagenes.length >= maxImagenes}>
                         <ImageIcon size={18} />
                     </BotonBase>
                 </div>
                 <div className="crearAccionesDerecha">
                     <span className={`crearContador ${caracteresPendientes < 100 ? 'crearContadorAlerta' : ''}`}>{caracteresPendientes}</span>
                     <BotonBase variante="primario" tamano="sm" onClick={manejarPublicar} disabled={!puedePublicar}>
-                        {publicando ? (audioAdjunto ? 'Subiendo...' : 'Publicando...') : 'Publicar'}
+                        {publicando ? (audioAdjunto ? t('crear.subiendo') : t('crear.publicando')) : t('crear.publicar')}
                     </BotonBase>
                 </div>
             </div>

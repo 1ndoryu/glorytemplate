@@ -7,6 +7,7 @@
 import { Download, Crown } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import type { LimitesDescarga } from '@app/services/apiDescargas';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/indicadorDescargas.css';
 
 interface IndicadorDescargasProps {
@@ -22,6 +23,7 @@ export const IndicadorDescargas = ({
     descargando = false,
     puedeDescargar = true,
 }: IndicadorDescargasProps): JSX.Element => {
+    const { t } = useT();
     const restantes = limites.ilimitado
         ? Infinity
         : limites.limite - limites.usadas;
@@ -47,13 +49,13 @@ export const IndicadorDescargas = ({
                 {limites.ilimitado ? (
                     <span className="indicadorDescargasTexto">
                         <Crown size={12} />
-                        Descargas ilimitadas
+                        {t('descargas.ilimitadas')}
                     </span>
                 ) : (
                     <span className="indicadorDescargasTexto">
                         {restantes > 0
-                            ? `${restantes} descarga${restantes !== 1 ? 's' : ''} restante${restantes !== 1 ? 's' : ''} hoy`
-                            : 'Sin descargas disponibles'}
+                            ? t(restantes === 1 ? 'descargas.restanteHoy' : 'descargas.restantesHoy', { n: restantes })
+                            : t('descargas.sinDisponibles')}
                     </span>
                 )}
                 <span className="indicadorDescargasCalidad">
@@ -71,14 +73,14 @@ export const IndicadorDescargas = ({
                     cargando={descargando}
                 >
                     <Download size={14} />
-                    {descargando ? 'Descargando...' : 'Descargar'}
+                    {descargando ? t('descargas.descargando') : t('seleccionMultiple.descargar')}
                 </BotonBase>
             )}
 
             {/* Upgrade CTA si está en límite */}
             {!limites.ilimitado && restantes <= 0 && (
                 <span className="indicadorDescargasUpgrade">
-                    Mejora tu plan para más descargas
+                    {t('descargas.mejorarPlan')}
                 </span>
             )}
         </div>

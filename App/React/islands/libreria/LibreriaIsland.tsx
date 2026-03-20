@@ -19,22 +19,24 @@ import { useLibreriaIsland } from '@app/hooks/useLibreriaIsland';
 import type { OrdenColecciones } from '@app/hooks/useLibreriaIsland';
 import { useAuthStore } from '@app/stores/authStore';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/libreria.css';
 
 const TABS_LIBRERIA = [
-    { id: 'explorar', etiqueta: 'Explorar' },
-    { id: 'colecciones', etiqueta: 'Mis Colecciones' },
-    { id: 'guardadas', etiqueta: 'Guardadas' },
+    { id: 'explorar', etiqueta: 'panel.libreria.explorar' },
+    { id: 'colecciones', etiqueta: 'libreria.tabs.misColecciones' },
+    { id: 'guardadas', etiqueta: 'libreria.tabs.guardadas' },
 ];
 
 /* C388: Opciones de ordenamiento para el menú dropdown */
 const OPCIONES_ORDEN: { id: OrdenColecciones; etiqueta: string }[] = [
-    { id: 'recientes', etiqueta: 'Recientes' },
-    { id: 'nombre', etiqueta: 'Nombre (A-Z)' },
-    { id: 'totalSamples', etiqueta: 'Más samples' },
+    { id: 'recientes', etiqueta: 'feed.orden.recientes' },
+    { id: 'nombre', etiqueta: 'libreria.orden.nombreAz' },
+    { id: 'totalSamples', etiqueta: 'libreria.orden.masSamples' },
 ];
 
 export const LibreriaIsland = (): JSX.Element => {
+    const { t } = useT();
     const {
         colecciones, coleccionesEnArbol,
         coleccionesPublicas, coleccionesPublicasEnArbol,
@@ -63,7 +65,7 @@ export const LibreriaIsland = (): JSX.Element => {
 
     useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
 
-    const etiquetaOrden = OPCIONES_ORDEN.find(o => o.id === orden)?.etiqueta ?? 'Recientes';
+    const etiquetaOrden = t(OPCIONES_ORDEN.find(o => o.id === orden)?.etiqueta ?? 'feed.orden.recientes');
 
     return (
         <div className="libreriaContenedor" id="seccionLibreria">
@@ -80,7 +82,7 @@ export const LibreriaIsland = (): JSX.Element => {
                     {/* B1: barraControl compartida entre ambas tabs */}
                     <div className="libreriaBarraControl">
                         <div className="libreriaControlesIzquierda">
-                            <span className="libreriaContador">{totalColecciones} colecciones</span>
+                            <span className="libreriaContador">{totalColecciones} {t(totalColecciones === 1 ? 'libreria.coleccion' : 'libreria.colecciones')}</span>
                         </div>
 
                         <div className="libreriaControlesDerecha">
@@ -103,7 +105,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                                 onClick={() => { setOrden(opcion.id); setMenuOrdenAbierto(false); }}
                                                 type="button"
                                             >
-                                                {opcion.etiqueta}
+                                                {t(opcion.etiqueta)}
                                             </BotonBase>
                                         ))}
                                     </div>
@@ -116,7 +118,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                     className={`libreriaVistaBtn ${vista === 'cuadricula' ? 'libreriaVistaBtnActivo' : ''}`}
                                     onClick={() => setVista('cuadricula')}
                                     type="button"
-                                    aria-label="Vista cuadrícula"
+                                    aria-label={t('libreria.vistaCuadricula')}
                                 >
                                     <LayoutGrid size={16} />
                                 </BotonBase>
@@ -124,7 +126,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                     className={`libreriaVistaBtn ${vista === 'lista' ? 'libreriaVistaBtnActivo' : ''}`}
                                     onClick={() => setVista('lista')}
                                     type="button"
-                                    aria-label="Vista lista"
+                                    aria-label={t('libreria.vistaLista')}
                                 >
                                     <List size={16} />
                                 </BotonBase>
@@ -132,7 +134,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                     className={`libreriaVistaBtn ${vista === 'arbol' ? 'libreriaVistaBtnActivo' : ''}`}
                                     onClick={() => setVista('arbol')}
                                     type="button"
-                                    aria-label="Vista árbol"
+                                    aria-label={t('libreria.vistaArbol')}
                                 >
                                     <ListTree size={16} />
                                 </BotonBase>
@@ -140,7 +142,7 @@ export const LibreriaIsland = (): JSX.Element => {
 
                             {tabActiva === 'colecciones' && (
                                 <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
-                                    <Plus size={14} /> Nueva
+                                    <Plus size={14} /> {t('panel.libreria.nueva')}
                                 </BotonBase>
                             )}
                         </div>
@@ -156,7 +158,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                 interactivo
                                 onClick={() => setTagActivo(null)}
                             >
-                                Todos
+                                {t('libreria.todos')}
                             </Badge>
                             {tagsFrecuentes.map(tag => (
                                 <Badge
@@ -178,10 +180,10 @@ export const LibreriaIsland = (): JSX.Element => {
                         coleccionesPublicas.length === 0 ? (
                             <EstadoVacio
                                 icono={<Globe size={32} />}
-                                titulo={tagActivo ? 'Sin resultados' : 'Sin colecciones públicas'}
+                                titulo={tagActivo ? t('libreria.sinResultados') : t('libreria.sinColeccionesPublicas')}
                                 mensaje={tagActivo
-                                    ? `No hay colecciones con el tag "${tagActivo}".`
-                                    : 'Aún no hay colecciones compartidas por otros usuarios.'}
+                                    ? t('libreria.sinColeccionesConTag', { tag: tagActivo })
+                                    : t('libreria.sinColeccionesCompartidas')}
                             />
                         ) : (
                             <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
@@ -204,8 +206,8 @@ export const LibreriaIsland = (): JSX.Element => {
                         coleccionesGuardadas.length === 0 ? (
                             <EstadoVacio
                                 icono={<Bookmark size={32} />}
-                                titulo="Sin colecciones guardadas"
-                                mensaje="Las colecciones que guardes de otros usuarios aparecerán aquí."
+                                titulo={t('libreria.sinColeccionesGuardadas')}
+                                mensaje={t('libreria.guardadasApareceranAqui')}
                             />
                         ) : (
                             <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
@@ -221,13 +223,13 @@ export const LibreriaIsland = (): JSX.Element => {
                         colecciones.length === 0 ? (
                             <EstadoVacio
                                 icono={<FolderOpen size={32} />}
-                                titulo={tagActivo ? 'Sin resultados' : 'Sin colecciones'}
+                                titulo={tagActivo ? t('libreria.sinResultados') : t('panel.libreria.sinColecciones')}
                                 mensaje={tagActivo
-                                    ? `No hay colecciones con el tag "${tagActivo}".`
-                                    : 'Crea tu primera colección para organizar samples.'}
+                                    ? t('libreria.sinColeccionesConTag', { tag: tagActivo })
+                                    : t('libreria.creaPrimeraColeccion')}
                                 accion={!tagActivo ? (
                                     <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
-                                        <Plus size={14} /> Nueva colección
+                                        <Plus size={14} /> {t('libreria.nuevaColeccion')}
                                     </BotonBase>
                                 ) : undefined}
                             />

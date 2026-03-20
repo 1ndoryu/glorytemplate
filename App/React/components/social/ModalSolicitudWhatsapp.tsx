@@ -10,6 +10,7 @@ import { BotonBase } from '../ui/BotonBase';
 import { Input } from '../ui/Input';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useSolicitudWhatsapp } from '@app/hooks/useSolicitudWhatsapp';
+import { useT } from '@app/utils/i18n/useT';
 import '../../styles/componentes/modalReportarError.css';
 
 export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
@@ -35,20 +36,18 @@ export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
 
     if (!abierto) return null;
 
+    const { t } = useT();
+
     /* Mensaje de limite diario alcanzado */
     if (!cargando && estado.limiteDiario) {
         return (
             <Modal abierto={abierto} onCerrar={cerrar} tamano="pequeno">
                 <div className="reportarErrorFormulario">
                     <p className="reportarErrorNota" style={{ fontSize: 'var(--fuenteSm)', color: 'var(--textoPrimario)', lineHeight: 1.6 }}>
-                        Hoy se han enviado muchas solicitudes de ingreso al grupo.
-                        Por favor, espera hasta mañana. Si tienes algo que compartir
-                        puedes usar los reportes, pero si tu aportación es valiosa,
-                        regresa aquí mañana temprano y envía tu solicitud de ingreso
-                        al grupo de WhatsApp.
+                        {t('whatsapp.limiteDiario')}
                     </p>
                     <div className="modalAcciones">
-                        <BotonBase variante="secundario" onClick={cerrar} type="button">Cerrar</BotonBase>
+                        <BotonBase variante="secundario" onClick={cerrar} type="button">{t('comun.cerrar')}</BotonBase>
                     </div>
                 </div>
             </Modal>
@@ -61,11 +60,10 @@ export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
             <Modal abierto={abierto} onCerrar={cerrar} tamano="pequeno">
                 <div className="reportarErrorFormulario">
                     <p className="reportarErrorNota" style={{ fontSize: 'var(--fuenteSm)', color: 'var(--textoPrimario)', lineHeight: 1.6 }}>
-                        Ya enviaste tu solicitud de ingreso al grupo de WhatsApp.
-                        Si aún no has sido aceptado, ten paciencia — revisamos las solicitudes manualmente.
+                        {t('whatsapp.yaEnviada')}
                     </p>
                     <div className="modalAcciones">
-                        <BotonBase variante="secundario" onClick={cerrar} type="button">Cerrar</BotonBase>
+                        <BotonBase variante="secundario" onClick={cerrar} type="button">{t('comun.cerrar')}</BotonBase>
                     </div>
                 </div>
             </Modal>
@@ -76,64 +74,61 @@ export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
         <Modal abierto={abierto} onCerrar={cerrar} tamano="pequeno">
             <div className="reportarErrorFormulario">
                 <p className="reportarErrorNota" style={{ fontSize: 'var(--fuenteXs)', color: 'var(--textoSecundario)', lineHeight: 1.5 }}>
-                    Envía una solicitud para entrar al grupo de Kamples.
-                    Esto es temporal y solo estará disponible durante la beta.
-                    Comparte tu feedback directamente con nosotros.
-                    Si los datos son incorrectos tu solicitud será rechazada automáticamente.
+                    {t('whatsapp.descripcionBeta')}
                 </p>
 
-                <label className="reportarErrorLabel" htmlFor="solicitudNombre">Nombre</label>
+                <label className="reportarErrorLabel" htmlFor="solicitudNombre">{t('whatsapp.nombre')}</label>
                 <Input
                     id="solicitudNombre"
                     className="reportarErrorInput"
                     type="text"
-                    placeholder="Tu nombre completo"
+                    placeholder={t('whatsapp.nombrePlaceholder')}
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     maxLength={100}
                     autoFocus
                 />
 
-                <label className="reportarErrorLabel" htmlFor="solicitudTelefono">Número de teléfono</label>
+                <label className="reportarErrorLabel" htmlFor="solicitudTelefono">{t('whatsapp.telefono')}</label>
                 <Input
                     id="solicitudTelefono"
                     className="reportarErrorInput"
                     type="tel"
-                    placeholder="Ej: +52 55 1234 5678"
+                    placeholder={t('whatsapp.telefonoPlaceholder')}
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
                     maxLength={20}
                 />
 
-                <label className="reportarErrorLabel" htmlFor="solicitudPais">País</label>
+                <label className="reportarErrorLabel" htmlFor="solicitudPais">{t('whatsapp.pais')}</label>
                 <Input
                     id="solicitudPais"
                     className="reportarErrorInput"
                     type="text"
-                    placeholder="Ej: México"
+                    placeholder={t('whatsapp.paisPlaceholder')}
                     value={pais}
                     onChange={(e) => setPais(e.target.value)}
                     maxLength={60}
                 />
 
-                <label className="reportarErrorLabel" htmlFor="solicitudMotivo">Motivo</label>
+                <label className="reportarErrorLabel" htmlFor="solicitudMotivo">{t('whatsapp.motivo')}</label>
                 <Input
                     id="solicitudMotivo"
                     className="reportarErrorInput"
                     type="text"
-                    placeholder="Ej: Quiero dar feedback sobre el reproductor"
+                    placeholder={t('whatsapp.motivoPlaceholder')}
                     value={motivo}
                     onChange={(e) => setMotivo(e.target.value)}
                     maxLength={500}
                 />
 
-                <label className="reportarErrorLabel" htmlFor="solicitudDescripcion">Descripción</label>
+                <label className="reportarErrorLabel" htmlFor="solicitudDescripcion">{t('whatsapp.descripcionLabel')}</label>
                 <CampoTexto
                     multilínea
                     variante="desnudo"
                     id="solicitudDescripcion"
                     className="reportarErrorTextarea"
-                    placeholder="Cuéntanos más sobre ti y por qué quieres unirte al grupo..."
+                    placeholder={t('whatsapp.descripcionPlaceholder')}
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
                     maxLength={2000}
@@ -142,7 +137,7 @@ export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
 
                 <div className="modalAcciones">
                     <BotonBase variante="secundario" onClick={cerrar} type="button">
-                        Cancelar
+                        {t('comun.cancelar')}
                     </BotonBase>
                     <BotonBase
                         variante="primario"
@@ -150,7 +145,7 @@ export const ModalSolicitudWhatsapp = (): JSX.Element | null => {
                         disabled={!puedeEnviar}
                         type="button"
                     >
-                        {enviando ? 'Enviando...' : 'Enviar solicitud'}
+                        {enviando ? t('whatsapp.enviando') : t('whatsapp.enviarSolicitud')}
                     </BotonBase>
                 </div>
             </div>

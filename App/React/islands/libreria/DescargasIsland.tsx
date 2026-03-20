@@ -27,17 +27,19 @@ import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
 import { SlidersHorizontal, Heart } from 'lucide-react';
+import { useT } from '@app/utils/i18n';
 
 /* TO-DO: Extraer lógica de vista (infoHeader, totalHeader, tabs, panel lateral)
  * a un hook useDescargasIsland.ts para cumplir SRP estricto. Pre-existente. */
 const TABS_DESCARGAS = [
-    { id: 'descargas', etiqueta: 'Mis Coleccionados' },
-    { id: 'favoritos', etiqueta: 'Me Gustas' },
-    { id: 'comprados', etiqueta: 'Comprados' },
-    { id: 'ideas', etiqueta: 'Más Ideas' },
+    { id: 'descargas', etiqueta: 'descargas.tabs.misColeccionados' },
+    { id: 'favoritos', etiqueta: 'descargas.tabs.meGustas' },
+    { id: 'comprados', etiqueta: 'descargas.tabs.comprados' },
+    { id: 'ideas', etiqueta: 'descargas.tabs.masIdeas' },
 ];
 
 const DescargasBase = (): JSX.Element => {
+    const { t } = useT();
     /* QL94: Busqueda global con debounce */
     const busqueda = useFiltrosStore(s => s.busqueda);
     const [busquedaDebounced, setBusquedaDebounced] = useState('');
@@ -78,13 +80,13 @@ const DescargasBase = (): JSX.Element => {
     /* QL41: Header dinámico según tab activa */
     const infoHeader = useMemo(() => {
         const configs: Record<string, { titulo: string; imagenId: number }> = {
-            descargas: { titulo: 'Mis Coleccionados', imagenId: 1001 },
-            favoritos: { titulo: 'Me Gustas', imagenId: 1002 },
-            comprados: { titulo: 'Comprados', imagenId: 1003 },
-            ideas: { titulo: 'Más Ideas', imagenId: 1004 },
+            descargas: { titulo: t('descargas.tabs.misColeccionados'), imagenId: 1001 },
+            favoritos: { titulo: t('descargas.tabs.meGustas'), imagenId: 1002 },
+            comprados: { titulo: t('descargas.tabs.comprados'), imagenId: 1003 },
+            ideas: { titulo: t('descargas.tabs.masIdeas'), imagenId: 1004 },
         };
         return configs[tabActiva] ?? configs.descargas;
-    }, [tabActiva]);
+    }, [tabActiva, t]);
 
     const totalHeader = useMemo(() => {
         if (tabActiva === 'descargas') return totalColeccionados;
@@ -127,7 +129,7 @@ const DescargasBase = (): JSX.Element => {
             {/* Botón volver — misma clase que ColeccionDetalle */}
             <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
-                <span>Librería</span>
+                <span>{t('topbar.libreria')}</span>
             </BotonBase>
 
             {/* QL41: Header dinámico según tab activa */}
@@ -142,10 +144,10 @@ const DescargasBase = (): JSX.Element => {
                     <div className="coleccionMeta">
                         <span className="coleccionStats">
                             {tabActiva === 'ideas'
-                                ? 'Sugerencias personalizadas'
+                                ? t('feed.sugerenciasPersonalizadas')
                                 : totalHeader > 0
-                                    ? `${totalHeader} sample${totalHeader !== 1 ? 's' : ''}`
-                                    : 'Cargando...'
+                                    ? `${totalHeader} ${t(totalHeader === 1 ? 'feed.sample' : 'feed.samples')}`
+                                    : t('common.cargando')
                             }
                         </span>
                     </div>
@@ -167,12 +169,12 @@ const DescargasBase = (): JSX.Element => {
                             tamano="ninguno"
                             onClick={() => filtrosDescargas.toggle('soloMeEncanta')}
                             type="button"
-                            aria-label="Solo me encanta"
+                            aria-label={t('feed.soloMeEncanta')}
                             className={filtrosDescargas.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}
                         >
                             <Heart size={16} fill={filtrosDescargas.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
                         </BotonBase>
-                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
+                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label={t('feed.filtros')}>
                             <SlidersHorizontal size={16} />
                         </BotonBase>
                     </BarraControlFeed>
@@ -183,7 +185,7 @@ const DescargasBase = (): JSX.Element => {
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
-                        mensajeVacio="Los samples que colecciones aparecerán aquí."
+                        mensajeVacio={t('descargas.mensajeVacio.coleccionados')}
                         onConteoChange={setTotalColeccionados}
                         filtroAdicional={filtrosDescargas.aplicar}
                     />
@@ -203,12 +205,12 @@ const DescargasBase = (): JSX.Element => {
                             tamano="ninguno"
                             onClick={() => filtrosFavoritos.toggle('soloMeEncanta')}
                             type="button"
-                            aria-label="Solo me encanta"
+                            aria-label={t('feed.soloMeEncanta')}
                             className={filtrosFavoritos.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}
                         >
                             <Heart size={16} fill={filtrosFavoritos.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
                         </BotonBase>
-                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
+                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label={t('feed.filtros')}>
                             <SlidersHorizontal size={16} />
                         </BotonBase>
                     </BarraControlFeed>
@@ -219,7 +221,7 @@ const DescargasBase = (): JSX.Element => {
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
-                        mensajeVacio="Dale like a un sample para guardarlo aquí."
+                        mensajeVacio={t('descargas.mensajeVacio.favoritos')}
                         onConteoChange={setTotalFavoritos}
                         filtroAdicional={filtrosFavoritos.aplicar}
                     />
@@ -232,7 +234,7 @@ const DescargasBase = (): JSX.Element => {
                 ) : comprados.length === 0 ? (
                     <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
                         <ShoppingBag size={32} />
-                        <p>Los samples que compres aparecerán aquí.</p>
+                        <p>{t('descargas.mensajeVacio.comprados')}</p>
                     </div>
                 ) : (
                     <div className="listaDeSamples">
@@ -260,7 +262,7 @@ const DescargasBase = (): JSX.Element => {
                     mostrarTags
                     infiniteScroll
                     virtualizar={false}
-                    mensajeVacio="Descarga algunos samples para recibir sugerencias personalizadas."
+                    mensajeVacio={t('descargas.mensajeVacio.ideas')}
                 />
             )}
 

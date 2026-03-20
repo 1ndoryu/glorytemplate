@@ -8,6 +8,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowDownWideNarrow, ChevronDown } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/barraControlFeed.css';
 
 export type TipoOrdenFeed = 'recientes' | 'nombre' | 'populares' | 'bpm' | 'posicion';
@@ -19,19 +20,19 @@ export interface OpcionOrden {
 
 /* Opciones predeterminadas para listados personales (favoritos, descargas, coleccionados) */
 export const OPCIONES_ORDEN_PERSONAL: OpcionOrden[] = [
-    { valor: 'recientes', etiqueta: 'Recientes' },
-    { valor: 'nombre', etiqueta: 'Nombre' },
-    { valor: 'populares', etiqueta: 'Populares' },
-    { valor: 'bpm', etiqueta: 'BPM' },
+    { valor: 'recientes', etiqueta: 'feed.orden.recientes' },
+    { valor: 'nombre', etiqueta: 'feed.orden.nombre' },
+    { valor: 'populares', etiqueta: 'feed.orden.populares' },
+    { valor: 'bpm', etiqueta: 'feed.orden.bpm' },
 ];
 
 /* Opciones para colecciones (incluye orden manual por posición) */
 export const OPCIONES_ORDEN_COLECCION: OpcionOrden[] = [
-    { valor: 'posicion', etiqueta: 'Manual' },
-    { valor: 'recientes', etiqueta: 'Recientes' },
-    { valor: 'nombre', etiqueta: 'Nombre' },
-    { valor: 'populares', etiqueta: 'Populares' },
-    { valor: 'bpm', etiqueta: 'BPM' },
+    { valor: 'posicion', etiqueta: 'feed.orden.manual' },
+    { valor: 'recientes', etiqueta: 'feed.orden.recientes' },
+    { valor: 'nombre', etiqueta: 'feed.orden.nombre' },
+    { valor: 'populares', etiqueta: 'feed.orden.populares' },
+    { valor: 'bpm', etiqueta: 'feed.orden.bpm' },
 ];
 
 interface BarraControlFeedProps {
@@ -54,6 +55,7 @@ export const BarraControlFeed = ({
 }: BarraControlFeedProps): JSX.Element => {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const { t } = useT();
 
     /* Cerrar dropdown al hacer click fuera */
     useEffect(() => {
@@ -67,14 +69,14 @@ export const BarraControlFeed = ({
         return () => document.removeEventListener('mousedown', manejarClickFuera);
     }, [menuAbierto]);
 
-    const etiquetaActual = opciones.find(o => o.valor === ordenActual)?.etiqueta ?? 'Ordenar';
+    const etiquetaActual = t(opciones.find(o => o.valor === ordenActual)?.etiqueta ?? 'feed.ordenar');
 
     return (
         <div className="barraControlFeed">
             <div className="barraControlFeedIzquierda">
                 {contador != null && (
                     <span className="barraControlFeedContador">
-                        {contador} {etiquetaContador ?? `sample${contador !== 1 ? 's' : ''}`}
+                        {contador} {etiquetaContador ?? t(contador === 1 ? 'feed.sample' : 'feed.samples')}
                     </span>
                 )}
             </div>
@@ -101,7 +103,7 @@ export const BarraControlFeed = ({
                                     onClick={() => { onOrdenCambiar(opcion.valor); setMenuAbierto(false); }}
                                     type="button"
                                 >
-                                    {opcion.etiqueta}
+                                    {t(opcion.etiqueta)}
                                 </BotonBase>
                             ))}
                         </div>

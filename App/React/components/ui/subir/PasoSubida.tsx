@@ -6,6 +6,7 @@
 
 import { Music } from 'lucide-react';
 import { BotonBase, BarraProgreso } from '@app/components/ui';
+import { useT } from '@app/utils/i18n/useT';
 
 interface ArchivoSubida {
     archivo: File;
@@ -30,7 +31,9 @@ export const PasoSubida = ({
     subiendo,
     onCerrar,
     onSubirMas,
-}: Props): JSX.Element => (
+}: Props): JSX.Element => {
+    const { t } = useT();
+    return (
     <div className="subirFormulario">
         {archivos.map((a, i) => (
             <div key={a.nombre}>
@@ -42,10 +45,10 @@ export const PasoSubida = ({
                         <div className="subirPreviewNombre">{a.nombre}</div>
                         <div className="subirPreviewMeta">
                             {i < archivoActual
-                                ? 'Completado'
+                                ? t('subir.completado')
                                 : i === archivoActual
-                                  ? 'Subiendo...'
-                                  : 'En espera'}
+                                  ? t('subir.subiendo')
+                                  : t('subir.enEspera')}
                         </div>
                     </div>
                 </div>
@@ -63,12 +66,13 @@ export const PasoSubida = ({
         {!subiendo && (
             <div className="subirAcciones">
                 <BotonBase variante="ghost" onClick={onCerrar}>
-                    Cerrar
+                    {t('comun.cerrar')}
                 </BotonBase>
                 <BotonBase variante="primario" onClick={onSubirMas}>
-                    Subir más samples
+                    {t('subir.subirMas')}
                 </BotonBase>
             </div>
         )}
     </div>
-);
+    );
+};

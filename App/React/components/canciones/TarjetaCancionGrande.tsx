@@ -8,6 +8,7 @@
 import { type MouseEvent } from 'react';
 import { Music, Play, Pause, Heart } from 'lucide-react';
 import type { Cancion } from '@app/types/cancion';
+import { useT } from '@app/utils/i18n/useT';
 import { BotonBase } from '../ui/BotonBase';
 import { ImgOptimizada } from '../ui/ImgOptimizada';
 
@@ -26,6 +27,7 @@ export const TarjetaCancionGrande = ({
     onPlay,
     reproduciendo = false,
 }: Props): JSX.Element => {
+    const { t } = useT();
     const tieneSample = !!cancion.sampleAdjunto;
 
     /* QL14: Click en portada reproduce sample; si no hay sample, navega a detalle */
@@ -47,7 +49,7 @@ export const TarjetaCancionGrande = ({
                 role="button"
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter') manejarClickImagen(e as unknown as MouseEvent); }}
-                aria-label={tieneSample ? (reproduciendo ? 'Pausar' : 'Reproducir sample') : cancion.titulo}
+                aria-label={tieneSample ? (reproduciendo ? t('cancion.pausarSample') : t('cancion.reproducirSample')) : cancion.titulo}
             >
                 {cancion.imagenUrl ? (
                     <ImgOptimizada src={cancion.imagenUrl} alt={cancion.titulo} w={300} quality={80} />
@@ -72,7 +74,7 @@ export const TarjetaCancionGrande = ({
                 <div className="tarjetaCancionGrandeInfo" onClick={onClick} role="button" tabIndex={0}>
                     <p className="tarjetaCancionGrandeTitulo">{cancion.titulo}</p>
                     <p className="tarjetaCancionGrandeArtista">
-                        {cancion.artistaNombre ?? 'Artista desconocido'}
+                        {cancion.artistaNombre ?? t('cancion.artistaDesconocido')}
                     </p>
                 </div>
                 <BotonBase
@@ -81,7 +83,7 @@ export const TarjetaCancionGrande = ({
                     className={`tarjetaCancionGrandeLikeBtn${cancion.liked ? ' tarjetaCancionGrandeLikeBtnActiva' : ''}`}
                     onClick={(e) => { e.stopPropagation(); onLike(cancion.id); }}
                     type="button"
-                    aria-label={cancion.liked ? 'Quitar like' : 'Dar like'}
+                    aria-label={cancion.liked ? t('sample.quitarLike') : t('sample.darLike')}
                 >
                     <Heart size={14} fill={cancion.liked ? 'currentColor' : 'none'} />
                 </BotonBase>

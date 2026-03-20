@@ -11,6 +11,7 @@ import { Music, Heart, MoreHorizontal, Play, Pause } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import type { Cancion } from '@app/types/cancion';
+import { useT } from '@app/utils/i18n/useT';
 
 export interface TarjetaCancionFeedProps {
     cancion: Cancion;
@@ -29,6 +30,7 @@ export const TarjetaCancionFeed = ({
     onPlay,
     reproduciendo = false,
 }: TarjetaCancionFeedProps): JSX.Element => {
+    const { t } = useT();
     const manejarLike = (e: MouseEvent) => {
         e.stopPropagation();
         onLike(cancion.id);
@@ -79,7 +81,7 @@ export const TarjetaCancionFeed = ({
                     <h3 className="tarjetaCancionFeedTitulo">{cancion.titulo}</h3>
                 </div>
                 <p className="tarjetaCancionFeedArtista">
-                    {cancion.artistaNombre ?? 'Artista desconocido'}
+                    {cancion.artistaNombre ?? t('cancion.artistaDesconocido')}
                     {cancion.anio ? ` · ${cancion.anio}` : ''}
                     {cancion.genero ? ` · ${cancion.genero}` : ''}
                 </p>
@@ -112,7 +114,7 @@ export const TarjetaCancionFeed = ({
                         className={`tarjetaAccionBtn ${reproduciendo ? 'tarjetaAccionActiva' : ''}`}
                         onClick={manejarPlay}
                         type="button"
-                        aria-label={reproduciendo ? 'Pausar sample' : 'Reproducir sample'}
+                        aria-label={reproduciendo ? t('cancion.pausarSample') : t('cancion.reproducirSample')}
                     >
                         {reproduciendo
                             ? <Pause size={18} fill="currentColor" />
@@ -126,7 +128,7 @@ export const TarjetaCancionFeed = ({
                     className={`tarjetaAccionBtn ${cancion.liked ? 'tarjetaAccionLiked' : ''}`}
                     onClick={manejarLike}
                     type="button"
-                    aria-label={cancion.liked ? 'Quitar like' : 'Dar like'}
+                    aria-label={cancion.liked ? t('sample.quitarLike') : t('sample.darLike')}
                 >
                     <Heart size={18} fill={cancion.liked ? 'currentColor' : 'none'} />
                 </BotonBase>
@@ -136,7 +138,7 @@ export const TarjetaCancionFeed = ({
                     className="tarjetaAccionBtn tarjetaMenuBtn"
                     onClick={manejarMenu}
                     type="button"
-                    aria-label="Más opciones"
+                    aria-label={t('comun.masOpciones')}
                 >
                     <MoreHorizontal size={18} />
                 </BotonBase>

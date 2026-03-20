@@ -19,8 +19,10 @@ import { useNotificacionesStore } from '@app/stores/notificacionesStore';
 import { obtenerConversaciones } from '@app/services/apiMensajes';
 import { marcarTodasLeidas, obtenerNotificaciones } from '@app/services/apiNotificaciones';
 import { wsService } from '@app/services/wsService';
+import { useT } from '@app/utils/i18n';
 
 export const useTopBar = () => {
+    const { t } = useT();
     const tabs = useTabsTopBarStore(s => s.tabs);
     const activa = useTabsTopBarStore(s => s.activa);
     const setActiva = useTabsTopBarStore(s => s.setActiva);
@@ -136,11 +138,11 @@ export const useTopBar = () => {
     /* C169: Placeholder dinámico según la isla actual */
     const islaActual = useNavigationStore(s => s.islaActual);
     const placeholdersPorIsla: Record<string, string> = {
-        LibreriaIsland: 'Buscar en librería...',
-        ExplorarCancionesIsland: 'Buscar canciones o artistas...',
-        CancionDetalleIsland: 'Buscar canciones o artistas...',
+        LibreriaIsland: 'topbar.buscarEnLibreria',
+        ExplorarCancionesIsland: 'topbar.buscarCancionesOArtistas',
+        CancionDetalleIsland: 'topbar.buscarCancionesOArtistas',
     };
-    const placeholderBusqueda = placeholdersPorIsla[islaActual ?? ''] ?? 'Buscar samples...';
+    const placeholderBusqueda = t(placeholdersPorIsla[islaActual ?? ''] ?? 'topbar.buscarSamples');
 
     const manejarClickAvatar = useCallback((e?: MouseEvent) => {
         if (!e) return;
@@ -153,9 +155,9 @@ export const useTopBar = () => {
     /* C352: Mostrar solo créditos disponibles, sin el límite total */
     const etiquetaCreditos = creditosInfo
         ? creditosInfo.ilimitado
-            ? 'Créditos: ∞'
-            : `Créditos: ${creditosInfo.limite - creditosInfo.usadas}`
-        : 'Créditos: ...';
+            ? `${t('topbar.creditos')}: ∞`
+            : `${t('topbar.creditos')}: ${creditosInfo.limite - creditosInfo.usadas}`
+        : `${t('topbar.creditos')}: ...`;
 
     const alternarNotificaciones = useCallback(() => {
         setMensajesAbiertos(false);

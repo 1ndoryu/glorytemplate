@@ -25,15 +25,17 @@ import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/coleccionDetalle.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 
 const TABS_FAVORITOS = [
-    { id: 'favoritos', etiqueta: 'Mis Favoritos' },
-    { id: 'ideas', etiqueta: 'Más Ideas' },
+    { id: 'favoritos', etiqueta: 'favoritos.tabs.misFavoritos' },
+    { id: 'ideas', etiqueta: 'descargas.tabs.masIdeas' },
 ];
 
 const FavoritosBase = (): JSX.Element => {
+    const { t } = useT();
     /* QL53: Estado de ordenamiento */
     const [ordenFavoritos, setOrdenFavoritos] = useState<TipoOrdenFeed>('recientes');
     const { samples, totalFavoritos, cargando, proveedorSugerencias, manejarLike } = useFavoritosPagina(ordenFavoritos);
@@ -85,7 +87,7 @@ const FavoritosBase = (): JSX.Element => {
             {/* Botón volver — misma clase que ColeccionDetalle */}
             <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
-                <span>Librería</span>
+                <span>{t('topbar.libreria')}</span>
             </BotonBase>
 
             {/* Header idéntico a ColeccionDetalle */}
@@ -93,13 +95,13 @@ const FavoritosBase = (): JSX.Element => {
                 <img
                     className="coleccionHeaderImg"
                     src={obtenerImagenColor(1002)}
-                    alt="Mis Favoritos"
+                    alt={t('favoritos.tabs.misFavoritos')}
                 />
                 <div className="coleccionHeaderInfo">
-                    <h1 className="coleccionNombre">Mis Favoritos</h1>
+                    <h1 className="coleccionNombre">{t('favoritos.tabs.misFavoritos')}</h1>
                     <div className="coleccionMeta">
                         <span className="coleccionStats">
-                            {totalFavoritos} sample{totalFavoritos !== 1 ? 's' : ''}
+                            {totalFavoritos} {t(totalFavoritos === 1 ? 'feed.sample' : 'feed.samples')}
                         </span>
                     </div>
                 </div>
@@ -110,7 +112,7 @@ const FavoritosBase = (): JSX.Element => {
                 samples.length === 0 ? (
                     <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
                         <Heart size={32} />
-                        <p>Dale like a un sample para guardarlo aquí.</p>
+                        <p>{t('descargas.mensajeVacio.favoritos')}</p>
                     </div>
                 ) : (
                     <>
@@ -156,7 +158,7 @@ const FavoritosBase = (): JSX.Element => {
                     mostrarTags
                     infiniteScroll
                     virtualizar={false}
-                    mensajeVacio="Da like a algunos samples para recibir sugerencias personalizadas."
+                    mensajeVacio={t('favoritos.mensajeVacio.ideas')}
                 />
             )}
 

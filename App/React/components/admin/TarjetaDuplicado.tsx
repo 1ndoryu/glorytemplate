@@ -11,6 +11,7 @@ import { Loader2, Merge, ArrowLeftRight, Check, X } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
 import { WaveformPlayer } from '../ui/WaveformPlayer';
+import { useT } from '@app/utils/i18n/useT';
 import type { DuplicadoAdmin } from '../../services/apiAdmin';
 
 interface TarjetaDuplicadoProps {
@@ -109,6 +110,7 @@ const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview, s
 
 export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDuplicadoProps): JSX.Element => {
     const d = duplicado;
+    const { t } = useT();
 
     return (
         <div className="dupTarjeta">
@@ -123,7 +125,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
             {/* Comparacion lado a lado */}
             <div className="dupComparacion">
                 <LadoSample
-                    etiqueta="Original"
+                    etiqueta={t('admin.duplicados.original')}
                     titulo={d.original_titulo}
                     creador={d.original_creador}
                     fecha={d.original_subido_at}
@@ -134,11 +136,11 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                 />
                 <div className="dupSeparador">
                     <span className="dupSeparadorLinea" />
-                    <span className="dupSeparadorTexto">vs</span>
+                    <span className="dupSeparadorTexto">{t('admin.duplicados.vs')}</span>
                     <span className="dupSeparadorLinea" />
                 </div>
                 <LadoSample
-                    etiqueta="Duplicado"
+                    etiqueta={t('admin.duplicados.duplicado')}
                     titulo={d.duplicado_titulo}
                     creador={d.duplicado_creador}
                     fecha={d.duplicado_subido_at}
@@ -159,7 +161,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     title="Conservar original, eliminar duplicado y transferir relaciones"
                 >
                     {procesando ? <Loader2 size={14} className="adminSpinner" /> : <Merge size={14} />}
-                    Fusionar
+                    {t('admin.duplicados.fusionar')}
                 </BotonBase>
 
                 <BotonBase
@@ -170,7 +172,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     title="Conservar duplicado como original, eliminar el actual original"
                 >
                     <ArrowLeftRight size={14} />
-                    Intercambiar
+                    {t('admin.duplicados.intercambiar')}
                 </BotonBase>
 
                 <BotonBase
@@ -181,7 +183,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     title="No son duplicados reales, ambos coexisten"
                 >
                     <Check size={14} />
-                    No es duplicado
+                    {t('admin.duplicados.noEsDuplicado')}
                 </BotonBase>
 
                 <BotonBase
@@ -192,7 +194,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     title="Eliminar sample duplicado directamente"
                 >
                     <X size={14} />
-                    Rechazar
+                    {t('admin.duplicados.rechazar')}
                 </BotonBase>
             </div>
         </div>

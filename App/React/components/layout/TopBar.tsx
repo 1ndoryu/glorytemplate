@@ -95,6 +95,7 @@ export const TopBar = (): JSX.Element => {
     const esAdmin = usuario?.rol === 'admin';
     const mostrarHerramientasDev = esAdmin && devModeActivo;
     const { t } = useT();
+    const etiquetaTab = (etiqueta: string) => (etiqueta.includes('.') ? t(etiqueta) : etiqueta);
 
     const hamburguesaItems: MenuItemDef[] = [
         {
@@ -355,10 +356,10 @@ export const TopBar = (): JSX.Element => {
                         tamano="ninguno"
                         onClick={() => setActiva(tab.id)}
                         type="button"
-                        title={tab.etiqueta}
+                        title={etiquetaTab(tab.etiqueta)}
                     >
                         {tab.icono && <span className="topbarTabIcono">{tab.icono}</span>}
-                        {!tab.icono && tab.etiqueta}
+                        {!tab.icono && etiquetaTab(tab.etiqueta)}
                     </BotonBase>
                 ))}
             </div>
