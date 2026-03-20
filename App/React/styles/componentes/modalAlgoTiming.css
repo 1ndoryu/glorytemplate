@@ -1,0 +1,234 @@
+/* [2003A-3] ModalAlgoTiming — Modal de métricas del algoritmo de recomendación */
+
+.algoTimingModal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    min-height: 400px;
+}
+
+.algoTimingCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioMd);
+    padding-bottom: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.algoTimingTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteMd);
+    font-weight: 600;
+    color: var(--textoPrimario);
+}
+
+.algoTimingSubtitulo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-weight: 400;
+    background: var(--fondoElevado1);
+    padding: 2px 6px;
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
+    font-family: monospace;
+}
+
+.algoTimingAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+.algoTimingTabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.algoTimingTab {
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: var(--fuentePrincipal);
+    transition: color var(--transicionRapida), border-color var(--transicionRapida);
+    margin-bottom: -1px;
+}
+
+.algoTimingTab:hover {
+    color: var(--textoPrimario);
+}
+
+.algoTimingTabActiva {
+    color: var(--acento);
+    border-bottom-color: var(--acento);
+    font-weight: 500;
+}
+
+.algoTimingContenido {
+    flex: 1;
+    overflow: auto;
+    max-height: 60vh;
+}
+
+.algoTimingSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.algoTimingFecha {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-family: monospace;
+}
+
+.algoTimingTotalRow {
+    display: flex;
+    align-items: baseline;
+    gap: var(--espacioSm);
+}
+
+.algoTimingTotalLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+.algoTimingTotalMs {
+    font-size: var(--fuenteXl);
+    font-weight: 700;
+    font-family: monospace;
+}
+
+/* Colores por nivel de latencia */
+.timingBajo { color: var(--exito); }
+.timingMedio { color: var(--advertencia); }
+.timingAlto { color: var(--error); }
+
+/* Tabla compartida */
+.algoTimingTabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fuenteSm);
+}
+
+.algoTimingTabla th {
+    text-align: left;
+    padding: var(--espacioXs) var(--espacioSm);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-weight: 500;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.algoTimingFila td {
+    padding: var(--espacioXs) var(--espacioSm);
+    border-bottom: 1px solid var(--fondoElevado1);
+    vertical-align: middle;
+}
+
+.algoTimingFila:last-child td {
+    border-bottom: none;
+}
+
+.algoTimingCeldaNombre {
+    color: var(--textoSecundario);
+    font-family: monospace;
+    font-size: var(--fuenteXs);
+}
+
+.algoTimingCeldaMs {
+    text-align: right;
+    font-family: monospace;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.algoTimingCeldaPct {
+    text-align: right;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+.algoTimingCeldaBarra {
+    padding-left: var(--espacioMd);
+    width: 120px;
+}
+
+.algoTimingCeldaSecundaria {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+}
+
+.algoTimingBarra {
+    height: 4px;
+    background: var(--fondoElevado1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.algoTimingBarraRelleno {
+    height: 100%;
+    border-radius: 2px;
+    transition: width var(--transicionMedia);
+}
+
+.algoTimingBarraRelleno.timingBajo { background: var(--exito); }
+.algoTimingBarraRelleno.timingMedio { background: var(--advertencia); }
+.algoTimingBarraRelleno.timingAlto { background: var(--error); }
+
+.algoTimingMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoElevado1);
+    border-radius: var(--radioSm);
+}
+
+.algoTimingMeta strong {
+    color: var(--textoSecundario);
+}
+
+.algoTimingTablaHistorial .algoTimingCeldaNombre {
+    font-size: var(--fuente2xs);
+    white-space: nowrap;
+}
+
+.algoTimingVacio {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    text-align: center;
+    padding: var(--espacioXl);
+}
+
+.algoTimingError {
+    color: var(--error);
+    font-size: var(--fuenteSm);
+    padding: var(--espacioSm);
+    background: color-mix(in srgb, var(--error) 10%, transparent);
+    border-radius: var(--radioSm);
+}
+
+.algoTimingCargando {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+@keyframes algoTimingGirar {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.algoTimingRotando {
+    animation: algoTimingGirar 1s linear infinite;
+}

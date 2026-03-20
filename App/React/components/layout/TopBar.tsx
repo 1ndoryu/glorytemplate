@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box, BookOpen } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box, BookOpen, Activity } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { ResultadosBusquedaRapidaDropdown } from '../ui/ResultadosBusquedaRapida';
 import { Badge } from '../ui/Badge';
@@ -30,6 +30,7 @@ import { useBusquedaRapida } from '@app/hooks/useBusquedaRapida';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
+import { useAlgoTimingStore } from '@app/stores/algoTimingStore';
 import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/topbar.css';
 /* [183A-111] TopBar migrado a i18n: hamburguesaItems, menuItems, aria-labels via t() */
@@ -273,6 +274,19 @@ export const TopBar = (): JSX.Element => {
                 onClick: () => {
                     setMenuAbierto(false);
                     pedirConfirmacionBorrarTodos();
+                },
+            } as MenuItemDef,
+        ] : []),
+        /* [2003A-3] Botón de métricas del algoritmo — solo admin con toggle "Logs de rendimiento" activo */
+        ...(esAdmin && typeof window !== 'undefined' && localStorage.getItem('kamples_debug_timing') === '1' ? [
+            {
+                id: 'algoTiming',
+                etiqueta: 'Rendimiento algoritmo',
+                icono: <Activity size={14} />,
+                separadorDespues: true,
+                onClick: () => {
+                    setMenuAbierto(false);
+                    useAlgoTimingStore.getState().abrir();
                 },
             } as MenuItemDef,
         ] : []),

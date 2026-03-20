@@ -50,6 +50,7 @@ use App\Kamples\Api\Controladores\PushController;
 use App\Kamples\Api\Controladores\FcmController;
 use App\Kamples\Api\Controladores\CodigoGratisController;
 use App\Kamples\Api\Controladores\ArticulosController;
+use App\Kamples\Api\Controladores\AlgoTimingController;
 
 class KamplesController
 {
@@ -111,5 +112,6 @@ class KamplesController
         DevController::registrarRutas($ns);
         CodigoGratisController::registrarRutas($ns);
         ArticulosController::registrarRutas($ns);
+        AlgoTimingController::registrarRutas($ns);
     }
 }

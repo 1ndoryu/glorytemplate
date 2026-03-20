@@ -30,6 +30,7 @@ use App\Kamples\Services\SelectorCandidatos;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Services\ServicioCache;
+use App\Kamples\Services\AlgoTimingLogger;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
 
 class MotorRecomendacion
@@ -266,8 +267,12 @@ class MotorRecomendacion
             $pesos = $config['senales'] ?? [];
             $params = $config['parametros'] ?? [];
 
+            /* [2003A-3] Iniciar medicion de timing — solo para userId 1, no-op para el resto */
+            AlgoTimingLogger::iniciar($userId);
+
             /* Obtener perfil de preferencias del usuario */
             $perfilUsuario = PerfilUsuario::construir($userId);
+            AlgoTimingLogger::marcar($userId, 'perfilUsuario');
 
             if (empty($perfilUsuario['interacciones']) && ($params['min_interacciones'] ?? 5) > 0) {
                 KamplesLogger::info('Algoritmo: Usuario nuevo sin interacciones, usando feed de tendencias', [
@@ -431,6 +436,7 @@ class MotorRecomendacion
          */
         $ctesPrecomputo = PrecomputadorFeed::generarCtes($userId, $config);
         $ctesPrecomputoPrefijo = PrecomputadorFeed::serializarCtes($ctesPrecomputo);
+        AlgoTimingLogger::marcar($userId, 'generacionSQL');
 
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
@@ -539,6 +545,7 @@ class MotorRecomendacion
                 $bulkParams['limit'] = $limiteBulk;
                 $bulkParams['offset'] = 0;
                 $todoResultados = SamplesRepository::consultar($sql, $bulkParams);
+                AlgoTimingLogger::marcar($userId, 'sqlFeed');
 
                 KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
                     'userId' => $userId, 'totalBulk' => \count($todoResultados),
@@ -564,6 +571,7 @@ class MotorRecomendacion
                 }
             } else {
                 $resultado = SamplesRepository::consultar($sql, $queryParams);
+                AlgoTimingLogger::marcar($userId, 'sqlFeed');
                 $resultado = self::inyectarSerendipia($resultado, $userId, $config);
                 self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
             }
@@ -572,6 +580,17 @@ class MotorRecomendacion
                 'userId' => $userId, 'totalResultados' => \count($resultado),
                 'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
                 'bulkFetch' => $usarBulk,
+            ]);
+
+            /* [2003A-3] Guardar medicion de timing con metadatos del contexto de ejecucion */
+            AlgoTimingLogger::guardar($userId, [
+                'totalSamples'  => $totalActivos,
+                'usoCandidatos' => $usarCandidatos,
+                'usoMV'         => $usarVistaMatTrending,
+                'bulkFetch'     => $usarBulk,
+                'resultados'    => \count($resultado),
+                'limite'        => $limite,
+                'offset'        => $offset,
             ]);
 
             return $resultado;

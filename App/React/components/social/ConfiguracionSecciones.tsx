@@ -284,6 +284,9 @@ const SeccionAdmin = (): JSX.Element => {
     const [debugActivo, setDebugActivo] = useState(
         () => typeof window !== 'undefined' && localStorage.getItem('kamples_debug_score') === '1'
     );
+    const [logsActivos, setLogsActivos] = useState(
+        () => typeof window !== 'undefined' && localStorage.getItem('kamples_debug_timing') === '1'
+    );
 
     const toggleDebugScore = () => {
         const nuevo = !debugActivo;
@@ -294,6 +297,17 @@ const SeccionAdmin = (): JSX.Element => {
         invalidarCacheFeed();
     };
 
+    /* [2003A-3] Toggle de logs de rendimiento del algoritmo.
+     * Cuando está activo, aparece un botón en el menú de perfil para abrir
+     * el modal de métricas (historial de timings, promedio, última medición).
+     * Los logs se escriben server-side siempre para userId 1 — este toggle
+     * solo controla la visibilidad del botón en el menú. */
+    const toggleLogs = () => {
+        const nuevo = !logsActivos;
+        localStorage.setItem('kamples_debug_timing', nuevo ? '1' : '0');
+        setLogsActivos(nuevo);
+    };
+
     return (
         <>
             <div className="configSeccion configSeccionHorizontal">
@@ -302,6 +316,15 @@ const SeccionAdmin = (): JSX.Element => {
                     <span className="configSubtexto">Muestra el score del algoritmo de recomendación en cada sample del feed.</span>
                 </div>
                 <BotonBase variante="ghost" className={`configToggle ${debugActivo ? 'configToggleActivo' : ''}`} onClick={toggleDebugScore} type="button">
+                    <Wrench size={14} />
+                </BotonBase>
+            </div>
+            <div className="configSeccion configSeccionHorizontal">
+                <div className="configSeccionInfo">
+                    <span className="configLabel">Logs de rendimiento</span>
+                    <span className="configSubtexto">Muestra el botón de métricas del algoritmo en el menú de perfil (mediciones en tiempo real para user 1).</span>
+                </div>
+                <BotonBase variante="ghost" className={`configToggle ${logsActivos ? 'configToggleActivo' : ''}`} onClick={toggleLogs} type="button">
                     <Wrench size={14} />
                 </BotonBase>
             </div>

@@ -38,6 +38,7 @@ import { ChatFlotante } from '../social/ChatFlotante';
 import { OverlaySuspension } from '../social/OverlaySuspension';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { ModalAuth } from '../auth/ModalAuth';
+import { ModalAlgoTiming } from '../ui/ModalAlgoTiming';
 import { NavPublico } from './NavPublico';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { NotificacionesToastBridge } from '../ui/NotificacionesToastBridge';
@@ -250,6 +251,9 @@ export const LayoutPrincipal = ({
 
             {/* Toast notifications — esquina inferior derecha */}
             <ContenedorToasts />
+
+            {/* [2003A-3] Modal de métricas del algoritmo — admin only */}
+            <ModalAlgoTiming />
 
             {/* QK54: Tooltip global — cualquier elemento con data-tooltip muestra tooltip */}
             <TooltipGlobal />

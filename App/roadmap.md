@@ -108,19 +108,6 @@ Aumenta el limite de samples de subida por usuario a 20.000 a través del sync, 
 
 Haz una pagina de price en el landing con los planes, que haya ese detalle indicando el limite de sincronizacion 100 y 20.000, free y pro, premiun no lo pongas, obviamente todo lo de premiun en cuanto a logia que sea igual a pro
 
-## 2003A-6
-
-A veces el sincronizador dice
-apiDesktopAdapter.ts:241  POST http://localhost:1420/wp-json/kamples/v1/samples/upload 400 (Bad Request)
-window.fetch @ apiDesktopAdapter.ts:241
-subirArchivo @ uploadQueueService.ts:1000
-await in subirArchivo
-procesarItemUpload @ uploadQueueService.ts:749
-procesarCola @ uploadQueueService.ts:722
-syncLogger.ts:201 [UploadQueue] Máximo de reintentos alcanzado: Drank A Yack, Smoke A Sack 132 bpm (FULL).wav
-
-espero que esto no genere problemas o genere perdida de datos, 
-
 
 ## Penultima tarea (no vovlver a correr el comando de generar schema y repositories sin revisar esto antes)
 
