@@ -44,7 +44,8 @@ export const obtenerLimites = async (): Promise<RespuestaApi<LimitesDescarga>> =
     try {
         return await apiGet<LimitesDescarga>('/descargas/limites');
     } catch (err) {
-        log.error('Error obteniendo límites de descarga', err);
+        /* [193A-100] Polling cada 60s — los fallos transitorios son esperados y se auto-recuperan */
+        log.warn('Error obteniendo límites de descarga', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };

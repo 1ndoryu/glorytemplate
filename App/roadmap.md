@@ -86,30 +86,6 @@ Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si g
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
 
-## 193A-100
-
-a veces veo esto en la consola de log
-
-main-8zzQ1p0i.js:906  GET https://kamples.com/wp-json/kamples/v1/descargas/limites net::ERR_CONNECTION_CLOSED
-zr @ main-8zzQ1p0i.js:906
-ke @ main-8zzQ1p0i.js:906
-$b @ main-8zzQ1p0i.js:906
-he @ main-8zzQ1p0i.js:916
-setInterval
-(anónimas) @ main-8zzQ1p0i.js:916
-Rc @ main-8zzQ1p0i.js:41
-ts @ main-8zzQ1p0i.js:41
-yC @ main-8zzQ1p0i.js:41
-no @ main-8zzQ1p0i.js:41
-Ig @ main-8zzQ1p0i.js:41
-jn @ main-8zzQ1p0i.js:39
-(anónimas) @ main-8zzQ1p0i.js:41Comprende este error
-main-8zzQ1p0i.js:906 [Kamples] 03:17:04 [ERROR] ApiCliente: GET /descargas/limites → fallo TypeError: Failed to fetch
-    at zr (main-8zzQ1p0i.js:906:4117)
-    at ke (main-8zzQ1p0i.js:906:5410)
-    at $b (main-8zzQ1p0i.js:906:127658)
-    at he (main-8zzQ1p0i.js:916:178350)
-
 ## 193A-102
 
 Que en la apk no se pueda comprar samples, que directamente no salgan los samples con precio si es que es mejor. 

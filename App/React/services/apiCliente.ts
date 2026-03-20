@@ -206,7 +206,14 @@ export const apiPeticion = async <T>(
         }
 
         const mensaje = err instanceof Error ? err.message : 'Error de red';
-        log.error(`${method} ${endpoint} → fallo`, err);
+        /* [193A-100] GET transitorios (keep-alive timeout, ERR_CONNECTION_CLOSED) son comunes
+         * y se auto-recuperan en el siguiente poll. Solo warn, no error. */
+        const esTransitorio = method === 'GET' && err instanceof TypeError;
+        if (esTransitorio) {
+            log.warn(`${method} ${endpoint} → fallo transitorio`, mensaje);
+        } else {
+            log.error(`${method} ${endpoint} → fallo`, err);
+        }
         return {
             ok: false,
             data: null,
