@@ -86,19 +86,7 @@ Cambia los botones de perfilAcciones por solo iconos, sin borde ni padding, si g
 
 Cuando el usario no tiene internet y entra a la apk, ve el tipico mensaje del navegador de android de cuando no se conecta a internet, esto esta mal, tiene que ser algo personalizado, o si podriamos hacer que la aplicación cargue sin internet, no importa que tan complicado sea, seria lo ideal, que los audios reproducido se cacheen en el telefono y el contenido y que la persona pueda interactuar incluso sin internet. 
 
-## 193A-95
-
-cambiar el icono de
-<button class="botonBase varianteGhost tamanoMd crearAdjuntoIcono crearAdjuntoIconoBtn" type="button" aria-label="カバー画像を添付" title="カバー画像を添付"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-music" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
-
-por uno que se entienda que es para subir imagen 
-
-y cuando tenga una imagen el tamaño cambien 
-.crearAdjuntoIcono {
-    width: 56px;
-    height: 56px !important; es necesario import 
-
-## Antes de penultima (preferiblemente antepenultima)
+## 193A-93
 
 Auditoría de seguridad profundad general, revisar lo mas tipico para pasar auditorias de seguridad, como inyecciones SQL, XSS, CSRF, autenticación, autorización, etc. Revisar especialmente cualquier parte del código que maneje datos de usuario o interacciones con el servidor, datos sensibles, etc. Hacer pruebas de penetración básicas para identificar vulnerabilidades.
 
