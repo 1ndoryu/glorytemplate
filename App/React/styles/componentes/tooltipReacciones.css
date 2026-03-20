@@ -100,7 +100,7 @@
 
 .tooltipReaccionBtn[data-reaccion="encanta"]:hover,
 .tooltipReaccionBtn[data-reaccion="encanta"].tooltipReaccionActiva {
-    color: var(--advertencia);
+    color: var(--error);
 }
 
 /* Dislike */
@@ -120,8 +120,8 @@
 
 /* QK99: Brillo sutil cuando la reaccion es "me encanta" */
 .contenedorReacciones .reaccionPrincipalEncanta {
-    color: var(--advertencia);
-    filter: drop-shadow(0 0 4px var(--advertencia));
+    color: var(--error);
+    filter: drop-shadow(0 0 4px var(--error));
 }
 
 .contenedorReacciones .reaccionPrincipalDislike {
