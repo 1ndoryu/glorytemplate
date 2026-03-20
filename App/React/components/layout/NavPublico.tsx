@@ -4,6 +4,7 @@
  * Contiene: logo, enlaces públicos (Explorar, Colecciones, Música, Blog), botones de auth.
  * [193A-37] Buscador inline en rutas de contenido (colecciones, musica, descubrir)
  * para que el usuario pueda ver, editar y limpiar la búsqueda activa.
+ * [183A-111] i18n: strings via useT (es/en/ja). SelectorIdioma en barra derecha.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -15,12 +16,15 @@ import { GloryLink } from '@/core/router';
 import { useAuthModalStore } from '@app/stores/authModalStore';
 import { useNavigationStore } from '@/core/router';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
+import { useT } from '@app/utils/i18n';
+import { SelectorIdioma } from '@app/components/ui/SelectorIdioma';
 import '../../styles/componentes/navPublico.css';
 
 /* [193A-37] Rutas donde se muestra el buscador inline */
 const RUTAS_CON_BUSCADOR = ['/colecciones/', '/musica/', '/descubrir/'];
 
 export const NavPublico = (): JSX.Element => {
+    const { t } = useT();
     const abrirAuth = useAuthModalStore(s => s.abrir);
     const rutaActual = useNavigationStore(s => s.rutaActual);
     const busquedaGlobal = useFiltrosStore(s => s.busqueda);
@@ -67,10 +71,10 @@ export const NavPublico = (): JSX.Element => {
                     <LogoKamples tamano={22} />
                 </GloryLink>
                 <div className="navPublicoEnlaces">
-                    <GloryLink href="/descubrir/" className="navPublicoEnlace">Explorar</GloryLink>
-                    <GloryLink href="/colecciones/" className="navPublicoEnlace">Colecciones</GloryLink>
-                    <GloryLink href="/musica/" className="navPublicoEnlace">Música</GloryLink>
-                    <GloryLink href="/blog/" className="navPublicoEnlace">Blog</GloryLink>
+                    <GloryLink href="/descubrir/" className="navPublicoEnlace">{t('nav.explorar')}</GloryLink>
+                    <GloryLink href="/colecciones/" className="navPublicoEnlace">{t('nav.colecciones')}</GloryLink>
+                    <GloryLink href="/musica/" className="navPublicoEnlace">{t('nav.musica')}</GloryLink>
+                    <GloryLink href="/blog/" className="navPublicoEnlace">{t('nav.blog')}</GloryLink>
                 </div>
             </div>
             <div className="navPublicoDerecha">
@@ -81,10 +85,10 @@ export const NavPublico = (): JSX.Element => {
                         <Input
                             type="text"
                             className="navPublicoBuscadorInput"
-                            placeholder="Buscar..."
+                            placeholder={t('nav.buscar')}
                             value={busquedaLocal}
                             onChange={e => manejarCambio(e.target.value)}
-                            aria-label="Buscar"
+                            aria-label={t('nav.buscar')}
                         />
                         {busquedaLocal && (
                             <BotonBase
@@ -92,18 +96,19 @@ export const NavPublico = (): JSX.Element => {
                                 tamano="sm"
                                 className="navPublicoBuscadorLimpiar"
                                 onClick={limpiar}
-                                aria-label="Limpiar búsqueda"
+                                aria-label={t('nav.limpiarBusqueda')}
                             >
                                 <X size={12} />
                             </BotonBase>
                         )}
                     </div>
                 )}
+                <SelectorIdioma variante="compacto" />
                 <BotonBase variante="ghost" tamano="md" onClick={() => abrirAuth('login')}>
-                    Iniciar sesión
+                    {t('nav.iniciarSesion')}
                 </BotonBase>
                 <BotonBase variante="primario" tamano="md" onClick={() => abrirAuth('registro')}>
-                    Crear cuenta
+                    {t('nav.crearCuenta')}
                 </BotonBase>
             </div>
         </nav>

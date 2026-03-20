@@ -44,6 +44,8 @@
   "topbar.eliminando": "Deleting...",
   "topbar.masOpciones": "More options",
   "topbar.creditos": "Credits",
+  "topbar.publicacion": "Post",
+  "topbar.buscarCanciones": "Search songs: \"{q}\"",
   "config.portada": "Cover",
   "config.cambiarPortada": "Change cover",
   "config.fotoPerfil": "Profile photo",

@@ -30,7 +30,9 @@ import { useBusquedaRapida } from '@app/hooks/useBusquedaRapida';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
 import { useArticuloEditorStore } from '@app/stores/articuloEditorStore';
+import { useT } from '@app/utils/i18n';
 import '../../styles/componentes/topbar.css';
+/* [183A-111] TopBar migrado a i18n: hamburguesaItems, menuItems, aria-labels via t() */
 
 export const TopBar = (): JSX.Element => {
     /* Leer devMode inyectado por PHP en GLORY_CONTEXT (Partial<GloryContext> del framework Glory) */
@@ -92,11 +94,12 @@ export const TopBar = (): JSX.Element => {
 
     const esAdmin = usuario?.rol === 'admin';
     const mostrarHerramientasDev = esAdmin && devModeActivo;
+    const { t } = useT();
 
     const hamburguesaItems: MenuItemDef[] = [
         {
             id: 'hb-crear',
-            etiqueta: 'Crear publicación',
+            etiqueta: t('topbar.crearPublicacion'),
             icono: <Plus size={14} />,
             onClick: () => {
                 abrirCrear();
@@ -105,7 +108,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'hb-crear-articulo',
-            etiqueta: 'Escribir artículo',
+            etiqueta: t('topbar.escribirArticulo'),
             icono: <BookOpen size={14} />,
             onClick: () => {
                 useArticuloEditorStore.getState().abrir();
@@ -114,7 +117,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'hb-mezclador',
-            etiqueta: 'Mezclador',
+            etiqueta: t('topbar.mezclador'),
             icono: <Music2 size={14} />,
             onClick: () => {
                 alternarMezclador();
@@ -124,7 +127,7 @@ export const TopBar = (): JSX.Element => {
         /* QL16: Musica, Libreria, Coleccionados movidos aqui desde la barra inferior */
         {
             id: 'hb-musica',
-            etiqueta: 'Música',
+            etiqueta: t('topbar.musica'),
             icono: <Music size={14} />,
             onClick: () => {
                 navegar('/musica');
@@ -133,7 +136,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'hb-libreria',
-            etiqueta: 'Librería',
+            etiqueta: t('topbar.libreria'),
             icono: <Box size={14} />,
             onClick: () => {
                 navegar('/libreria');
@@ -142,7 +145,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'hb-coleccionados',
-            etiqueta: 'Coleccionados',
+            etiqueta: t('topbar.coleccionados'),
             icono: <Download size={14} />,
             onClick: () => {
                 navegar('/descargas');
@@ -152,7 +155,7 @@ export const TopBar = (): JSX.Element => {
         /* QK101: Favoritos movido de sidebar al menu hamburguesa */
         {
             id: 'hb-favoritos',
-            etiqueta: 'Favoritos',
+            etiqueta: t('topbar.favoritos'),
             icono: <Heart size={14} />,
             onClick: () => {
                 navegar('/favoritos');
@@ -162,7 +165,7 @@ export const TopBar = (): JSX.Element => {
         /* QK101: Admin panel movido de sidebar al menu hamburguesa */
         ...(esAdmin ? [{
             id: 'hb-admin',
-            etiqueta: 'Admin Panel',
+            etiqueta: t('topbar.adminPanel'),
             icono: <ShieldCheck size={14} />,
             onClick: () => {
                 navegar('/admin/panel');
@@ -173,7 +176,7 @@ export const TopBar = (): JSX.Element => {
          * Configuración, WhatsApp y cerrar sesión deben estar accesibles aquí. */
         {
             id: 'hb-configuracion',
-            etiqueta: 'Configuración',
+            etiqueta: t('topbar.configuracion'),
             icono: <Settings size={14} />,
             separadorDespues: true,
             onClick: () => {
@@ -183,7 +186,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'hb-whatsapp',
-            etiqueta: 'Grupo de WhatsApp',
+            etiqueta: t('topbar.grupoWhatsApp'),
             icono: <MessageCircle size={14} />,
             onClick: () => {
                 useSolicitudWhatsappStore.getState().abrir();
@@ -192,7 +195,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'hb-cerrarSesion',
-            etiqueta: 'Cerrar sesión',
+            etiqueta: t('topbar.cerrarSesion'),
             icono: <LogOut size={14} />,
             peligro: true,
             onClick: async () => {
@@ -230,7 +233,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'perfil',
-            etiqueta: 'Ver perfil',
+            etiqueta: t('topbar.verPerfil'),
             icono: <User size={14} />,
             href: `/perfil/${usuario?.username}/`,
             onClick: () => {
@@ -240,7 +243,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'configuracion',
-            etiqueta: 'Configuración',
+            etiqueta: t('topbar.configuracion'),
             icono: <Settings size={14} />,
             separadorDespues: !mostrarHerramientasDev,
             onClick: () => {
@@ -252,7 +255,7 @@ export const TopBar = (): JSX.Element => {
         ...(mostrarHerramientasDev ? [
             {
                 id: 'devEliminarSample',
-                etiqueta: cargandoEliminar ? 'Eliminando...' : '[DEV] Eliminar sample actual',
+                etiqueta: cargandoEliminar ? t('topbar.eliminando') : '[DEV] Eliminar sample actual',
                 icono: <Trash2 size={14} />,
                 peligro: true,
                 onClick: () => {
@@ -274,7 +277,7 @@ export const TopBar = (): JSX.Element => {
         ] : []),
         {
             id: 'whatsapp',
-            etiqueta: 'Grupo de WhatsApp',
+            etiqueta: t('topbar.grupoWhatsApp'),
             icono: <MessageCircle size={14} />,
             separadorDespues: true,
             onClick: () => {
@@ -284,7 +287,7 @@ export const TopBar = (): JSX.Element => {
         },
         {
             id: 'cerrarSesion',
-            etiqueta: 'Cerrar sesión',
+            etiqueta: t('topbar.cerrarSesion'),
             icono: <LogOut size={14} />,
             peligro: true,
             onClick: async () => {
@@ -332,7 +335,7 @@ export const TopBar = (): JSX.Element => {
                         setHamburguesaPos({ x: rect.left, y: rect.bottom });
                         setHamburguesaAbierta((prev) => !prev);
                     }}
-                    aria-label="Más opciones"
+                    aria-label={t('topbar.masOpciones')}
                 >
                     <Menu size={20} />
                 </BotonBase>
@@ -436,7 +439,7 @@ export const TopBar = (): JSX.Element => {
                         items={[
                             {
                                 id: 'crear-publicacion',
-                                etiqueta: 'Publicación',
+                                etiqueta: t('topbar.publicacion'),
                                 icono: <Plus size={14} />,
                                 onClick: () => {
                                     abrirCrear();
@@ -445,7 +448,7 @@ export const TopBar = (): JSX.Element => {
                             },
                             {
                                 id: 'crear-articulo',
-                                etiqueta: 'Escribir artículo',
+                                etiqueta: t('topbar.escribirArticulo'),
                                 icono: <BookOpen size={14} />,
                                 onClick: () => {
                                     useArticuloEditorStore.getState().abrir();
@@ -464,7 +467,7 @@ export const TopBar = (): JSX.Element => {
                         tamano="md"
                         soloIcono
                         onClick={alternarMezclador}
-                        aria-label="Mezclador"
+                        aria-label={t('topbar.mezclador')}
                         className={`topbarBtnMezclador${modoPanelLateral === 'mezclador' ? ' topbarBotonActivo' : ''}`}
                     >
                         <Music2 size={18} />
@@ -477,7 +480,7 @@ export const TopBar = (): JSX.Element => {
                             tamano="md"
                             soloIcono
                             onClick={() => navegar('/admin/panel')}
-                            aria-label="Admin Panel"
+                            aria-label={t('topbar.adminPanel')}
                             className="topbarBtnAdmin"
                         >
                             <ShieldCheck size={18} />
@@ -586,7 +589,7 @@ export const TopBar = (): JSX.Element => {
                                     }}
                                 >
                                     <Music2 size={14} />
-                                    Buscar canciones: &quot;{busqueda.trim()}&quot;
+                                    {t('topbar.buscarCanciones', { q: busqueda.trim() })}
                                 </BotonBase>
                             )}
                         </div>

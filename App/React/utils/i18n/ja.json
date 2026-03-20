@@ -44,6 +44,8 @@
   "topbar.eliminando": "削除中...",
   "topbar.masOpciones": "その他のオプション",
   "topbar.creditos": "クレジット",
+  "topbar.publicacion": "投稿",
+  "topbar.buscarCanciones": "楽曲を検索：「{q}」",
   "config.portada": "カバー",
   "config.cambiarPortada": "カバーを変更",
   "config.fotoPerfil": "プロフィール写真",
