@@ -57,13 +57,15 @@ function iconoEstado(estado: string): JSX.Element {
     }
 }
 
+/* [2003A-38] Estados informativos para el usuario */
 function estadoLabel(estado: string): string {
     switch (estado) {
         case 'sincronizando': return 'Sincronizando';
         case 'completado': return 'Sincronizado';
         case 'error': return 'Error';
         case 'pausado': return 'Pausado';
-        default: return 'Inactivo';
+        case 'escaneando': return 'Escaneando';
+        default: return 'Listo';
     }
 }
 
@@ -222,6 +224,7 @@ async function abrirVentanaConfig(): Promise<void> {
 export function VentanaSincPanel(): JSX.Element {
     const {
         sincronizacionActiva,
+        carpetaLocal,
         estado,
         mensajeEstado,
         historialSamples,
@@ -464,7 +467,31 @@ export function VentanaSincPanel(): JSX.Element {
             <div className="ventanaSincPanelContenido sincPanelMinimalContenido">
                 <div className="sincPanelHistorialMinimal">
                     {historialSamples.length === 0 ? (
-                        <div className="sincPanelHistorialVacio">Sin actividad reciente</div>
+                        <div className="sincPanelHistorialVacio" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '100%', textAlign: 'center' }}>
+                            {/* [2003A-38] Estado vacío dinámico según contexto */}
+                            {!carpetaLocal ? (
+                                <>
+                                    <span>Selecciona una carpeta para sincronizar</span>
+                                    <BotonBase variante="secundario" tamano="sm" onClick={elegirCarpeta} type="button">
+                                        <FolderOpen size={14} /> Elegir carpeta
+                                    </BotonBase>
+                                </>
+                            ) : !sincronizacionActiva ? (
+                                <>
+                                    <span>Sincronización pausada</span>
+                                    <BotonBase variante="secundario" tamano="sm" onClick={alternarSincronizacion} type="button">
+                                        Activar sincronización
+                                    </BotonBase>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Sin actividad reciente</span>
+                                    <BotonBase variante="secundario" tamano="sm" onClick={sincronizarAhora} type="button">
+                                        Sincronizar ahora
+                                    </BotonBase>
+                                </>
+                            )}
+                        </div>
                     ) : (
                         historialSamples.map((entrada) => (
                             <div

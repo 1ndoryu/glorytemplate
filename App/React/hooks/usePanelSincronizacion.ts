@@ -301,22 +301,8 @@ export const usePanelSincronizacion = () => {
         }
     }, [setCarpeta, setEstado]);
 
-    /* Toggle de sincronización automática */
-    const alternarSincronizacion = useCallback(async () => {
-        const srv = obtenerSync();
-        if (!srv) return;
-        try {
-            const nuevoEstado = !sincronizacionActiva;
-            await srv.toggleSincronizacion(nuevoEstado);
-            setActiva(nuevoEstado);
-            setEstado(
-                nuevoEstado ? 'inactivo' : 'pausado',
-                nuevoEstado ? 'Sincronización activada' : 'Sincronización pausada',
-            );
-        } catch {
-            setEstado('error', 'Error al cambiar sincronización');
-        }
-    }, [sincronizacionActiva, setActiva, setEstado]);
+    /* [2003A-38] alternarSincronizacion movido debajo de ejecutarSyncConProgreso
+     * (ver más abajo) para evitar referencia antes de declaración. */
 
     const abrirCarpetaSincronizacion = useCallback(async () => {
         const srv = obtenerSync();
@@ -392,6 +378,43 @@ export const usePanelSincronizacion = () => {
             return { nuevos: 0, eliminados: 0 };
         }
     }, [setEstado, setProgreso, agregarArchivo, actualizarArchivoEstado, setUltimaSync]);
+
+    /* [2003A-38] Toggle de sincronización automática.
+     * Al activar: trigger sync inmediata para que no quede esperando el poll. */
+    const alternarSincronizacion = useCallback(async () => {
+        const srv = obtenerSync();
+        if (!srv) return;
+        try {
+            const nuevoEstado = !sincronizacionActiva;
+            await srv.toggleSincronizacion(nuevoEstado);
+            setActiva(nuevoEstado);
+
+            if (nuevoEstado) {
+                /* Activar → iniciar sync inmediata si hay carpeta */
+                setEstado('sincronizando', 'Iniciando sincronización...');
+                if (carpetaLocal) {
+                    try {
+                        const resultado = await ejecutarSyncConProgreso(
+                            (onProgreso) => srv.sincronizarConServidor(onProgreso, { forzar: true }),
+                            'Sincronizando...',
+                        );
+                        setEstado(
+                            'completado',
+                            `Sync completa: ${resultado.nuevos} nuevos, ${resultado.eliminados} eliminados`,
+                        );
+                        if (srv.obtenerHistorialSync) setHistorial(srv.obtenerHistorialSync(50));
+                        if (srv.obtenerHistorialSamplesSync) setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
+                    } catch {
+                        setEstado('error', 'Error al sincronizar');
+                    }
+                }
+            } else {
+                setEstado('pausado', 'Sincronización pausada');
+            }
+        } catch {
+            setEstado('error', 'Error al cambiar sincronización');
+        }
+    }, [sincronizacionActiva, carpetaLocal, setActiva, setEstado, ejecutarSyncConProgreso, setHistorial, setHistorialSamples]);
 
     /* Sincronización manual inmediata con progreso en tiempo real.
      * Usa forzar:true para que funcione incluso con auto-sync pausado. */
