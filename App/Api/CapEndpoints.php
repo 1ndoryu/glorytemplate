@@ -23,6 +23,7 @@ class CapEndpoints
     private ?CapReportesEndpoints $reportesEndpoints = null;
     private ?CapAuthEndpoints $authEndpoints = null;
     private ?CapClientesEndpoints $clientesEndpoints = null;
+    private ?CapPerfilEndpoints $perfilEndpoints = null;
 
     private function obtenerConfigEndpoints(): CapConfigEndpoints
     {
@@ -128,6 +129,14 @@ class CapEndpoints
         return $this->clientesEndpoints;
     }
 
+    private function obtenerPerfilEndpoints(): CapPerfilEndpoints
+    {
+        if ($this->perfilEndpoints === null) {
+            $this->perfilEndpoints = new CapPerfilEndpoints();
+        }
+        return $this->perfilEndpoints;
+    }
+
     public function registrarRutas(): void
     {
         $configEndpoints = $this->obtenerConfigEndpoints();
@@ -143,6 +152,7 @@ class CapEndpoints
         $reportesEndpoints = $this->obtenerReportesEndpoints();
         $authEndpoints = $this->obtenerAuthEndpoints();
         $clientesEndpoints = $this->obtenerClientesEndpoints();
+        $perfilEndpoints = $this->obtenerPerfilEndpoints();
 
         register_rest_route(self::NAMESPACE, '/config', [
             ['methods' => 'GET', 'callback' => $configEndpoints->callbackSeguro('obtenerConfig'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
@@ -319,6 +329,12 @@ class CapEndpoints
             'methods' => 'GET',
             'callback' => $clientesEndpoints->callbackSeguro('listarClientes'),
             'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
+        ]);
+
+        /* [2003A-12] Perfil de usuario (autenticado) */
+        register_rest_route(self::NAMESPACE, '/perfil', [
+            ['methods' => 'GET', 'callback' => $perfilEndpoints->callbackSeguro('obtenerPerfil'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
+            ['methods' => 'PUT', 'callback' => $perfilEndpoints->callbackSeguro('actualizarPerfil'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
         ]);
     }
 }

@@ -127,6 +127,23 @@ add_action('init', function () {
 });
 
 /*
+ * [2003A-12] Bloquear wp-admin para usuarios no-admin.
+ * Los cap_admin (dueños de autoescuela) usan solo la interfaz CAP.
+ * AJAX se permite siempre porque WordPress lo necesita internamente.
+ */
+add_action('admin_init', function () {
+    if (wp_doing_ajax()) {
+        return;
+    }
+
+    $wpUser = wp_get_current_user();
+    if ($wpUser instanceof \WP_User && !in_array('administrator', $wpUser->roles, true)) {
+        wp_safe_redirect(home_url('/cap-dashboard/'));
+        exit;
+    }
+});
+
+/*
  * H.2 Fix: Redirección inteligente en la página de inicio
  * Si el usuario está logueado con rol cap_admin -> dashboard
  * Si no está logueado -> login

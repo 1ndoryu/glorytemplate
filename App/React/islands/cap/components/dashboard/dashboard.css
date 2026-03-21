@@ -194,6 +194,19 @@
     min-width: 0;
 }
 
+/* [2003A-12] Usuario clickeable para abrir modal de perfil */
+.capSidebar__usuario--clickeable {
+    cursor: pointer;
+    border-radius: var(--cap-radio-md);
+    padding: var(--cap-espacio-xs);
+    margin: calc(-1 * var(--cap-espacio-xs));
+    transition: background 0.15s ease;
+}
+
+.capSidebar__usuario--clickeable:hover {
+    background: var(--cap-fondo-sutil);
+}
+
 .capSidebar__avatar {
     width: 36px;
     height: 36px;

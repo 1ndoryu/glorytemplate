@@ -1,0 +1,22 @@
+/**
+ * [2003A-12] Estilos para ModalPerfil
+ */
+
+.capModalPerfil__campos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capModalPerfil__separador {
+    border: none;
+    border-top: 1px solid var(--cap-borde-sutil);
+    margin: var(--cap-espacio-sm) 0;
+}
+
+.capModalPerfil__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+    margin-top: var(--cap-espacio-lg);
+}

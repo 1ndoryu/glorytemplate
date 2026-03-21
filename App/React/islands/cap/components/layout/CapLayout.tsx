@@ -6,10 +6,11 @@
  * Responsable únicamente de la estructura visual (SRP).
  */
 
-import type {ReactNode} from 'react';
+import {useState, type ReactNode} from 'react';
 import {Badge} from '../ui';
 import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha, IconoTarjeta, IconoLibro} from '../icons';
 import {useDashboardStore, type SeccionActiva} from '../../stores/useDashboardStore';
+import {ModalPerfil} from './ModalPerfil';
 import '../dashboard/dashboard.css';
 
 interface ItemNavegacion {
@@ -31,12 +32,14 @@ const itemsNavegacion: ItemNavegacion[] = [
 interface CapLayoutProps {
     children: ReactNode;
     userName: string;
+    userEmail: string;
     siteUrl: string;
     logoutUrl: string;
     isAdmin: boolean;
 }
 
-export function CapLayout({children, userName, siteUrl, logoutUrl, isAdmin}: CapLayoutProps) {
+export function CapLayout({children, userName, userEmail, siteUrl, logoutUrl, isAdmin}: CapLayoutProps) {
+    const [perfilAbierto, setPerfilAbierto] = useState(false);
     /* Selectores individuales para evitar re-renders innecesarios (8.13) */
     const seccionActiva = useDashboardStore(s => s.seccionActiva);
     const sidebarAbierto = useDashboardStore(s => s.sidebarAbierto);
@@ -89,7 +92,7 @@ export function CapLayout({children, userName, siteUrl, logoutUrl, isAdmin}: Cap
                 </nav>
 
                 <div className="capSidebar__footer">
-                    <div className="capSidebar__usuario">
+                    <div className="capSidebar__usuario capSidebar__usuario--clickeable" onClick={() => setPerfilAbierto(true)} title="Editar perfil">
                         <div className="capSidebar__avatar">{userName.charAt(0).toUpperCase()}</div>
                         <div className="capSidebar__usuarioInfo">
                             <span className="capSidebar__usuarioNombre">{userName}</span>
@@ -118,6 +121,14 @@ export function CapLayout({children, userName, siteUrl, logoutUrl, isAdmin}: Cap
                 {/* Área de contenido con transición */}
                 <div className="capDashboard__contenido">{children}</div>
             </main>
+
+            {/* [2003A-12] Modal de perfil de usuario */}
+            <ModalPerfil
+                abierto={perfilAbierto}
+                onCerrar={() => setPerfilAbierto(false)}
+                userName={userName}
+                userEmail={userEmail}
+            />
         </div>
     );
 }

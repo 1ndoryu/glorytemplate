@@ -123,7 +123,7 @@ export function CapDashboardIsland(rawProps: Record<string, unknown>) {
     };
 
     return (
-        <CapLayout userName={user.name} siteUrl={siteUrl} logoutUrl={logoutUrl} isAdmin={user.isAdmin}>
+        <CapLayout userName={user.name} userEmail={user.email} siteUrl={siteUrl} logoutUrl={logoutUrl} isAdmin={user.isAdmin}>
             {renderContenido()}
             {mostrarPaywall && suscripcion && (
                 <Paywall
