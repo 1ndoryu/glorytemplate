@@ -1001,6 +1001,10 @@ class MotorRecomendacion
                 return !isset($idsSet[$s[SamplesCols::ID] ?? -1]);
             }));
             if (!empty($filtrados)) {
+                /* [2103A-14] Shuffle para que los mismos 5 cacheados no aparezcan
+                 * siempre en el mismo orden/posición del feed. El cache de 30 min
+                 * se conserva para no recalcular pgvector en cada request. */
+                \shuffle($filtrados);
                 return \array_slice($filtrados, 0, $limite);
             }
             /* Si todos los cacheados ya estan en el feed, recalcular */

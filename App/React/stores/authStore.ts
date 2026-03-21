@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import type { UsuarioAutenticado } from '../types';
 
-interface EstadoAuth {
+export interface EstadoAuth {
     usuario: UsuarioAutenticado | null;
     cargando: boolean;
     autenticado: boolean;

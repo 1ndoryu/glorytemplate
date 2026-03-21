@@ -171,6 +171,17 @@
     border: unset !important;
 }
 
+/* [2103A-13] Badge editable de tipo (loop/oneshot) para admins — indica interactividad */
+.tarjetaMetaBadgeEditableTipo {
+    opacity: 0.85;
+    cursor: pointer;
+}
+
+.tarjetaMetaBadgeEditableTipo:hover {
+    opacity: 1;
+    color: var(--acento);
+}
+
 .tarjetaMeta .badge:hover {
     color: var(--blanco);
 }

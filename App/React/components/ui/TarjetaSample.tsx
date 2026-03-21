@@ -6,20 +6,18 @@
  */
 
 import { useRef, type MouseEvent } from 'react';
-import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark, DollarSign, Crown } from 'lucide-react';
+import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark, DollarSign, Crown, ThumbsDown } from 'lucide-react';
 import { useEsMovil } from '@app/hooks/useEsMovil';
 import type { SampleResumen, TipoReaccion } from '../../types';
 import { WaveformPlayer } from './WaveformPlayer';
-import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
-import { etiquetaBpm } from '../../services/bpmUtils';
-import { normalizarTag } from '../../services/tagUtils';
 import { TooltipReacciones } from './TooltipReacciones';
-import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
+import { useTarjetaSample } from '@app/hooks/useTarjetaSample';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { useT } from '@app/utils/i18n';
 import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import { BadgeDebugScore } from './BadgeDebugScore';
+import { BadgesMetadata } from './BadgesMetadata';
 import '../../styles/componentes/tarjetaSample.css';
 import { BotonBase } from './BotonBase';
 import { ImgOptimizada } from './ImgOptimizada';
@@ -207,6 +205,24 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     </BotonBase>
                 </TooltipReacciones>
 
+                {/* [2103A-15] Dislike visible al lado del corazón, fuera del tooltip hover */}
+                <BotonBase variante="ghost"
+                    className={`tarjetaAccionBtn ${sample.reaccion === 'dislike' ? 'reaccionPrincipalDislike' : ''}`}
+                    onClick={(e: MouseEvent) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        if (sample.reaccion === 'dislike') {
+                            manejarQuitarReaccion();
+                        } else {
+                            manejarReaccion('dislike');
+                        }
+                    }}
+                    type="button"
+                    aria-label={t('reacciones.noMeGusta')}
+                >
+                    <ThumbsDown size={18} fill={sample.reaccion === 'dislike' ? 'currentColor' : 'none'} />
+                </BotonBase>
+
                 <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionGuardarBtn ${guardado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarGuardar} type="button" aria-label={t('sample.guardarColeccion')}>
                     <Bookmark size={18} fill={guardado ? 'currentColor' : 'none'} />
                 </BotonBase>
@@ -244,82 +260,6 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                 </BotonBase>
             </div>
         </div>
-    );
-};
-
-/*
- * Subcomponente: BadgesMetadata
- * Renderiza badges de metadata inteligente del sample (instrumento, género, emoción, BPM, tags).
- * C344: Si onFiltrar está presente, los badges son clickables para filtrar la vista.
- */
-interface BadgesMetadataProps {
-    sample: SampleResumen;
-    onFiltrar?: (texto: string) => void;
-}
-
-const BadgesMetadata = ({ sample, onFiltrar }: BadgesMetadataProps): JSX.Element => {
-    const meta = sample.metadata;
-    const badges: { texto: string; clave: string }[] = [];
-    const usados = new Set<string>();
-
-    /* [213A-3] Tipo siempre como primer badge — orienta al usuario de un vistazo.
-     * Se añade directamente (sin normalizarTag) y se marca como usado para que
-     * tags que incluyan 'loop'/'oneshot' no aparezcan duplicados más abajo. */
-    const tipoBadgeTexto = sample.tipo === 'loop' ? 'Loop' : 'One Shot';
-    badges.push({ texto: tipoBadgeTexto, clave: 'tipo' });
-    usados.add(sample.tipo);    // 'loop' | 'oneshot'
-    usados.add('one shot');     // variante textual habitual en tags
-
-    /* [193A-34] agregarBadge aplica normalizarTag para consistencia
-     * (vocals→vocal, guitarra→guitar, etc). Evita duplicados normalizados. */
-    const agregarBadge = (valores: unknown, clave: string) => {
-        const arr = Array.isArray(valores) ? valores : valores ? [valores] : [];
-        for (const v of arr) {
-            if (typeof v === 'string' && v.trim()) {
-                const norm = normalizarTag(v);
-                if (norm && !usados.has(norm)) {
-                    usados.add(norm);
-                    badges.push({ texto: norm, clave });
-                    return;
-                }
-            }
-        }
-    };
-
-    agregarBadge(meta?.instrumentos ?? meta?.['instrumentos'], 'inst');
-    agregarBadge(meta?.genero ?? meta?.['genero'], 'gen');
-    /* QQ21b: Preferir tags en inglés en el front; español se preserva para búsqueda */
-    agregarBadge(meta?.emocion ?? meta?.emocion_es ?? meta?.emocionEs, 'emo');
-
-    if (sample.bpm) {
-        badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'vel' });
-    }
-
-    agregarBadge(meta?.tags ?? meta?.tags_es ?? meta?.tagsEs ?? sample.tags, 'tag');
-
-    /* Fallback si no hay metadata IA */
-    if (badges.length === 0) {
-        if (sample.bpm) badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'bpm' });
-        if (sample.key) badges.push({ texto: formatearKey(sample.key, sample.escala), clave: 'key' });
-        badges.push({ texto: sample.tipo, clave: 'tipo' });
-    }
-
-    return (
-        <>
-            {badges.map(({ texto, clave }) => (
-                <Badge
-                    key={clave}
-                    variante="neutro"
-                    className={onFiltrar ? 'tarjetaMetaBadgeClickable' : undefined}
-                    onClick={onFiltrar ? (e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        onFiltrar(texto);
-                    } : undefined}
-                >
-                    {texto}
-                </Badge>
-            ))}
-        </>
     );
 };
 

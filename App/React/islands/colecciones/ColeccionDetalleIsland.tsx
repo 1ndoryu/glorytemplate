@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal, ChevronRight, Undo2 } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal, ChevronRight, Undo2, Dices } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
 import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
@@ -18,6 +18,7 @@ import { ColeccionDetalleModales } from '@app/components/colecciones/ColeccionDe
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
+import { useReproductorAleatorio } from '@app/hooks/useReproductorAleatorio';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
 import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
@@ -35,6 +36,9 @@ interface ColeccionDetalleIslandProps {
 }
 
 const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslandProps): JSX.Element => {
+    /* [2103A-18] Dado: reproduce sample aleatorio igual que en el feed de inicio */
+    const { cargandoAleatorio, reproducirAleatorio } = useReproductorAleatorio();
+
     /* QL53: Estado de ordenamiento — default 'posicion' para colecciones */
     const [ordenColeccion, setOrdenColeccion] = useState<TipoOrdenFeed>('posicion');
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
@@ -242,6 +246,10 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                         ordenActual={ordenColeccion}
                         onOrdenCambiar={setOrdenColeccion}
                     >
+                        {/* [2103A-18] Botón dado para sample aleatorio */}
+                        <BotonBase variante="ghost" tamano="ninguno" onClick={reproducirAleatorio} type="button" aria-label="Aleatorio" className={`inicioFiltrosBtn${cargandoAleatorio ? ' cargandoAleatorio' : ''}`} disabled={cargandoAleatorio}>
+                            <Dices size={16} />
+                        </BotonBase>
                         <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
                             <SlidersHorizontal size={16} />
                         </BotonBase>

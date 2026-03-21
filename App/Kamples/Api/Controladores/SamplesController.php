@@ -43,6 +43,8 @@ use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\FollowsCols;
+use App\Kamples\Services\ServicioCache;
+use App\Kamples\Api\Middleware\AuthMiddleware;
 
 class SamplesController
 {
@@ -76,6 +78,14 @@ class SamplesController
             'args'                => [
                 'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             ],
+        ]);
+
+        /* [2103A-16] Recargar feed — invalida el cache del algoritmo del usuario actual
+         * para que el próximo GET /feed recalcule con datos frescos. */
+        \register_rest_route($namespace, '/feed/recargar', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'recargarFeed'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         \register_rest_route($namespace, '/feed', [
@@ -372,6 +382,29 @@ class SamplesController
             return new \WP_REST_Response(['ok' => true, 'data' => NormalizadorSample::normalizar($row)], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SamplesController::aleatorio error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'error_interno'], 500);
+        }
+    }
+
+    /**
+     * POST /feed/recargar — Invalida el cache del algoritmo para el usuario actual.
+     * [2103A-16] Permite al usuario forzar un recálculo del feed (regenera algoritmo).
+     * Solo invalida el cache fresco; el stale se conserva para respuesta rápida.
+     */
+    public static function recargarFeed(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'no_auth'], 401);
+            }
+            MotorRecomendacion::invalidarCache($userId);
+            /* Tambiéninvalidar cache serendipia para que cambie en el próximo feed */
+            ServicioCache::eliminar("kamples_serendipia_{$userId}");
+            KamplesLogger::debug('Feed recargado por usuario', ['userId' => $userId]);
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesController::recargarFeed error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'error_interno'], 500);
         }
     }

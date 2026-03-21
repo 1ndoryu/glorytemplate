@@ -7,15 +7,15 @@
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow, Heart, Dices } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow, Heart, Dices, RefreshCw } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { LandingPublica } from '@app/components/social/LandingPublica';
 import { BlogIsland } from '../blog/BlogIsland';
-import { obtenerFeed, obtenerSampleAleatorio, type FiltrosFeedBackend } from '@app/services/apiSamples';
+import { obtenerFeed, recargarCacheFeed, type FiltrosFeedBackend } from '@app/services/apiSamples';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
-import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useReproductorAleatorio } from '@app/hooks/useReproductorAleatorio';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
@@ -85,19 +85,22 @@ export const FeedUnificado = (): JSX.Element => {
     const [totalServidor, setTotalServidor] = useState<number | null>(null);
     const [conteoFiltrado, setConteoFiltrado] = useState(0);
 
-    /* [2103A-12] Dado: reproduce un sample aleatorio del top 1000 */
-    const [cargandoAleatorio, setCargandoAleatorio] = useState(false);
-    const reproducir = useReproductorStore(s => s.reproducir);
-    const reproducirAleatorio = useCallback(async () => {
-        if (cargandoAleatorio) return;
-        setCargandoAleatorio(true);
+    /* [2103A-16] Recargar feed: invalida caché del algoritmo y fuerza nueva llamada */
+    const [recargarVersion, setRecargarVersion] = useState(0);
+    const [recargando, setRecargando] = useState(false);
+    const manejarRecargarFeed = useCallback(async () => {
+        if (recargando) return;
+        setRecargando(true);
         try {
-            const resp = await obtenerSampleAleatorio();
-            if (resp.ok && resp.data) reproducir(resp.data);
+            await recargarCacheFeed();
+            setRecargarVersion(v => v + 1);
         } finally {
-            setCargandoAleatorio(false);
+            setRecargando(false);
         }
-    }, [cargandoAleatorio, reproducir]);
+    }, [recargando]);
+
+    /* [2103A-12] Dado: reproduce un sample aleatorio del top 1000 */
+    const { cargandoAleatorio, reproducirAleatorio } = useReproductorAleatorio();
 
     const abrirCrear = useCrearModalStore(s => s.abrir);
     const busqueda = useFiltrosStore(s => s.busqueda);
@@ -201,7 +204,8 @@ export const FeedUnificado = (): JSX.Element => {
     }, [ordenamiento, busquedaDebounced, filtrosBackend]);
 
     /* QK83: Incluir búsqueda y filtros en clave de cache para invalidar al cambiar */
-    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${soloMeEncanta}_${soloWav}_${ocultarDescargados}_${ocultarColeccionados}_${ocultarLikeados}_${soloDeSeguidos}`;
+    /* [2103A-16] recargarVersion fuerza invalidación del cache cuando el usuario recarga */
+    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${soloMeEncanta}_${soloWav}_${ocultarDescargados}_${ocultarColeccionados}_${ocultarLikeados}_${soloDeSeguidos}_v${recargarVersion}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {
@@ -276,6 +280,19 @@ export const FeedUnificado = (): JSX.Element => {
                             </div>
                         )}
                     </div>
+
+                    {/* [2103A-16] Botón recargar feed — invalida caché del algoritmo */}
+                    <BotonBase
+                        variante="ghost"
+                        tamano="ninguno"
+                        onClick={manejarRecargarFeed}
+                        type="button"
+                        aria-label={t('feed.recargar')}
+                        className={`inicioFiltrosBtn${recargando ? ' cargandoAleatorio' : ''}`}
+                        disabled={recargando}
+                    >
+                        <RefreshCw size={16} />
+                    </BotonBase>
 
                     {/* [2103A-12] Dado: reproduce un sample aleatorio del top 1000 */}
                     <BotonBase

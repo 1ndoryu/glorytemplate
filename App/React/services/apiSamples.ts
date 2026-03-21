@@ -358,3 +358,10 @@ export const restaurarRecorte = (
     sampleId: number,
 ): Promise<RespuestaApi<RespuestaRestaurarRecorte>> =>
     apiPost<RespuestaRestaurarRecorte>(`/samples/${sampleId}/restaurar-recorte`, {});
+
+/*
+ * [2103A-16] Invalida el cache del algoritmo del usuario actual en el servidor.
+ * El usuario verá resultados frescos en el próximo GET /feed.
+ */
+export const recargarCacheFeed = (): Promise<RespuestaApi<{ ok: boolean }>> =>
+    apiPost<{ ok: boolean }>('/feed/recargar', {});

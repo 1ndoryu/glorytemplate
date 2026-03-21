@@ -68,14 +68,13 @@ Ubicacion: `App/docs (ignorar)/`
 - **213A-3 (2026-03-21):** Diversidad tipo feed — loop_boost x1.10 en SQL, max 5 one-shots/página (soft penalty), badge "Loop"/"One Shot" como primer chip en TarjetaSample, auto-corrección tipo <5s→oneshot en NormalizadorSample.
 - **2103A-12 (2026-03-21):** Botón dado en `inicioControlesDerecha` — reproduce sample aleatorio del top 1000 del catálogo activo. Backend: `GET /samples/aleatorio` con RANDOM() sobre subquery de los 1000 más recientes.
 - **2103A-11 (2026-03-21):** Hash antispam desktop menos estricto — `MAX_DETECCIONES_HASH` 6→25; contador capeado al límite (ya no crece a 24-25); check anticipado antes del incremento.
+- **2103A-13+2103A-14+2103A-15+2103A-16+2103A-17+2103A-18 (2026-03-21):** Badge editable tipo loop/oneshot para admins; serendipia shuffle por request; dislike visible al lado del corazón; botón recargar feed (invalida caché algoritmo); unificación visual barraControlFeed con inicioBarraControl; botón dado en ColeccionDetalle. Hook `useReproductorAleatorio` extraido como compartido.
 
 ## Tareas pendientes
 
-## 2103A-11
+## 2103A-19
 
-Creo que hay que hacer menos estricto lo del hash o mas preciso para que realmente sepa diferenciar, los snare, kick y cosas asi por lo general se parece mucho pero tecnicamente no son iguales. 
-
-uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 24 detecciones: SMK Snare 4 (2).wav 
+El algoritmo no tiene diversidad por colecciones o genero, a veces muestra un moton de samples de la misma coleccion y genero. 
 Na @ uploadQueueService-BdIuPfxD.js:49
 warn @ uploadQueueService-BdIuPfxD.js:51
 ai @ uploadQueueService-BdIuPfxD.js:51
@@ -184,4 +183,16 @@ Agrega el boton de dislike al lado del boton de corazon, que ya no este en el to
 
 ## 2103A-16
 
-Al lado del boton de dado agrega un boton para recargar la lista del feed, esto hará que el algortimo se vuelva a calcular y recarga la lista samples para 
+Al lado del boton de dado agrega un boton para recargar la lista del feed, esto hará que el algortimo se vuelva a calcular y recarga la lista samples, esto regenera el algoritmo, invalidado la cache del algoritmo. 
+
+## 2103A-17 
+
+unificar estilos en todos los aspectos posible entre inicioBarraControl y barraControlFeed, deberian ser la misma cosa y funcionar igual, con la excepcion de que dentro de las colecciones el contador esta en otra parte pero si, hay incosistencia visual, los ordenamientos correcto son los que esta en el feed de inicio, estilo correcto de todo es el de inicioBarraControl
+
+## 2103A-18
+
+el boton de dado tambien debe estar dentro de las colecciones, el de recargar feed no es necesario en las colecciones o dentro de ellas.
+
+## 2103A-19
+
+El algoritmo no tiene diversidad por colecciones o genero, a veces muestra un moton de samples de la misma coleccion y genero. 
