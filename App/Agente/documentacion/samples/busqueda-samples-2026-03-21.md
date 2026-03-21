@@ -1,7 +1,7 @@
 # Sistema de Búsqueda de Samples
 
-> **Última actualización:** 2026-03-19 (193A-35)
-> **Archivos clave:** `SamplesController.php` (listar + feed), `apiSamples.ts`, `tagUtils.ts`
+> **Última actualización:** 2026-03-21 (2103A-4)
+> **Archivos clave:** `SamplesController.php` (listar + feed), `algoritmoPesos.php` (pesos), `apiSamples.ts`, `tagUtils.ts`
 
 ## Arquitectura general
 
@@ -99,5 +99,53 @@ El frontend envía dos parámetros:
 
 ### Prioridad baja
 5. **Synonyms en español completos** — El mapa `SINONIMOS_TAGS` solo cubre unos pocos sinónimos básicos. Ampliar con más traducciones comunes.
-6. **Ranking/scoring de resultados** — Actualmente los resultados de búsqueda no tienen score diferenciado (un match en título vale lo mismo que un match fuzzy en un tag).
+6. ~~**Ranking/scoring de resultados**~~ — **IMPLEMENTADO en 2103A-4.** Ver sección "Scoring de resultados" abajo.
 7. **Autocomplete/sugerencias** — No existe un endpoint de sugerencias de búsqueda basado en tags frecuentes o términos populares.
+
+## Scoring de resultados de búsqueda
+
+> **Config:** `algoritmoPesos.php['busqueda']`
+> **Implementación:** `SamplesController::listar()` — ORDER BY multi-factor
+
+Cuando hay término de búsqueda (≥2 caracteres), los resultados se ordenan por score compuesto:
+
+```
+score = ts_rank_weight * ts_rank
+      + tag_match_boost * tag_score
+      + titulo_boost * titulo_rank
+      + fuzzy_boost * fuzzy_rank
+      + titulo_exacto_boost * titulo_exacto
+```
+
+### Señales y pesos (desde `algoritmoPesos.php`)
+
+| Señal | Peso | Fuente SQL | Descripción |
+|-------|------|-----------|-------------|
+| `ts_rank` | 1.0 | `ts_rank(to_tsvector(titulo \|\| descripcion), plainto_tsquery)` | Full-text search nativo PostgreSQL (stemming, stop words) |
+| `tag_match` | 0.8 | `CASE WHEN EXISTS(UNNEST(tags) ILIKE)` | 1.0 si algún tag coincide, 0.0 si no |
+| `titulo_rank` | **1.5** | `ts_rank(to_tsvector(titulo), plainto_tsquery)` | FTS solo sobre título (mayor especificidad que título+desc) |
+| `fuzzy_rank` | 0.6 | `word_similarity(query, titulo)` | pg_trgm — tolerancia a typos, retorna [0,1] |
+| `titulo_exacto` | **2.0** | `CASE WHEN titulo ILIKE query\|\|'%'` | 1.0 si el título empieza con el query exacto (ILIKE) |
+
+### Cambios 2103A-4
+- `titulo_boost` subido de **0.5 → 1.5**: el título es la señal más importante cuando el usuario busca un sample por nombre.
+- **Nuevo:** `titulo_exacto_boost` = 2.0: si el título empieza con el query (ej: búsqueda "kick" → "Kick 808 Trap"), recibe +2.0 puntos extra.  
+  Esto resuelve el problema de que búsquedas exactas quedaban detrás de matches parciales en tags o descripción.
+
+### Tiebreaker
+Si dos samples tienen el mismo score, se resuelve por `publicado_at DESC NULLS LAST`.
+
+### Pesos efectivos (ejemplo: "kick")
+Un sample llamado "Kick 808 Trap" con tag "kick" obtendría:
+- ts_rank(titulo+desc) ≈ 0.2 × 1.0 = **0.20**
+- tag_match = 1.0 × 0.8 = **0.80**
+- ts_rank(titulo) ≈ 0.4 × 1.5 = **0.60**
+- word_similarity ≈ 0.5 × 0.6 = **0.30**
+- titulo_exacto = 1.0 × 2.0 = **2.00**
+- **Total ≈ 3.90**
+
+Un sample con "Trap Beat" y tag "kick drum": 
+- ts_rank = 0, tag_match = 0.8, titulo_rank = 0, fuzzy = 0.2 × 0.6, titulo_exacto = 0
+- **Total ≈ 0.92**
+
+→ El sample cuyo título es "Kick..." aparece primero, como espera el usuario.

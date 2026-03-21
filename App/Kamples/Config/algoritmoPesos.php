@@ -375,7 +375,13 @@ return [
         /* Pesos de ranking — NO necesitan sumar 1.0 (son multiplicadores de boost) */
         'ts_rank_weight'       => 1.0,   /* Peso del ranking full-text de PostgreSQL */
         'tag_match_boost'      => 0.8,   /* Boost por coincidencia en tags del sample */
-        'titulo_boost'         => 0.5,   /* Boost extra por match en título (más relevante que descripción) */
+
+        /* [2103A-4] titulo_boost subido de 0.5 a 1.5: el título del sample es la señal
+         * más importante para la búsqueda — el usuario busca por nombre del sample.
+         * titulo_exacto_boost: ILIKE match directo al inicio del título (ej: "kick" → "Kick 808 Trap")
+         * recibe un boost adicional porque implica intención precisa del usuario. */
+        'titulo_boost'         => 1.5,   /* Boost extra por match FTS en título (era 0.5) */
+        'titulo_exacto_boost'  => 2.0,   /* Boost por título que empieza con el query (ILIKE) */
 
         /* [183A-81] Boost por similitud fuzzy (pg_trgm similarity()).
          * Complementa FTS/ILIKE: tolera typos ("lick" → "kick", "bass" → "bas").
@@ -416,6 +422,43 @@ return [
      * engagement suficiente para no ser ruido. "No tan alejado" — distancia
      * coseno moderada, no máxima.
      */
+    /*
+     * Algoritmo de ordenamiento de colecciones en "Explorar".
+     *
+     * Con autenticación: scoring personalizado (tag_score, frescura, items, likes).
+     * Sin autenticación: scoring genérico basado en engagement y completitud.
+     *
+     * frescura_dias_vida_media: controla la velocidad de decaimiento temporal.
+     * Fórmula: 1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - updated_at) / (vida_media * 86400))
+     * Con vida_media=7: 7 días → score 0.5, 14 días → 0.33, 30 días → 0.19
+     * (mucho más suave que el anterior vida_media=1 donde 1 día ya daba 0.5)
+     */
+    'colecciones_explorar' => [
+        /* Con autenticación: pesos personalizados (DEBEN sumar 1.0) */
+        'auth' => [
+            'tag_score'     => 0.45,  /* Afinidad por tags likeados del usuario */
+            'likes'         => 0.20,  /* Likes totales de la colección */
+            'items'         => 0.15,  /* Cantidad de samples (completitud) */
+            'frescura'      => 0.10,  /* Recencia de actualización */
+            'guardados'     => 0.10,  /* Implícito: veces guardada (social proof) */
+        ],
+        /* Sin autenticación: pesos genéricos (DEBEN sumar 1.0) */
+        'no_auth' => [
+            'likes'         => 0.35,  /* Likes totales — señal social principal */
+            'items'         => 0.25,  /* Cantidad de samples — colecciones completas > vacías */
+            'frescura'      => 0.15,  /* Recencia — evitar contenido obsoleto */
+            'diversidad'    => 0.25,  /* Diversidad de tags — colecciones variadas > monotemáticas */
+        ],
+        /* Vida media en días para decaimiento de frescura (ambas ramas) */
+        'frescura_dias_vida_media' => 7,
+        /* Normalizador de likes: LEAST(likes / N, 1.0) */
+        'likes_norm_max' => 15,
+        /* Normalizador de items: LEAST(items / N, 1.0) */
+        'items_norm_max' => 20,
+        /* Follow boost multiplicativo (auth only) */
+        'follow_boost' => 1.3,
+    ],
+
     'serendipidad' => [
         'habilitado'            => true,
         /* [193A-33] Reducido de 8 a 5 para aumentar diversidad junto con la

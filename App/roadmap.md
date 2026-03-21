@@ -61,10 +61,8 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **2003A-37+2003A-38+2003A-39+2003A-40 (2026-03-21):** Fix CORS x-idempotency-key uploads; umbral drag 20px + preview verde nativo; infinite scroll colecciones explorar; estados dinámicos sync + trigger al despausar.
 - **2103A-1+2103A-2 (2026-03-21):** Build desktop app — Tauri v2 release build (MSI + NSIS installer). URLs descarga configuradas en WordPress para Windows (.exe) y Android (.apk).
+- **2103A-3+2103A-4+2103A-5 (2026-03-21):** Ordenamiento inteligente colecciones explorar (scoring multi-factor auth/no-auth, frescura suave, centralizado en algoritmoPesos); título con mayor peso en búsqueda (titulo_boost 0.5→1.5, nuevo titulo_exacto_boost 2.0); documentación actualizada.
 
 ## Tareas pendientes
 
 
-## Final
-
-Actualiza en la vps

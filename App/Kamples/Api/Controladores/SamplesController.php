@@ -255,13 +255,20 @@ class SamplesController
             $fuzzyBoost = (float) ($busquedaConfig['fuzzy_boost'] ?? 0.6);
             $sqlFuzzyRank = "word_similarity(:busquedaFuzzyRank, s.{$sTitulo})";
 
-            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank} + {$fuzzyBoost} * {$sqlFuzzyRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
+            /* [2103A-4] Boost por coincidencia exacta al inicio del título.
+             * Si el título empieza con el término de búsqueda, recibe un bonus significativo.
+             * Esto prioriza samples cuyo nombre es exactamente lo que el usuario buscó. */
+            $tituloExactoBoost = (float) ($busquedaConfig['titulo_exacto_boost'] ?? 2.0);
+            $sqlTituloExacto = "CASE WHEN s.{$sTitulo} ILIKE :busquedaExacto THEN 1.0 ELSE 0.0 END";
+
+            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank} + {$fuzzyBoost} * {$sqlFuzzyRank} + {$tituloExactoBoost} * {$sqlTituloExacto}) DESC, s.{$sPubAt} DESC NULLS LAST";
 
             /* Params separados — PDO EMULATE_PREPARES=false exige nombres únicos */
             $params['busquedaRank'] = $busqueda;
             $params['busquedaTituloRank'] = $busqueda;
             $params['busquedaTagLike'] = '%' . strtolower($busqueda) . '%';
             $params['busquedaFuzzyRank'] = $busqueda;
+            $params['busquedaExacto'] = $busqueda . '%';
         } else {
             $orderBy = 'ORDER BY s.' . $sPubAt . ' DESC NULLS LAST';
         }

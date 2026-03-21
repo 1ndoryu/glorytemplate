@@ -242,15 +242,24 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
-     * Explorar colecciones públicas con algoritmo de relevancia personalizada.
-     * Si el usuario está autenticado, ordena por afinidad de tags (CTE).
-     * Sino, ordena por updated_at DESC (fallback).
+     * Explorar colecciones públicas con algoritmo de relevancia.
+     * Con auth: scoring personalizado (afinidad tags, likes, items, frescura, follow boost).
+     * Sin auth: scoring genérico multi-factor (likes, items, frescura, diversidad tags).
+     * Pesos centralizados en algoritmoPesos.php['colecciones_explorar'].
      */
     public static function explorarPublicas(int $offset, string $busqueda = '', ?int $userId = null): array
     {
         /* [193A-6] La query usa colecciones_likes como señal de relevancia.
          * Sin esta llamada, si la tabla no existe aún, la query falla con error 42P01. */
         ColeccionesLikesRepository::asegurarTabla();
+
+        /* [2103A-3] Pesos centralizados desde algoritmoPesos.php */
+        $config = require __DIR__ . '/../../Config/algoritmoPesos.php';
+        $pesosCol = $config['colecciones_explorar'] ?? [];
+        $vidaMediaDias = (float) ($pesosCol['frescura_dias_vida_media'] ?? 7);
+        $likesNormMax = (float) ($pesosCol['likes_norm_max'] ?? 15);
+        $itemsNormMax = (float) ($pesosCol['items_norm_max'] ?? 20);
+        $followBoostVal = (float) ($pesosCol['follow_boost'] ?? 1.3);
 
         $t = ColeccionesCols::TABLA;
         $tcs = ColeccionSamplesCols::TABLA;
@@ -329,6 +338,9 @@ class ColeccionesRepository extends BaseRepository
             $fSeguidoId = FollowsCols::SEGUIDO_ID;
             $coleccionId = ColeccionSamplesCols::COLECCION_ID;
 
+            $pesosAuth = $pesosCol['auth'] ?? [];
+            $pesosAuth += ['tag_score' => 0.45, 'likes' => 0.20, 'items' => 0.15, 'frescura' => 0.10];
+
             $sql = "
                 WITH user_tags AS (
                     SELECT tag, SUM(peso) as afinidad
@@ -378,8 +390,8 @@ class ColeccionesRepository extends BaseRepository
                            ), 0) / GREATEST(1.0, array_length(ct.todos_tags, 1)::float) as tag_score,
                            CASE WHEN EXISTS(
                                SELECT 1 FROM {$tf} WHERE {$fSeguidorId} = :userId AND {$fSeguidoId} = c." . ColeccionesCols::USUARIO_ID . "
-                           ) THEN 1.3 ELSE 1.0 END as follow_boost,
-                           1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c." . ColeccionesCols::UPDATED_AT . ") / 86400.0) as frescura,
+                           ) THEN {$followBoostVal} ELSE 1.0 END as follow_boost,
+                           1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c." . ColeccionesCols::UPDATED_AT . ") / ({$vidaMediaDias} * 86400.0)) as frescura,
                            CASE WHEN c.{$colUsuarioId} = :userIdVisibilidad THEN 100.0 ELSE 0.0 END as propio_boost
                     FROM {$t} c
                     JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
@@ -396,18 +408,23 @@ class ColeccionesRepository extends BaseRepository
                 ) sub
                 ORDER BY sub.propio_boost DESC,
                 (
-                    COALESCE(sub.tag_score, 0) * 0.55
+                    COALESCE(sub.tag_score, 0) * {$pesosAuth['tag_score']}
                     * sub.follow_boost
-                    + sub.frescura * 0.20
-                    + LEAST(sub.total_items::float / 20.0, 1.0) * 0.15
-                    + LEAST(sub.total_likes::float / 10.0, 1.0) * 0.10
-                ) DESC,
-                sub." . ColeccionesCols::UPDATED_AT . " DESC
+                    + LEAST(sub.total_likes::float / {$likesNormMax}, 1.0) * {$pesosAuth['likes']}
+                    + LEAST(sub.total_items::float / {$itemsNormMax}, 1.0) * {$pesosAuth['items']}
+                    + sub.frescura * {$pesosAuth['frescura']}
+                ) DESC
                 LIMIT 20 OFFSET :offset
             ";
         } else {
-            /* QL114+183A-23: total_items y filtro > 0 solo cuentan samples activos */
+            /* [2103A-3] Scoring multi-factor sin autenticación.
+             * Antes era total_likes DESC + updated_at DESC.
+             * Ahora: likes + items + frescura + diversidad de tags. Pesos en algoritmoPesos. */
+            $pesosNoAuth = $pesosCol['no_auth'] ?? [];
+            $pesosNoAuth += ['likes' => 0.35, 'items' => 0.25, 'frescura' => 0.15, 'diversidad' => 0.25];
+
             $sql = "
+                SELECT sub.* FROM (
                 SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
                        (SELECT COUNT(*) FROM {$tcs} cs
                         JOIN {$ts} s_cnt ON cs.{$csSampleId} = s_cnt.{$sampleId} AND s_cnt.{$sampleEstado} = '{$estadoActivo}'
@@ -430,7 +447,13 @@ class ColeccionesRepository extends BaseRepository
                           )
                   ) > 0
                   {$whereBusqueda}
-                ORDER BY total_likes DESC, c." . ColeccionesCols::UPDATED_AT . " DESC
+                ) sub
+                ORDER BY (
+                    LEAST(sub.total_likes::float / {$likesNormMax}, 1.0) * {$pesosNoAuth['likes']}
+                    + LEAST(sub.total_items::float / {$itemsNormMax}, 1.0) * {$pesosNoAuth['items']}
+                    + (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - sub." . ColeccionesCols::UPDATED_AT . ") / ({$vidaMediaDias} * 86400.0))) * {$pesosNoAuth['frescura']}
+                    + LEAST(COALESCE(array_length(sub.tags, 1), 0)::float / 10.0, 1.0) * {$pesosNoAuth['diversidad']}
+                ) DESC
                 LIMIT 20 OFFSET :offset
             ";
         }

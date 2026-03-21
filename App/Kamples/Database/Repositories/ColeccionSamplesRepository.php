@@ -61,7 +61,10 @@ class ColeccionSamplesRepository extends BaseRepository
         $t = ColeccionSamplesCols::TABLA;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
 
-        $clausulaPosicion = 'cs.' . ColeccionSamplesCols::POSICION . ' ASC, cs.' . ColeccionSamplesCols::ADDED_AT . ' DESC';
+        /* [2103A-3] Cuando posiciones son iguales (0/null), el tiebreaker ahora
+         * usa engagement (likes+descargas) en vez de solo added_at DESC.
+         * Si todas las posiciones están sin setear, efectivamente ordena por popularidad. */
+        $clausulaPosicion = 'cs.' . ColeccionSamplesCols::POSICION . ' ASC, (s.' . SamplesCols::TOTAL_LIKES . ' + s.' . SamplesCols::TOTAL_DESCARGAS . ') DESC, cs.' . ColeccionSamplesCols::ADDED_AT . ' DESC';
         $clausulaRecientes = 'cs.' . ColeccionSamplesCols::ADDED_AT . ' DESC';
         $orderBy = OrdenamientoHelper::construirOrderBy($orden, $clausulaRecientes, $clausulaPosicion);
 
