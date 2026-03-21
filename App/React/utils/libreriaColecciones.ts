@@ -1,11 +1,12 @@
 import type { Coleccion } from '@app/types';
 
-export type OrdenColecciones = 'recientes' | 'nombre' | 'totalSamples';
+/* [2103A-3] 'inteligente' = orden del backend (scoring multi-factor). No aplica re-sort cliente. */
+export type OrdenColecciones = 'inteligente' | 'recientes' | 'nombre' | 'totalSamples';
 export type VistaColecciones = 'cuadricula' | 'lista' | 'arbol';
 
 export const LS_KEY_ORDEN = 'kamples:libreria:orden';
 export const LS_KEY_VISTA = 'kamples:libreria:vista';
-export const ORDENES_VALIDOS: OrdenColecciones[] = ['recientes', 'nombre', 'totalSamples'];
+export const ORDENES_VALIDOS: OrdenColecciones[] = ['inteligente', 'recientes', 'nombre', 'totalSamples'];
 export const VISTAS_VALIDAS: VistaColecciones[] = ['cuadricula', 'lista', 'arbol'];
 
 export const leerPreferencia = <T extends string>(clave: string, validos: readonly T[], fallback: T): T => {
@@ -76,6 +77,8 @@ export const ordenarColecciones = (colecciones: Coleccion[], orden: OrdenColecci
         case 'totalSamples':
             copia.sort((a, b) => b.totalSamples - a.totalSamples);
             break;
+        /* 'inteligente' y 'recientes' preservan el orden del backend (sin re-sort) */
+        case 'inteligente':
         case 'recientes':
         default:
             break;

@@ -29,7 +29,9 @@ const TABS_LIBRERIA = [
 ];
 
 /* C388: Opciones de ordenamiento para el menú dropdown */
+/* [2103A-3] 'inteligente' primero — scoring multi-factor del backend */
 const OPCIONES_ORDEN: { id: OrdenColecciones; etiqueta: string }[] = [
+    { id: 'inteligente', etiqueta: 'feed.orden.inteligente' },
     { id: 'recientes', etiqueta: 'feed.orden.recientes' },
     { id: 'nombre', etiqueta: 'libreria.orden.nombreAz' },
     { id: 'totalSamples', etiqueta: 'libreria.orden.masSamples' },

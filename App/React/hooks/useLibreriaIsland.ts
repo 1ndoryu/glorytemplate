@@ -55,7 +55,8 @@ export function useLibreriaIsland() {
     /* C388: Tags frecuentes y filtro/ordenamiento */
     const [tagsFrecuentes, setTagsFrecuentes] = useState<string[]>([]);
     const [tagActivo, setTagActivo] = useState<string | null>(null);
-    const [orden, setOrden] = useState<OrdenColecciones>(() => leerPreferencia(LS_KEY_ORDEN, ORDENES_VALIDOS, 'recientes'));
+    /* [2103A-3] Default 'inteligente' — refleja el scoring multi-factor del backend */
+    const [orden, setOrden] = useState<OrdenColecciones>(() => leerPreferencia(LS_KEY_ORDEN, ORDENES_VALIDOS, 'inteligente'));
     const [vista, setVista] = useState<VistaColecciones>(() => leerPreferencia(LS_KEY_VISTA, VISTAS_VALIDAS, 'cuadricula'));
 
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);

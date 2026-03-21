@@ -27,8 +27,9 @@ export const OPCIONES_ORDEN_PERSONAL: OpcionOrden[] = [
 ];
 
 /* Opciones para colecciones (incluye orden manual por posición) */
+/* [2103A-3] 'posicion' renombrado a 'Inteligente': tiebreaker ahora es engagement (likes+descargas) */
 export const OPCIONES_ORDEN_COLECCION: OpcionOrden[] = [
-    { valor: 'posicion', etiqueta: 'feed.orden.manual' },
+    { valor: 'posicion', etiqueta: 'feed.orden.inteligente' },
     { valor: 'recientes', etiqueta: 'feed.orden.recientes' },
     { valor: 'nombre', etiqueta: 'feed.orden.nombre' },
     { valor: 'populares', etiqueta: 'feed.orden.populares' },
