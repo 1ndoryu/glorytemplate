@@ -8,9 +8,10 @@
 
 import {useState, type ReactNode} from 'react';
 import {Badge} from '../ui';
-import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha, IconoTarjeta, IconoLibro} from '../icons';
+import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha, IconoTarjeta, IconoLibro, IconoAdvertencia} from '../icons';
 import {useDashboardStore, type SeccionActiva} from '../../stores/useDashboardStore';
 import {ModalPerfil} from './ModalPerfil';
+import {ModalReportarProblema} from './ModalReportarProblema';
 import '../dashboard/dashboard.css';
 
 interface ItemNavegacion {
@@ -26,6 +27,7 @@ const itemsNavegacion: ItemNavegacion[] = [
     {id: 'reportes', label: 'Reportes', icono: <IconoReportes />},
     {id: 'clientes', label: 'Clientes', icono: <IconoTarjeta />, soloAdmin: true},
     {id: 'documentacion', label: 'Documentación', icono: <IconoLibro />, soloAdmin: true},
+    {id: 'problemas', label: 'Problemas', icono: <IconoAdvertencia />, soloAdmin: true},
     {id: 'configuracion', label: 'Configuración', icono: <IconoConfiguracion />}
 ];
 
@@ -40,6 +42,7 @@ interface CapLayoutProps {
 
 export function CapLayout({children, userName, userEmail, siteUrl, logoutUrl, isAdmin}: CapLayoutProps) {
     const [perfilAbierto, setPerfilAbierto] = useState(false);
+    const [reportarAbierto, setReportarAbierto] = useState(false);
     /* Selectores individuales para evitar re-renders innecesarios (8.13) */
     const seccionActiva = useDashboardStore(s => s.seccionActiva);
     const sidebarAbierto = useDashboardStore(s => s.sidebarAbierto);
@@ -101,6 +104,9 @@ export function CapLayout({children, userName, userEmail, siteUrl, logoutUrl, is
                             </Badge>
                         </div>
                     </div>
+                    <button className="capSidebar__reportar" onClick={() => setReportarAbierto(true)} title="Reportar problema">
+                        <IconoAdvertencia size={18} />
+                    </button>
                     <button className="capSidebar__cerrarSesion" onClick={handleCerrarSesion} title="Cerrar sesión">
                         <IconoCerrarSesion />
                     </button>
@@ -128,6 +134,13 @@ export function CapLayout({children, userName, userEmail, siteUrl, logoutUrl, is
                 onCerrar={() => setPerfilAbierto(false)}
                 userName={userName}
                 userEmail={userEmail}
+            />
+
+            {/* [2003A-13] Modal de reportar problema */}
+            <ModalReportarProblema
+                abierto={reportarAbierto}
+                onCerrar={() => setReportarAbierto(false)}
+                isAdmin={isAdmin}
             />
         </div>
     );

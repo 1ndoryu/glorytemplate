@@ -1,0 +1,113 @@
+/* [2003A-13] Estilos de la sección problemas reportados */
+
+.capSeccionProblemas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+    padding: var(--cap-espacio-lg);
+}
+
+.capSeccionProblemas__cargando {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.capSeccionProblemas__header {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+}
+
+.capSeccionProblemas__titulo {
+    font-size: var(--cap-texto-xl);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-primario);
+    margin: 0;
+}
+
+.capSeccionProblemas__subtitulo {
+    font-size: var(--cap-texto-base);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-secundario);
+    margin: 0 0 var(--cap-espacio-sm) 0;
+}
+
+.capSeccionProblemas__grupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+}
+
+/* Tarjeta individual de problema */
+.capProblema {
+    background: var(--cap-fondo-base);
+    border: 1px solid var(--cap-borde);
+    border-radius: var(--cap-radio-lg);
+    padding: var(--cap-espacio-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+    border-left: 3px solid var(--cap-advertencia-500);
+}
+
+.capProblema--resuelto {
+    border-left-color: var(--cap-exito-500);
+    opacity: 0.8;
+}
+
+.capProblema__cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--cap-espacio-sm);
+    flex-wrap: wrap;
+}
+
+.capProblema__usuario {
+    display: flex;
+    flex-direction: column;
+}
+
+.capProblema__nombre {
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-primario);
+    font-size: var(--cap-texto-sm);
+}
+
+.capProblema__email {
+    color: var(--cap-texto-terciario);
+    font-size: var(--cap-texto-xs);
+}
+
+.capProblema__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capProblema__fecha {
+    color: var(--cap-texto-terciario);
+    font-size: var(--cap-texto-xs);
+}
+
+.capProblema__mensaje {
+    margin: 0;
+    color: var(--cap-texto-primario);
+    font-size: var(--cap-texto-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.capProblema__resueltoFecha {
+    margin: 0;
+    color: var(--cap-exito-600);
+    font-size: var(--cap-texto-xs);
+}
+
+.capProblema__acciones {
+    display: flex;
+    gap: var(--cap-espacio-xs);
+    justify-content: flex-end;
+}

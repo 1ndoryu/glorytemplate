@@ -24,6 +24,7 @@ class CapEndpoints
     private ?CapAuthEndpoints $authEndpoints = null;
     private ?CapClientesEndpoints $clientesEndpoints = null;
     private ?CapPerfilEndpoints $perfilEndpoints = null;
+    private ?CapProblemasEndpoints $problemasEndpoints = null;
 
     private function obtenerConfigEndpoints(): CapConfigEndpoints
     {
@@ -137,6 +138,14 @@ class CapEndpoints
         return $this->perfilEndpoints;
     }
 
+    private function obtenerProblemasEndpoints(): CapProblemasEndpoints
+    {
+        if ($this->problemasEndpoints === null) {
+            $this->problemasEndpoints = new CapProblemasEndpoints();
+        }
+        return $this->problemasEndpoints;
+    }
+
     public function registrarRutas(): void
     {
         $configEndpoints = $this->obtenerConfigEndpoints();
@@ -153,6 +162,7 @@ class CapEndpoints
         $authEndpoints = $this->obtenerAuthEndpoints();
         $clientesEndpoints = $this->obtenerClientesEndpoints();
         $perfilEndpoints = $this->obtenerPerfilEndpoints();
+        $problemasEndpoints = $this->obtenerProblemasEndpoints();
 
         register_rest_route(self::NAMESPACE, '/config', [
             ['methods' => 'GET', 'callback' => $configEndpoints->callbackSeguro('obtenerConfig'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
@@ -335,6 +345,24 @@ class CapEndpoints
         register_rest_route(self::NAMESPACE, '/perfil', [
             ['methods' => 'GET', 'callback' => $perfilEndpoints->callbackSeguro('obtenerPerfil'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
             ['methods' => 'PUT', 'callback' => $perfilEndpoints->callbackSeguro('actualizarPerfil'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
+        ]);
+
+        /* [2003A-13] Reportar problemas (autenticado: crear, admin: listar/resolver/eliminar) */
+        register_rest_route(self::NAMESPACE, '/problemas', [
+            ['methods' => 'POST', 'callback' => $problemasEndpoints->callbackSeguro('crearReporte'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
+            ['methods' => 'GET', 'callback' => $problemasEndpoints->callbackSeguro('listarReportes'), 'permission_callback' => [$problemasEndpoints, 'verificarPermisosAdmin']],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/problemas/(?P<id>\d+)/resolver', [
+            'methods' => 'PUT',
+            'callback' => $problemasEndpoints->callbackSeguro('resolverReporte'),
+            'permission_callback' => [$problemasEndpoints, 'verificarPermisosAdmin'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/problemas/(?P<id>\d+)', [
+            'methods' => 'DELETE',
+            'callback' => $problemasEndpoints->callbackSeguro('eliminarReporte'),
+            'permission_callback' => [$problemasEndpoints, 'verificarPermisosAdmin'],
         ]);
     }
 }

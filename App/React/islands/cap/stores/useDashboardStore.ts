@@ -9,7 +9,7 @@
 import {create} from 'zustand';
 import {persist} from 'zustand/middleware';
 
-export type SeccionActiva = 'calendario' | 'alumnos' | 'configuracion' | 'reportes' | 'clientes' | 'documentacion';
+export type SeccionActiva = 'calendario' | 'alumnos' | 'configuracion' | 'reportes' | 'clientes' | 'documentacion' | 'problemas';
 
 interface DashboardState {
     seccionActiva: SeccionActiva;

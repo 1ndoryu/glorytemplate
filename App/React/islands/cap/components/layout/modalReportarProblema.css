@@ -1,0 +1,38 @@
+/* [2003A-13] Estilos del modal de reportar problema */
+
+.capModalReportar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capModalReportar__textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border: 1px solid var(--cap-borde);
+    border-radius: var(--cap-radio-md);
+    font-family: inherit;
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-primario);
+    background: var(--cap-fondo-base);
+    resize: vertical;
+    transition: border-color 0.15s ease;
+}
+
+.capModalReportar__textarea:focus {
+    outline: none;
+    border-color: var(--cap-primario-500);
+    box-shadow: 0 0 0 2px var(--cap-primario-100);
+}
+
+.capModalReportar__textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.capModalReportar__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+}

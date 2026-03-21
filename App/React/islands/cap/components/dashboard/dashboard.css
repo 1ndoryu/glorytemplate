@@ -261,6 +261,27 @@
     color: var(--cap-error-500);
 }
 
+/* [2003A-13] Botón de reportar problema en sidebar footer */
+.capSidebar__reportar {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: var(--cap-radio-md);
+    color: var(--cap-texto-terciario);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+    flex-shrink: 0;
+}
+
+.capSidebar__reportar:hover {
+    background: var(--cap-advertencia-50);
+    color: var(--cap-advertencia-600);
+}
+
 /* ========================================
    Área Principal
    ======================================== */

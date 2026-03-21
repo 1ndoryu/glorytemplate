@@ -50,6 +50,7 @@ class CapSchema
         $this->crearTablaAsistencia();
         $this->crearTablaConfiguracion();
         $this->crearTablaSuscripciones();
+        $this->crearTablaProblemasReportados();
     }
 
     private function crearTablaCentros(): void
@@ -192,6 +193,26 @@ class CapSchema
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY centro_id (centro_id),
+            KEY estado (estado)
+        ) {$this->charsetCollate};";
+
+        dbDelta($sql);
+    }
+
+    /* [2003A-13] Tabla para reportes de problemas enviados por usuarios */
+    private function crearTablaProblemasReportados(): void
+    {
+        $tabla = $this->prefix . 'problemas';
+        $sql = "CREATE TABLE {$tabla} (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) UNSIGNED NOT NULL,
+            centro_id bigint(20) UNSIGNED DEFAULT NULL,
+            mensaje text NOT NULL,
+            estado enum('pendiente','resuelto') DEFAULT 'pendiente',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            resuelto_at datetime DEFAULT NULL,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
             KEY estado (estado)
         ) {$this->charsetCollate};";
 
