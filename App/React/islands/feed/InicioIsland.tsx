@@ -7,14 +7,15 @@
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow, Heart } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow, Heart, Dices } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { LandingPublica } from '@app/components/social/LandingPublica';
 import { BlogIsland } from '../blog/BlogIsland';
-import { obtenerFeed, type FiltrosFeedBackend } from '@app/services/apiSamples';
+import { obtenerFeed, obtenerSampleAleatorio, type FiltrosFeedBackend } from '@app/services/apiSamples';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
+import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
@@ -83,6 +84,20 @@ export const FeedUnificado = (): JSX.Element => {
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [totalServidor, setTotalServidor] = useState<number | null>(null);
     const [conteoFiltrado, setConteoFiltrado] = useState(0);
+
+    /* [2103A-12] Dado: reproduce un sample aleatorio del top 1000 */
+    const [cargandoAleatorio, setCargandoAleatorio] = useState(false);
+    const reproducir = useReproductorStore(s => s.reproducir);
+    const reproducirAleatorio = useCallback(async () => {
+        if (cargandoAleatorio) return;
+        setCargandoAleatorio(true);
+        try {
+            const resp = await obtenerSampleAleatorio();
+            if (resp.ok && resp.data) reproducir(resp.data);
+        } finally {
+            setCargandoAleatorio(false);
+        }
+    }, [cargandoAleatorio, reproducir]);
 
     const abrirCrear = useCrearModalStore(s => s.abrir);
     const busqueda = useFiltrosStore(s => s.busqueda);
@@ -261,6 +276,19 @@ export const FeedUnificado = (): JSX.Element => {
                             </div>
                         )}
                     </div>
+
+                    {/* [2103A-12] Dado: reproduce un sample aleatorio del top 1000 */}
+                    <BotonBase
+                        variante="ghost"
+                        tamano="ninguno"
+                        onClick={reproducirAleatorio}
+                        type="button"
+                        aria-label={t('feed.aleatorio')}
+                        className={`inicioFiltrosBtn${cargandoAleatorio ? ' cargandoAleatorio' : ''}`}
+                        disabled={cargandoAleatorio}
+                    >
+                        <Dices size={16} />
+                    </BotonBase>
 
                     {/* [193A-44] Toggle rápido "solo me encanta" en feed */}
                     <BotonBase

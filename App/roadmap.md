@@ -66,6 +66,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **213A-2 (2026-03-21):** Fix búsqueda feed — orderBy carecía de fuzzy_boost, titulo_exacto_boost y engagement (LN), haciendo que resultados con igual ts_rank se ordenaran por publicado_at (= recientes). Paridad con /samples listar + engagement_boost=0.15.
 - **213A-1 (2026-03-21):** Fix crítico SelectorCandidatos — `:userId` sin binding en Fuente 3 causaba PDO catch→[], algoritmo retornaba 0 resultados y caía a fallback recientes. Activado al bajar umbral_activacion a 2000 (catálogo > 2000 samples).
 - **213A-3 (2026-03-21):** Diversidad tipo feed — loop_boost x1.10 en SQL, max 5 one-shots/página (soft penalty), badge "Loop"/"One Shot" como primer chip en TarjetaSample, auto-corrección tipo <5s→oneshot en NormalizadorSample.
+- **2103A-12 (2026-03-21):** Botón dado en `inicioControlesDerecha` — reproduce sample aleatorio del top 1000 del catálogo activo. Backend: `GET /samples/aleatorio` con RANDOM() sobre subquery de los 1000 más recientes.
 
 ## Tareas pendientes
 
@@ -167,3 +168,7 @@ uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolad
 ## 2103A-12
 
 Agregar un boton de dado para reproducir un audio aleatorio, ese dado, tiene que estar en inicioControlesDerecha, a dar click reproduce un sample aleatorio, pero, tiene que ser cualquiera de los primeros 1000 y no necesariamente tiene que aparecer en la pagina actual, por supuesto esto sirve para pulir el algoritmo, la reproduccion tiene que contar igual y si el usuario da like o no desde el reproductor tambiein, esto es informacion util, 
+
+## 2103A-13 (en planificacion)
+
+Una funcionalidad especial, a dar click a un 

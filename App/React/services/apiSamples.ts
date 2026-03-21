@@ -61,6 +61,11 @@ export const obtenerSample = async (slug: string): Promise<RespuestaApi<Sample>>
     return apiGet<Sample>(`/samples/${slug}`);
 };
 
+/* [2103A-12] Obtiene un sample aleatorio del top 1000 del catálogo activo.  */
+export const obtenerSampleAleatorio = async (): Promise<RespuestaApi<SampleResumen>> => {
+    return apiGet<SampleResumen>('/samples/aleatorio');
+};
+
 /* [193A-82] Filtros backend para /feed — evitan filtrado client-side que causaba
  * conteos incorrectos y paginación rota. ocultarReproducidos se queda client-side
  * porque el historial vive en localStorage, no en la BD. */

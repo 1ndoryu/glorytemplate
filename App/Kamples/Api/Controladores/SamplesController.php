@@ -56,6 +56,15 @@ class SamplesController
             'args'                => self::argsListar(),
         ]);
 
+        /* [2103A-12] Sample aleatorio del top 1000 — endpoint para el dado del feed.
+         * Debe registrarse ANTES del slug pattern para evitar que 'aleatorio' sea
+         * capturado por (?P<slug>...) antes de llegar a este handler exacto. */
+        \register_rest_route($namespace, '/samples/aleatorio', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'aleatorio'],
+            'permission_callback' => '__return_true',
+        ]);
+
         /*
          * GET del slug; PUT + DELETE se registran desde SamplesModificacionController.
          * WP REST API merges handlers cuando se registra la misma ruta+namespace.
@@ -325,6 +334,45 @@ class SamplesController
         } catch (\Throwable $e) {
             KamplesLogger::error('SamplesController::obtener error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * GET /samples/aleatorio — Sample aleatorio del top 1000 del catálogo activo.
+     *
+     * [2103A-12] El dado del feed: permite explorar el catálogo de forma aleatoria.
+     * La reproducción cuenta igual y el like/descarga desde el reproductor también.
+     * La subquery limita a los 1000 más recientes antes de ORDER BY RANDOM() para
+     * evitar un escaneo costoso sobre toda la tabla.
+     */
+    public static function aleatorio(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            $eActivo = SamplesEnums::ESTADO_ACTIVO;
+            $sEstado = SamplesCols::ESTADO;
+            $sPubAt  = SamplesCols::PUBLICADO_AT;
+            $sId     = SamplesCols::ID;
+            $ts      = SamplesCols::TABLA;
+
+            $sql = NormalizadorSample::sqlSelectSamples($userId)
+                . " WHERE s.{$sEstado} = '{$eActivo}'"
+                . " AND s.{$sId} IN ("
+                .     "SELECT {$sId} FROM {$ts}"
+                .     " WHERE {$sEstado} = '{$eActivo}'"
+                .     " ORDER BY {$sPubAt} DESC LIMIT 1000"
+                . ")"
+                . " ORDER BY RANDOM() LIMIT 1";
+
+            $row = SamplesRepository::consultarUno($sql, []);
+            if ($row === null) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'sin_resultados'], 404);
+            }
+
+            return new \WP_REST_Response(['ok' => true, 'data' => NormalizadorSample::normalizar($row)], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesController::aleatorio error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'error_interno'], 500);
         }
     }
 
