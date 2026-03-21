@@ -12,14 +12,15 @@ export const esDesktop = (): boolean => !!window.__KAMPLES_DESKTOP__;
 /*
  * Accede al servicio de drag nativo expuesto en window por desktop/main.tsx.
  * Retorna null si no estamos en desktop.
- * [2003A-34] iniciarDragNativo sin urlRemota (solo local/cache).
- * descargarYArrastrar con URL autorizada por API (crédito ya consumido).
+ * [2003A-37] iniciarDragNativo y descargarYArrastrar aceptan iconoPersonalizado opcional.
+ * generarPreviewDrag genera preview verde con nombre del sample.
  */
 export const obtenerDragService = (): {
-    iniciarDragNativo: (sampleId: number, nombreArchivo: string) => Promise<boolean>;
-    descargarYArrastrar: (sampleId: number, urlDescarga: string, nombreArchivo: string) => Promise<boolean>;
+    iniciarDragNativo: (sampleId: number, nombreArchivo: string, iconoPersonalizado?: string) => Promise<boolean>;
+    descargarYArrastrar: (sampleId: number, urlDescarga: string, nombreArchivo: string, iconoPersonalizado?: string) => Promise<boolean>;
     prepararDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<void>;
     estaListoParaDrag: (sampleId: number) => boolean;
+    generarPreviewDrag: (nombre: string) => Promise<string>;
 } | null => {
     const drag = window.__KAMPLES_DRAG__;
     return drag ?? null;

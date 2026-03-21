@@ -218,10 +218,34 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         /* guardado se actualiza via EVENTO_SAMPLE_GUARDADO_EN_COLECCION cuando el picker confirma */
     }, [abrirPicker, sample]);
 
-    /* [2003A-34] Drag handler con sistema de créditos.
+/* [2003A-37] Espera a que el mouse se mueva más allá del umbral indicado (px).
+ * Resuelve true si se supera, false si se suelta el botón antes.
+ * Evita consumir créditos en mini-drags accidentales. */
+function esperarUmbralDrag(origenX: number, origenY: number, umbral: number): Promise<boolean> {
+    return new Promise((resolve) => {
+        const onMove = (ev: globalThis.MouseEvent) => {
+            if (Math.hypot(ev.clientX - origenX, ev.clientY - origenY) >= umbral) {
+                cleanup();
+                resolve(true);
+            }
+        };
+        const onUp = () => {
+            cleanup();
+            resolve(false);
+        };
+        const cleanup = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    });
+}
+
+    /* [2003A-37] Drag handler con umbral para desktop.
      * Desktop: intenta archivo local/cache primero (sin crédito).
-     * Si no hay → llama descargarSample() para consumir crédito y obtener URL.
-     * Si no hay créditos → toast + bloquear. Sin bypass de CDN.
+     * Si no hay → espera umbral de 20px antes de consumir crédito.
+     * Muestra preview verde con nombre del sample (replica web).
      * Web: browser drag para mezclador. */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
         if (esDesktop()) {
@@ -229,13 +253,29 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
             if (dragService) {
                 e.preventDefault();
                 const nombre = `${sample.titulo}.wav`;
+                const origenX = e.clientX;
+                const origenY = e.clientY;
 
                 (async () => {
+                    /* [2003A-37] Generar preview verde con nombre del sample
+                     * (réplica del .dragPreviewSample de la web) */
+                    let iconoPreview: string | undefined;
+                    try {
+                        iconoPreview = await dragService.generarPreviewDrag(sample.titulo);
+                    } catch {
+                        /* Fallback: icono genérico si falla la generación */
+                    }
+
                     /* 1. Intentar con archivo existente (local sync o cache, sin crédito) */
-                    const exitoLocal = await dragService.iniciarDragNativo(sample.id, nombre);
+                    const exitoLocal = await dragService.iniciarDragNativo(sample.id, nombre, iconoPreview);
                     if (exitoLocal) return;
 
-                    /* 2. No hay archivo local → necesita descarga via API (consume crédito si es primera vez) */
+                    /* [2003A-37] 2. No hay archivo local → esperar umbral de 20px.
+                     * Evita consumir crédito en mini-drags accidentales. */
+                    const pasaUmbral = await esperarUmbralDrag(origenX, origenY, 20);
+                    if (!pasaUmbral) return;
+
+                    /* 3. Umbral superado → consumir crédito via API */
                     const resp = await descargarSample(sample.id);
                     if (!resp.ok) {
                         if (resp.status === 429 || resp.status === 403) {
@@ -247,10 +287,6 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                         return;
                     }
 
-                    /* [2003A-36] Marcar coleccionado ANTES de descargarYArrastrar.
-                     * Si descargarYArrastrar falla (usuario suelta mouse, red, etc.)
-                     * el crédito ya se consumió — el "+" debe reflejar el estado real.
-                     * Sin la condición yaExistia: consistente con manejarColeccionar. */
                     setDescargado(true);
                     if (!resp.data?.yaExistia) {
                         toast.exito('Sample coleccionado');
@@ -258,7 +294,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
 
                     if (resp.data?.url) {
                         const nombreFinal = resp.data.nombre || nombre;
-                        await dragService.descargarYArrastrar(sample.id, resp.data.url, nombreFinal);
+                        await dragService.descargarYArrastrar(sample.id, resp.data.url, nombreFinal, iconoPreview);
                     }
                 })().catch((err: unknown) => {
                     console.error('[DragNativo] Error:', err);

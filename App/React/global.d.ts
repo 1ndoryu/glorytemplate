@@ -81,10 +81,11 @@ interface Window {
         eliminarItemCola: (itemId: string) => Promise<void>;
     };
     __KAMPLES_DRAG__?: {
-        iniciarDragNativo: (sampleId: number, nombreArchivo: string) => Promise<boolean>;
-        descargarYArrastrar: (sampleId: number, urlDescarga: string, nombreArchivo: string) => Promise<boolean>;
+        iniciarDragNativo: (sampleId: number, nombreArchivo: string, iconoPersonalizado?: string) => Promise<boolean>;
+        descargarYArrastrar: (sampleId: number, urlDescarga: string, nombreArchivo: string, iconoPersonalizado?: string) => Promise<boolean>;
         prepararDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<void>;
         estaListoParaDrag: (sampleId: number) => boolean;
+        generarPreviewDrag: (nombre: string) => Promise<string>;
     };
     __TAURI_INTERNALS__?: unknown;
 }

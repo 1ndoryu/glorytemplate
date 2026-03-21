@@ -130,11 +130,12 @@ async function obtenerIconoDrag(): Promise<string> {
 export async function iniciarDragNativo(
     sampleId: number,
     nombreArchivo: string,
+    iconoPersonalizado?: string,
 ): Promise<boolean> {
     if (!esDesktop()) return false;
 
-    /* Resolver icono de drag (pre-cacheado en init, esta llamada es instantánea) */
-    const iconoDrag = await obtenerIconoDrag();
+    /* Resolver icono de drag (personalizado si se provee, o genérico) */
+    const iconoDrag = iconoPersonalizado || await obtenerIconoDrag();
 
     /* 1. Prioridad: copia local sincronizada (la más rápida y confiable) */
     const rutaLocal = obtenerRutaLocal(sampleId);
@@ -177,11 +178,12 @@ export async function descargarYArrastrar(
     sampleId: number,
     urlDescarga: string,
     nombreArchivo: string,
+    iconoPersonalizado?: string,
 ): Promise<boolean> {
     if (!esDesktop() || !urlDescarga) return false;
 
     try {
-        const iconoDrag = await obtenerIconoDrag();
+        const iconoDrag = iconoPersonalizado || await obtenerIconoDrag();
         const { tempDir } = await import('@tauri-apps/api/path');
         const { writeFile } = await import('@tauri-apps/plugin-fs');
 
@@ -257,4 +259,85 @@ export async function prepararDragNativo(
  */
 export function estaListoParaDrag(sampleId: number): boolean {
     return dragTempCache.has(sampleId);
+}
+
+/* [2003A-37] Genera un PNG con preview verde (nombre del sample) para usar como
+ * icono de drag nativo en Tauri. Réplica del .dragPreviewSample de la web.
+ * Se cachea en temp para reusar entre drags sin regenerar. */
+let previewDragCacheMap = new Map<string, string>();
+
+function dibujarRectRedondeado(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
+export async function generarPreviewDrag(nombre: string): Promise<string> {
+    const cached = previewDragCacheMap.get(nombre);
+    if (cached) return cached;
+
+    const textoMostrar = nombre.length > 25 ? nombre.slice(0, 25) + '...' : nombre;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    const fontSize = 13;
+    const paddingH = 12;
+    const paddingV = 8;
+    const iconSize = 14;
+    const gap = 6;
+
+    ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+    const textWidth = Math.ceil(ctx.measureText(textoMostrar).width);
+
+    const width = paddingH + iconSize + gap + textWidth + paddingH;
+    const height = paddingV * 2 + fontSize + 4;
+    canvas.width = width;
+    canvas.height = height;
+
+    const c = canvas.getContext('2d')!;
+
+    /* Fondo verde con esquinas redondeadas */
+    c.fillStyle = '#22c55e';
+    dibujarRectRedondeado(c, 0, 0, width, height, 6);
+    c.fill();
+
+    /* Icono nota musical simplificado */
+    c.strokeStyle = '#fff';
+    c.fillStyle = '#fff';
+    c.lineWidth = 1.5;
+    const ix = paddingH + 2;
+    const iy = paddingV + 2;
+    c.beginPath();
+    c.moveTo(ix + 3, iy);
+    c.lineTo(ix + 3, iy + 10);
+    c.stroke();
+    c.beginPath();
+    c.arc(ix + 1, iy + 10, 2.5, 0, Math.PI * 2);
+    c.fill();
+
+    /* Texto del nombre */
+    c.fillStyle = '#fff';
+    c.font = `bold ${fontSize}px system-ui, sans-serif`;
+    c.textBaseline = 'middle';
+    c.fillText(textoMostrar, paddingH + iconSize + gap, height / 2 + 1);
+
+    const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), 'image/png');
+    });
+    const arrayBuffer = await blob.arrayBuffer();
+
+    const { tempDir } = await import('@tauri-apps/api/path');
+    const { writeFile } = await import('@tauri-apps/plugin-fs');
+    const path = `${await tempDir()}kamples_drag_preview.png`;
+    await writeFile(path, new Uint8Array(arrayBuffer));
+
+    previewDragCacheMap.set(nombre, path);
+    return path;
 }
