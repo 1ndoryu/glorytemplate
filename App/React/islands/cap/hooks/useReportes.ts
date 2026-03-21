@@ -9,7 +9,6 @@
  */
 
 import {useState, useCallback} from 'react';
-import type {Alumno} from '../types';
 import {API_BASE} from '../constants/cap-constants';
 import {obtenerMensajeContextual, interpretarErrorHttp, formatearMensajeError} from '../constants/cap-errores';
 

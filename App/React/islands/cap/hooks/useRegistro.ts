@@ -22,7 +22,7 @@ interface UseRegistroParams {
     loginUrl: string;
 }
 
-export function useRegistro({restUrl, restNonce, loginUrl}: UseRegistroParams) {
+export function useRegistro({restUrl, restNonce, loginUrl: _loginUrl}: UseRegistroParams) {
     /* Estado del formulario */
     const [nombreCentro, setNombreCentro] = useState('');
     const [nombreUsuario, setNombreUsuario] = useState('');

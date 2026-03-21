@@ -68,9 +68,8 @@ function tieneClasesAdyacentes(
     alumnoId: number,
     slotActual: SlotInfo,
     todosLosSlots: SlotInfo[],
-    conflictosDelDia: ConflictoAforo[]
+    _conflictosDelDia: ConflictoAforo[]
 ): { anterior: boolean; siguiente: boolean } {
-    const horaActual = slotActual.horaInicio;
     const fechaActual = slotActual.fecha;
 
     /* Buscar slots del mismo día */

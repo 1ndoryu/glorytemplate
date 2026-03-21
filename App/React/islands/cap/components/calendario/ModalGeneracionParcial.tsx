@@ -20,7 +20,7 @@ interface ModalGeneracionParcialProps {
     generando: boolean;
 }
 
-export function ModalGeneracionParcial({abierto, nombreDiaHoy, fechaHoy, onCerrar, onGenerarDesdeHoy, onGenerarSemanaCompleta, generando}: ModalGeneracionParcialProps) {
+export function ModalGeneracionParcial({abierto, nombreDiaHoy, fechaHoy: _fechaHoy, onCerrar, onGenerarDesdeHoy, onGenerarSemanaCompleta, generando}: ModalGeneracionParcialProps) {
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
     const handleSemanaCompleta = () => {

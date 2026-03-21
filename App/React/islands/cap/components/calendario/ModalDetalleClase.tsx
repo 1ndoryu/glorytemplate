@@ -30,7 +30,7 @@ interface ModalDetalleClaseProps {
     eliminando?: boolean;
 }
 
-export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, onMoverMultiplesClases, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
+export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase: _onMoverClase, fechasSemana: _fechasSemana, clasesPorDia, onMoverMultiplesClases, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
     const {
         horaInicio, horaFin, asignaturaId, setAsignaturaId, setHoraFin,
         confirmandoEliminar, conflictoData, setConflictoData,

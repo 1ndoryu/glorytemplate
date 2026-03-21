@@ -15,5 +15,5 @@ export {ModalConflictoDrag} from './ModalConflictoDrag';
 export {ModalDetalleClase} from './ModalDetalleClase';
 export {ModalAvisoGeneracion} from './ModalAvisoGeneracion';
 export {ModalGeneracionParcial} from './ModalGeneracionParcial';
-export type {CambiosClase} from './ModalDetalleClase';
+export type {CambiosClase} from '../../hooks/useDetalleClase';
 export type {InfoHorasNoCubiertas} from './ModalAvisoGeneracion';

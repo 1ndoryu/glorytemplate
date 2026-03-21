@@ -26,7 +26,6 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
     const horasTotales = normalizarNumero(horasCompletadas);
     const horasPlan = normalizarNumero(horasAsignadas);
     const porcentajeTotal = Math.min(100, Math.round((horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100));
-    const porcentajePlan = Math.min(100, Math.round((horasPlan / CAP_REGLAS.HORAS_TOTALES) * 100));
     const horasFaltantesGlobal = Math.max(0, CAP_REGLAS.HORAS_TOTALES - horasPlan);
 
     const getEstadoGeneral = () => {

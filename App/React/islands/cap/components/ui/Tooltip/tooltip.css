@@ -1,10 +1,14 @@
+/* [2003A-16] Tooltip vía portal: position:fixed para evitar clipping en tablas.
+ * Las coordenadas top/left se calculan con getBoundingClientRect() y se inyectan
+ * como estilos inline desde el componente React. Los transforms centran el tooltip. */
+
 .capTooltip-wrapper {
-    position: relative;
     display: inline-block;
 }
 
+/* Base del tooltip — renderizado en document.body via portal */
 .capTooltip-content {
-    position: absolute;
+    position: fixed;
     background: var(--cap-texto-principal);
     color: var(--cap-texto-invertido);
     padding: var(--cap-espacio-sm) var(--cap-espacio-md);
@@ -17,32 +21,24 @@
     line-height: var(--cap-line-height-tight);
 }
 
+/* top: se posiciona justo encima del elemento, centrado horizontalmente */
 .capTooltip-content--top {
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: var(--cap-espacio-sm);
+    transform: translate(-50%, -100%);
 }
 
+/* bottom: debajo del elemento */
 .capTooltip-content--bottom {
-    top: 100%;
-    left: 50%;
     transform: translateX(-50%);
-    margin-top: var(--cap-espacio-sm);
 }
 
+/* left: a la izquierda del elemento, centrado verticalmente */
 .capTooltip-content--left {
-    right: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-right: var(--cap-espacio-sm);
+    transform: translate(-100%, -50%);
 }
 
+/* right: a la derecha del elemento, centrado verticalmente */
 .capTooltip-content--right {
-    left: 100%;
-    top: 50%;
     transform: translateY(-50%);
-    margin-left: var(--cap-espacio-sm);
 }
 
 .capTooltip-arrow {
@@ -59,3 +55,28 @@
     border-width: 6px 6px 0 6px;
     border-color: var(--cap-texto-principal) transparent transparent transparent;
 }
+
+.capTooltip-content--bottom .capTooltip-arrow {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 6px 6px 6px;
+    border-color: transparent transparent var(--cap-texto-principal) transparent;
+}
+
+.capTooltip-content--left .capTooltip-arrow {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 6px 0 6px 6px;
+    border-color: transparent transparent transparent var(--cap-texto-principal);
+}
+
+.capTooltip-content--right .capTooltip-arrow {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 6px 6px 6px 0;
+    border-color: transparent var(--cap-texto-principal) transparent transparent;
+}
+
