@@ -446,6 +446,9 @@ class MotorRecomendacion
          * Extraemos el género dominante del JSONB metadata y aplicamos penalización
          * suave a partir del 5to sample del mismo género, análogo al de creador. */
         $maxPorCategoria = 4;
+        /* [2103A-19] Diversidad por colección: penaliza samples de la misma colección origen.
+         * Umbral más estricto (3) que género porque colección es más específica. */
+        $maxPorColeccion = (int) ($params['max_por_coleccion'] ?? 3);
         $sMeta = SamplesCols::METADATA;
 
         /*
@@ -514,6 +517,8 @@ class MotorRecomendacion
                             * Antes: 2 subqueries × 2,611 samples = 5,222 ejecuciones.
                             * Ahora: 2 CTEs + 2 LEFT JOINs = 2 scans. */
                            CASE WHEN s.{$sImagen} IS NOT NULL THEN NULL ELSE cip.col_imagen_url END AS imagen_coleccion_propietario,
+                           /* [2103A-19] ID de colección para diversidad PHP — NULL si no tiene colección original. */
+                           cp.col_id AS coleccion_diversidad_id,
                            CASE WHEN cp.sample_id IS NOT NULL
                                THEN json_build_object('id', cp.col_id, 'nombre', cp.col_nombre, 'slug', cp.col_slug, 'imagen_url', cp.col_imagen_url)
                                ELSE NULL END AS coleccion_original_json,
@@ -562,7 +567,7 @@ class MotorRecomendacion
 
                 /* [2003A-35] Fase 3: aplicar diversidad en PHP (O(n) scan).
                  * Reemplaza 2 ROW_NUMBER() OVER PARTITION BY que requerían 2 full sorts. */
-                $todoResultados = self::aplicarDiversidadPHP($todoResultados, $maxPorCreador, $maxPorCategoria, $sCreadorId, $maxPorTipo);
+                $todoResultados = self::aplicarDiversidadPHP($todoResultados, $maxPorCreador, $maxPorCategoria, $sCreadorId, $maxPorTipo, $maxPorColeccion);
                 $todoResultados = \array_slice($todoResultados, 0, $limite * self::PAGINAS_BULK);
 
                 KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
@@ -598,7 +603,7 @@ class MotorRecomendacion
                 AlgoTimingLogger::capturarExplain($userId, $sql, $nonBulkParams);
 
                 /* [2003A-35] Diversidad en PHP + trim al límite solicitado */
-                $resultado = self::aplicarDiversidadPHP($resultado, $maxPorCreador, $maxPorCategoria, $sCreadorId);
+                $resultado = self::aplicarDiversidadPHP($resultado, $maxPorCreador, $maxPorCategoria, $sCreadorId, $maxPorTipo, $maxPorColeccion);
                 $resultado = \array_slice($resultado, 0, $limite);
 
                 $resultado = self::inyectarSerendipia($resultado, $userId, $config);
@@ -863,21 +868,25 @@ class MotorRecomendacion
         int $maxPorCreador,
         int $maxPorCategoria,
         string $colCreadorId,
-        int $maxPorTipo = 5
+        int $maxPorTipo = 5,
+        int $maxPorColeccion = 3
     ): array {
         if (empty($resultados)) {
             return $resultados;
         }
 
-        /* Primer paso: contar apariciones por creador, género y tipo (items vienen en score DESC) */
-        $contadorCreador = [];
-        $contadorGenero  = [];
-        $contadorTipo    = [];
+        /* Primer paso: contar apariciones por creador, género, tipo y colección (items vienen en score DESC) */
+        $contadorCreador   = [];
+        $contadorGenero    = [];
+        $contadorTipo      = [];
+        $contadorColeccion = [];
 
         foreach ($resultados as &$s) {
             $creadorId = $s[$colCreadorId] ?? 0;
             $genero = $s['genero_diversidad'] ?? 'other';
             $tipo   = $s[SamplesCols::TIPO] ?? SamplesEnums::TIPO_ONESHOT;
+            /* [2103A-19] coleccion_diversidad_id es NULL si el sample no tiene colección origen */
+            $colId  = $s['coleccion_diversidad_id'] ?? null;
 
             $rc = ($contadorCreador[$creadorId] ?? 0) + 1;
             $contadorCreador[$creadorId] = $rc;
@@ -902,10 +911,26 @@ class MotorRecomendacion
                 ? \max(0.5, 1.0 - ($rt - $maxPorTipo) * 0.12)
                 : 1.0;
 
-            $s['score'] = (float) $s['score'] * $factorCreador * $factorGenero * $factorTipo;
+            /* [2103A-19] Diversidad por colección: penaliza samples de la misma colección
+             * origen empezando en el 4to (índice $maxPorColeccion+1).
+             * Samples sin colección (NULL) no se penalizan — no comparten colección. */
+            $factorColeccion = 1.0;
+            if ($colId !== null) {
+                $rcol = ($contadorColeccion[$colId] ?? 0) + 1;
+                $contadorColeccion[$colId] = $rcol;
+                $factorColeccion = $rcol <= $maxPorColeccion
+                    ? 1.0
+                    : \max(0.40, 1.0 - ($rcol - $maxPorColeccion) * 0.18);
+                $s['rn_coleccion'] = $rcol;
+            } else {
+                $s['rn_coleccion'] = 0;
+            }
+
+            $s['score'] = (float) $s['score'] * $factorCreador * $factorGenero * $factorTipo * $factorColeccion;
             /* [2103A-10] Exponer rn/rn_genero para debug badge.
-             * [213A-3] Añadido rn_tipo para debug de diversidad tipo. */
-            $s['rn']       = $rc;
+             * [213A-3] Añadido rn_tipo para debug de diversidad tipo.
+             * [2103A-19] Añadido rn_coleccion para debug de diversidad colección. */
+            $s['rn']        = $rc;
             $s['rn_genero'] = $rg;
             $s['rn_tipo']   = $rt;
         }

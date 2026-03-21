@@ -321,6 +321,10 @@ class NormalizadorSample
             'rn'                 => (int) ($row['rn'] ?? 0),
             'rnGenero'           => (int) ($row['rn_genero'] ?? 0),
             'generoDiversidad'   => $row['genero_diversidad'] ?? null,
+            /* [213A-3] Diversidad tipo — rn_tipo escrito por aplicarDiversidadPHP */
+            'rnTipo'             => (int) ($row['rn_tipo'] ?? 0),
+            /* [2103A-19] Diversidad colección — rn_coleccion escrito por aplicarDiversidadPHP */
+            'rnColeccion'        => (int) ($row['rn_coleccion'] ?? 0),
             'verificado'         => (bool) ($row[self::ALIAS_VERIFICADO_SAMPLE] ?? false),
             'tieneEmbedding'     => isset($row[SamplesCols::EMBEDDING]) && $row[SamplesCols::EMBEDDING] !== null,
             'horasPublicacion'   => $horasPublicacion,

@@ -59,5 +59,21 @@ export function useBadgeDebugScore(debug: ScoreDebug): { scoreDisplay: string; e
         }
     }
 
+    /* [213A-3] Diversidad por tipo */
+    if (debug.rnTipo > 5) {
+        const penTipo = Math.max(0.5, 1.0 - (debug.rnTipo - 5) * 0.12);
+        lineas.push(`🔁 ${debug.rnTipo}° oneshot — diversidad tipo ×${penTipo.toFixed(2)}`);
+    } else if (debug.rnTipo > 0) {
+        lineas.push(`🔁 ${debug.rnTipo}° oneshot — sin penalización`);
+    }
+
+    /* [2103A-19] Diversidad por colección */
+    if (debug.rnColeccion > 3) {
+        const penCol = Math.max(0.40, 1.0 - (debug.rnColeccion - 3) * 0.18);
+        lineas.push(`📁 ${debug.rnColeccion}° de la misma colección — diversidad ×${penCol.toFixed(2)}`);
+    } else if (debug.rnColeccion > 0) {
+        lineas.push(`📁 ${debug.rnColeccion}° de la misma colección — sin penalización`);
+    }
+
     return { scoreDisplay, esSerendipia, lineas };
 }

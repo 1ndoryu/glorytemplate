@@ -221,6 +221,10 @@ export interface ScoreDebug {
     rn: number;
     rnGenero: number;
     generoDiversidad: string | null;
+    /** [213A-3] Posición del sample entre los del mismo tipo (loop/oneshot) en esta página */
+    rnTipo: number;
+    /** [2103A-19] Posición del sample entre los de la misma colección origen en esta página */
+    rnColeccion: number;
     verificado: boolean;
     tieneEmbedding: boolean;
     horasPublicacion: number | null;
