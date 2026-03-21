@@ -11,6 +11,14 @@
    Reset y Base
    ======================================== */
 
+/* [2003A-8] El body del navegador tiene margin: 8px por defecto.
+ * WordPress puede inyectar padding-top para el admin bar.
+ * Reset para todas las páginas CAP (login, dashboard, registro). */
+body:has(.capApp) {
+    margin: 0;
+    padding: 0;
+}
+
 .capApp {
     font-family: var(--cap-fuente-principal);
     font-size: var(--cap-texto-base);

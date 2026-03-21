@@ -71,6 +71,45 @@ PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function () {
 });
 
 /*
+ * [2003A-7] Redirigir wp-login.php a /cap-login/ para usuarios no-admin.
+ * Los administradores pueden seguir accediendo a wp-login.php y wp-admin.
+ * Los cap_admin (dueños de autoescuela) usan solo la interfaz CAP.
+ */
+add_action('init', function () {
+    /* Solo interceptar wp-login.php */
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    if (strpos($requestUri, 'wp-login.php') === false) {
+        return;
+    }
+
+    /* Permitir logouts (action=logout) */
+    $action = sanitize_text_field($_GET['action'] ?? $_POST['action'] ?? '');
+    if ($action === 'logout' || $action === 'lostpassword' || $action === 'rp' || $action === 'resetpass') {
+        return;
+    }
+
+    /* Si ya está logueado como admin, dejarlo pasar al wp-login.php/wp-admin */
+    if (is_user_logged_in()) {
+        $wpUser = wp_get_current_user();
+        if ($wpUser instanceof WP_User && in_array('administrator', $wpUser->roles, true)) {
+            return;
+        }
+    }
+
+    /* Redirigir POST a wp-login.php (login tradicional) a /cap-login/ */
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($action)) {
+        wp_safe_redirect(home_url('/cap-login/'));
+        exit;
+    }
+
+    /* Redirigir GET a wp-login.php a /cap-login/ */
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && empty($action)) {
+        wp_safe_redirect(home_url('/cap-login/'));
+        exit;
+    }
+});
+
+/*
  * H.2 Fix: Redirección inteligente en la página de inicio
  * Si el usuario está logueado con rol cap_admin -> dashboard
  * Si no está logueado -> login

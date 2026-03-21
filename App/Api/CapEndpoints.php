@@ -21,6 +21,7 @@ class CapEndpoints
     private ?CapDemoEndpoints $demoEndpoints = null;
     private ?CapStripeEndpoints $stripeEndpoints = null;
     private ?CapReportesEndpoints $reportesEndpoints = null;
+    private ?CapAuthEndpoints $authEndpoints = null;
 
     private function obtenerConfigEndpoints(): CapConfigEndpoints
     {
@@ -110,6 +111,14 @@ class CapEndpoints
         return $this->reportesEndpoints;
     }
 
+    private function obtenerAuthEndpoints(): CapAuthEndpoints
+    {
+        if ($this->authEndpoints === null) {
+            $this->authEndpoints = new CapAuthEndpoints();
+        }
+        return $this->authEndpoints;
+    }
+
     public function registrarRutas(): void
     {
         $configEndpoints = $this->obtenerConfigEndpoints();
@@ -123,6 +132,7 @@ class CapEndpoints
         $demoEndpoints = $this->obtenerDemoEndpoints();
         $stripeEndpoints = $this->obtenerStripeEndpoints();
         $reportesEndpoints = $this->obtenerReportesEndpoints();
+        $authEndpoints = $this->obtenerAuthEndpoints();
 
         register_rest_route(self::NAMESPACE, '/config', [
             ['methods' => 'GET', 'callback' => $configEndpoints->callbackSeguro('obtenerConfig'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
@@ -284,6 +294,13 @@ class CapEndpoints
         register_rest_route(self::NAMESPACE, '/stripe-webhook', [
             'methods' => 'POST',
             'callback' => $stripeEndpoints->callbackSeguro('procesarStripeWebhook'),
+            'permission_callback' => '__return_true',
+        ]);
+
+        /* [2003A-7] Login via REST API (público, sin autenticación previa) */
+        register_rest_route(self::NAMESPACE, '/auth/login', [
+            'methods' => 'POST',
+            'callback' => $authEndpoints->callbackSeguro('login'),
             'permission_callback' => '__return_true',
         ]);
     }
