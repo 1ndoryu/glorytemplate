@@ -509,6 +509,10 @@ class SamplesController
 
         /*
          * QK83: Cuando hay búsqueda, ordenar por relevancia FTS (ts_rank).
+         * [213A-2] Fix: añadidos fuzzy_boost (word_similarity), titulo_exacto_boost y
+         * engagement_boost (LN(1+likes+descargas+repros)) al score de búsqueda.
+         * Sin estos, muestchos resultados obtenían el mismo ts_rank y el secundario
+         * publicado_at ASC los mostraba como "recientes" en vez de "inteligente".
          * Sin búsqueda, usar el ordenamiento del tipo seleccionado.
          */
         if (!empty($busqueda) && \mb_strlen($busqueda) >= 2) {
@@ -516,7 +520,10 @@ class SamplesController
             $busquedaConfig = $config['busqueda'] ?? [];
             $tsWeight = (float) ($busquedaConfig['ts_rank_weight'] ?? 1.0);
             $tagBoost = (float) ($busquedaConfig['tag_match_boost'] ?? 0.8);
-            $tituloBoost = (float) ($busquedaConfig['titulo_boost'] ?? 0.5);
+            $tituloBoost = (float) ($busquedaConfig['titulo_boost'] ?? 1.5);
+            $fuzzyBoost = (float) ($busquedaConfig['fuzzy_boost'] ?? 0.6);
+            $tituloExactoBoost = (float) ($busquedaConfig['titulo_exacto_boost'] ?? 2.0);
+            $engagementBoost = (float) ($busquedaConfig['engagement_boost'] ?? 0.15);
             $idioma = $busquedaConfig['idioma_ts'] ?? 'spanish';
             $idiomasValidos = ['simple', 'english', 'spanish', 'french', 'german', 'portuguese', 'italian'];
             if (!\in_array($idioma, $idiomasValidos, true)) $idioma = 'spanish';
@@ -524,11 +531,18 @@ class SamplesController
             $sqlTsRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')), plainto_tsquery('{$idioma}', :busquedaRank))";
             $sqlTituloRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '')), plainto_tsquery('{$idioma}', :busquedaTituloRank))";
             $sqlTagMatch = "CASE WHEN s.{$sTags} IS NOT NULL AND EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagRank) THEN 1.0 ELSE 0.0 END";
+            /* [213A-2] Paridad con /samples listar: fuzzy tolerancia typos + titulo exacto */
+            $sqlFuzzyRank = "word_similarity(:busquedaFuzzyRank, s.{$sTitulo})";
+            $sqlTituloExacto = "CASE WHEN s.{$sTitulo} ILIKE :busquedaExactoRank THEN 1.0 ELSE 0.0 END";
+            /* [213A-2] Señal de popularidad: comprime escala con LN para no dominar relevancia */
+            $sqlEngagement = "LN(1.0 + s.{$sTotLk} * 2.0 + s.{$sTotDesc} + s.{$sTotRepro} / 10.0)";
 
-            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
+            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank} + {$fuzzyBoost} * {$sqlFuzzyRank} + {$tituloExactoBoost} * {$sqlTituloExacto} + {$engagementBoost} * {$sqlEngagement}) DESC, s.{$sPubAt} DESC NULLS LAST";
             $extraParams['busquedaRank'] = $busqueda;
             $extraParams['busquedaTituloRank'] = $busqueda;
             $extraParams['busquedaTagRank'] = '%' . \strtolower($busqueda) . '%';
+            $extraParams['busquedaFuzzyRank'] = $busqueda;
+            $extraParams['busquedaExactoRank'] = $busqueda . '%';
         } else {
             $orderBy = match ($tipo) {
                 'trending'  => "ORDER BY (s.{$sTotDesc} + s.{$sTotLk} * 2 + s.{$sTotRepro}) DESC",

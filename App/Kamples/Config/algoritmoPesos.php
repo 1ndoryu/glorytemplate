@@ -391,6 +391,12 @@ return [
         /* Idioma para ts_vector/ts_query (PostgreSQL text search config) */
         'idioma_ts'            => 'spanish',
 
+        /* [213A-2] Boost por popularidad del sample (engagement acumulado).
+         * Se aplica como LN(1 + likes*2 + descargas + reproducciones/10) * este peso.
+         * LN comprime valores extremos; samples virales no aplanan a los más relevantes.
+         * 0.15 = señal secundaria — la relevancia textual sigue siendo lo principal. */
+        'engagement_boost'     => 0.15,
+
         /* Mínimo de caracteres para activar búsqueda (evita queries costosas de 1-2 chars) */
         'min_caracteres'       => 2,
 
