@@ -49,3 +49,13 @@ hint: Updates were rejected because the tip of your current branch is behind
 hint: its remote counterpart. If you want to integrate the remote changes,
 hint: use 'git pull' before pushing again.
 hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+## 2003A-11
+
+Una pestaña de documentación nueva que solo vea el admin, que explique aspectos del proyecto, como se generan las clases, que aspecto toma en cuenta el algoritmo, como administrar perfiles, configuraciones de stripe, etc, una documentacion dedicada a responder dudas. Esto solo es visible para admin.
+
+Las partes que son solo visibles para el admin deben de tener una indicacion de es solo visible para el admin.
+
+## 2003A-12
+
+En el panel de usuarios agregar la capacidad de cambiar contraseña, correo, nombre y esas cosas del usuario. Y que solo el admin pueda ir al wp-admin y login. Creo que esto debe ser un modal para cambiar configuraicones de usuario, agregar la capacidad de 
