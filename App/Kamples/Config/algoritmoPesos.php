@@ -200,6 +200,14 @@ return [
         /* Diversidad: máximo de samples del mismo creador en un feed */
         'max_por_creador'      => 3,
 
+        /* [213A-3] Diversidad por tipo: máximo de one-shots permitidos por página
+         * antes de aplicar penalización suave. Loops no se penalizan. */
+        'max_por_tipo'         => 5,
+
+        /* [213A-3] Boost multiplicativo para samples tipo loop en el ranking SQL.
+         * Eleva loops antes del bulk-fetch para que compitan con ventaja real. */
+        'loop_boost'           => 1.10,
+
         /* Cantidad mínima de interacciones para activar señal de comportamiento */
         'min_interacciones'    => 5,
 

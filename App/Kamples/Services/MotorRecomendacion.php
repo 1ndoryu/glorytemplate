@@ -425,10 +425,21 @@ class MotorRecomendacion
             END)";
         }
 
-        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA} * {$multiplicadorReciente}";
+        /* [213A-3] Boost para loops: eleva samples tipo loop antes del bulk-fetch.
+         * Se resuelve en SQL como CASE WHEN para que el efecto sea real en la ordenación inicial. */
+        $loopBoostVal = (float) ($params['loop_boost'] ?? 1.0);
+        $sTipo = SamplesCols::TIPO;
+        $tipoLoop = SamplesEnums::TIPO_LOOP;
+        $multiplicadorLoop = $loopBoostVal > 1.0
+            ? "(CASE WHEN s.{$sTipo} = '{$tipoLoop}' THEN {$loopBoostVal} ELSE 1.0 END)"
+            : '1.0';
+
+        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA} * {$multiplicadorReciente} * {$multiplicadorLoop}";
 
         /* Diversidad por creador como penalización suave */
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
+        /* [213A-3] Diversidad por tipo: limita one-shots por página */
+        $maxPorTipo = (int) ($params['max_por_tipo'] ?? 5);
 
         /* [193A-33] Diversidad por categoría/género: evita monocultura en el feed.
          * Si el usuario likea 5 kicks, sin esto el feed entero sería kick.
@@ -551,7 +562,7 @@ class MotorRecomendacion
 
                 /* [2003A-35] Fase 3: aplicar diversidad en PHP (O(n) scan).
                  * Reemplaza 2 ROW_NUMBER() OVER PARTITION BY que requerían 2 full sorts. */
-                $todoResultados = self::aplicarDiversidadPHP($todoResultados, $maxPorCreador, $maxPorCategoria, $sCreadorId);
+                $todoResultados = self::aplicarDiversidadPHP($todoResultados, $maxPorCreador, $maxPorCategoria, $sCreadorId, $maxPorTipo);
                 $todoResultados = \array_slice($todoResultados, 0, $limite * self::PAGINAS_BULK);
 
                 KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
@@ -851,25 +862,31 @@ class MotorRecomendacion
         array $resultados,
         int $maxPorCreador,
         int $maxPorCategoria,
-        string $colCreadorId
+        string $colCreadorId,
+        int $maxPorTipo = 5
     ): array {
         if (empty($resultados)) {
             return $resultados;
         }
 
-        /* Primer paso: contar apariciones por creador y género (items vienen en score DESC) */
+        /* Primer paso: contar apariciones por creador, género y tipo (items vienen en score DESC) */
         $contadorCreador = [];
-        $contadorGenero = [];
+        $contadorGenero  = [];
+        $contadorTipo    = [];
 
         foreach ($resultados as &$s) {
             $creadorId = $s[$colCreadorId] ?? 0;
             $genero = $s['genero_diversidad'] ?? 'other';
+            $tipo   = $s[SamplesCols::TIPO] ?? SamplesEnums::TIPO_ONESHOT;
 
             $rc = ($contadorCreador[$creadorId] ?? 0) + 1;
             $contadorCreador[$creadorId] = $rc;
 
             $rg = ($contadorGenero[$genero] ?? 0) + 1;
             $contadorGenero[$genero] = $rg;
+
+            $rt = ($contadorTipo[$tipo] ?? 0) + 1;
+            $contadorTipo[$tipo] = $rt;
 
             $factorCreador = $rc <= $maxPorCreador
                 ? 1.0
@@ -879,12 +896,18 @@ class MotorRecomendacion
                 ? 1.0
                 : \max(0.5, 1.0 - ($rg - $maxPorCategoria) * 0.10);
 
-            $s['score'] = (float) $s['score'] * $factorCreador * $factorGenero;
-            /* [2103A-10] Exponer rn/rn_genero para debug badge — antes solo se
-             * usaban internamente para calcular los factores sin escribirse de vuelta.
-             * NormalizadorSample::construirScoreDebug los lee desde $row. */
-            $s['rn'] = $rc;
+            /* [213A-3] Diversidad por tipo: penaliza one-shots a partir del Nto por página.
+             * Loops no se penalizan aquí: ya tienen ventaja del loop_boost en SQL. */
+            $factorTipo = ($tipo === SamplesEnums::TIPO_ONESHOT && $rt > $maxPorTipo)
+                ? \max(0.5, 1.0 - ($rt - $maxPorTipo) * 0.12)
+                : 1.0;
+
+            $s['score'] = (float) $s['score'] * $factorCreador * $factorGenero * $factorTipo;
+            /* [2103A-10] Exponer rn/rn_genero para debug badge.
+             * [213A-3] Añadido rn_tipo para debug de diversidad tipo. */
+            $s['rn']       = $rc;
             $s['rn_genero'] = $rg;
+            $s['rn_tipo']   = $rt;
         }
         unset($s);
 

@@ -190,6 +190,15 @@ class NormalizadorSample
             ];
         }
 
+        /* [213A-3] Auto-corrección de tipo por duración: samples <5s son one-shots por naturaleza.
+         * El scraper puede etiquetar como 'loop' un hit de caja, shaker o transient corto.
+         * Gotcha: solo corregimos loop→oneshot, nunca al revés (un loop puede durar 2s). */
+        $duracionValue = isset($row[SamplesCols::DURACION]) ? (float) $row[SamplesCols::DURACION] : 0.0;
+        $tipoStored    = $row[SamplesCols::TIPO] ?? SamplesEnums::TIPO_ONESHOT;
+        $tipoEfectivo  = ($duracionValue > 0.0 && $duracionValue < 5.0 && $tipoStored === SamplesEnums::TIPO_LOOP)
+            ? SamplesEnums::TIPO_ONESHOT
+            : $tipoStored;
+
         return [
             'id'               => (int) ($row[SamplesCols::ID] ?? 0),
             'titulo'           => $row[SamplesCols::TITULO] ?? '',
@@ -199,11 +208,11 @@ class NormalizadorSample
             'bpm'              => isset($row[SamplesCols::BPM]) ? (int) $row[SamplesCols::BPM] : null,
             'key'              => $row[SamplesCols::KEY] ?? null,
             'escala'           => $row[SamplesCols::ESCALA] ?? null,
-            'duracion'         => isset($row[SamplesCols::DURACION]) ? (float) $row[SamplesCols::DURACION] : 0,
+            'duracion'         => $duracionValue,
             'formato'          => $row[SamplesCols::FORMATO] ?? null,
             'tamano'           => isset($row[SamplesCols::TAMANO]) ? (int) $row[SamplesCols::TAMANO] : 0,
             'tags'             => $tags,
-            'tipo'             => $row[SamplesCols::TIPO] ?? SamplesEnums::TIPO_ONESHOT,
+            'tipo'             => $tipoEfectivo,
             'estado'           => $row[SamplesCols::ESTADO] ?? SamplesEnums::ESTADO_PROCESANDO,
             'esPremium'        => (bool) ($row[SamplesCols::ES_PREMIUM] ?? false),
             'precio'           => isset($row[SamplesCols::PRECIO]) ? (float) $row[SamplesCols::PRECIO] : null,

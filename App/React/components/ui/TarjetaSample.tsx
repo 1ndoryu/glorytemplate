@@ -262,6 +262,14 @@ const BadgesMetadata = ({ sample, onFiltrar }: BadgesMetadataProps): JSX.Element
     const badges: { texto: string; clave: string }[] = [];
     const usados = new Set<string>();
 
+    /* [213A-3] Tipo siempre como primer badge — orienta al usuario de un vistazo.
+     * Se añade directamente (sin normalizarTag) y se marca como usado para que
+     * tags que incluyan 'loop'/'oneshot' no aparezcan duplicados más abajo. */
+    const tipoBadgeTexto = sample.tipo === 'loop' ? 'Loop' : 'One Shot';
+    badges.push({ texto: tipoBadgeTexto, clave: 'tipo' });
+    usados.add(sample.tipo);    // 'loop' | 'oneshot'
+    usados.add('one shot');     // variante textual habitual en tags
+
     /* [193A-34] agregarBadge aplica normalizarTag para consistencia
      * (vocals→vocal, guitarra→guitar, etc). Evita duplicados normalizados. */
     const agregarBadge = (valores: unknown, clave: string) => {
