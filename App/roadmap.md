@@ -1,9 +1,9 @@
-# Kamples — Roadmap
+# Kamples ï¿½ Roadmap
 
-> **Descripcion:** Plataforma de samples de musica — descubrimiento, colecciones, DAW web, notificaciones y app movil.
+> **Descripcion:** Plataforma de samples de musica ï¿½ descubrimiento, colecciones, DAW web, notificaciones y app movil.
 > **Stack:** Glory Framework (WordPress + React Islands + TypeScript), Tauri (desktop), PostgreSQL, Redis, Bun (WebSocket)
 > **URL produccion:** https://kamples.com
-> **Servidor:** 66.94.100.241 — SSH: `ssh root@66.94.100.241`
+> **Servidor:** 66.94.100.241 ï¿½ SSH: `ssh root@66.94.100.241`
 > **Deploy:** Coolify via `.agent/coolify-manager-rs`
 > **Coolify IDs:** ver `.agent/coolify-manager-rs` para UUIDs de servicios
 > **Repositorio:** `1ndoryu/glorytemplate`, rama `main-kamples`
@@ -41,35 +41,34 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-90+183A-89:** Samples sin embedding IA reciben 0.5x score; caches alineados (secciones 1h/24h, feed 5min). 2026-03-19.
 - **183A-81:** Fuzzy search pg_trgm word_similarity. 2026-03-19.
 - **183A-92:** Descarga APK guarda en Documents/Kamples/. 2026-03-19.
-- **183A-88+183A-77+183A-78:** Imágenes Photon CDN colecciones; nav SPA preserva query string; login omite nonce. 2026-03-19.
-- **183A-96+183A-99+183A-100+183A-104:** Revenue share corregido; premium sin comisión; comentarios orden+WS; tab ganancias UI. 2026-03-19.
-- **183A-97+183A-101+183A-107+183A-103+183A-105+183A-102+183A-106+183A-110+183A-112+183A-113:** Admin perfil links; estilos varios; descargas gratis con código; seguridad v067; fix colecciones gratis; hover like/guardar. 2026-03-19.
-- **183A-109 (Fases 1-5):** Sistema de blog completo — CRUD artículos, categorías, likes, moderación, feed. 2026-03-19.
-- **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artículos sub-fila, modal 980px. 2026-03-19.
-- **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artículos (4 bugs), portada persiste, nombre_display?nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creación corregidos. 2026-03-19.
-- **193A-9-D+193A-15:** Toast admin erróneo (auto-aprueba, no va a moderación); grid vacía (response format array?{articulos,total,hay_mas}); avatar "?" (normalizador leía raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
-- **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-\*" retornan mock local sin petición HTTP. 193A-14: ws/ticket devuelve 401 correctamente — error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
+- **183A-88+183A-77+183A-78:** Imï¿½genes Photon CDN colecciones; nav SPA preserva query string; login omite nonce. 2026-03-19.
+- **183A-96+183A-99+183A-100+183A-104:** Revenue share corregido; premium sin comisiï¿½n; comentarios orden+WS; tab ganancias UI. 2026-03-19.
+- **183A-97+183A-101+183A-107+183A-103+183A-105+183A-102+183A-106+183A-110+183A-112+183A-113:** Admin perfil links; estilos varios; descargas gratis con cï¿½digo; seguridad v067; fix colecciones gratis; hover like/guardar. 2026-03-19.
+- **183A-109 (Fases 1-5):** Sistema de blog completo ï¿½ CRUD artï¿½culos, categorï¿½as, likes, moderaciï¿½n, feed. 2026-03-19.
+- **183A-110-B+C+D+E:** Blog como tab inicio, editor adjuntos, drag-scroll, select estado borrador/publicado, Mis artï¿½culos sub-fila, modal 980px. 2026-03-19.
+- **193A-8+193A-9+193A-6+193A-9-B+193A-9-C:** Fix editor artï¿½culos (4 bugs), portada persiste, nombre_display?nombre_visible, colecciones_likes asegurarTabla, logs servidor ok, detalle por slug y rate limiter de creaciï¿½n corregidos. 2026-03-19.
+- **193A-9-D+193A-15:** Toast admin errï¿½neo (auto-aprueba, no va a moderaciï¿½n); grid vacï¿½a (response format array?{articulos,total,hay_mas}); avatar "?" (normalizador leï¿½a raw.username vs raw.autor_username); rate limiter bloqueado (Redis key reseteada manualmente). useEditorArticulo.ts recreado limpio (corruption null bytes). 2026-03-19.
+- **193A-13+193A-14+193A-17:** 193A-13: slugs "dev-articulo-\*" retornan mock local sin peticiï¿½n HTTP. 193A-14: ws/ticket devuelve 401 correctamente ï¿½ error era falla puntual de red. 193A-17: waveform JSON cache 1 mes en .htaccess uploads. 2026-03-19.
 
-- **183A-111 (Fases 1-3, 2026-03-19):** i18n Kamples — infraestructura (es/en/ja + store + hook + SelectorIdioma), NavPublico, TopBar, ModalAuth, TarjetaSample, PanelDetalleSample migrados (Commits 1-5). Fase 3: 31 hooks migrados con getT() + claves error._/toast._ en los 3 JSON (Commit 7). Plan activo: `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
-- **193A-46-A (2026-03-19):** Fix URGENTE PerfilIsland — `useCallback` declarado después de early returns violaba reglas de hooks ? crash "Rendered more hooks than during the previous render". Fix: mover el hook antes de cualquier return condicional.
-- **193A-51 (2026-03-19):** Waveforms oscuras en white mode — CSS vars `--colorWaveformNoReproducido/Reproducido` + resolverColorCSS en canvas (getComputedStyle).
+- **183A-111 (Fases 1-3, 2026-03-19):** i18n Kamples ï¿½ infraestructura (es/en/ja + store + hook + SelectorIdioma), NavPublico, TopBar, ModalAuth, TarjetaSample, PanelDetalleSample migrados (Commits 1-5). Fase 3: 31 hooks migrados con getT() + claves error._/toast._ en los 3 JSON (Commit 7). Plan activo: `App/Agente/planes/plan-i18n-kamples-2026-03-19.md`.
+- **193A-46-A (2026-03-19):** Fix URGENTE PerfilIsland ï¿½ `useCallback` declarado despuï¿½s de early returns violaba reglas de hooks ? crash "Rendered more hooks than during the previous render". Fix: mover el hook antes de cualquier return condicional.
+- **193A-51 (2026-03-19):** Waveforms oscuras en white mode ï¿½ CSS vars `--colorWaveformNoReproducido/Reproducido` + resolverColorCSS en canvas (getComputedStyle).
 - **193A-52 (2026-03-19):** Selector idioma landing ? pill select minimalista sin banderas (`SelectorIdioma variante='select'`).
 
 - **193A-54 (2026-03-20):** SelectorIdioma variante=select usa SelectorMenu Kamples; NavPublico usa variante=select.
-- **193A-63 (2026-03-20):** Logs diagnóstico rotación keys Groq + panel admin cola-IA muestra estado de las 3 keys, cuál está activa y último audio.
-- **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp — Rules of Hooks.
+- **193A-63 (2026-03-20):** Logs diagnï¿½stico rotaciï¿½n keys Groq + panel admin cola-IA muestra estado de las 3 keys, cuï¿½l estï¿½ activa y ï¿½ltimo audio.
+- **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp ï¿½ Rules of Hooks.
 
-- **2003A-37+2003A-38+2003A-39+2003A-40 (2026-03-21):** Fix CORS x-idempotency-key uploads; umbral drag 20px + preview verde nativo; infinite scroll colecciones explorar; estados dinámicos sync + trigger al despausar.
-- **2103A-1+2103A-2 (2026-03-21):** Build desktop app — Tauri v2 release build (MSI + NSIS installer). URLs descarga configuradas en WordPress para Windows (.exe) y Android (.apk).
-- **2103A-3+2103A-4+2103A-5 (2026-03-21):** Ordenamiento inteligente colecciones explorar (scoring multi-factor auth/no-auth, frescura suave, centralizado en algoritmoPesos); título con mayor peso en búsqueda (titulo_boost 0.5?1.5, nuevo titulo_exacto_boost 2.0); documentación actualizada.
-- **2103A-10 (2026-03-21):** Fix boost_reciente minimalizado (2.0?1.05) — dominaba el feed completo con samples scrapeados <24h; rn/rn_genero ahora escritos en aplicarDiversidadPHP para debug badge; "0h" mostrado como "15min" en frontend.
-- **213A-2 (2026-03-21):** Fix búsqueda feed — orderBy carecía de fuzzy_boost, titulo_exacto_boost y engagement (LN), haciendo que resultados con igual ts_rank se ordenaran por publicado_at (= recientes). Paridad con /samples listar + engagement_boost=0.15.
-- **213A-1 (2026-03-21):** Fix crítico SelectorCandidatos — `:userId` sin binding en Fuente 3 causaba PDO catch?[], algoritmo retornaba 0 resultados y caía a fallback recientes. Activado al bajar umbral_activacion a 2000 (catálogo > 2000 samples).
-- **213A-3 (2026-03-21):** Diversidad tipo feed — loop_boost x1.10 en SQL, max 5 one-shots/página (soft penalty), badge "Loop"/"One Shot" como primer chip en TarjetaSample, auto-corrección tipo <5s?oneshot en NormalizadorSample.
-- **2103A-12 (2026-03-21):** Botón dado en `inicioControlesDerecha` — reproduce sample aleatorio del top 1000 del catálogo activo. Backend: `GET /samples/aleatorio` con RANDOM() sobre subquery de los 1000 más recientes.
-- **2103A-11 (2026-03-21):** Hash antispam desktop menos estricto — `MAX_DETECCIONES_HASH` 6?25; contador capeado al límite (ya no crece a 24-25); check anticipado antes del incremento.
-- **2103A-13+2103A-14+2103A-15+2103A-16+2103A-17+2103A-18 (2026-03-21):** Badge editable tipo loop/oneshot para admins; serendipia shuffle por request; dislike visible al lado del corazón; botón recargar feed (invalida caché algoritmo); unificación visual barraControlFeed con inicioBarraControl; botón dado en ColeccionDetalle. Hook `useReproductorAleatorio` extraido como compartido.
-- **2103A-19 (2026-03-21):** Diversidad por colección en `aplicarDiversidadPHP` — 4ta dimensión de penalización suave (max 3 por colección origen, step 0.18, piso 0.40). `cp.col_id AS coleccion_diversidad_id` añadido al SQL. Debug badge expone `rnColeccion` y `rnTipo` (que faltaba desde 213A-3).
-
+- **2003A-37+2003A-38+2003A-39+2003A-40 (2026-03-21):** Fix CORS x-idempotency-key uploads; umbral drag 20px + preview verde nativo; infinite scroll colecciones explorar; estados dinï¿½micos sync + trigger al despausar.
+- **2103A-1+2103A-2 (2026-03-21):** Build desktop app ï¿½ Tauri v2 release build (MSI + NSIS installer). URLs descarga configuradas en WordPress para Windows (.exe) y Android (.apk).
+- **2103A-3+2103A-4+2103A-5 (2026-03-21):** Ordenamiento inteligente colecciones explorar (scoring multi-factor auth/no-auth, frescura suave, centralizado en algoritmoPesos); tï¿½tulo con mayor peso en bï¿½squeda (titulo_boost 0.5?1.5, nuevo titulo_exacto_boost 2.0); documentaciï¿½n actualizada.
+- **2103A-10 (2026-03-21):** Fix boost_reciente minimalizado (2.0?1.05) ï¿½ dominaba el feed completo con samples scrapeados <24h; rn/rn_genero ahora escritos en aplicarDiversidadPHP para debug badge; "0h" mostrado como "15min" en frontend.
+- **213A-2 (2026-03-21):** Fix bï¿½squeda feed ï¿½ orderBy carecï¿½a de fuzzy_boost, titulo_exacto_boost y engagement (LN), haciendo que resultados con igual ts_rank se ordenaran por publicado_at (= recientes). Paridad con /samples listar + engagement_boost=0.15.
+- **213A-1 (2026-03-21):** Fix crï¿½tico SelectorCandidatos ï¿½ `:userId` sin binding en Fuente 3 causaba PDO catch?[], algoritmo retornaba 0 resultados y caï¿½a a fallback recientes. Activado al bajar umbral_activacion a 2000 (catï¿½logo > 2000 samples).
+- **213A-3 (2026-03-21):** Diversidad tipo feed ï¿½ loop_boost x1.10 en SQL, max 5 one-shots/pï¿½gina (soft penalty), badge "Loop"/"One Shot" como primer chip en TarjetaSample, auto-correcciï¿½n tipo <5s?oneshot en NormalizadorSample.
+- **2103A-12 (2026-03-21):** Botï¿½n dado en `inicioControlesDerecha` ï¿½ reproduce sample aleatorio del top 1000 del catï¿½logo activo. Backend: `GET /samples/aleatorio` con RANDOM() sobre subquery de los 1000 mï¿½s recientes.
+- **2103A-11 (2026-03-21):** Hash antispam desktop menos estricto ï¿½ `MAX_DETECCIONES_HASH` 6?25; contador capeado al lï¿½mite (ya no crece a 24-25); check anticipado antes del incremento.
+- **2103A-13+2103A-14+2103A-15+2103A-16+2103A-17+2103A-18 (2026-03-21):** Badge editable tipo loop/oneshot para admins; serendipia shuffle por request; dislike visible al lado del corazï¿½n; botï¿½n recargar feed (invalida cachï¿½ algoritmo); unificaciï¿½n visual barraControlFeed con inicioBarraControl; botï¿½n dado en ColeccionDetalle. Hook `useReproductorAleatorio` extraido como compartido.
+- **2103A-19 (2026-03-21):** Diversidad por colecciï¿½n en `aplicarDiversidadPHP` ï¿½ 4ta dimensiï¿½n de penalizaciï¿½n suave (max 3 por colecciï¿½n origen, step 0.18, piso 0.40). `cp.col_id AS coleccion_diversidad_id` aï¿½adido al SQL. Debug badge expone `rnColeccion` y `rnTipo` (que faltaba desde 213A-3).- **2103A-20 (2026-03-21):** Eliminada transcripci&#243;n Whisper STT de `ServicioIA::analizarAudio()` &#8212; alucinaba "vocals" en loops e instrumentales. El an&#225;lisis IA ahora usa solo nombre de archivo, descripci&#243;n, tags y carpetas de origen. STT preservado en el c&#243;digo pero desconectado del flujo.
 
 ## Tareas pendientes

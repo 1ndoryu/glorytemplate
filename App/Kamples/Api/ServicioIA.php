@@ -3,15 +3,17 @@
 /**
  * ServicioIA — Orquestador de análisis creativo de audio con IA
  *
- * Cadena de fallback: Groq Whisper (audio->texto) -> Groq LLM (texto->JSON) -> OpenAI LLM (fallback)
- * Whisper: whisper-large-v3 -> whisper-large-v3-turbo -> OpenAI whisper-1 (fallback, $0.006/min)
- * LLM Groq: openai/gpt-oss-120b -> llama-3.3-70b -> kimi-k2 -> qwen3-32b -> llama-4-scout -> gpt-oss-20b
+ * Flujo: LLM directo (texto->JSON) — SIN transcripción Whisper STT.
+ * LLM Groq: openai/gpt-oss-120b -> kimi-k2 -> llama-3.3-70b -> qwen3-32b -> llama-4-scout -> gpt-oss-20b
  * LLM OpenAI (fallback): gpt-4o-mini (si OPENAI_API_KEY esta configurada)
+ *
+ * [2103A-20] Eliminada la etapa Whisper STT porque alucinaba "vocals" en loops de
+ * batería y samples instrumentales. El análisis ahora se basa exclusivamente en:
+ * nombre de archivo, descripción del usuario, tags, ruta de carpetas y datos técnicos
+ * (BPM, key, escala, duración). Esto es más robusto y confiable sin costo en STT.
  *
  * QK80: Cuando todos los modelos Groq fallan (rate limit de cuenta o downtime),
  * se intenta OpenAI como proveedor alternativo para la etapa LLM.
- * QL111: Whisper STT ahora tiene fallback a OpenAI whisper-1 si Groq STT falla
- * y OPENAI_API_KEY esta configurada. Costo bajo (~$0.006/min).
  *
  * Analiza archivos de audio para extraer metadata CREATIVA:
  * tags, emociones, instrumentos, géneros, descripción, artistas similares.
@@ -72,10 +74,12 @@ class ServicioIA
 
     /**
      * Analiza un archivo de audio y retorna metadata creativa.
-     * Flujo solo Groq: Whisper (audio->texto) + LLM (texto->JSON).
-     * NO incluye campos técnicos (BPM, key, escala) — esos vienen de AnalizadorAudio.
+     * [2103A-20] Flujo: LLM directo (texto->JSON) — SIN transcripción Whisper.
+     * El análisis se basa en nombre de archivo, descripción del usuario, tags,
+     * ruta de carpetas, BPM, key, escala y duración.
+     * NO incluye campos técnicos (BPM, key, escala) en el resultado — esos vienen de AnalizadorAudio.
      *
-     * @param string $rutaArchivo Ruta absoluta al archivo de audio
+     * @param string $rutaArchivo Ruta absoluta al archivo de audio (se verifica existencia)
      * @param string $nombreOriginal Nombre original del archivo
      * @param string $descripcionUsuario Descripción proporcionada por el usuario
      * @param array $contextoTecnico Datos técnicos calculados previamente (bpm, key, escala, duracion, tags)
@@ -91,55 +95,30 @@ class ServicioIA
 
         $prompt = PromptsIA::construirAnalisis($nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
-        $resultadoGroq = self::intentarGroqDesdeAudio($rutaArchivo, $prompt, $modoCola);
-        if ($resultadoGroq !== null) {
-            return $resultadoGroq;
-        }
-
-        KamplesLogger::critical('ServicioIA: Todos los proveedores fallaron (Groq + OpenAI) — sin transcripción Whisper no se puede continuar');
-        return null;
-    }
-
-    /**
-     * Ejecuta el flujo Groq para audio:
-     * 1) Whisper transcribe audio
-     * 2) LLM genera metadata creativa JSON (Groq → OpenAI fallback)
-     *
-     * QK80: Si Groq LLM falla (rate limit o error), intenta OpenAI como fallback.
-     */
-    private static function intentarGroqDesdeAudio(string $rutaArchivo, string $promptBase, bool $modoCola = false): ?array
-    {
-        $apiKey = GroqHttpClient::obtenerApiKey('GROQ_API');
-        if (!$apiKey) {
-            KamplesLogger::warning('ServicioIA: API key de Groq no configurada');
-            return null;
-        }
-
-        $tamano = \filesize($rutaArchivo);
-        if ($tamano > self::MAX_TAMANO_AUDIO) {
-            KamplesLogger::warning('ServicioIA: Archivo demasiado grande para Groq STT', ['tamano' => $tamano, 'max' => self::MAX_TAMANO_AUDIO]);
-            return null;
-        }
-
-        $transcripcion = self::transcribirAudioConWhisper($rutaArchivo, $apiKey);
-        if ($transcripcion === null) {
-            KamplesLogger::warning('ServicioIA: No se obtuvo transcripción de audio con Whisper');
-            return null;
-        }
-
-        $promptAnalisis = PromptsIA::conTranscripcion($promptBase, $transcripcion);
-
-        /* Intentar todos los modelos Groq primero */
-        $resultado = self::intentarGroq($promptAnalisis, $apiKey, $modoCola);
+        /* [2103A-20] Llamar LLM directamente sin Whisper STT.
+         * Antes: audio → Whisper → transcripción → LLM → JSON.
+         * Ahora: metadatos (nombre, descripción, tags, carpetas, BPM, key) → LLM → JSON.
+         * Motivo: Whisper alucinaba "vocals" en loops de batería e instrumentales. */
+        $resultado = self::intentarGroq($prompt, null, $modoCola);
         if ($resultado !== null) {
             return $resultado;
         }
 
         /* QK80: Fallback a OpenAI si Groq falla completamente */
-        return self::intentarOpenAIFallback($promptAnalisis);
+        $resultadoOpenAI = self::intentarOpenAIFallback($prompt);
+        if ($resultadoOpenAI !== null) {
+            return $resultadoOpenAI;
+        }
+
+        KamplesLogger::critical('ServicioIA: Todos los proveedores fallaron (Groq + OpenAI) — sin resultado IA');
+        return null;
     }
 
     /**
+     * [2103A-20] DESACTIVADO — método conservado pero no llamado desde el flujo principal.
+     * Razón: Whisper alucinaba "vocals" en loops de batería e instrumentales sin voz.
+     * Para reactivar: llamar desde analizarAudio() y pasar resultado a PromptsIA::conTranscripcion().
+     *
      * Transcribe audio con endpoint oficial Groq:
      * POST /openai/v1/audio/transcriptions (multipart/form-data)
      */
