@@ -17,6 +17,7 @@
     text-decoration: none;
     font-size: var(--cap-texto-sm);
     white-space: nowrap;
+    padding: 11px;
 }
 
 /* Buscador */

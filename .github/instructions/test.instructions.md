@@ -2,298 +2,298 @@
 applyTo: '**'
 ---
 
-# Protocolo de Desarrollo y Conducta (v3.7)
+# Protocolo de Desarrollo v4.0 (17 marzo 2026)
+Nota: si un proyecto no cumple o no encaja con v4.0, adaptar progresivamente el proyecto con lo que se pueda de su estructura o empezarla de cero, significa se trata el proyecto con una versión vieja del protocolo.
 
-## -3. AUTOAPLICACIÓN ABSOLUTA DE REGLAS (SIN EXCEPCIÓN)
+## I. REGLAS ABSOLUTAS (por prioridad)
 
-> **Este protocolo NO depende de que el usuario lo invoque. Se aplica SIEMPRE, en CADA archivo que toques, en CADA línea que escribas.**
+**-1. LO MAS DIFICIL PRIMERO.** 
+Siempre abordar primero lo mas complejo, la tarea mas dificil primero. 
 
-- Cada vez que modifiques o leas un archivo por **cualquier motivo** (tarea asignada, consulta, refactor, bugfix), **DEBES** corregir toda violación visible de este protocolo en ese archivo — aunque la corrección no tenga relación con tu tarea actual.
-- Esto **NO significa cambiar de tarea** ni desviarte del objetivo. Significa que tienes la **responsabilidad pasiva** de hacer cumplir estas reglas en todo código que pase por tus manos. Si añades código nuevo a un archivo que tiene violaciones preexistentes, corregirlas es parte de tu entrega.
-- **PROHIBIDO** ignorar una violación conocida con la excusa de "no es parte de la tarea". Si la ves y puedes arreglarla sin riesgo, la arreglas. Si es compleja, dejas un **TO-DO** explícito en el código.
-- **PROHIBIDO racionalizar inacción.** Pensamientos como "este problema ya existía antes de mi solicitud", "no fui yo quien lo introdujo" o "no me pidieron arreglar esto" son **exactamente la mentalidad que esta regla prohíbe**. El origen del problema es irrelevante — lo que importa es que lo viste, puedes corregirlo y estás tocando ese archivo. No hacerlo es negligencia, no prudencia.
-- **Única excepción:** Si el archivo o la sección está marcada `[EN CURSO — AG-XXXX]` por otro agente, no modificar esa sección para evitar conflictos. Pero si el resto del archivo tiene violaciones fuera de la zona en curso, corregirlas igualmente.
-- Ejemplos concretos: CSS hardcodeado → reemplazar con variable. SQL interpolado → parametrizar. Archivo >300 líneas → marcar TO-DO split. Import muerto → eliminar. Try-catch faltante → agregar. Error masking → corregir.
+**0. El flujo es obligatorio e innegociable.**
+Antes de ejecutar cualquier tarea, la primera respuesta al usuario SIEMPRE debe ser un anuncio breve con este formato exacto:
 
-## -2. EMPIEZA SIEMPRE CON LA TAREA MAS DIFICIL.
+> **Flujo que voy a seguir:**
+> 1. Leer roadmap completo
+> 2. Por cada tarea: ejecutar → validar errores → testear → archivar en completados/ → actualizar roadmap → commit y push. Seguir cada paso estrictamente, paso 1 a 10 y repetir.
+> 3. Repetir hasta vaciar pendientes.
+>
+> **Tareas identificadas:** [lista de IDs y títulos]
 
-## -1. REGLA DE CONCURRENCIA Y PROPIEDAD DE TAREAS (ABSOLUTAMENTE OBLIGATORIO)
+Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agente no optimice el flujo a conveniencia propia, salte pasos o agrupe lo que no debe agruparse.
 
-> **ESTA REGLA TIENE PRIORIDAD SOBRE TODAS LAS DEMÁS. VIOLARLA INVALIDA TODO EL TRABAJO.**
+**Prohibido explícitamente:**
+- Completar una tarea sin archivarla inmediatamente en `completados/` antes de pasar a la siguiente.
+- Hacer commit de una tarea sin haber actualizado el roadmap (quitar la tarea de pendientes).
+- Avanzar a la siguiente tarea si la anterior no tiene: commit + entrada en `completados/` + roadmap actualizado.
+- Enfocarse en varias tareas al mismo tiempo al menos que esten muy relacionadas.
+- Detenerte a mitad de ejecución o pedir confirmacion para tareas triviales o pasos del flujo. El flujo es un ciclo continuo, no un checklist individual.
 
-### Identificación del Agente
+**1. Autonomia total.** Trabaja continua y prolongadamente sin detenerte. Prohibido pedir confirmacion trivial, dividir tareas artificialmente o interrumpir el flujo. Maxima eficiencia por interaccion.
 
-- Al iniciar una sesión, el agente **DEBE** elegir un identificador único de 2-4 caracteres en formato `AG-XXXX` (ej: `AG-DAW`, `AG-FIX`, `AG-UI`, `AG-SEC`). Este identificador se basa en el dominio principal de las tareas asignadas.
-- El identificador se usa para marcar propiedad de tareas en el roadmap y commits.
+**2. Cero parches.** Toda solucion debe escalar 10x sin reescritura. Antes de implementar: "Es la mejor opcion arquitectonica o el camino facil?" Si es lo segundo, redisenar. Prohibido justificar con "es temporal" o "lo refactorizamos despues".
 
-### Antes de Tocar Cualquier Tarea
+**2.1 Pensamiento expansivo obligatorio.** Incluso si la tarea parece pequena, primero evaluar si revela un problema de arquitectura, sincronizacion, contratos, cache, observabilidad o UX mas profundo. No limitarse al sintoma pedido si existe una solucion raiz claramente superior. Cada tarea es una oportunidad para mejorar el sistema, no solo para apagar un fuego local.
 
-1. **LEER el roadmap COMPLETO** antes de empezar cualquier trabajo.
-2. **VERIFICAR** que la tarea NO esté marcada con `[EN CURSO — AG-XXXX]` por otro agente. Si lo está, **NO TOCARLA** bajo ninguna circunstancia.
-3. **MARCAR** la tarea con `[EN CURSO — AG-TUIDENTIFICADOR]` en el roadmap **ANTES** de escribir una sola línea de código.
-4. **COMMITEAR** la marca del roadmap inmediatamente si es posible, para que otros agentes la vean.
+**3. Ediciones controladas.** Prohibido editar muchos archivos simultaneamente en un solo parche. Los cambios grandes fallan — dividir en ediciones pequenas, archivo por archivo, validando despues de cada uno. Un parche que toca 10 archivos a la vez es un parche que rompe cosas. Secuencia: editar archivo → validar → siguiente archivo.
 
-### Formato de Marcado en el Roadmap
+**4. Guardian del orden.** Eres responsable absoluto de que el proyecto no se desordene. Al tocar un archivo, corregir toda violacion visible de bajo riesgo (imports muertos, hardcodeo, codigo muerto, nombres confusos). Si la correccion es compleja, dejar TO-DO en el codigo. No existe "no es mi tarea".
 
-```
-TAREA LIBRE (disponible):
-213. Descripción de la tarea...
+**5. Seguridad primero.**
+  - SQL: siempre prepared statements/query builders. Usar Schema System (`*Cols`, `*Enums`) para toda referencia a BD, nunca strings literales. `$wpdb->prepare()` obligatorio.
+  - PHP: `escapeshellarg()` en todo argumento de `exec()`/`shell_exec()`. Prohibido `@` como supresor. Controllers REST con try-catch global. SSL explicito en APIs de pago.
+  - Secrets: siempre variables de entorno, nunca en codigo fuente. Permisos WordPress REST lo mas restrictivo posible.
+  - Input: validar/sanitizar toda entrada. Prohibido `eval()`, `innerHTML` con datos dinamicos sin sanitizar.
 
-TAREA TOMADA (prohibido tocar por otros):
-213. [EN CURSO — AG-DAW] Descripción de la tarea... **Estado:** breve progreso.
+**6. Sin fallos silenciosos.**
+  - Toda operacion I/O, red, BD, parsing: try-catch con logging util. Catches vacios = prohibido.
+  - PHP: verificar retorno de `json_decode()`, `glob()`, `mkdir()`, `$wpdb->query()`. Cleanup de archivos temporales en `finally`.
+  - React: errores retornan `ok: false`, nunca enmascarar como exito. Toda falla = feedback visible al usuario (toast). Updates optimistas con rollback si falla. `useEffect` async con `AbortController`.
+  - Metodos criticos (INSERT/UPDATE/DELETE/APIs) retornan resultado, nunca void.
+  - Race conditions: usar upsert atomico o constraints UNIQUE, no buscar-crear secuencial.
 
-TAREA COMPLETADA:
-213. ✅ [AG-DAW] Descripción del resultado...
-```
+**7. Rendimiento.**
+  - Prohibido queries N+1 o roundtrips innecesarios. Combinar con CTEs/CASE/JOINs.
+  - Zustand: selectores especificos (`useStore(s => s.campo)`), nunca store completo.
+  - PostgreSQL INTERVAL: validar con whitelist, nunca interpolar.
 
-### Control de Commits
+**8. Arquitectura SOLID.**
+  - SRP: 1 componente = 1 responsabilidad. Max 3 `useState`. Logica >5 lineas va en hook separado (`useMiComponente.ts`).
+  - Limites: componentes/estilos max 300 lineas, hooks max 120, utils max 150. Si excede, dividir.
+  - Directorios jerarquicos por dominio (`components/ui/`, `features/auth/`). Prohibido carpeta plana.
+  - OCP (extender por props/composicion), ISP (props minimas), DIP (depender de abstracciones).
 
-- **PROHIBIDO** hacer `git add .` o `git add --all`. Siempre agregar archivos explícitamente: `git add archivo1 archivo2`.
-- **ANTES de commitear**, ejecutar `git diff --stat HEAD` y `git status` para verificar que solo se incluyen archivos modificados por TI en esta sesión.
-- **Si detectas archivos modificados que NO son tuyos** (modificados por otro agente en paralelo), **NO los incluyas** en tu commit. Usa `git add` selectivo.
-- **Mensaje de commit** debe incluir tu identificador: `[AG-DAW] C213+C214: descripción`.
-- **Si hay conflictos** con cambios de otro agente, **DETENERTE** y notificar al usuario. No resolver conflictos de merge de otro agente.
+**9. Estandares de codigo.**
+  - JS/TS: `camelCase` vars/funcs, `PascalCase` componentes/clases.
+  - CSS: nombres en espanol y `camelCase` (`.contenedorPrincipal`). Todo en archivos `.css` separados. Prohibido CSS inline. Variables obligatorias para colores/espaciados/tipografia.
+  - Verificar que toda referencia existe antes de usarla (variables CSS, imports, tipos). Si lo creas, conectalo.
+  - UI atomica: todo elemento reutilizable es su propio componente. Zustand para estado global.
 
-### Prohibiciones Absolutas
+**10. Comentarios = memoria del proyecto.**
+  - Formato: bloques `/* ... */` explicando el "por que". Prohibido barras decorativas (`====`).
+  - Al completar una tarea, dejar comentario compacto en el codigo con: que se hizo, por que, gotchas encontrados, que queda pendiente.
+  - No borrar comentarios de tareas anteriores — son registro de evolucion. Actualizar si quedan obsoletos.
+  - Las lecciones aprendidas viven en los comentarios del codigo, no en MDs.
 
-- **PROHIBIDO** modificar archivos que otro agente marcó como en curso, incluso si crees que puedes "ayudar".
-- **PROHIBIDO** marcar como completada una tarea de otro agente.
-- **PROHIBIDO** revertir cambios de otro agente sin instrucción explícita del usuario.
-- **PROHIBIDO** hacer commits que incluyan archivos no relacionados con tus tareas asignadas.
-- **Si un archivo fue modificado por dos agentes**, se considera conflicto y requiere intervención del usuario.
+**11. Validacion obligatoria — errores ajenos incluidos.**
+  - Despues de editar cualquier archivo: ejecutar `get_errors` sobre ese archivo.
+  - Despues de editar `.ts`/`.tsx`: ejecutar `npm run type-check`.
+  - Despues de editar `.css`: ejecutar VarSense (`cssVarsValidator.scanAllDiagnostics`).
+  - Generacion masiva (>3 archivos): ejecutar Code Sentinel (`codeSentinel.analyzeWorkspace`).
+  - Antes de cada commit: `npm run type-check` como minimo.
+  - **Si los comandos reportan errores — aunque no esten relacionados con tu tarea — corregirlos es tu responsabilidad.** No se avanza ni se commitea con errores pendientes. Los errores pre-existentes encontrados se corrigen en el mismo commit o en uno separado si son muchos.
 
-### Secuencia Obligatoria al Empezar
+**12. Commits.**
+  - Prohibido `git add .` o `git add --all`. Siempre `git add archivo1 archivo2` explicito.
+  - Verificar `git diff --stat HEAD` y `git status` antes de commitear.
+  - Cada tarea = un commit separado. Mensaje claro: `{id}: descripcion breve`.
+  - Commit automatico al completar tarea, sin pedir permiso.
 
-```
-1. Leer roadmap completo
-2. Identificar tareas disponibles (sin marca [EN CURSO])
-3. Elegir identificador AG-XXXX
-4. Marcar tareas en roadmap con [EN CURSO — AG-XXXX]
-5. Commitear roadmap (si posible)
-6. Empezar a trabajar. (Al terminar revisar roadmap por nuevas instrucciones aantes de cerrar)
-```
+**13. PowerShell + SSH.**
+  - SQL complejo via SSH: usar base64 (`[Convert]::ToBase64String` + `base64 -d` en remoto). PS5 no tiene heredoc.
+  - Alternativa: crear `.sh` local, copiar con `scp`, ejecutar remotamente.
 
-## 0. INSTRUCCIÓN CRÍTICA DE FLUJO (VSCODE)
-
-- **LO MAS IMPORTANTE: Maximización de Créditos y Autonomía:** Al recibir instrucciones, trabaja de forma prolongada y continua hasta completar la totalidad de la solicitud. **PROHIBIDO** detenerse para realizar consultas triviales, pedir confirmación paso a paso o dividir la tarea artificialmente. Cada interrupción innecesaria consume créditos del usuario; tu objetivo es la máxima eficiencia por interacción, esto significa que debes continuar prolongadamente todo lo posible sin detener la ejecución, y mantener el progreso actualizado con cada tarea cumplida.
-- **Ejecución en Lote (Batching):** Si la solicitud implica múltiples pasos, metas o tareas, ejecútalas **todas** sin detenerte. Realiza tus propias validaciones internas, autotests y revisiones exhaustivas para garantizar que todo funcione correctamente antes de devolver el control.
-- **Gestión del Roadmap:** El archivo de control de progreso (ej. `roadmap.md`) es el eje central de la comunicación asíncrona:
-- Al completar una tarea, actualiza inmediatamente el estado en el archivo. Esto es obligatorio, una tarea realizada --> actualizacion.
-- Lee activamente el archivo en busca de nuevos comentarios o directrices que el usuario haya añadido durante tu ejecución.
-- Si resuelves una duda o completas un punto, actualiza los comentarios correspondientes dentro del archivo.
-
-- **Refactorización Oportunista:** Aprovecha la extensión de la iteración para aplicar mejoras arquitectónicas, limpiezas de código o refactorizaciones de bajo riesgo (sin romper funcionalidad) sin necesidad de pedir permiso explícito. El objetivo es entregar el máximo valor técnico y limpieza posible en cada respuesta.
-- **Re-lectura del Roadmap (OBLIGATORIO):** Cada vez que completes una tarea o grupo de tareas, **DEBES** releer el archivo de roadmap/md de trabajo **ANTES** de continuar con la siguiente tarea o cerrar la interacción. El usuario puede haber añadido comentarios, correcciones o nuevas directrices mientras trabajabas. Ignorar esto es una violación del protocolo. Secuencia: terminar tarea -> actualizar md -> releer md completo -> continuar.
-
-## 1. Principios Generales y Comunicación
-
-- **Idioma:** Español obligatorio en toda comunicación y nombres de clases CSS.
-- **Ambigüedad:** Ante la duda, **PREGUNTA** antes de escribir código. (No es relevante en VSCODE si rompe el flujo del punto 0, priorizar sentido común).
-- **Prohibiciones:** Cero emojis en código/comentarios.
-- **Integridad:** Prohibido omitir código (`// ...resto`). Ediciones atómicas y completas.
-- **Mentalidad:** Entender antes de modificar. Si ves una mejora arquitectónica posible, **hazla** (si es rápida) o deja un **TO-DO** comentado.
-
-## 2. Estándares de Código y Comentarios
-
-- **Nomenclatura JS/TS:** `camelCase` (vars/funcs), `PascalCase` (componentes/clases).
-- **Nomenclatura CSS:** **Español** y `camelCase` (ej: `.contenedorPrincipal`, `.botonActivo`).
-- **Limpieza:** Priorizar legibilidad. Evitar namespaces completos en imports.
-- **Verificación de Referencias (CRÍTICO - ERRORES RECURRENTES):**
-    - **Variables CSS:** Antes de usar cualquier variable CSS (`var(--nombre)`), **VERIFICAR** que existe en los archivos de variables (`variables.css`, `init.css`, etc.). Si no existe, **crearla primero** en el archivo de variables correspondiente. **PROHIBIDO** referenciar variables que no están declaradas.
-    - **Imports y Componentes:** Al crear un componente nuevo, **VERIFICAR** que se importa y se usa donde corresponde. Un componente creado pero no importado/usado es código muerto y una violación directa de este protocolo. Secuencia obligatoria: crear componente -> importarlo donde se necesita -> usarlo en el JSX/render -> verificar que compila sin errores.
-    - **Regla general:** Nunca referenciar algo que no existe (variables, componentes, funciones, tipos). Si lo creas, conéctalo. Si lo refieres, confírmalo.
-- **Formato de Comentarios:**
-    - **Prohibido:** Barras decorativas (`====`).
-    - **Obligatorio:** Bloques limpios `/* ... */` o breves líneas explicativas del "por qué".
-    - **Registro:** Dejar comentarios cortos sobre lo aprendido o arreglado en cada iteración.
-
-## 3. Arquitectura y SOLID (CRÍTICO)
-
-- **Límites de Archivo:**
-- Componentes/Estilos: máx **300 líneas**.
-- Hooks: máx **120 líneas**.
-- Utils: máx **150 líneas**.
-- _Acción:_ Si excede, dividir obligatoriamente. Para caso imposibles, hacer excepciones.
-
-- **Organización Escalable (Directorios):**
-- **PROHIBIDO** acumular todos los componentes en una sola carpeta plana.
-- **OBLIGATORIO** organizar jerárquicamente por dominio, módulo o tipo (ej: `components/ui/`, `features/auth/`, `layouts/`). Estructurar pensando siempre que el proyecto va a crecer.
-
-- **SRP (Single Responsibility):** 1 Componente = 1 Responsabilidad. (Máx 3 `useState`, separar lógica de vista).
-- **Separación Lógica-Vista en Componentes (OBLIGATORIO):**
-    - Al crear cualquier componente, su lógica (fetching, cálculos, transformaciones, side effects) **DEBE** ir en un hook dedicado o archivo de utilidad separado, no mezclada en el cuerpo del componente.
-    - El componente solo debe contener: imports, desestructuración de props/hook, y el return con JSX.
-    - Estructura mínima para un componente con lógica: `MiComponente.tsx` (vista) + `useMiComponente.ts` (lógica/hook).
-    - Si la lógica es trivial (1-5 líneas), se permite inline. Si tiene más de 5 líneas de lógica, extraer obligatoriamente.
-- **Principios:**
-- **OCP:** Extender por props/composición, no modificar fuente.
-- **LSP:** Hijos sustituibles por padres.
-- **ISP:** Props mínimas y específicas.
-- **DIP:** Depender de abstracciones/interfaces.
-
-## 4. React y Estado
-
-- **Atomicidad (Todo es un Componente):** Cualquier elemento de UI reutilizable o distinguible (botones, badges, inputs, tarjetas) **DEBE** abstraerse en su propio componente. No duplicar JSX ni crear componentes monolíticos.
-- **Gestión de Estado:** Usar **Zustand** (o herramientas simples) para evitar complejidad.
-- **Identificadores:** Todo contenedor principal debe tener `id` único (ej: `id="seccionHero"`).
-- **Estructura:** Componentes pequeños y enfocados.
-
-## 5. Estilos CSS (Centralizados)
-
-- **Ubicación:** Todo en archivos `.css` separados (ej: `init.css`, `variables.css`). **Prohibido CSS inline** o hardcodeado.
-- **Variables:** Uso obligatorio para colores, espaciados y tipografía.
-- **Reutilización:** Buscar clases existentes antes de crear nuevas y jamas olvides revisar las variables y usarlas.
-
-## 6. Flujo de Trabajo y Entrega
-
-1. **Ejecución:**
-
-- **Validación Post-Edición (OBLIGATORIO):** Después de editar cualquier archivo, **SIEMPRE** ejecutar la herramienta de diagnóstico de errores (get_errors) sobre ese archivo para verificar que no hay errores de compilación, tipos o lint. **PROHIBIDO** dar una tarea por terminada si hay errores sin resolver en los archivos editados. Secuencia: editar archivo -> verificar errores -> corregir si existen -> confirmar limpio -> continuar.
-
-2. **Commit:** Al finalizar una tarea, realizar **commit** de los cambios automáticamente (sin pedir permiso).
-3. **Documentación:** Actualizar siempre los `.md` de documentación y contexto al terminar.
-4. **Conocimiento Persistente en el MD (OBLIGATORIO):**
-
-- Al terminar una tarea, **registrar en el md de trabajo las lecciones aprendidas, decisiones técnicas, patrones descubiertos o gotchas** que serían útiles para la próxima iteración. El objetivo es que la siguiente sesión NO tenga que re-descubrir contexto desde cero.
-- La información debe ser **compacta**: 1-2 líneas por aprendizaje, no párrafos. Formato sugerido: `- [contexto]: hallazgo/decisión`.
-- Ejemplos válidos: `- [API]: el endpoint /users requiere header X-Custom`, `- [CSS]: variables de color están en init.css, no en variables.css`, `- [Build]: esbuild necesita flag --bundle para islands`.
-- **PROHIBIDO** dejar el md solo con checks de tareas sin contexto útil. El md no es solo un checklist, es memoria del proyecto.
-
-5. **Compactación del MD (OBLIGATORIO):**
-
-- Cuando el archivo md de trabajo tiene **tareas completadas acumuladas**, compactarlas en un bloque resumen antes de que el archivo crezca demasiado.
-- **Regla:** Si hay más de **10 tareas completadas** listadas individualmente, agruparlas en un resumen compacto (ej: `## Completado - Sprint/Fase X` con bullet points de 1 línea cada uno) y eliminar el detalle extenso original.
-- **NUNCA** compactar ni resumir tareas pendientes o en progreso. Esas se mantienen con todo su detalle.
-- Secuencia: detectar md largo -> identificar tareas completadas -> resumirlas en bloque compacto -> eliminar detalle viejo -> conservar pendientes intactas.
-
-6. **Cierre de Interacción:**
-
-- **Re-lectura final del md de trabajo (OBLIGATORIO):** Antes de cerrar, releer el archivo de roadmap/md completo para verificar si el usuario dejó comentarios nuevos durante la ejecución. Si hay nuevas directrices,issues, to-do o tareas, trabajar en ellas inmediatamente antes de cerrar. **PROHIBIDO** cerrar sin revisar el md por última vez para detectar nuevas instrucciones del usuario y trabajar en ellas inmediatamente.
-- Dejar un resumen **muy corto** de qué debe comprobar el usuario.
-- Listar brevemente los cambios/arreglos realizados.
-- Realizar (o anotar) TO-DOs de mejora arquitectónica aunque no sean el foco principal, estos TO-DOs siempre tienen que ir en los comentarios del codigo o en el md de trabajo.
-
-## 7. Prohibiciones Técnicas Absolutas
-
-- **NO HARDCODEAR OPERACIONES SQL:** Toda interacción con base de datos **DEBE** usar prepared statements, query builders o el ORM/abstracción del proyecto. **PROHIBIDO** concatenar variables directamente en strings SQL. Esto aplica a cualquier lenguaje (PHP, JS, etc.).
-    - **Gotcha PostgreSQL INTERVAL:** La cláusula `INTERVAL '$variable'` se interpola como string, NO como parámetro PDO. **SIEMPRE** validar con whitelist dentro del repositorio/método que recibe el valor, nunca confiar en que el caller valida. Ej: `$validos = ['7 days', '30 days']; if (!in_array($intervalo, $validos, true)) $intervalo = '30 days';`
-    - **Valores hardcodeados en queries:** Strings como `'descarga'`, `'completed'` dentro de SQL deben usar constantes/enums del Schema System (`TransaccionesEnums::TIPO_DESCARGA`), no strings sueltos.
-    - **FQN inline en SQL builders:** Usar `use` statements al inicio del archivo, no `\App\Config\Schema\_generated\Clase::CAMPO` inline en cada query.
-        - **Schema System obligatorio para TODA referencia a BD:** Si el proyecto tiene un Schema System (`*Cols`, `*Enums`, `*Schema`), **TODAS** las referencias a tablas, columnas, whitelists de columnas y claves JSONB **DEBEN** usar las constantes del schema, no strings literales. Esto incluye: nombres de tabla en queries, columnas en `SELECT`/`WHERE`/`ORDER BY`, whitelists de campos permitidos, y accesos JSONB (`metadata->>'genero'` debe derivar de constante). Si la constante no existe, **crearla primero**.
-    - **Enums para valores de CHECK constraints:** Si una columna tiene CHECK constraint con valores válidos (`'pendiente'`, `'aprobado'`, `'texto'`), esos valores **DEBEN** tener Enums/constantes. **PROHIBIDO** hardcodear estos strings en controladores o services. Si el Enum no existe, generarlo antes de usar el valor.
-    - **Discrepancias código vs schema = bug silencioso:** Si el código usa `'one shot'` pero el CHECK define `'oneshot'`, hay inconsistencia silenciosa que no genera error pero produce datos incorrectos. Al usar valores de BD, **SIEMPRE** verificar contra el schema/enum.
-    - **WordPress `$wpdb->prepare()` obligatorio:** Toda query con `$wpdb->query()`, `$wpdb->get_var()`, `$wpdb->get_results()` **DEBE** usar `$wpdb->prepare()`, incluso si los valores son constantes. Defensa en profundidad.
-
-- **NO CREAR CÓDIGO QUE PUEDA FALLAR SILENCIOSAMENTE:** Toda operación que pueda lanzar excepciones (I/O, red, base de datos, parsing, APIs externas) **DEBE** estar envuelta en un bloque `try-catch` (o su equivalente según el lenguaje). El `catch` **DEBE** registrar o propagar el error de forma útil. **PROHIBIDO** dejar catches vacíos o que solo hagan `console.log` genérico sin contexto.
-    - **Checklist PHP — Operaciones que SIEMPRE requieren protección** (errores recurrentes detectados en auditoría):
-        - `exec()`, `shell_exec()`, `proc_open()` — envolver en try-catch, validar código de retorno y que el binario existe antes de ejecutar.
-        - `curl_init()`, `curl_exec()` — try-catch + verificar `curl_error()`. Un fallo de red no lanza excepción por sí solo.
-        - `json_decode()` — **SIEMPRE** verificar `json_last_error() !== JSON_ERROR_NONE` después. Sin esto, datos corruptos se propagan como `null` silencioso.
-        - `json_encode()` — verificar que no retorna `false` en datos no serializables.
-        - `file_get_contents()`, `file_put_contents()`, `copy()`, `rename()`, `readfile()` — try-catch. Permisos, disco lleno o archivo eliminado entre check y lectura causan fallos silenciosos.
-        - `unlink()` — try-catch o verificar retorno. **PROHIBIDO** usar `@unlink()`.
-        - `mkdir()`, `wp_mkdir_p()` — verificar retorno `=== false`. Fallo de permisos no lanza excepción.
-        - `glob()` — puede retornar `false` en error, no solo array vacío. Validar antes de iterar.
-        - `ZipArchive::open()`, `addFile()`, `close()` — try-catch completo. Fallo de creación ZIP no se captura automáticamente.
-        - `$wpdb->query()`, `$wpdb->get_var()`, `$wpdb->insert()` — verificar retorno `false`/`null` y envolver en try-catch para excepciones de conexión.
-        - `require()` / `include()` de archivos dinámicos — try-catch. Archivo corrupto o faltante = fatal error.
-    - **PROHIBIDO usar `@` como supresor de errores** (`@file_get_contents()`, `@unlink()`, etc.). El `@` oculta el síntoma sin resolver la causa. Usar try-catch con logging explícito en su lugar.
-    - **Controllers PHP DEBEN tener try-catch global:** Todo método público de un controller REST **DEBE** envolver su cuerpo completo en `try { ... } catch (\Throwable $e)` con logging + respuesta 500 genérica. Sin esto, excepciones inesperadas exponen detalles internos al cliente.
-    - **Métodos que ejecutan operaciones críticas NO deben retornar void:** Si un método hace INSERT/UPDATE/DELETE o llama a APIs externas, **DEBE** retornar `bool` o un tipo que permita al caller verificar éxito/fallo. Un `void` en `registrarRevenueShare()` o `marcarLeida()` impide que el caller sepa si la operación financiera/de estado se guardó.
-    - **Archivos temporales: cleanup con try/finally:** Si se crean archivos temporales (`tempnam()`), el `unlink` **DEBE** ir en un bloque `finally` para garantizar limpieza incluso si hay excepción intermedia. Sin esto, archivos se acumulan en `/tmp` y llenan disco en procesos cron.
-    - **Race conditions en create-or-get:** El patrón `buscar() → si no existe → crear()` es vulnerable a concurrencia. Dos requests simultáneos pueden crear duplicados. Usar advisory locks, upsert atómico (`INSERT ... ON CONFLICT`) o constraints UNIQUE para prevenir.
-    - **Checklist React/TypeScript — Patrones peligrosos** (errores recurrentes detectados en auditoría):
-        - **NO enmascarar errores como éxito:** Si un service catch retorna `{ ok: true, data: [] }`, el caller no puede distinguir error de resultado vacío real. En catch **SIEMPRE** retornar `ok: false`. Un error es un error, no un resultado vacío exitoso.
-        - **NO wrappear en try-catch funciones que ya nunca lanzan:** Si el cliente API centralizado (`apiCliente`) ya garantiza resolución sin throw (retorna `{ ok, data, error }`), un try-catch externo es redundante y confuso. Verificar `resp.ok` en su lugar.
-        - **NO dejar fallos sin feedback al usuario:** Si una operación falla (upload de imagen, descarga, API call), el usuario **DEBE** recibir feedback visible (toast, mensaje de error). Un `console.error` solo no es suficiente — el usuario no ve la consola.
-        - **Updates optimistas DEBEN tener rollback:** Si se actualiza el UI antes de confirmar con la API (likes, favoritos, etc.), verificar `resp.ok` después del await y **revertir el estado** si falla. Un like optimista sin rollback deja el UI inconsistente con el backend.
-        - **useEffect con async DEBE tener cleanup:** Todo `useEffect` que lance requests o loops async **DEBE** retornar cleanup con `AbortController`. Sin esto, un unmount durante el fetch causa updates de estado en componentes desmontados y race conditions.
-        - **Stores Zustand: usar selectores, no suscribirse al store completo:** `useStore()` sin selector re-renderiza en CUALQUIER cambio del store. Usar `useStore(s => s.campo)` para suscribirse solo a lo necesario. Especialmente critico en stores con actualizaciones frecuentes (progreso, timers).
-        - **NO usar non-null assertions (`!`) dentro de guards que ya validaron:** Si ya hay un `if (data)`, TypeScript infiere non-null. Las `!` dentro de ese bloque son ruido.
-        - **Contrato de tipos consistente:** Si una interfaz define `data: T | null`, nunca retornar `data: undefined`. Respetar el contrato exacto del tipo.
-- **NO CREAR CÓDIGO INSEGURO:** Validar y sanitizar toda entrada de usuario antes de procesarla. No exponer datos sensibles en el cliente. No usar `eval()`, `innerHTML` con datos dinámicos sin sanitizar, ni patrones conocidos de vulnerabilidad (XSS, CSRF, inyección). Aplicar principio de mínimo privilegio en permisos y accesos.
-    - **exec()/shell_exec(): SIEMPRE usar `escapeshellarg()`** para cada argumento que venga de BD o input. Sin esto, un nombre de archivo con `$(rm -rf /)` o `; malicious` se ejecuta como comando del sistema.
-    - **PROHIBIDO hardcodear secrets/passwords en código fuente:** Contraseñas, API keys, tokens **DEBEN** venir de variables de entorno o archivos de configuración excluidos de git. Un `const TEST_PASS = '...'` en el código es visible para cualquiera con acceso al repositorio.
-    - **permission_callback de WordPress REST debe ser el más restrictivo posible:** Si una ruta es de admin, usar `requerirAdmin` en el callback, no `requerirAuth`. La verificación de permisos dentro del callback es un fallback, no la primera línea de defensa.
-    - **IDs y parámetros concatenados en URLs de APIs externas deben validarse:** Si se construye una URL como `/accounts/{$id}`, validar el formato esperado del ID (ej: `preg_match('/^acct_[a-zA-Z0-9]+$/', $id)`) antes de concatenar. Previene path traversal y endpoints inesperados.
-    - **SSL explícito en requests a APIs de pago:** Siempre setear `CURLOPT_SSL_VERIFYPEER = true` y `CURLOPT_SSL_VERIFYHOST = 2` explícitamente. Los defaults de PHP pueden variar según distribución/Docker image.
-- **NO CREAR QUERIES N+1 NI ROUNDTRIPS INNECESARIOS A BD:** Si múltiples queries secuenciales consultan las mismas tablas con los mismos filtros (ej: 3 queries de ingresos por periodo, 8 queries de stats de dashboard), **combinarlas** en una sola query con `CASE/FILTER`, CTEs o subqueries. Cada roundtrip a BD tiene overhead de red y conexión. También evitar el patrón N+1: si un loop ejecuta una query por iteración, usar cache estático, batch query o JOIN.
-- **NO CREAR ARCHIVOS MONOLITO:** Ningún archivo debe acumular múltiples responsabilidades no relacionadas. Si un archivo crece más allá de los límites definidos en la sección 3 o mezcla dominios distintos, **dividirlo obligatoriamente**. Aplica a componentes, estilos, hooks, controladores, repositorios, y cualquier tipo de archivo.
-- **NO OMITIR REFACTORIZACIONES OPORTUNAS PEQUEÑAS:** Si durante el desarrollo de una tarea detectas código duplicado, nombres confusos, imports sin usar, variables muertas, o pequeñas mejoras de legibilidad/estructura que son de bajo riesgo, **aplícalas inmediatamente** sin necesidad de pedir permiso. La deuda técnica no se acumula si se limpia mientras se trabaja.
-- **NO OMITIR OPORTUNIDADES DE OPTIMIZACIÓN O CORRECCIÓN FUERA DE LA TAREA PRINCIPAL:** Si mientras trabajas en una tarea detectas código que viola estas reglas (en el mismo archivo o en archivos que estés consultando), **corregirlo** si es de bajo riesgo, o dejarlo documentado como **TO-DO** con descripción clara si la corrección es compleja. **PROHIBIDO** ignorar violaciones conocidas solo porque "no son parte de la tarea actual".
-- **NO PERMITIR QUE LA ENTROPÍA CREZCA (RESPONSABILIDAD ABSOLUTA):** Todo cambio, toda tarea, toda nueva feature introduce entropía si no se toman las decisiones correctas de estructura, ubicación, nomenclatura y limpieza. El usuario generalmente **no es consciente** de cómo el código se desordena progresivamente. Por lo tanto, es **responsabilidad absoluta del agente** — aunque no se le indique ni se le pida — actuar como guardián del orden del proyecto. Esto significa: elegir la ubicación correcta para cada archivo nuevo, mantener coherencia en patrones existentes, no dejar imports huérfanos, no crear abstracciones innecesarias, no romper convenciones establecidas, y asegurar que cada cambio deja el código **igual o más ordenado** que antes. Si detectas desorden preexistente mientras trabajas, limpiarlo proactivamente si es de bajo riesgo. La entropía se combate con cada decisión, no con refactorizaciones masivas futuras que nunca llegan.
-- **NO APLANAR LA ESTRUCTURA DE DIRECTORIOS AL REFACTORIZAR (ERROR RECURRENTE GRAVE):** Cuando se refactoriza un archivo grande en múltiples archivos más pequeños, los archivos resultantes **DEBEN** organizarse en subdirectorios jerárquicos por dominio o responsabilidad, **NUNCA** dejarse todos sueltos en la misma carpeta de origen. Aplanar la estructura es empeorar la arquitectura, no mejorarla. Secuencia obligatoria al dividir un archivo: identificar los dominios/responsabilidades de cada fragmento -> crear subdirectorios apropiados (`utils/`, `hooks/`, `components/ui/`, `services/`, etc.) -> colocar cada archivo nuevo en su subdirectorio correspondiente -> actualizar imports. Si un archivo se divide en 5 y los 5 terminan en la misma carpeta plana, la refactorización está **mal hecha** y viola la sección 3 (Organización Escalable). **PROHIBIDO** priorizar la conveniencia de "menos carpetas" sobre la claridad estructural del proyecto.
-- **NO BORRAR NI OMITIR COMENTARIOS AL REFACTORIZAR O REDUCIR LÍNEAS (IMPERDONABLE):** Reducir el número de líneas de un archivo **JAMÁS** justifica eliminar comentarios existentes. Los comentarios son documentación viva del "por qué" detrás del código; borrarlos para cumplir un límite de líneas es destruir conocimiento del proyecto. Reglas absolutas:
-    - Al mover código de un archivo a otro durante una refactorización, **TODOS** los comentarios asociados a ese código **DEBEN** trasladarse íntegramente al archivo destino. Un bloque de código movido sin sus comentarios es una refactorización incompleta.
-    - Al crear archivos nuevos durante una refactorización, **DEBEN** incluir comentarios profesionales: descripción del propósito del archivo/módulo, explicación de decisiones no obvias, y contexto de por qué se separó.
-    - **PROHIBIDO** contar comentarios como "líneas a reducir". Si un archivo tiene 320 líneas y 40 son comentarios, el archivo efectivo es de 280 líneas — los comentarios no cuentan para el límite.
-    - Si se detecta que un refactor previo eliminó comentarios, **restaurarlos** o crear nuevos equivalentes es parte de la corrección obligatoria (sección -3).
-- **NO DETENERSE A PREGUNTAR SI CONTINUAR (IMPERDONABLE):** El agente **JAMÁS** debe interrumpir la ejecución para preguntar al usuario si desea que continúe con el trabajo, si debe proceder con el siguiente paso, o si "quiere que implemente esto". Si una tarea fue asignada, se ejecuta **completa** sin pausas innecesarias. Cada interrupción para pedir confirmación de continuidad es un desperdicio de créditos del usuario y una violación directa de la sección 0 (Maximización de Créditos y Autonomía). Reglas absolutas:
-    - **PROHIBIDO** frases como: "quieres que continue con...?", "procedo a implementar...?", "debo seguir con...?", "te parece si...?". La respuesta siempre es SÍ — si es parte de la tarea, se hace.
-    - **Única excepción válida para preguntar:** Cuando hay ambiguedad genuina en los requisitos que no puede resolverse con sentido común (ej: "el usuario pidió un botón pero no especificó dónde"). Incluso en este caso, preferir tomar la decisión más razonable y documentarla, en lugar de detener todo.
-    - Si la tarea tiene múltiples pasos, ejecutarlos **todos**. Si la tarea implica refactorización + tests + commit, hacer **todo**. No segmentar artificialmente el trabajo para aparentar progreso o "validar" con el usuario.
-
-- **NO REALIZAR OPERACIONES MULTI-TABLA SIN TRANSACCIÓN (CRÍTICO):** Toda secuencia de operaciones de escritura que afecte a más de una tabla (o múltiples filas dependientes) **DEBE** estar envuelta en una transacción (`START TRANSACTION` / `COMMIT` / `ROLLBACK`, o el equivalente del framework). Sin transacciones, un fallo intermedio deja datos en estado inconsistente e irrecuperable. Esto aplica a:
-    - Eliminaciones en cascada manual (borrar hijos → borrar padre).
-    - Creación de entidades compuestas (crear padre → crear hijos/configuración default).
-    - Regeneración de datos (borrar existentes → insertar nuevos).
-    - Seeders y migraciones con múltiples inserts dependientes.
-    - **Patrón recomendado:** Crear un helper reutilizable `conTransaccion(callable $fn)` que envuelva en try-catch, haga rollback si falla, y se use en todas las operaciones multi-tabla. No duplicar la lógica transaccional en cada método.
-    - **Si la BD no soporta transacciones** (ej: MyISAM en MySQL), documentarlo explícitamente y agregar checks de consistencia post-operación.
-
-- **NO CREAR CÓDIGO QUE DEPENDA DE ABSTRACCIONES INEXISTENTES (CRÍTICO):** Antes de crear clases que extiendan una clase base, implementen una interfaz, o importen un módulo — **VERIFICAR** que la dependencia existe y es funcional. Esto aplica especialmente a:
-    - **Generadores de código / scaffolders:** Si un CLI genera archivos que extienden `BaseRepository`, `BaseController`, etc., esa clase base **DEBE** existir antes de ejecutar el generador. Generar código que depende de algo inexistente produce código muerto desde su nacimiento.
-    - **Imports de archivos generados:** Si el código importa de `_generated/`, verificar que los archivos fueron generados antes de commitear.
-    - **Regla general:** Nunca commitear código que lanza `Fatal Error` / `Module not found` al instanciarse o importarse. Si la abstracción no existe, crearla primero (aunque sea un stub mínimo) o no generar el código dependiente.
-
-- **UNA SOLA FUENTE DE VERDAD PARA CADA CONCEPTO (PRINCIPIO DRY ESTRICTO):** Si un conjunto de valores (enum, constantes, tipos, configuración) se necesita en múltiples archivos o capas (backend, frontend, tests), **DEBE** definirse en **un único lugar canónico** y todos los demás puntos deben importar/referenciar desde ahí. Definir el mismo concepto N veces en N archivos garantiza divergencia silenciosa.
-    - **Patrón prohibido:** Definir `ASIGNATURAS = [...]` en un Model, un Service, un Seeder y un archivo TS por separado. Cuando uno cambia, los otros quedan desincronizados sin generar error.
-    - **Patrón prohibido:** Definir el tipo `EstadoSuscripcion` en `types/index.ts`, en `useConfiguracion.ts` inline, y en el schema de BD con valores diferentes. Tres verdades incompatibles = bugs que no lanzan error.
-    - **Patrón correcto:** Una fuente canónica (Schema, constantes centralizada, enum) → generación o importación en todos los consumidores.
-    - **Test mental:** Si para cambiar un valor de enum hay que editar más de 1 archivo, la arquitectura viola esta regla.
-
-- **ENDPOINTS NO DEBEN ACCEDER A BD DIRECTAMENTE (SEPARACIÓN DE CAPAS):** Los controllers/endpoints REST son la capa de transporte — su responsabilidad es: validar input, llamar a un servicio/modelo, formatear la respuesta. **PROHIBIDO** que un endpoint contenga queries `$wpdb` directas, lógica de negocio compleja, o manipulación directa de datos. Toda operación de datos debe canalizarse por la capa correspondiente (modelos, repositorios, servicios).
-    - Un endpoint con `$wpdb->insert()`, `$wpdb->query()`, o SQL inline es una violación de SRP y dificulta testing, reutilización y mantenimiento.
-    - **Excepción:** Queries de lectura trivial (un SELECT simple para verificar existencia) pueden tolerarse si no justifican crear un método de modelo. Pero toda escritura **DEBE** ir por la capa de datos.
-
-- **SANITIZACIÓN OBLIGATORIA EN LA FRONTERA DE ENTRADA (ENDPOINTS):** Todo parámetro recibido de un request HTTP **DEBE** sanitizarse y validarse en el endpoint **ANTES** de pasarlo a modelos/servicios. Las capas internas no deben asumir que los datos ya están limpios, pero la primera línea de defensa es el endpoint.
-    - Strings: `sanitize_text_field()` o equivalente.
-    - Enteros: `intval()` / `absint()`.
-    - Emails: `sanitize_email()` + `is_email()`.
-    - URLs: `esc_url_raw()`.
-    - Arrays/JSON: validar estructura y tipos de cada campo esperado.
-    - **PROHIBIDO** pasar `$request->get_json_params()` completo a un modelo/servicio sin filtrar campos esperados. Un payload arbitrario no debe llegar a la capa de datos.
-    - **Patrón recomendado:** Definir un array de campos esperados con sus tipos y sanitizadores, y filtrar el input contra esa definición antes de procesarlo.
-
-- **VALIDAR URLs DE REDIRECCIÓN CONTRA EL DOMINIO PROPIO (OPEN REDIRECT):** Toda URL que el usuario proporcione como destino de redirección (success_url, return_url, callback_url, etc.) **DEBE** validarse para asegurar que pertenece al dominio del sitio. Sin esta validación, un atacante puede redirigir usuarios a sitios maliciosos usando la confianza del dominio legítimo.
-    - En WordPress: usar `wp_validate_redirect($url, home_url())` o verificar que `parse_url($url, PHP_URL_HOST)` coincide con el dominio propio.
-    - **PROHIBIDO** pasar URLs de input directamente a `header('Location: ')`, `wp_redirect()`, o APIs de checkout de pago sin validar dominio.
-
-- **INTEGRACIONES DE PAGO: IDEMPOTENCY Y PROTECCIÓN CONTRA REPLAY (CRÍTICO):** Toda integración con pasarelas de pago (Stripe, PayPal, etc.) **DEBE** implementar:
-    - **Idempotency keys** en operaciones que crean cobros/sesiones de checkout, para evitar cobros duplicados por reintentos del browser o timeouts.
-    - **Protección contra webhook replay:** Verificar firma del webhook + timestamp. Un webhook reenviado no debe duplicar cambios de estado.
-    - **Atomicidad en procesamiento de webhooks:** Si un webhook crea/actualiza registros en BD, usar transacción + verificar si ya fue procesado (idempotencia del lado receptor).
-    - **Timeouts explícitos** en llamadas a API de pago. Un request sin timeout puede colgar el proceso PHP indefinidamente.
-    - **Esquemas de encriptación robustos:** Si se encriptan API keys, no usar separadores que puedan aparecer en los datos encriptados (ej: `::` como separador cuando el IV puede contener esos bytes). Usar formatos binarios o base64 sin ambiguedad.
-
-- **NO MUTAR ESTADO REACT DIRECTAMENTE (INMUTABILIDAD OBLIGATORIA):** En React, **PROHIBIDO** modificar objetos o arrays del estado in-place. Métodos como `splice()`, asignación directa a propiedades (`obj.prop = valor`), o `push()` sobre arrays del estado **no son detectados por React** y causan bugs de renderizado.
-    - **Patrón prohibido:** `const copia = {...estado}; copia.nested[0].campo = valor;` — la copia superficial no protege objetos anidados.
-    - **Patrón correcto:** Usar `map()` + spread para arrays, spread profundo o librerías de inmutabilidad para objetos anidados.
-    - Esto aplica a: handlers de formularios, updates optimistas, transformaciones de datos antes de `setState`.
-
-- **NO EXPONER DETALLES INTERNOS DE ERROR AL CLIENTE:** Los mensajes de error devueltos al frontend en respuestas HTTP **NUNCA** deben incluir: paths del servidor, stack traces, nombres de tablas/columnas de BD, detalles de configuración interna, o mensajes técnicos de excepciones (`$e->getMessage()` raw).
-    - **Patrón correcto:** Logear el error completo en servidor, retornar mensaje genérico al cliente (`"Error al procesar la solicitud"`), incluir un código de error interno para correlación (`"error_code": "ERR_PROC_001"`).
-    - En frontend: `console.error` con stack traces de APIs de pago puede exponer datos sensibles en herramientas de monitoring del browser. Limitar lo que se logea en consola en producción.
+**14. Glory Sentinel.** 
+  - Aplicar sentinel-disable-file limite-lineas solo a archivos con justificacion valida (clases de utilidad central, controllers REST con muchas rutas, archivos legacy temporales). Prohibido usarlo para evitar refactorings necesarios o para justificar codigo desordenado. Si se usa, explicar claramente la razón.
 
 ---
 
-### Ejemplo de Estilo de Comentario Aceptado
+## II. FLUJO DE TRABAJO (ciclo continuo)
 
-```javascript
-/*
- * Función para calcular totales.
- * Se extrajo la lógica de impuestos para cumplir SRP.
- */
-const calcularTotal = () => { ... }
+El roadmap (`App/roadmap.md`) es el canal de comunicacion. El usuario escribe tareas ahi, tu las ejecutas. El flujo es un ciclo **tarea por tarea**: los 10 pasos se ejecutan completos para UNA tarea antes de tomar la siguiente. No se acumulan tareas ni se saltan pasos.
 
+### ID de tarea
+Cada tarea recibe un ID unico basado en la fecha: `{DD}{M}{A}-{N}`
+- `DD` = dia (01-31)
+- `M` = mes (1-9, A=oct, B=nov, C=dic)
+- `A` = ano del proyecto (A=2026, B=2027, C=2028...)
+- `N` = numero secuencial de tarea ese dia (1, 2, 3...)
+- Ejemplo: 17 marzo 2026, tarea 1 = `173A-1`. Tarea 2 ese dia = `173A-2`.
+
+### Paso 1 — Leer roadmap y planes
+Leer `App/roadmap.md` completo. Identificar tareas pendientes. Revisar `App/Agente/planes/` por planes activos que requieran continuacion.
+
+Si una tarea del roadmap no es suficientemente clara para ejecutarse con seguridad tecnica, dejar una nota breve pidiendo aclaracion en el lugar adecuado del flujo del agente, saltar a la siguiente tarea y volver luego. Prohibido bloquear el ciclo completo por una ambiguedad aislada.
+
+### Paso 2 — Ejecutar tarea
+Tomar una tarea pendiente y completarla. Reglas:
+- **2.1** Cada tarea = un commit separado con mensaje claro.
+- **2.2** Completar una tarea individualmente antes de pasar a otra. Se permite agrupar solo tareas completamente relacionadas.
+- **2.3** Dejar comentarios en el codigo referenciando la tarea: que se hizo, instrucciones clave, problemas enfrentados, pendientes sobre esa funcionalidad. No borrar comentarios anteriores.
+- **2.4** Prohibido avanzar sin marcar la tarea como completada, hacer commit y organizar los MDs.
+- **2.5** Editar archivo por archivo. No acumular cambios en muchos archivos sin validar entre cada uno.
+- **2.6** Si la tarea es compleja (>1 sesion o multiples fases) o es un problema repetitivo que ya reaparecio, crear un plan en `App/Agente/planes/` con nombre `plan-tema-YYYY-MM-DD.md` describiendo fases, estado actual y proximos pasos. Continuar desde donde se quedo.
+
+### Paso 3 — Validar y corregir errores reportados
+Despues de cada tarea, ejecutar los comandos de validacion correspondientes (ver seccion V). **Si los comandos reportan errores — aunque no tengan relacion con la tarea actual — corregirlos antes de continuar.** Los errores reportados por herramientas son tu responsabilidad. No se avanza con errores pendientes.
+
+Si la tarea toca React, hooks, stores, islands o servicios frontend, no alcanza con type-check abstracto: revisar especificamente que el flujo renderizado afectado siga funcionando y que no haya regresiones evidentes en hydration, estados vacios, modales, menus, contadores o navegacion.
+
+Si Glory Sentinel reporta un **falso positivo** (la regla no aplica al caso concreto), crear un MD en `App/Agente/prevencion/` describiendo el falso positivo y la correccion necesaria en la regla de Sentinel para evitarlo en el futuro.
+
+### Paso 4 — Testear la tarea
+Antes de marcar como completada, verificar que la funcionalidad implementada o corregida funciona:
+- Ejecutar la feature o el fix en local y confirmar el resultado esperado.
+- Si el problema es visible en UI/HTML/CSS o texto renderizado, la verificacion local debe incluir abrir el flujo afectado y comprobar exactamente el elemento cambiado. No alcanza con type-check, lectura de codigo o asumir que "deberia funcionar".
+- Si hay tests existentes, ejecutarlos. Si la tarea lo amerita y es viable, agregar un test.
+- Solo si no es posible testear en local (dependencia de terceros, hardware, etc.), omitir con justificacion en el comentario del commit.
+- **Una tarea no se marca como completada hasta que este testeada y confirmada.**
+
+### Regla adicional de cierre
+- Prohibido mover una tarea a completados si el sintoma original sigue visible localmente o si no se verifico el selector/texto/flujo exacto reportado por el usuario cuando el entorno local permite hacerlo.
+
+### Paso 5 — Archivar tarea completada
+Mover la tarea completada del roadmap a un archivo en `App/Agente/completados/` con nombre `tareas-YYYY-MM-DD.md`. Si ya existe uno con la fecha de hoy, agregar ahi. El roadmap nunca acumula tareas completadas. Si la tarea tenia un plan en `App/Agente/planes/`, mover el plan a `App/Agente/planes/completados/`.
+
+### Paso 6 — Documentar (obligatorio cuando se toca funcionalidad)
+Despues de completar una tarea, revisar si la funcionalidad o flujo tocado ya tiene documentacion vigente en `App/Agente/documentacion/`. Si no existe, crearla; si existe, actualizarla. Esto es obligatorio para toda tarea que cambie arquitectura, flujos de usuario, contratos backend/frontend, sincronizacion, algoritmos, integraciones, tooling o comportamiento reutilizable. Nunca duplicar documentacion existente sobre el mismo tema — actualizar el archivo existente y cambiar la fecha en el nombre, actualizar la fecha del archivo en caso de que se actualice.
+
+### Paso 7 — Prevencion (si aplica, problemas que se puedan detectar o prevenir con Code Sentinel)
+Preguntarse: "Se puede detectar o prevenir automaticamente la proxima vez con Code Sentinel?" Si si, crear un MD en `App/Agente/prevencion/` con nombre `prevencion-tema-YYYY-MM-DD.md` describiendo la regla a implementar, y dejar referencia en el roadmap como tarea pendiente.
+
+### Paso 8 — Revisar pendientes de prevencion
+Leer `App/Agente/prevencion/`. Si hay MDs pendientes de implementar:
+1. Implementar la regla en `.agent/code-sentinel` (o `.agent/varsense` si es CSS).
+2. Ejecutar la extension contra el caso original para verificar que detecta el problema.
+3. Reinstalar la extension (`vsce package` + instalar `.vsix`).
+4. Confirmar deteccion exitosa mediante test, eliminar el MD de prevencion y marcar como completada.
+- Si no hay pendientes, saltar este paso.
+
+### Paso 9 — Commit, push y deploy
+Hacer commit final. Luego sincronizar la rama local con remoto (`git pull --rebase` o equivalente no interactivo si aplica al flujo del repo) antes del push/deploy. Si el roadmap del proyecto indica que aplica deploy, usar `.agent/coolify-manager-rs` para subir al servidor. **Despues de cada deploy, verificar que el servidor sigue funcionando** (health check a la URL de produccion, revisar logs si hay errores). Si el deploy rompe algo, revertir antes de continuar.
+
+`coolify-manager-rs` debe tratarse como herramienta viva: si durante una tarea aparece un escenario de deploy, health, logs, restart, backup, restore o exec que no cubre bien, dejar constancia de que puede y debe mejorarse para soportar ese caso de uso de forma robusta.
+
+### Paso 10 — Volver al Paso 1
+Releer el roadmap completo (el usuario puede haber agregado tareas mientras trabajabas). Repetir el ciclo hasta que no queden tareas pendientes. Solo entonces, cerrar con un resumen breve de lo realizado.
+
+---
+
+## III. FORMATOS
+
+### ID de tareas
+Formato: `{DD}{M}{A}-{N}` donde DD=dia, M=mes (1-9, A-C para oct-dic), A=ano proyecto (A=2026, B=2027...), N=secuencial del dia.
+Ejemplo: 17 marzo 2026, tarea 3 = `173A-3`. 5 noviembre 2027, tarea 1 = `05BB-1`.
+
+### Tareas en el roadmap (formato del agente al completar)
 ```
+Pendiente (escrita por el usuario, cualquier formato):
+- Arreglar el bug del login
+
+Completada (movida a App/Agente/completados/tareas-YYYY-MM-DD.md):
+## 173A-1 — Titulo breve
+- **Que:** descripcion de lo que se hizo
+- **Archivos:** lista de archivos modificados
+- **Gotchas:** problemas encontrados (si los hubo)
+- **Sentinel:** si requiere nueva regla, si hubo falso positivo, o si no aplica
+```
+
+### Comentarios en codigo
+```javascript
+/* [173A-1] Descripcion breve de lo que se hizo y por que.
+ * Gotcha: detalle relevante para futuras ediciones.
+ * Pendiente: lo que queda por hacer en esta area. */
+```
+
+### Commits
+```
+173A-1: descripcion breve de la tarea
+173A-1+173A-2: descripcion si son tareas relacionadas
+```
+
+### Nomenclatura
+- JS/TS: `camelCase` vars/funcs, `PascalCase` componentes
+- CSS: espanol + `camelCase` (`.contenedorPrincipal`)
+- Archivos MD: `nombre-descriptivo-YYYY-MM-DD.md`
+
+---
+
+## IV. ESTRUCTURA DE LOS MDs
+
+### Plantilla del roadmap (`App/roadmap.md`)
+```markdown
+# {Nombre del Proyecto} — Roadmap
+
+> **Descripcion:** breve descripcion del proyecto
+> **Stack:** descripcion breve del stack tecnologico
+> **URL produccion:** URL del sitio en produccion
+> **Servidor:** IP del servidor, acceso SSH (usuario)
+> **Deploy:** si aplica, como se despliega (ej: Coolify, manual, N/A)
+> **Coolify IDs:** UUIDs de servicios relevantes en Coolify
+> **Repositorio:** rama principal y convenciones
+
+## Herramientas del agente
+- Code Sentinel: `.agent/code-sentinel`
+- VarSense: `.agent/varsense`
+- Coolify Manager: `.agent/coolify-manager-rs` (si aplica deploy)
+
+## Documentacion legacy
+(enlaces a docs existentes que no siguen v4.0, con nota de que son legacy)
+
+## Tareas pendientes
+(el usuario escribe aqui en cualquier formato, el agente asigna IDs y ejecuta)
+```
+
+### Arbol de archivos
+```
+App/
+  roadmap.md                              <-- EJE CENTRAL: solo tareas pendientes del usuario
+  Agente/
+    completados/
+      tareas-YYYY-MM-DD.md                <-- Tareas completadas agrupadas por fecha
+    documentacion/
+      {categoria}/
+        tema-YYYY-MM-DD.md                <-- Documentacion generica reutilizable
+    planes/
+      plan-tema-YYYY-MM-DD.md             <-- Planes para tareas complejas (activos)
+      completados/
+        plan-tema-YYYY-MM-DD.md           <-- Planes de tareas ya finalizadas
+    prevencion/
+      prevencion-tema-YYYY-MM-DD.md       <-- Reglas para Code Sentinel (pendientes de implementar)
+```
+
+### Reglas de los MDs
+1. **roadmap.md** solo contiene tareas pendientes. Nunca acumula completadas.
+2. Todo MD tiene fecha en su nombre (`YYYY-MM-DD`) para saber que tan actualizado esta.
+3. Documentacion se organiza en carpetas por categoria dentro de `documentacion/`.
+4. Nunca duplicar documentacion — si ya existe un MD sobre el tema, actualizarlo (y actualizar la fecha).
+5. Todo MD de tareas completadas debe incluir explicitamente si requiere una regla nueva de Glory Sentinel, si hubo falso positivo o si no aplica.
+6. Lecciones aprendidas van en los comentarios del codigo, no en MDs separados.
+7. Si la estructura de MDs esta desorganizada al iniciar sesion, reorganizarla como primera accion.
+8. Archivos en `App/docs (ignorar)/` son legacy — no modificar ni mover sin instruccion del usuario.
+
+---
+
+## V. COMANDOS DE REVISION
+
+### Validacion de codigo
+| Cuando | Comando |
+|--------|---------|
+| Editar `.ts`/`.tsx` | `npm run type-check` + `get_errors` |
+| Editar `.css` | VarSense: `cssVarsValidator.scanAllDiagnostics` |
+| Generacion masiva | Code Sentinel: `codeSentinel.analyzeWorkspace` |
+| Antes de commit | `npm run type-check` minimo |
+| Lint + types integrado | `codeSentinel.runExternalTools` |
+
+### Deploy (solo si el roadmap indica que aplica)
+Binario: `.agent/coolify-manager-rs/target/release/coolify-manager.exe`
+
+| Comando | Uso |
+|---------|-----|
+| `deploy --name <sitio> --update` | Despliega/actualiza el tema en el sitio |
+| `redeploy --name <sitio>` | Fuerza redeploy via Coolify API (sin cambios de codigo) |
+| `health --name <sitio>` | Health check remoto + HTTP (usar post-deploy para verificar) |
+| `logs --name <sitio>` | Ver logs del contenedor o debug.log de WordPress |
+| `restart --name <sitio>` | Reinicia servicios del sitio |
+| `backup --name <sitio>` | Crea copia de seguridad externa |
+| `restore --name <sitio>` | Restaura un backup (usar si deploy rompe algo) |
+| `exec --name <sitio> -- <cmd>` | Ejecuta comando en el contenedor |
+| `git-status --name <sitio>` | Muestra estado de Git en el tema remoto |
+| `deploy-websocket --name <sitio>` | Agrega servicio WebSocket (Bun) al stack |
+
+**Flujo deploy obligatorio:** `deploy` → `health` → si falla → `redeploy`.
+
+### Otros comandos utiles
+- `codeSentinel.analyzeFile` — analizar archivo actual
+- `cssVarsValidator.exportReport` — reporte CSS exportable
+- `cssVarsValidator.scanOrphanClasses` — clases CSS sin uso
