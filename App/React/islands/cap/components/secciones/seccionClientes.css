@@ -1,0 +1,94 @@
+/**
+ * [2003A-3] Estilos para SeccionClientes — tab de admin
+ */
+
+.capSeccionClientes__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cap-espacio-md);
+    flex-wrap: wrap;
+}
+
+.capSeccionClientes__stripeLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    text-decoration: none;
+    font-size: var(--cap-texto-sm);
+    white-space: nowrap;
+}
+
+/* Buscador */
+.capSeccionClientes__buscador {
+    max-width: 400px;
+}
+
+/* Estados vacío y cargando */
+.capSeccionClientes__cargando,
+.capSeccionClientes__vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cap-espacio-3xl) var(--cap-espacio-md);
+    text-align: center;
+}
+
+.capSeccionClientes__vacioIcono {
+    color: var(--cap-gris-300);
+    margin-bottom: var(--cap-espacio-md);
+}
+
+/* Tabla */
+.capSeccionClientes__tablaContenedor {
+    overflow-x: auto;
+    border-radius: var(--cap-radio-lg);
+    border: 1px solid var(--cap-gris-200);
+}
+
+.capSeccionClientes__tablaContenedor .capTabla th {
+    padding: var(--cap-espacio-md) var(--cap-espacio-lg);
+    text-align: left;
+    font-weight: var(--cap-peso-semibold);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+    background: var(--cap-fondo-sutil);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+    white-space: nowrap;
+}
+
+.capSeccionClientes__tablaContenedor .capTabla td {
+    padding: var(--cap-espacio-md) var(--cap-espacio-lg);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    vertical-align: middle;
+}
+
+.capSeccionClientes__tablaContenedor .capTabla tr:last-child td {
+    border-bottom: none;
+}
+
+.capSeccionClientes__tablaContenedor .capTabla tr:hover {
+    background: var(--cap-fondo-sutil);
+}
+
+.capSeccionClientes__celda {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.capSeccionClientes__nombre {
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-gris-900);
+}
+
+/* Paginación */
+.capSeccionClientes__paginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cap-espacio-md);
+}

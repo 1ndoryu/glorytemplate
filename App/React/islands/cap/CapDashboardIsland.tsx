@@ -6,7 +6,7 @@
  */
 
 import {CapLayout} from './components/layout';
-import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion, SeccionReportes} from './components/secciones';
+import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion, SeccionReportes, SeccionClientes} from './components/secciones';
 import {Paywall} from './components/paywall';
 import {useConfiguracion} from './hooks/useConfiguracion';
 import {useDashboardStore} from './stores/useDashboardStore';
@@ -113,13 +113,15 @@ export function CapDashboardIsland(rawProps: Record<string, unknown>) {
                 return <SeccionConfiguracion userName={user.name} userEmail={user.email} isAdmin={user.isAdmin} />;
             case 'reportes':
                 return <SeccionReportes />;
+            case 'clientes':
+                return <SeccionClientes />;
             default:
                 return <SeccionCalendario />;
         }
     };
 
     return (
-        <CapLayout userName={user.name} siteUrl={siteUrl} logoutUrl={logoutUrl}>
+        <CapLayout userName={user.name} siteUrl={siteUrl} logoutUrl={logoutUrl} isAdmin={user.isAdmin}>
             {renderContenido()}
             {mostrarPaywall && suscripcion && (
                 <Paywall

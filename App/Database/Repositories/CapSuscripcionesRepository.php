@@ -12,6 +12,7 @@
 namespace Glory\App\Database\Repositories;
 
 use App\Config\Schema\_generated\CapSuscripcionesCols;
+use App\Config\Schema\_generated\CapCentrosCols;
 
 class CapSuscripcionesRepository extends BaseRepository
 {
@@ -79,5 +80,44 @@ class CapSuscripcionesRepository extends BaseRepository
 
         $customerId = $resultados[0][$colCustomerId] ?? null;
         return !empty($customerId) ? (string) $customerId : null;
+    }
+
+    /**
+     * [2003A-3] Lista todas las suscripciones con datos del centro y usuario WP.
+     * Solo para admin — no filtra por centro_id.
+     */
+    public static function listarTodosConCentro(int $limite = 50, int $offset = 0): array
+    {
+        global $wpdb;
+
+        $tablaSuscripciones = static::tablaCompleta();
+        $tablaCentros = $wpdb->prefix . CapCentrosCols::TABLA;
+        $colCentroId = CapSuscripcionesCols::CENTRO_ID;
+        $colCentroNombre = CapCentrosCols::NOMBRE;
+        $colCentroEmail = CapCentrosCols::EMAIL;
+        $colCentroTelefono = CapCentrosCols::TELEFONO;
+        $colUserId = CapCentrosCols::USER_ID;
+
+        $resultados = static::consultar(
+            "SELECT s.*, c.{$colCentroNombre} AS centro_nombre, c.{$colCentroEmail} AS centro_email, c.{$colCentroTelefono} AS centro_telefono, c.{$colUserId} AS user_id
+             FROM {$tablaSuscripciones} s
+             LEFT JOIN {$tablaCentros} c ON s.{$colCentroId} = c.id
+             ORDER BY s.id DESC
+             LIMIT :limite OFFSET :offset",
+            ['limite' => $limite, 'offset' => $offset]
+        );
+
+        return $resultados;
+    }
+
+    /**
+     * [2003A-3] Cuenta el total de suscripciones (sin paginación).
+     */
+    public static function contarTodos(): int
+    {
+        $tabla = static::tablaCompleta();
+        $resultados = static::consultar("SELECT COUNT(*) AS total FROM {$tabla}");
+
+        return (int) ($resultados[0]['total'] ?? 0);
     }
 }

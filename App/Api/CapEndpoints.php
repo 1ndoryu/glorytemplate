@@ -22,6 +22,7 @@ class CapEndpoints
     private ?CapStripeEndpoints $stripeEndpoints = null;
     private ?CapReportesEndpoints $reportesEndpoints = null;
     private ?CapAuthEndpoints $authEndpoints = null;
+    private ?CapClientesEndpoints $clientesEndpoints = null;
 
     private function obtenerConfigEndpoints(): CapConfigEndpoints
     {
@@ -119,6 +120,14 @@ class CapEndpoints
         return $this->authEndpoints;
     }
 
+    private function obtenerClientesEndpoints(): CapClientesEndpoints
+    {
+        if ($this->clientesEndpoints === null) {
+            $this->clientesEndpoints = new CapClientesEndpoints();
+        }
+        return $this->clientesEndpoints;
+    }
+
     public function registrarRutas(): void
     {
         $configEndpoints = $this->obtenerConfigEndpoints();
@@ -133,6 +142,7 @@ class CapEndpoints
         $stripeEndpoints = $this->obtenerStripeEndpoints();
         $reportesEndpoints = $this->obtenerReportesEndpoints();
         $authEndpoints = $this->obtenerAuthEndpoints();
+        $clientesEndpoints = $this->obtenerClientesEndpoints();
 
         register_rest_route(self::NAMESPACE, '/config', [
             ['methods' => 'GET', 'callback' => $configEndpoints->callbackSeguro('obtenerConfig'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],
@@ -302,6 +312,13 @@ class CapEndpoints
             'methods' => 'POST',
             'callback' => $authEndpoints->callbackSeguro('login'),
             'permission_callback' => '__return_true',
+        ]);
+
+        /* [2003A-3] Listado de clientes y suscripciones (solo admin) */
+        register_rest_route(self::NAMESPACE, '/admin/clientes', [
+            'methods' => 'GET',
+            'callback' => $clientesEndpoints->callbackSeguro('listarClientes'),
+            'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
         ]);
     }
 }

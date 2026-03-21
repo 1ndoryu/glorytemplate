@@ -6,3 +6,4 @@ export {SeccionCalendario} from './SeccionCalendario';
 export {SeccionAlumnos} from './SeccionAlumnos';
 export {SeccionConfiguracion} from './SeccionConfiguracion';
 export {SeccionReportes} from './SeccionReportes';
+export {SeccionClientes} from './SeccionClientes';

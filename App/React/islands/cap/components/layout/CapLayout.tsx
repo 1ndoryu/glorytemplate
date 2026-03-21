@@ -8,7 +8,7 @@
 
 import type {ReactNode} from 'react';
 import {Badge} from '../ui';
-import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha} from '../icons';
+import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha, IconoTarjeta} from '../icons';
 import {useDashboardStore, type SeccionActiva} from '../../stores/useDashboardStore';
 import '../dashboard/dashboard.css';
 
@@ -16,12 +16,14 @@ interface ItemNavegacion {
     id: SeccionActiva;
     label: string;
     icono: ReactNode;
+    soloAdmin?: boolean;
 }
 
 const itemsNavegacion: ItemNavegacion[] = [
     {id: 'calendario', label: 'Calendario', icono: <IconoCalendario />},
     {id: 'alumnos', label: 'Alumnos', icono: <IconoUsuarios />},
     {id: 'reportes', label: 'Reportes', icono: <IconoReportes />},
+    {id: 'clientes', label: 'Clientes', icono: <IconoTarjeta />, soloAdmin: true},
     {id: 'configuracion', label: 'Configuración', icono: <IconoConfiguracion />}
 ];
 
@@ -30,9 +32,10 @@ interface CapLayoutProps {
     userName: string;
     siteUrl: string;
     logoutUrl: string;
+    isAdmin: boolean;
 }
 
-export function CapLayout({children, userName, siteUrl, logoutUrl}: CapLayoutProps) {
+export function CapLayout({children, userName, siteUrl, logoutUrl, isAdmin}: CapLayoutProps) {
     /* Selectores individuales para evitar re-renders innecesarios (8.13) */
     const seccionActiva = useDashboardStore(s => s.seccionActiva);
     const sidebarAbierto = useDashboardStore(s => s.sidebarAbierto);
@@ -48,6 +51,9 @@ export function CapLayout({children, userName, siteUrl, logoutUrl}: CapLayoutPro
     };
 
     const tituloSeccion = itemsNavegacion.find(i => i.id === seccionActiva)?.label || '';
+
+    /* [2003A-3] Filtrar items que son soloAdmin si el usuario no es admin */
+    const itemsVisibles = itemsNavegacion.filter(item => !item.soloAdmin || isAdmin);
 
     return (
         <div className="capApp capDashboard" id="dashboardCAP">
@@ -73,7 +79,7 @@ export function CapLayout({children, userName, siteUrl, logoutUrl}: CapLayoutPro
                 </div>
 
                 <nav className="capSidebar__nav">
-                    {itemsNavegacion.map(item => (
+                    {itemsVisibles.map(item => (
                         <button key={item.id} className={`capSidebar__item ${seccionActiva === item.id ? 'capSidebar__item--activo' : ''}`} onClick={() => setSeccionActiva(item.id)}>
                             <span className="capSidebar__itemIcono">{item.icono}</span>
                             <span className="capSidebar__itemLabel">{item.label}</span>
