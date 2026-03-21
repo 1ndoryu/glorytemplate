@@ -62,13 +62,103 @@ Ubicacion: `App/docs (ignorar)/`
 - **2003A-37+2003A-38+2003A-39+2003A-40 (2026-03-21):** Fix CORS x-idempotency-key uploads; umbral drag 20px + preview verde nativo; infinite scroll colecciones explorar; estados dinámicos sync + trigger al despausar.
 - **2103A-1+2103A-2 (2026-03-21):** Build desktop app — Tauri v2 release build (MSI + NSIS installer). URLs descarga configuradas en WordPress para Windows (.exe) y Android (.apk).
 - **2103A-3+2103A-4+2103A-5 (2026-03-21):** Ordenamiento inteligente colecciones explorar (scoring multi-factor auth/no-auth, frescura suave, centralizado en algoritmoPesos); título con mayor peso en búsqueda (titulo_boost 0.5→1.5, nuevo titulo_exacto_boost 2.0); documentación actualizada.
+- **2103A-10 (2026-03-21):** Fix boost_reciente minimalizado (2.0→1.05) — dominaba el feed completo con samples scrapeados <24h; rn/rn_genero ahora escritos en aplicarDiversidadPHP para debug badge; "0h" mostrado como "15min" en frontend.
 - **213A-2 (2026-03-21):** Fix búsqueda feed — orderBy carecía de fuzzy_boost, titulo_exacto_boost y engagement (LN), haciendo que resultados con igual ts_rank se ordenaran por publicado_at (= recientes). Paridad con /samples listar + engagement_boost=0.15.
 - **213A-1 (2026-03-21):** Fix crítico SelectorCandidatos — `:userId` sin binding en Fuente 3 causaba PDO catch→[], algoritmo retornaba 0 resultados y caía a fallback recientes. Activado al bajar umbral_activacion a 2000 (catálogo > 2000 samples).
 
 ## Tareas pendientes
 
+## 2103A-11
 
-## 2103A-10 
+Creo que hay que hacer menos estricto lo del hash o mas preciso para que realmente sepa diferenciar, los snare, kick y cosas asi por lo general se parece mucho pero tecnicamente no son iguales. 
 
-Hay un problema con el algoritmo y no se que, revisa logs los de kamples.log a ver, la cuestión es que en los badge de inforamcion de depouracion solo aparece el boot de reciente y aparece con 0h, o sea, es lo unico que aparece (boot reciente 2x) no da mas detalles. Tambien siento que el impacto de reciente demasiado, bajalo al minimo. 
-
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 24 detecciones: SMK Snare 4 (2).wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 4 (2).wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 25 detecciones: SMK Snare 4.wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 4.wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 24 detecciones: SMK Snare 5 (2).wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 5 (2).wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 25 detecciones: SMK Snare 5.wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 5.wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 24 detecciones: SMK Snare 6 (2).wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 6 (2).wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 25 detecciones: SMK Snare 6.wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 6.wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 24 detecciones: SMK Snare 7 (2).wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 7 (2).wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 25 detecciones: SMK Snare 7.wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 7.wav 
+uploadQueueService-BdIuPfxD.js:49 [sync:uploadQueue] Antispam: hash bloqueado tras 24 detecciones: SMK Snare 8 (2).wav 
+Na @ uploadQueueService-BdIuPfxD.js:49
+warn @ uploadQueueService-BdIuPfxD.js:51
+ai @ uploadQueueService-BdIuPfxD.js:51
+await in ai
+Zn @ uploadQueueService-BdIuPfxD.js:51
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+await in b
+b @ syncOrphanAnalysis-B19HjyP6.js:2
+uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolado: SMK Snare 8 (2).wav 
