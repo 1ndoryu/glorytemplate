@@ -59,9 +59,15 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-63 (2026-03-20):** Logs diagnóstico rotación keys Groq + panel admin cola-IA muestra estado de las 3 keys, cuál está activa y último audio.
 - **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp — Rules of Hooks.
 
+- **2003A-37+2003A-38+2003A-39+2003A-40 (2026-03-21):** Fix CORS x-idempotency-key uploads; umbral drag 20px + preview verde nativo; infinite scroll colecciones explorar; estados dinámicos sync + trigger al despausar.
+
 ## Tareas pendientes
 
+## 2103A-1
 
-## 2003A-37
+Generar la aplicación de escritorio despues de resolver los problemas anteriores
 
-el problema con la anterior tarea 36, es que se marca y consume el credito justa al arrastrar haciendo un minimo arrastre sin nisiquiera haber movido el archivo, se que esto debe ser dificil, tambien falta una confirmacion visual 
+## 2103A-2
+
+Que dar click a App para escritorio y App para Android descargue el instalador y apk, encargate de eso de la forma mas eficiente sin complicaciones. 
+
