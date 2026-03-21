@@ -25,6 +25,7 @@ export interface Cliente {
     wp_user_login: string;
     wp_user_email: string;
     wp_display_name: string;
+    /* [2003A-15] */ acceso_bloqueado: boolean;
 }
 
 export interface FiltrosClientes {

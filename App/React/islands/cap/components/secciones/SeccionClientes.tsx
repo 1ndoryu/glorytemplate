@@ -4,11 +4,15 @@
  * [2003A-3] Vista de gestión de clientes y pagos para admin.
  * Muestra tabla con centros, estado de suscripción y acciones.
  * Solo visible para usuarios con rol administrator.
+ * [2003A-15] Botón Gestionar abre ModalGestionCliente para editar datos,
+ * plan, acceso y eliminar usuario. onGuardado recarga la lista.
  */
 
+import {useState} from 'react';
 import {Alerta, Spinner, Badge, Boton, Input} from '../ui';
 import {IconoUsuarios, IconoEnlaceExterno, IconoBuscar} from '../icons';
 import {useClientes, type Cliente} from '../../hooks/useClientes';
+import {ModalGestionCliente} from '../layout/ModalGestionCliente';
 import './seccionClientes.css';
 
 function formatearFecha(fecha: string | null): string {
@@ -41,7 +45,21 @@ function etiquetaEstado(estado: Cliente['estado']): string {
 }
 
 export function SeccionClientes() {
-    const {clientes, total, cargando, error, filtros, cambiarFiltros} = useClientes();
+    const {clientes, total, cargando, error, filtros, cambiarFiltros, cargarClientes} = useClientes();
+
+    /* [2003A-15] Estado para modal de gestión */
+    const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+    const [modalAbierto, setModalAbierto] = useState(false);
+
+    const abrirGestion = (cliente: Cliente) => {
+        setClienteSeleccionado(cliente);
+        setModalAbierto(true);
+    };
+
+    const cerrarModal = () => {
+        setModalAbierto(false);
+        setClienteSeleccionado(null);
+    };
 
     return (
         <div className="capSeccion capAnimFadeIn">
@@ -135,20 +153,30 @@ export function SeccionClientes() {
                                         <td className="capTexto capTexto--sm">{formatearFecha(cliente.fecha_inicio)}</td>
                                         <td className="capTexto capTexto--sm">{formatearFecha(cliente.fecha_fin)}</td>
                                         <td>
-                                            {cliente.stripe_customer_id ? (
-                                                <a
-                                                    href={`https://dashboard.stripe.com/customers/${cliente.stripe_customer_id}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="capBoton capBoton--sm capBoton--fantasma"
-                                                    title="Ver en Stripe"
+                                            <div className="capSeccionClientes__acciones">
+                                                {/* [2003A-15] Gestionar: editar datos, plan, acceso */}
+                                                <Boton
+                                                    variante="ghost"
+                                                    tamano="sm"
+                                                    onClick={() => abrirGestion(cliente)}
                                                 >
-                                                    <IconoEnlaceExterno size={14} />
-                                                    Ver en Stripe
-                                                </a>
-                                            ) : (
-                                                <span className="capTexto capTexto--xs capTexto--secundario">Sin Stripe</span>
-                                            )}
+                                                    Gestionar
+                                                </Boton>
+                                                {cliente.stripe_customer_id ? (
+                                                    <a
+                                                        href={`https://dashboard.stripe.com/customers/${cliente.stripe_customer_id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="capBoton capBoton--sm capBoton--fantasma"
+                                                        title="Ver en Stripe"
+                                                    >
+                                                        <IconoEnlaceExterno size={14} />
+                                                        Stripe
+                                                    </a>
+                                                ) : (
+                                                    <span className="capTexto capTexto--xs capTexto--secundario">Sin Stripe</span>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -181,6 +209,15 @@ export function SeccionClientes() {
                         Siguiente
                     </Boton>
                 </div>
+            )}
+            {/* [2003A-15] Modal de gestión del cliente seleccionado */}
+            {clienteSeleccionado && (
+                <ModalGestionCliente
+                    abierto={modalAbierto}
+                    onCerrar={cerrarModal}
+                    cliente={clienteSeleccionado}
+                    onGuardado={cargarClientes}
+                />
             )}
         </div>
     );

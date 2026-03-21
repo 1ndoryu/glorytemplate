@@ -341,6 +341,31 @@ class CapEndpoints
             'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
         ]);
 
+        /* [2003A-15] Gestión de usuario desde el panel de clientes (solo admin) */
+        register_rest_route(self::NAMESPACE, '/admin/clientes/(?P<userId>\d+)/usuario', [
+            'methods' => 'PUT',
+            'callback' => $clientesEndpoints->callbackSeguro('actualizarUsuario'),
+            'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/admin/clientes/(?P<centroId>\d+)/plan', [
+            'methods' => 'PUT',
+            'callback' => $clientesEndpoints->callbackSeguro('cambiarEstadoPlan'),
+            'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/admin/clientes/(?P<userId>\d+)/acceso', [
+            'methods' => 'PUT',
+            'callback' => $clientesEndpoints->callbackSeguro('cambiarAcceso'),
+            'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/admin/clientes/(?P<userId>\d+)', [
+            'methods' => 'DELETE',
+            'callback' => $clientesEndpoints->callbackSeguro('eliminarUsuario'),
+            'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
+        ]);
+
         /* [2003A-12] Perfil de usuario (autenticado) */
         register_rest_route(self::NAMESPACE, '/perfil', [
             ['methods' => 'GET', 'callback' => $perfilEndpoints->callbackSeguro('obtenerPerfil'), 'permission_callback' => [$configEndpoints, 'verificarPermisos']],

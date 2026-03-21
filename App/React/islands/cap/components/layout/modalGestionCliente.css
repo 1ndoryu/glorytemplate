@@ -1,0 +1,129 @@
+/**
+ * [2003A-15] Estilos para ModalGestionCliente
+ * Cubre secciones de: datos usuario, plan, acceso y zona de peligro.
+ */
+
+.capModalGestion__secciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.capModalGestion__seccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capModalGestion__seccionTitulo {
+    font-size: var(--cap-texto-sm);
+    font-weight: 600;
+    color: var(--cap-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: var(--cap-espacio-xs);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+}
+
+.capModalGestion__separador {
+    border: none;
+    border-top: 1px solid var(--cap-borde-sutil);
+    margin: 0;
+}
+
+/* Fila con label + accion inline */
+.capModalGestion__filaAcceso {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    background: var(--cap-bg-sutil, var(--cap-bg-tarjeta));
+    border-radius: var(--cap-radio-md);
+}
+
+.capModalGestion__filaAccesoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.capModalGestion__filaAccesoInfo strong {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-primario);
+}
+
+.capModalGestion__filaAccesoInfo span {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+}
+
+/* Estado bloqueado */
+.capModalGestion__filaAcceso--bloqueado {
+    background: color-mix(in srgb, var(--cap-error) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cap-error) 25%, transparent);
+}
+
+/* Plan info */
+.capModalGestion__planFila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cap-espacio-md);
+}
+
+.capModalGestion__planInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Zona de peligro */
+.capModalGestion__zonaPeligro {
+    border: 1px solid color-mix(in srgb, var(--cap-error) 30%, transparent);
+    border-radius: var(--cap-radio-md);
+    padding: var(--cap-espacio-md);
+    background: color-mix(in srgb, var(--cap-error) 4%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cap-espacio-md);
+}
+
+.capModalGestion__zonaPeligroTexto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.capModalGestion__zonaPeligroTexto strong {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-error);
+}
+
+.capModalGestion__zonaPeligroTexto span {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+}
+
+/* Acciones al pie de cada sección */
+.capModalGestion__accionesSeccion {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+}
+
+.capModalGestion__campos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capModalGestion__pie {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+    margin-top: var(--cap-espacio-md);
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+}

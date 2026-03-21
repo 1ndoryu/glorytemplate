@@ -86,6 +86,14 @@
     color: var(--cap-gris-900);
 }
 
+/* [2003A-15] Acciones por fila: Gestionar + Stripe */
+.capSeccionClientes__acciones {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    flex-wrap: wrap;
+}
+
 /* Paginación */
 .capSeccionClientes__paginacion {
     display: flex;

@@ -38,6 +38,7 @@ trait ConCallbackSeguro
 
     /**
      * Verifica que el usuario actual tenga permisos CAP (cap_admin o administrator).
+     * Los cap_admin con meta cap_acceso_bloqueado=1 son rechazados (2003A-15).
      */
     public function verificarPermisos(): bool
     {
@@ -46,8 +47,18 @@ trait ConCallbackSeguro
         }
 
         $user = wp_get_current_user();
-        return in_array('cap_admin', $user->roles, true)
-            || in_array('administrator', $user->roles, true);
+
+        /* Los administradores de WP siempre tienen acceso */
+        if (in_array('administrator', $user->roles, true)) {
+            return true;
+        }
+
+        if (in_array('cap_admin', $user->roles, true)) {
+            /* Verificar que el acceso no haya sido bloqueado por el admin */
+            return get_user_meta($user->ID, 'cap_acceso_bloqueado', true) !== '1';
+        }
+
+        return false;
     }
 
     /**
