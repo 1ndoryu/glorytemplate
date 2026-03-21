@@ -5,7 +5,7 @@
  * Lógica extraída a useLibreriaIsland (SRP).
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown, Bookmark, LayoutGrid, List, ListTree } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { Badge } from '@app/components/ui/Badge';
@@ -41,7 +41,7 @@ export const LibreriaIsland = (): JSX.Element => {
         colecciones, coleccionesEnArbol,
         coleccionesPublicas, coleccionesPublicasEnArbol,
         coleccionesGuardadas, coleccionesGuardadasEnArbol,
-        coleccionesPlanas, cargando,
+        coleccionesPlanas, cargando, cargandoMas, hayMasExplorar, cargarMasExplorar,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         modalCombinarAbierto, setModalCombinarAbierto, coleccionCombinando,
         tabActiva,
@@ -53,6 +53,24 @@ export const LibreriaIsland = (): JSX.Element => {
     } = useLibreriaIsland();
     const usuario = useAuthStore(s => s.usuario);
     const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
+
+    /* [2003A-39] IntersectionObserver para infinite scroll en tab explorar */
+    const sentinelaRef = useRef<HTMLDivElement | null>(null);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+
+    const sentinelaCallback = useCallback((node: HTMLDivElement | null) => {
+        if (observerRef.current) observerRef.current.disconnect();
+        if (!node) return;
+        sentinelaRef.current = node;
+        observerRef.current = new IntersectionObserver((entries) => {
+            if (entries[0]?.isIntersecting) cargarMasExplorar();
+        }, { rootMargin: '200px' });
+        observerRef.current.observe(node);
+    }, [cargarMasExplorar]);
+
+    useEffect(() => {
+        return () => { observerRef.current?.disconnect(); };
+    }, []);
 
     /* [173A-7] Mapa id->nombre para encontrar el nombre del padre de subcolecciones */
     const mapaColecciones = useMemo(() => {
@@ -177,7 +195,7 @@ export const LibreriaIsland = (): JSX.Element => {
 
                     {/* Contenido de tab activa */}
                     {tabActiva === 'explorar' ? (
-                        coleccionesPublicas.length === 0 ? (
+                        coleccionesPublicas.length === 0 && !cargandoMas ? (
                             <EstadoVacio
                                 icono={<Globe size={32} />}
                                 titulo={tagActivo ? t('libreria.sinResultados') : t('libreria.sinColeccionesPublicas')}
@@ -186,21 +204,33 @@ export const LibreriaIsland = (): JSX.Element => {
                                     : t('libreria.sinColeccionesCompartidas')}
                             />
                         ) : (
-                            <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
-                                {(vista === 'arbol' ? coleccionesPublicasEnArbol : coleccionesPublicas).map(col => {
-                                    const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
-                                    const esAdmin = usuario?.rol === 'admin';
-                                    return (
-                                        <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
-                                            esSubcoleccion={col.parentId !== null}
-                                            parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
-                                            onEditar={(esPropia || esAdmin) ? manejarEditarColeccion : undefined}
-                                            onCombinar={(esPropia || esAdmin) ? abrirCombinarColeccion : undefined}
-                                            onEliminar={(esPropia || esAdmin) ? manejarEliminarColeccion : undefined}
-                                        />
-                                    );
-                                })}
-                            </div>
+                            <>
+                                <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
+                                    {(vista === 'arbol' ? coleccionesPublicasEnArbol : coleccionesPublicas).map(col => {
+                                        const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
+                                        const esAdmin = usuario?.rol === 'admin';
+                                        return (
+                                            <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
+                                                esSubcoleccion={col.parentId !== null}
+                                                parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
+                                                onEditar={(esPropia || esAdmin) ? manejarEditarColeccion : undefined}
+                                                onCombinar={(esPropia || esAdmin) ? abrirCombinarColeccion : undefined}
+                                                onEliminar={(esPropia || esAdmin) ? manejarEliminarColeccion : undefined}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                                {/* [2003A-39] Sentinel para infinite scroll */}
+                                {hayMasExplorar && (
+                                    <div ref={sentinelaCallback} style={{ height: 1 }} />
+                                )}
+                                {cargandoMas && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--espacioLg)', gap: 'var(--espacioMd)' }}>
+                                        <SkeletonTarjetaColeccion />
+                                        <SkeletonTarjetaColeccion />
+                                    </div>
+                                )}
+                            </>
                         )
                     ) : tabActiva === 'guardadas' ? (
                         coleccionesGuardadas.length === 0 ? (

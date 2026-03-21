@@ -33,6 +33,9 @@ import type { OrdenColecciones, VistaColecciones } from '@app/utils/libreriaCole
 const log = crearLogger('LibreriaIsland');
 export type { OrdenColecciones, VistaColecciones };
 
+/* [2003A-39] Tamaño de página del endpoint /colecciones/explorar (hardcoded en backend) */
+const PAGE_SIZE_EXPLORAR = 20;
+
 export function useLibreriaIsland() {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [coleccionesPublicas, setColeccionesPublicas] = useState<Coleccion[]>([]);
@@ -43,6 +46,11 @@ export function useLibreriaIsland() {
     const [modalCombinarAbierto, setModalCombinarAbierto] = useState(false);
     const [coleccionCombinando, setColeccionCombinando] = useState<Coleccion | null>(null);
     const [versionDatos, setVersionDatos] = useState(0);
+
+    /* [2003A-39] Paginación para tab explorar (infinite scroll) */
+    const [paginaExplorar, setPaginaExplorar] = useState(1);
+    const [hayMasExplorar, setHayMasExplorar] = useState(true);
+    const [cargandoMas, setCargandoMas] = useState(false);
 
     /* C388: Tags frecuentes y filtro/ordenamiento */
     const [tagsFrecuentes, setTagsFrecuentes] = useState<string[]>([]);
@@ -89,18 +97,23 @@ export function useLibreriaIsland() {
 
         let activo = true;
         setCargando(true);
+        /* [2003A-39] Reset paginación al cambiar tab/busqueda */
+        setPaginaExplorar(1);
+        setHayMasExplorar(true);
 
         const cargar = async () => {
             try {
                 if (tabActiva === 'explorar') {
-                    const resp = await listarColeccionesPublicas(busqueda || undefined);
+                    const resp = await listarColeccionesPublicas(busqueda || undefined, 1);
                     if (!activo) return;
                     if (resp.ok && resp.data) {
                         setColeccionesPublicas(resp.data.colecciones);
                         setTagsFrecuentes(resp.data.tagsFrecuentes);
+                        setHayMasExplorar(resp.data.colecciones.length >= PAGE_SIZE_EXPLORAR);
                     } else {
                         setColeccionesPublicas([]);
                         setTagsFrecuentes([]);
+                        setHayMasExplorar(false);
                     }
                 } else if (tabActiva === 'colecciones') {
                     const resp = await listarColecciones();
@@ -188,6 +201,27 @@ export function useLibreriaIsland() {
         setModalColeccionAbierto(true);
     }, []);
 
+    /* [2003A-39] Cargar siguiente página de colecciones públicas (infinite scroll) */
+    const cargarMasExplorar = useCallback(async () => {
+        if (cargandoMas || !hayMasExplorar) return;
+        setCargandoMas(true);
+        const siguientePagina = paginaExplorar + 1;
+        try {
+            const resp = await listarColeccionesPublicas(busqueda || undefined, siguientePagina);
+            if (resp.ok && resp.data) {
+                setColeccionesPublicas(prev => [...prev, ...resp.data!.colecciones]);
+                setPaginaExplorar(siguientePagina);
+                setHayMasExplorar(resp.data.colecciones.length >= PAGE_SIZE_EXPLORAR);
+            } else {
+                setHayMasExplorar(false);
+            }
+        } catch {
+            log.error('Error cargando más colecciones');
+        } finally {
+            setCargandoMas(false);
+        }
+    }, [cargandoMas, hayMasExplorar, paginaExplorar, busqueda]);
+
     const manejarEditarColeccion = useCallback((col: Coleccion) => {
         setColeccionEditando(col);
         setModalColeccionAbierto(true);
@@ -237,6 +271,9 @@ export function useLibreriaIsland() {
         coleccionesGuardadas: guardadasFiltradas,
         coleccionesGuardadasEnArbol,
         cargando,
+        cargandoMas,
+        hayMasExplorar,
+        cargarMasExplorar,
         modalColeccionAbierto,
         setModalColeccionAbierto,
         coleccionEditando,

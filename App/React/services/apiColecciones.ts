@@ -130,12 +130,15 @@ export const listarColecciones = async (
     };
 };
 
-/* B1: Colecciones públicas para explorar — ahora retorna tags_frecuentes también */
+/* B1: Colecciones públicas para explorar — ahora retorna tags_frecuentes también.
+ * [2003A-39] Soporte de paginación con parámetro page. */
 export const listarColeccionesPublicas = async (
-    busqueda?: string
+    busqueda?: string,
+    page?: number
 ): Promise<RespuestaApi<RespuestaListarColecciones>> => {
     const params: Record<string, string | number | boolean | undefined> = {};
     if (busqueda) params.busqueda = busqueda;
+    if (page && page > 1) params.page = page;
     const resp = await apiGet<ListarRaw>('/colecciones/explorar', params);
 
     if (resp.ok && resp.data) {
