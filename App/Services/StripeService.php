@@ -193,11 +193,13 @@ class StripeService
             $this->configurarTimeoutStripe($stripeClass);
 
             /*
-             * Idempotency key: ventana de 5 minutos por centro.
+             * Idempotency key: ventana de 5 minutos por centro + priceId.
              * Si el usuario hace doble clic o recarga, Stripe devuelve la misma sesión.
+             * El priceId se incluye para que un cambio de precio dentro de la ventana
+             * genere una key distinta y Stripe no rechace con "same key, different params".
              */
             $ventanaMinutos = floor(time() / 300);
-            $idempotencyKey = hash('sha256', "cap_checkout_{$centroId}_{$email}_{$ventanaMinutos}");
+            $idempotencyKey = hash('sha256', "cap_checkout_{$centroId}_{$email}_{$this->priceId}_{$ventanaMinutos}");
 
             $session = $checkoutSessionClass::create([
                 'payment_method_types' => ['card'],
