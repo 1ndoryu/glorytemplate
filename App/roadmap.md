@@ -6,7 +6,7 @@
 > **Servidor:** 66.94.100.241, SSH: root
 > **Deploy:** Coolify (coolify-manager-rs), Stack UUID: `qgskgw8wwc08o444o08wko8o`
 > **Glory Branch:** `glory-react-calendarioesc`
-> **Repositorio:** 1ndoryu/glorytemplate, rama `main-kamples`
+> **Repositorio:** 1ndoryu/glorytemplate, rama `main`
 
 ## Herramientas del agente
 - Code Sentinel: `.agent/code-sentinel`
@@ -17,8 +17,6 @@
 - [App/React/docs (LEGACY)/especificaciones.md](React/docs%20(LEGACY)/especificaciones.md) — Especificaciones originales del proyecto (legacy, no sigue v4.0)
 
 ## Tareas pendientes
-
-- 2003A-2: Revisión Stripe para el cliente. (1) Verificar que PanelStripe solo se muestra a admins — ya confirmado que está correcto con `{isAdmin && <PanelStripe />}`. (2) Botón "Gestionar Pagos" no abre nada para el admin — investigar por qué y solucionarlo. (3) Precio de suscripción debe ser 75€ con 14 días de prueba gratis — esto se configura en Stripe Dashboard (crear Product/Price), luego el Price ID se pega en la web. Responder al cliente con instrucciones.
 
 - 2003A-3: Crear tab de administración de clientes y pagos. Reusar la tabla de columnas existente para agregar una nueva pestaña donde el admin vea todos los clientes con acciones: activar/desactivar plan, ver pagos, estado de suscripción, etc.
 
@@ -37,5 +35,17 @@ No se porque hay un espacio en blanco que envuelve la paginao sea hay un margen 
 
 ## 2003A-9
 
-Cuando el inicio de sesion es incorrecto no veo un mensaje de error o algo. 
+Cuando el inicio de sesion es incorrecto no veo un mensaje de error 
 
+## 2003A-10
+
+No se porque no me deja subir cambios a la rama
+
+> git push -u origin glory-react-calendarioesc
+To https://github.com/1ndoryu/glorytemplate.git
+ ! [rejected]            glory-react-calendarioesc -> glory-react-calendarioesc (non-fast-forward)
+error: failed to push some refs to 'https://github.com/1ndoryu/glorytemplate.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
