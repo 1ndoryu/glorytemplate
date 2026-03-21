@@ -1,0 +1,121 @@
+/**
+ * [2003A-11] Estilos para SeccionDocumentacion — documentación admin
+ */
+
+.capDocumentacion__grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+/* Acordeón de secciones */
+.capDocumentacion__seccion {
+    border: 1px solid var(--cap-borde-sutil);
+    border-radius: var(--cap-radio-lg);
+    overflow: hidden;
+}
+
+.capDocumentacion__seccionHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-md) var(--cap-espacio-lg);
+    background: var(--cap-fondo-sutil);
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: var(--cap-texto-principal);
+}
+
+.capDocumentacion__seccionHeader:hover {
+    background: var(--cap-gris-200);
+}
+
+.capDocumentacion__seccionIcono {
+    flex-shrink: 0;
+    color: var(--cap-primario);
+}
+
+.capDocumentacion__seccionTitulo {
+    flex: 1;
+    font-weight: var(--cap-peso-semibold);
+    font-size: var(--cap-texto-base);
+}
+
+.capDocumentacion__seccionFlecha {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    color: var(--cap-gris-400);
+}
+
+.capDocumentacion__seccionFlecha--abierto {
+    transform: rotate(90deg);
+}
+
+.capDocumentacion__seccionContenido {
+    padding: var(--cap-espacio-lg);
+    font-size: var(--cap-texto-sm);
+    line-height: 1.7;
+    color: var(--cap-texto-principal);
+}
+
+/* Tipografía dentro de la documentación */
+.capDocumentacion__seccionContenido h4 {
+    font-size: var(--cap-texto-base);
+    font-weight: var(--cap-peso-semibold);
+    margin: var(--cap-espacio-lg) 0 var(--cap-espacio-sm) 0;
+    color: var(--cap-texto-principal);
+}
+
+.capDocumentacion__seccionContenido h4:first-child {
+    margin-top: 0;
+}
+
+.capDocumentacion__seccionContenido p {
+    margin: var(--cap-espacio-xs) 0 var(--cap-espacio-md) 0;
+}
+
+.capDocumentacion__seccionContenido ul,
+.capDocumentacion__seccionContenido ol {
+    padding-left: var(--cap-espacio-xl);
+    margin: var(--cap-espacio-xs) 0 var(--cap-espacio-md) 0;
+}
+
+.capDocumentacion__seccionContenido li {
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+.capDocumentacion__seccionContenido strong {
+    font-weight: var(--cap-peso-semibold);
+}
+
+.capDocumentacion__seccionContenido code {
+    background: var(--cap-fondo-sutil);
+    padding: 2px 6px;
+    border-radius: var(--cap-radio-sm);
+    font-size: 0.9em;
+}
+
+/* Tabla informativa dentro de docs */
+.capDocumentacion__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--cap-espacio-sm) 0 var(--cap-espacio-md) 0;
+}
+
+.capDocumentacion__tabla th,
+.capDocumentacion__tabla td {
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    text-align: left;
+    border-bottom: 1px solid var(--cap-borde-sutil);
+    font-size: var(--cap-texto-sm);
+}
+
+.capDocumentacion__tabla th {
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-secundario);
+    background: var(--cap-fondo-sutil);
+}

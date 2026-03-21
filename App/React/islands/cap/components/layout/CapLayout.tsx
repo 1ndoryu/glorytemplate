@@ -8,7 +8,7 @@
 
 import type {ReactNode} from 'react';
 import {Badge} from '../ui';
-import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha, IconoTarjeta} from '../icons';
+import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha, IconoTarjeta, IconoLibro} from '../icons';
 import {useDashboardStore, type SeccionActiva} from '../../stores/useDashboardStore';
 import '../dashboard/dashboard.css';
 
@@ -24,6 +24,7 @@ const itemsNavegacion: ItemNavegacion[] = [
     {id: 'alumnos', label: 'Alumnos', icono: <IconoUsuarios />},
     {id: 'reportes', label: 'Reportes', icono: <IconoReportes />},
     {id: 'clientes', label: 'Clientes', icono: <IconoTarjeta />, soloAdmin: true},
+    {id: 'documentacion', label: 'Documentación', icono: <IconoLibro />, soloAdmin: true},
     {id: 'configuracion', label: 'Configuración', icono: <IconoConfiguracion />}
 ];
 

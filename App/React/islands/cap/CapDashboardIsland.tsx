@@ -6,7 +6,7 @@
  */
 
 import {CapLayout} from './components/layout';
-import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion, SeccionReportes, SeccionClientes} from './components/secciones';
+import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion, SeccionReportes, SeccionClientes, SeccionDocumentacion} from './components/secciones';
 import {Paywall} from './components/paywall';
 import {useConfiguracion} from './hooks/useConfiguracion';
 import {useDashboardStore} from './stores/useDashboardStore';
@@ -115,6 +115,8 @@ export function CapDashboardIsland(rawProps: Record<string, unknown>) {
                 return <SeccionReportes />;
             case 'clientes':
                 return <SeccionClientes />;
+            case 'documentacion':
+                return <SeccionDocumentacion />;
             default:
                 return <SeccionCalendario />;
         }
