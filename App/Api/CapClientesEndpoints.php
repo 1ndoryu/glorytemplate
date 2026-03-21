@@ -170,18 +170,18 @@ class CapClientesEndpoints
     }
 
     /**
-     * [2003A-15] DELETE /cap/v1/admin/clientes/{userId}
+     * [2003A-15] POST /cap/v1/admin/clientes/{userId}/eliminar
      * Elimina el usuario y todos sus datos CAP asociados en cascada.
      * Orden: asistencia → disponibilidad → alumnos → clases → config → suscripciones → centros → usuario WP.
+     *
+     * [2003A-15fix2] No se aborta si el usuario WP no existe: puede ser un centro huérfano
+     * (datos CAP sin usuario WP asociado, por ejemplo de demo o borrado manual).
+     * Se limpian los datos CAP y se intenta borrar el usuario WP si existe.
      */
     public function eliminarUsuario(\WP_REST_Request $request): \WP_REST_Response
     {
         global $wpdb;
         $userId = (int) $request->get_param('userId');
-
-        if (!get_userdata($userId)) {
-            return new \WP_REST_Response(['error' => 'Usuario no encontrado.'], 404);
-        }
 
         $pref = $wpdb->prefix . 'cap_';
         $centroId = (int) $wpdb->get_var(
@@ -200,26 +200,46 @@ class CapClientesEndpoints
                 $centroId
             ));
             /* Alumnos */
-            $wpdb->delete("{$pref}alumnos", ['centro_id' => $centroId], ['%d']);
+            $resAlumnos = $wpdb->delete("{$pref}alumnos", ['centro_id' => $centroId], ['%d']);
+            if ($resAlumnos === false) {
+                error_log("[CAP Clientes] Error eliminando alumnos del centro {$centroId}: " . $wpdb->last_error);
+            }
             /* Clases */
-            $wpdb->delete("{$pref}clases", ['centro_id' => $centroId], ['%d']);
+            $resClases = $wpdb->delete("{$pref}clases", ['centro_id' => $centroId], ['%d']);
+            if ($resClases === false) {
+                error_log("[CAP Clientes] Error eliminando clases del centro {$centroId}: " . $wpdb->last_error);
+            }
             /* Configuración */
-            $wpdb->delete("{$pref}configuracion", ['centro_id' => $centroId], ['%d']);
+            $resConfig = $wpdb->delete("{$pref}configuracion", ['centro_id' => $centroId], ['%d']);
+            if ($resConfig === false) {
+                error_log("[CAP Clientes] Error eliminando config del centro {$centroId}: " . $wpdb->last_error);
+            }
             /* Suscripciones */
-            $wpdb->delete("{$pref}suscripciones", ['centro_id' => $centroId], ['%d']);
+            $resSus = $wpdb->delete("{$pref}suscripciones", ['centro_id' => $centroId], ['%d']);
+            if ($resSus === false) {
+                error_log("[CAP Clientes] Error eliminando suscripciones del centro {$centroId}: " . $wpdb->last_error);
+            }
             /* Problemas reportados */
-            $wpdb->delete("{$pref}problemas", ['user_id' => $userId], ['%d']);
+            $resProbs = $wpdb->delete("{$pref}problemas", ['user_id' => $userId], ['%d']);
+            if ($resProbs === false) {
+                error_log("[CAP Clientes] Error eliminando problemas del usuario {$userId}: " . $wpdb->last_error);
+            }
             /* Centro */
-            $wpdb->delete("{$pref}centros", ['id' => $centroId], ['%d']);
+            $resCentro = $wpdb->delete("{$pref}centros", ['id' => $centroId], ['%d']);
+            if ($resCentro === false) {
+                error_log("[CAP Clientes] Error eliminando centro {$centroId}: " . $wpdb->last_error);
+            }
         }
 
-        /* Eliminar usuario de WordPress */
-        require_once ABSPATH . 'wp-admin/includes/user.php';
-        $ok = wp_delete_user($userId);
-
-        if (!$ok) {
-            error_log('[CAP Clientes] wp_delete_user falló para userId=' . $userId);
-            return new \WP_REST_Response(['error' => 'No se pudo eliminar el usuario de WordPress.'], 500);
+        /* Eliminar usuario de WordPress (solo si existe) */
+        $wpUser = get_userdata($userId);
+        if ($wpUser) {
+            require_once ABSPATH . 'wp-admin/includes/user.php';
+            $ok = wp_delete_user($userId);
+            if (!$ok) {
+                error_log('[CAP Clientes] wp_delete_user falló para userId=' . $userId);
+                return new \WP_REST_Response(['error' => 'No se pudo eliminar el usuario de WordPress.'], 500);
+            }
         }
 
         return new \WP_REST_Response(['ok' => true, 'mensaje' => 'Usuario y todos sus datos eliminados correctamente.']);
