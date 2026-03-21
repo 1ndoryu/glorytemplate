@@ -294,13 +294,15 @@ class NormalizadorSample
             }
         }
 
-        /* Inferir boost reciente desde las horas */
+        /* [2103A-10] Inferir boost reciente desde las horas — sincronizado con algoritmoPesos.php.
+         * Antes: 2.0/1.4 hardcodeados. Ahora: 1.05/1.02 (mínimo, por pedido del usuario).
+         * Si se cambian los factores en algoritmoPesos, actualizar también aquí. */
         $boostReciente = 1.0;
         if ($horasPublicacion !== null) {
             if ($horasPublicacion < 24) {
-                $boostReciente = 2.0;
+                $boostReciente = 1.05;
             } elseif ($horasPublicacion < 72) {
-                $boostReciente = max(1.0, 1.4 - (1.4 - 1.0) * ($horasPublicacion - 24) / (72 - 24));
+                $boostReciente = max(1.0, 1.02 - (1.02 - 1.0) * ($horasPublicacion - 24) / (72 - 24));
             }
         }
 

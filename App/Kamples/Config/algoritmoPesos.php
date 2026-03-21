@@ -178,13 +178,16 @@ return [
          * comportamiento=0 y tendencias=0. Sin boost, nunca entran en la página 1.
          * El boost temporal los iguala con los establecidos para darles exposición.
          * Después de las horas configuradas, el boost desaparece y el sample
-         * compite por sus propios méritos (interacciones ganadas). */
+         * compite por sus propios méritos (interacciones ganadas).
+         * [2103A-10] Bajado al mínimo — factor 2.0 dominaba el feed completo porque
+         * samples recién scrapeados (<24h) obtenían score×2 y aplastaban al resto.
+         * Con 1.05 se mantiene una pequeña ventana de cold start sin distorsionar. */
         'boost_reciente' => [
             'habilitado'  => true,
             'horas_full'  => 24,   /* < 24h desde publicación: boost completo */
             'horas_medio' => 72,   /* 24-72h: boost parcial (decae linealmente) */
-            'factor_full' => 2.0,  /* x2.0 para < 24h */
-            'factor_medio'=> 1.4,  /* x1.4 base a las 24h, decae a x1.0 a las 72h */
+            'factor_full' => 1.05, /* x1.05 para < 24h (era 2.0 — demasiado dominante) */
+            'factor_medio'=> 1.02, /* x1.02 base a las 24h, decae a x1.0 a las 72h */
         ],
 
         /* [183A-90] Reducción de visibilidad para samples sin metadata IA procesada.

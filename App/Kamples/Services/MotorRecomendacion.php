@@ -880,6 +880,11 @@ class MotorRecomendacion
                 : \max(0.5, 1.0 - ($rg - $maxPorCategoria) * 0.10);
 
             $s['score'] = (float) $s['score'] * $factorCreador * $factorGenero;
+            /* [2103A-10] Exponer rn/rn_genero para debug badge — antes solo se
+             * usaban internamente para calcular los factores sin escribirse de vuelta.
+             * NormalizadorSample::construirScoreDebug los lee desde $row. */
+            $s['rn'] = $rc;
+            $s['rn_genero'] = $rg;
         }
         unset($s);
 
