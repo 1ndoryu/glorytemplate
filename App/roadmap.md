@@ -60,13 +60,10 @@ Ubicacion: `App/docs (ignorar)/`
 - **193A-64 (2026-03-20):** useT movido antes del early return en ModalSolicitudWhatsapp — Rules of Hooks.
 
 - **2003A-37+2003A-38+2003A-39+2003A-40 (2026-03-21):** Fix CORS x-idempotency-key uploads; umbral drag 20px + preview verde nativo; infinite scroll colecciones explorar; estados dinámicos sync + trigger al despausar.
-- **2103A-1 (2026-03-21):** Build desktop app — Tauri v2 release build (MSI + NSIS installer).
+- **2103A-1+2103A-2 (2026-03-21):** Build desktop app — Tauri v2 release build (MSI + NSIS installer). URLs descarga configuradas en WordPress para Windows (.exe) y Android (.apk).
 
 ## Tareas pendientes
 
-## 2103A-2
-
-Que dar click a App para escritorio y App para Android descargue el instalador y apk, encargate de eso de la forma mas eficiente sin complicaciones. 
 
 ## Final
 
