@@ -74,6 +74,10 @@ PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function () {
  * [2003A-7] Redirigir wp-login.php a /cap-login/ para usuarios no-admin.
  * Los administradores pueden seguir accediendo a wp-login.php y wp-admin.
  * Los cap_admin (dueños de autoescuela) usan solo la interfaz CAP.
+ *
+ * [2003A-14] Logout directo sin confirmación "Do you really want to log out?"
+ * para usuarios no-admin. Si el usuario está autenticado y no es admin,
+ * se desloguea inmediatamente y redirige a /cap-login/.
  */
 add_action('init', function () {
     /* Solo interceptar wp-login.php */
@@ -82,8 +86,21 @@ add_action('init', function () {
         return;
     }
 
-    /* Permitir logouts (action=logout) */
     $action = sanitize_text_field($_GET['action'] ?? $_POST['action'] ?? '');
+
+    /* [2003A-14] Logout sin confirmación para usuarios no-admin */
+    if ($action === 'logout' && is_user_logged_in()) {
+        $wpUser = wp_get_current_user();
+        $esAdmin = $wpUser instanceof WP_User && in_array('administrator', $wpUser->roles, true);
+
+        if (!$esAdmin) {
+            wp_logout();
+            wp_safe_redirect(home_url('/cap-login/'));
+            exit;
+        }
+    }
+
+    /* Permitir acciones especiales de wp-login.php */
     if ($action === 'logout' || $action === 'lostpassword' || $action === 'rp' || $action === 'resetpass') {
         return;
     }
