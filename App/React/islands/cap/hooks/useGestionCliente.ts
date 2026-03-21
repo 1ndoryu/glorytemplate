@@ -128,7 +128,8 @@ export function useGestionCliente(): UseGestionClienteReturn {
 
     const eliminarUsuario = useCallback(
         async (userId: number): Promise<boolean> => {
-            const {ok, data} = await peticion(`${API_BASE}/admin/clientes/${userId}`, 'DELETE');
+            /* [2003A-15fix] POST /eliminar para evitar problemas con DELETE en WP REST */
+            const {ok, data} = await peticion(`${API_BASE}/admin/clientes/${userId}/eliminar`, 'POST');
             if (ok) setExito(data.mensaje || 'Usuario eliminado');
             return ok;
         },

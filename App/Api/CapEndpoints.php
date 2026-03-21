@@ -360,8 +360,10 @@ class CapEndpoints
             'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
         ]);
 
-        register_rest_route(self::NAMESPACE, '/admin/clientes/(?P<userId>\d+)', [
-            'methods' => 'DELETE',
+        /* [2003A-15fix] Usar POST en lugar de DELETE para maximizar compatibilidad
+         * con configuraciones de servidor que bloquean o malrutan DELETE. */
+        register_rest_route(self::NAMESPACE, '/admin/clientes/(?P<userId>\d+)/eliminar', [
+            'methods' => 'POST',
             'callback' => $clientesEndpoints->callbackSeguro('eliminarUsuario'),
             'permission_callback' => [$clientesEndpoints, 'verificarPermisosAdmin'],
         ]);

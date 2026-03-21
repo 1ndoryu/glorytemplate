@@ -44,10 +44,11 @@ export function ModalGestionCliente({abierto, onCerrar, cliente, onGuardado}: Mo
     const [email, setEmail] = useState('');
     const [contrasena, setContrasena] = useState('');
 
-    /* Inicializar campos al abrir/cambiar de cliente */
+    /* Inicializar campos al abrir/cambiar de cliente.
+     * [2003A-15fix] Fallback a wp_user_login si wp_display_name está vacío.  */
     useEffect(() => {
         if (abierto) {
-            setNombre(cliente.wp_display_name || '');
+            setNombre(cliente.wp_display_name || cliente.wp_user_login || '');
             setEmail(cliente.wp_user_email || '');
             setContrasena('');
             limpiarMensajes();
@@ -99,12 +100,14 @@ export function ModalGestionCliente({abierto, onCerrar, cliente, onGuardado}: Mo
                 <div className="capModalGestion__seccion">
                     <p className="capModalGestion__seccionTitulo">Datos del usuario</p>
                     <div className="capModalGestion__campos">
+                        {/* autoComplete="off" evita que el navegador lo rellene como si fuera un login */}
                         <Input
                             etiqueta="Nombre"
                             tipo="text"
                             value={nombre}
                             onChange={e => setNombre(e.target.value)}
                             disabled={guardando}
+                            autoComplete="off"
                         />
                         <Input
                             etiqueta="Email"
@@ -112,13 +115,16 @@ export function ModalGestionCliente({abierto, onCerrar, cliente, onGuardado}: Mo
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             disabled={guardando}
+                            autoComplete="off"
                         />
+                        {/* new-password le dice al navegador que NO autorrellene con credenciales guardadas */}
                         <Input
                             etiqueta="Nueva contraseña (dejar vacío para no cambiar)"
                             tipo="password"
                             value={contrasena}
                             onChange={e => setContrasena(e.target.value)}
                             disabled={guardando}
+                            autoComplete="new-password"
                         />
                     </div>
                     <div className="capModalGestion__accionesSeccion">

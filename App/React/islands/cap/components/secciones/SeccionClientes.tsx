@@ -9,8 +9,8 @@
  */
 
 import {useState} from 'react';
-import {Alerta, Spinner, Badge, Boton, Input} from '../ui';
-import {IconoUsuarios, IconoEnlaceExterno, IconoBuscar} from '../icons';
+import {Alerta, Spinner, Badge, Boton, Input, Tooltip} from '../ui';
+import {IconoUsuarios, IconoEnlaceExterno, IconoBuscar, IconoEditar} from '../icons';
 import {useClientes, type Cliente} from '../../hooks/useClientes';
 import {ModalGestionCliente} from '../layout/ModalGestionCliente';
 import './seccionClientes.css';
@@ -24,9 +24,12 @@ function formatearFecha(fecha: string | null): string {
     }
 }
 
-function varianteBadgeEstado(estado: Cliente['estado']): 'exito' | 'error' | 'advertencia' | 'info' {
+/* [2003A-15fix] Si estado=activa pero no hay stripe_subscription_id, la suscripción
+ * fue creada manualmente. Se muestra con variante 'info' y etiqueta distinta para
+ * que el admin no la confunda con una suscripción de Stripe real. */
+function varianteBadgeEstado(estado: Cliente['estado'], tieneStripe: boolean): 'exito' | 'error' | 'advertencia' | 'info' {
+    if (estado === 'activa') return tieneStripe ? 'exito' : 'info';
     const mapa: Record<string, 'exito' | 'error' | 'advertencia' | 'info'> = {
-        activa: 'exito',
         expirada: 'error',
         cancelada: 'error',
         pago_fallido: 'advertencia',
@@ -34,9 +37,9 @@ function varianteBadgeEstado(estado: Cliente['estado']): 'exito' | 'error' | 'ad
     return mapa[estado] || 'info';
 }
 
-function etiquetaEstado(estado: Cliente['estado']): string {
+function etiquetaEstado(estado: Cliente['estado'], tieneStripe: boolean): string {
+    if (estado === 'activa') return tieneStripe ? 'Activa' : 'Manual';
     const mapa: Record<string, string> = {
-        activa: 'Activa',
         expirada: 'Expirada',
         cancelada: 'Cancelada',
         pago_fallido: 'Pago fallido',
@@ -146,35 +149,35 @@ export function SeccionClientes() {
                                             </div>
                                         </td>
                                         <td>
-                                            <Badge variante={varianteBadgeEstado(cliente.estado)} tamano="sm">
-                                                {etiquetaEstado(cliente.estado)}
+                                            <Badge variante={varianteBadgeEstado(cliente.estado, !!cliente.stripe_subscription_id)} tamano="sm">
+                                                {etiquetaEstado(cliente.estado, !!cliente.stripe_subscription_id)}
                                             </Badge>
                                         </td>
                                         <td className="capTexto capTexto--sm">{formatearFecha(cliente.fecha_inicio)}</td>
                                         <td className="capTexto capTexto--sm">{formatearFecha(cliente.fecha_fin)}</td>
                                         <td>
-                                            <div className="capSeccionClientes__acciones">
-                                                {/* [2003A-15] Gestionar: editar datos, plan, acceso */}
-                                                <Boton
-                                                    variante="ghost"
-                                                    tamano="sm"
-                                                    onClick={() => abrirGestion(cliente)}
-                                                >
-                                                    Gestionar
-                                                </Boton>
-                                                {cliente.stripe_customer_id ? (
-                                                    <a
-                                                        href={`https://dashboard.stripe.com/customers/${cliente.stripe_customer_id}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="capBoton capBoton--sm capBoton--fantasma"
-                                                        title="Ver en Stripe"
+                                            <div className="capTabla__acciones">
+                                                {/* [2003A-15fix] Iconos igual que TablaAlumnos */}
+                                                <Tooltip content="Gestionar usuario" position="top">
+                                                    <Boton
+                                                        variante="ghost"
+                                                        tamano="sm"
+                                                        onClick={() => abrirGestion(cliente)}
                                                     >
-                                                        <IconoEnlaceExterno size={14} />
-                                                        Stripe
-                                                    </a>
-                                                ) : (
-                                                    <span className="capTexto capTexto--xs capTexto--secundario">Sin Stripe</span>
+                                                        <IconoEditar size={16} />
+                                                    </Boton>
+                                                </Tooltip>
+                                                {cliente.stripe_customer_id && (
+                                                    <Tooltip content="Ver en Stripe" position="top">
+                                                        <a
+                                                            href={`https://dashboard.stripe.com/customers/${cliente.stripe_customer_id}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="capBoton capBoton--sm capBoton--fantasma"
+                                                        >
+                                                            <IconoEnlaceExterno size={16} />
+                                                        </a>
+                                                    </Tooltip>
                                                 )}
                                             </div>
                                         </td>
