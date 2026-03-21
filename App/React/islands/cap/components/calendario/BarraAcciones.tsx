@@ -48,14 +48,14 @@ export function BarraAcciones({onGenerar, onDeshacer, onBorrarSemana, generando,
 
             <div className="capBarraAcciones__separador" />
 
-            <Boton variante="peligro" tamano="sm" onClick={handleBorrarSemana} cargando={borrando} disabled={borrando || generando} title="Borrar todas las clases de esta semana">
+            <Boton variante="ghost" tamano="sm" onClick={handleBorrarSemana} cargando={borrando} disabled={borrando || generando} title="Borrar todas las clases de esta semana">
                 <IconoBorrar size={16} />
                 <span className="capOcultoMovil">Borrar Semana</span>
             </Boton>
 
             <div className="capBarraAcciones__separador" />
 
-            <Boton variante="primario" tamano="sm" onClick={onGenerar} cargando={generando} disabled={generando || borrando}>
+            <Boton variante="primario" tamano="md" onClick={onGenerar} cargando={generando} disabled={generando || borrando}>
                 <IconoCalendario size={16} />
                 Generar
             </Boton>
