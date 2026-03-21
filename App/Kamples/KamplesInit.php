@@ -149,7 +149,7 @@ class KamplesInit
         /* Headers CORS permitidos. X-Kamples-Auth es el fallback de Authorization
          * para nginx/PHP-FPM que no pasan HTTP_AUTHORIZATION a PHP.
          * Cache-Control incluido porque el fetch interceptor del desktop puede enviarlo. */
-        $headersCorsPermitidos = 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Cache-Control';
+        $headersCorsPermitidos = 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Cache-Control, X-Idempotency-Key';
 
         /* Manejar preflight OPTIONS antes de que WP responda */
         add_action('init', function () use ($origenesPermitidos, $headersCorsPermitidos): void {
@@ -194,7 +194,7 @@ class KamplesInit
         add_filter('rest_pre_serve_request', function (bool $served): bool {
             $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
             if ($origin !== '') {
-                header('Access-Control-Allow-Headers: ' . 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Content-Disposition, Content-MD5, Cache-Control');
+                header('Access-Control-Allow-Headers: ' . 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Content-Disposition, Content-MD5, Cache-Control, X-Idempotency-Key');
             }
             return $served;
         }, 99, 1);
