@@ -208,6 +208,12 @@ return [
          * Eleva loops antes del bulk-fetch para que compitan con ventaja real. */
         'loop_boost'           => 1.10,
 
+        /* [2103A-21] Boost multiplicativo para samples que el usuario nunca ha reproducido.
+         * rp.sum_ponderada IS NULL = sin historial de reproducción en repro_peso CTE.
+         * 1.20 = +20% de probabilidad de aparecer en el feed frente a ya-vistos.
+         * El boost desaparece en cuanto el usuario lo reproduce por primera vez. */
+        'boost_no_reproducido' => 1.20,
+
         /* Cantidad mínima de interacciones para activar señal de comportamiento */
         'min_interacciones'    => 5,
 

@@ -434,7 +434,16 @@ class MotorRecomendacion
             ? "(CASE WHEN s.{$sTipo} = '{$tipoLoop}' THEN {$loopBoostVal} ELSE 1.0 END)"
             : '1.0';
 
-        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA} * {$multiplicadorReciente} * {$multiplicadorLoop}";
+        /* [2103A-21] Boost para samples no reproducidos por el usuario.
+         * rp.sum_ponderada IS NULL = sin historial en la CTE repro_peso → nunca reproducido.
+         * Complementa la penalización progresiva existente: los ya-vistos bajan, los nuevos suben.
+         * El boost desaparece en cuanto el usuario los reproduce por primera vez. */
+        $boostNoReproducido = (float) ($params['boost_no_reproducido'] ?? 1.20);
+        $multiplicadorNoReproducido = $boostNoReproducido > 1.0
+            ? "(CASE WHEN rp.sum_ponderada IS NULL THEN {$boostNoReproducido} ELSE 1.0 END)"
+            : '1.0';
+
+        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado} * {$multiplicadorIA} * {$multiplicadorReciente} * {$multiplicadorLoop} * {$multiplicadorNoReproducido}";
 
         /* Diversidad por creador como penalización suave */
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
