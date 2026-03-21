@@ -67,6 +67,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **213A-1 (2026-03-21):** Fix crítico SelectorCandidatos — `:userId` sin binding en Fuente 3 causaba PDO catch→[], algoritmo retornaba 0 resultados y caía a fallback recientes. Activado al bajar umbral_activacion a 2000 (catálogo > 2000 samples).
 - **213A-3 (2026-03-21):** Diversidad tipo feed — loop_boost x1.10 en SQL, max 5 one-shots/página (soft penalty), badge "Loop"/"One Shot" como primer chip en TarjetaSample, auto-corrección tipo <5s→oneshot en NormalizadorSample.
 - **2103A-12 (2026-03-21):** Botón dado en `inicioControlesDerecha` — reproduce sample aleatorio del top 1000 del catálogo activo. Backend: `GET /samples/aleatorio` con RANDOM() sobre subquery de los 1000 más recientes.
+- **2103A-11 (2026-03-21):** Hash antispam desktop menos estricto — `MAX_DETECCIONES_HASH` 6→25; contador capeado al límite (ya no crece a 24-25); check anticipado antes del incremento.
 
 ## Tareas pendientes
 
@@ -169,6 +170,18 @@ uploadQueueService-BdIuPfxD.js:49 [sync:orphanAnalysis] Archivo huerfano encolad
 
 Agregar un boton de dado para reproducir un audio aleatorio, ese dado, tiene que estar en inicioControlesDerecha, a dar click reproduce un sample aleatorio, pero, tiene que ser cualquiera de los primeros 1000 y no necesariamente tiene que aparecer en la pagina actual, por supuesto esto sirve para pulir el algoritmo, la reproduccion tiene que contar igual y si el usuario da like o no desde el reproductor tambiein, esto es informacion util, 
 
-## 2103A-13 (en planificacion)
+## 2103A-13
 
-Una funcionalidad especial, a dar click a un 
+Una funcionalidad especial, a dar click a un <span class="badge badgeNeutro tarjetaMetaBadgeClickable">Loop</span> o <span class="badge badgeNeutro tarjetaMetaBadgeClickable">One Shot</span> tiene que cambiar su valor (no solo visualmente sino internamente, o sea, seria editar el sample pero unicamente en esa tag, solo hay 2 vaolores, one shot y loop), esto sirve para ajustar samples, esto unicamente lo pueden hacer los usuarios admin. 
+
+## 2103A-14
+
+Supongo que esos 5 samples que siempre son iguales son los de serendipia, el problema es que nunca cambian, siempre son los mismos, deberian cambiar justa al feed.
+
+## 2103A-15
+
+Agrega el boton de dislike al lado del boton de corazon, que ya no este en el tooltip al hacer hover en el icono de corazon, sino al lado simplemente.
+
+## 2103A-16
+
+Al lado del boton de dado agrega un boton para recargar la lista del feed, esto hará que el algortimo se vuelva a calcular y recarga la lista samples para 

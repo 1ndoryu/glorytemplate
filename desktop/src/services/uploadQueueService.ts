@@ -230,14 +230,19 @@ const hashesPendientesEncola = new Set<string>();
  * el sistema deja de sincronizarlo. Previene que un archivo problematico
  * (ej: copia repetida, loop de watcher) sature la cola indefinidamente.
  * Se persiste con la cola para sobrevivir reinicios.
- */
-const MAX_DETECCIONES_HASH = 6;
+ * [2103A-11] Umbral subido de 6 a 25: con el watcher disparando múltiples eventos
+ * por archivo, 6 era demasiado estricto para sample packs con muchos snares/kicks.
+ * El contador ya no incrementa una vez alcanzado el límite (evita contadores de +20). */
+const MAX_DETECCIONES_HASH = 25;
 const contadorHashDetectado = new Map<string, number>();
 
 function registrarDeteccionHash(hash: string): number {
     const actual = (contadorHashDetectado.get(hash) ?? 0) + 1;
-    contadorHashDetectado.set(hash, actual);
-    return actual;
+    /* [2103A-11] Capear en MAX para que el contador no crezca indefinidamente
+     * cuando el orphan analysis re-descubre el mismo archivo continuamente. */
+    const capeado = Math.min(actual, MAX_DETECCIONES_HASH);
+    contadorHashDetectado.set(hash, capeado);
+    return actual; // retornar actual (no capeado) para el log de bloqueo
 }
 
 function esHashBloqueadoPorAntispam(hash: string): boolean {
@@ -536,6 +541,12 @@ async function encolarArchivoInterno(
      * saturar la cola con el mismo contenido repetidamente.
      */
     if (hash) {
+        /* [2103A-11] Verificar ANTES de incrementar: si ya está bloqueado, retornar
+         * inmediatamente sin seguir incrementando el contador (evita log de +20 detecciones). */
+        if (esHashBloqueadoPorAntispam(hash)) {
+            logSync.warn('uploadQueue', `Antispam: hash bloqueado (ya superado límite): ${nombreNormalizado}`);
+            return false;
+        }
         const detecciones = registrarDeteccionHash(hash);
         if (detecciones >= MAX_DETECCIONES_HASH) {
             logSync.warn('uploadQueue', `Antispam: hash bloqueado tras ${detecciones} detecciones: ${nombreNormalizado}`);
