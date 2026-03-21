@@ -124,6 +124,11 @@ class SelectorCandidatos
         $params['candMaxSeguidos'] = $maxSeguidos;
         $params['candMaxTags'] = $maxTags;
         $params['candMaxPopulares'] = $maxPopulares;
+        /* [213A-1] Bug fix: :userId se usa en Fuente 3 (seguidos) pero nunca se bindeaba.
+         * Sin este binding, PDO falla silenciosamente y el CTE candidatos retorna 0 rows,
+         * haciendo que el algoritmo caiga al fallback recientes para todos los usuarios
+         * cuando totalActivos > umbral_activacion. */
+        $params['userId'] = $userId;
 
         $partes = [];
 
