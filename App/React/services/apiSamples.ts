@@ -62,8 +62,10 @@ export const obtenerSample = async (slug: string): Promise<RespuestaApi<Sample>>
 };
 
 /* [2103A-12] Obtiene un sample aleatorio del top 1000 del catálogo activo.  */
-export const obtenerSampleAleatorio = async (): Promise<RespuestaApi<SampleResumen>> => {
-    return apiGet<SampleResumen>('/samples/aleatorio');
+/* [223A-7] coleccionId opcional para aleatorio dentro de una colección (incluye subcolecciones) */
+export const obtenerSampleAleatorio = async (coleccionId?: number): Promise<RespuestaApi<SampleResumen>> => {
+    const params = coleccionId ? `?coleccion_id=${coleccionId}` : '';
+    return apiGet<SampleResumen>(`/samples/aleatorio${params}`);
 };
 
 /* [193A-82] Filtros backend para /feed — evitan filtrado client-side que causaba

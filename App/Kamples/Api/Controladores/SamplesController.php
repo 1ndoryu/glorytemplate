@@ -42,9 +42,10 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\ColeccionSamplesCols;
+use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\ServicioCache;
-use App\Kamples\Api\Middleware\AuthMiddleware;
+use App\Kamples\Auth\AuthMiddleware;
 
 class SamplesController
 {
@@ -58,13 +59,15 @@ class SamplesController
             'args'                => self::argsListar(),
         ]);
 
-        /* [2103A-12] Sample aleatorio del top 1000 — endpoint para el dado del feed.
-         * Debe registrarse ANTES del slug pattern para evitar que 'aleatorio' sea
-         * capturado por (?P<slug>...) antes de llegar a este handler exacto. */
+        /* [2103A-12][223A-7] Sample aleatorio — opcional por colección.
+         * Debe registrarse ANTES del slug pattern para evitar captura. */
         \register_rest_route($namespace, '/samples/aleatorio', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'aleatorio'],
             'permission_callback' => '__return_true',
+            'args'                => [
+                'coleccion_id' => ['type' => 'integer', 'required' => false, 'minimum' => 1],
+            ],
         ]);
 
         /*
@@ -348,12 +351,11 @@ class SamplesController
     }
 
     /**
-     * GET /samples/aleatorio — Sample aleatorio del top 1000 del catálogo activo.
+     * GET /samples/aleatorio — Sample aleatorio del catálogo o de una colección.
      *
      * [2103A-12] El dado del feed: permite explorar el catálogo de forma aleatoria.
-     * La reproducción cuenta igual y el like/descarga desde el reproductor también.
-     * La subquery limita a los 1000 más recientes antes de ORDER BY RANDOM() para
-     * evitar un escaneo costoso sobre toda la tabla.
+     * [223A-7] Con coleccion_id: aleatorio de esa colección.
+     * [223A-8] Con coleccion_id + incluir_hijas: incluye samples de subcolecciones.
      */
     public static function aleatorio(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -364,17 +366,45 @@ class SamplesController
             $sPubAt  = SamplesCols::PUBLICADO_AT;
             $sId     = SamplesCols::ID;
             $ts      = SamplesCols::TABLA;
+            $csTabla = ColeccionSamplesCols::TABLA;
+            $csColId = ColeccionSamplesCols::COLECCION_ID;
+            $csSampId = ColeccionSamplesCols::SAMPLE_ID;
+            $colId   = ColeccionesCols::ID;
+            $colParent = ColeccionesCols::PARENT_ID;
+            $colTabla = ColeccionesCols::TABLA;
 
-            $sql = NormalizadorSample::sqlSelectSamples($userId)
-                . " WHERE s.{$sEstado} = '{$eActivo}'"
-                . " AND s.{$sId} IN ("
-                .     "SELECT {$sId} FROM {$ts}"
-                .     " WHERE {$sEstado} = '{$eActivo}'"
-                .     " ORDER BY {$sPubAt} DESC LIMIT 1000"
-                . ")"
-                . " ORDER BY RANDOM() LIMIT 1";
+            $coleccionId = $request->get_param('coleccion_id');
 
-            $row = SamplesRepository::consultarUno($sql, []);
+            if ($coleccionId) {
+                $coleccionId = (int) $coleccionId;
+                /* [223A-7+223A-8] Aleatorio de una colección (incluye subcolecciones si es padre) */
+                $sql = NormalizadorSample::sqlSelectSamples($userId)
+                    . " WHERE s.{$sEstado} = '{$eActivo}'"
+                    . " AND s.{$sId} IN ("
+                    .     "SELECT cs.{$csSampId} FROM {$csTabla} cs"
+                    .     " WHERE cs.{$csColId} = :bind_col_id"
+                    .     " OR cs.{$csColId} IN ("
+                    .         "SELECT {$colId} FROM {$colTabla} WHERE {$colParent} = :bind_col_parent"
+                    .     ")"
+                    . ")"
+                    . " ORDER BY RANDOM() LIMIT 1";
+                $row = SamplesRepository::consultarUno($sql, [
+                    'bind_col_id' => $coleccionId,
+                    'bind_col_parent' => $coleccionId,
+                ]);
+            } else {
+                /* Aleatorio global del top 1000 más recientes */
+                $sql = NormalizadorSample::sqlSelectSamples($userId)
+                    . " WHERE s.{$sEstado} = '{$eActivo}'"
+                    . " AND s.{$sId} IN ("
+                    .     "SELECT {$sId} FROM {$ts}"
+                    .     " WHERE {$sEstado} = '{$eActivo}'"
+                    .     " ORDER BY {$sPubAt} DESC LIMIT 1000"
+                    . ")"
+                    . " ORDER BY RANDOM() LIMIT 1";
+                $row = SamplesRepository::consultarUno($sql, []);
+            }
+
             if ($row === null) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'sin_resultados'], 404);
             }

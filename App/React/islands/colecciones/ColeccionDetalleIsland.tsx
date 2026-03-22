@@ -5,21 +5,19 @@
  */
 
 import { useCallback, useState } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal, ChevronRight, Undo2, Dices } from 'lucide-react';
+import { Dices, SlidersHorizontal } from 'lucide-react';
+import { ColeccionCabecera } from '@app/components/colecciones/ColeccionCabecera';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
 import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
-import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { Badge } from '@app/components/ui/Badge';
-import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ColeccionDetalleModales } from '@app/components/colecciones/ColeccionDetalleModales';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
 import { useReproductorAleatorio } from '@app/hooks/useReproductorAleatorio';
-import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
+
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
 import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
 import { useReproductorStore } from '@app/stores/reproductorStore';
@@ -36,8 +34,6 @@ interface ColeccionDetalleIslandProps {
 }
 
 const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslandProps): JSX.Element => {
-    /* [2103A-18] Dado: reproduce sample aleatorio igual que en el feed de inicio */
-    const { cargandoAleatorio, reproducirAleatorio } = useReproductorAleatorio();
 
     /* QL53: Estado de ordenamiento — default 'posicion' para colecciones */
     const [ordenColeccion, setOrdenColeccion] = useState<TipoOrdenFeed>('posicion');
@@ -60,6 +56,13 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
         manejarCombinado,
         modalEliminarAbierto, setModalEliminarAbierto, manejarEliminado,
     } = useColeccionDetalle({ propSlug });
+
+    /* [223A-7] Dado: aleatorio dentro de la colección actual (incluye subcolecciones) */
+    const {
+        cargandoAleatorio, reproducirAleatorio,
+        modoAutoplayForzado, iniciarAutoplayForzado, detenerAutoplayForzado,
+    } = useReproductorAleatorio(coleccion?.id);
+    const esPadre = (subcolecciones?.length ?? 0) > 0;
 
     /* QQ75/QL43: Preview de la colección — misma lógica que TarjetaColeccion */
     const { iniciarPreview, cargando: cargandoPreview } = useColeccionPreview();
@@ -114,129 +117,31 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
         );
     }
 
-    /* Mismo fallback que TarjetaColeccion/FilaColecciones para consistencia visual */
-    const imagenHeader = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
-
     return (
         <div className="coleccionDetalle" id="coleccionDetalle">
-            {/* QL114: Breadcrumbs para subcollecciones, botón volver para raíz */}
-            {coleccion.parentId !== null && coleccionPadre ? (
-                <nav className="coleccionMigas" aria-label="Navegación colección">
-                    <BotonBase variante="ghost" tamano="ninguno" className="coleccionMigasEnlace" onClick={() => navegar('/libreria/')} type="button">
-                        Librería
-                    </BotonBase>
-                    <ChevronRight size={14} className="coleccionMigasSeparador" />
-                    <BotonBase variante="ghost" tamano="ninguno" className="coleccionMigasEnlace" onClick={() => navegar(`/coleccion/${coleccionPadre.slug ?? coleccionPadre.id}/`)} type="button">
-                        {coleccionPadre.nombre}
-                    </BotonBase>
-                    <ChevronRight size={14} className="coleccionMigasSeparador" />
-                    <span className="coleccionMigasActual">{coleccion.nombre}</span>
-                </nav>
-            ) : (
-                <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
-                    <ArrowLeft size={18} />
-                    <span>Librería</span>
-                </BotonBase>
-            )}
-
-            {/* Header de la colección */}
-            <div className="coleccionHeader">
-                {/* [183A-88] Photon CDN para portada de colección */}
-                <ImgOptimizada className="coleccionHeaderImg" src={imagenHeader} alt={coleccion.nombre} w={400} quality={80} />
-                <div className="coleccionHeaderInfo">
-                    <div className="coleccionHeaderTipo">
-                        {coleccion.esPublica ? (
-                            <Badge variante="acento"><Globe size={12} /> Pública</Badge>
-                        ) : (
-                            <Badge variante="neutro"><Lock size={12} /> Privada</Badge>
-                        )}
-                    </div>
-                    <h1 className="coleccionNombre">{coleccion.nombre}</h1>
-                    {coleccion.descripcion && (
-                        <p className="coleccionDescripcion">{coleccion.descripcion}</p>
-                    )}
-                    <div className="coleccionMeta">
-                        {coleccion.usuario && (
-                            <EnlaceCreador
-                                username={coleccion.usuario.username}
-                                nombreVisible={coleccion.usuario.nombreVisible}
-                                avatarUrl={coleccion.usuario.avatarUrl ?? undefined}
-                                verificado={coleccion.usuario.verificado}
-                                tamanoAvatar="xs"
-                                className="coleccionCreador"
-                            />
-                        )}
-                        <span className="coleccionStats">
-                            {coleccion.totalSamples} samples
-                        </span>
-                        {/* C108: 5 metas más comunes separadas por • */}
-                        {metasComunes.length > 0 && (
-                            <span className="coleccionMetasComunes">
-                                {metasComunes.join(' \u2022 ')}
-                            </span>
-                        )}
-                    </div>
-                    {/* C109+C125+C137: Botones con texto — guardar (solo ajena), descargar, preview */}
-                    <div className="coleccionAcciones">
-                        {/* C137: Ocultar guardar en colecciones propias */}
-                        {coleccion.usuarioId !== usuario?.id && (
-                            <BotonBase variante="ghost"
-                                className={`coleccionAccionBtn ${guardada ? 'coleccionAccionActivo' : ''}`}
-                                onClick={manejarGuardar}
-                                type="button"
-                                title={guardada ? 'Guardada' : 'Guardar colección'}
-                            >
-                                {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
-                                <span>{guardada ? 'Guardada' : 'Guardar'}</span>
-                            </BotonBase>
-                        )}
-                        <BotonBase variante="ghost"
-                            className="coleccionAccionBtn"
-                            type="button"
-                            title="Descargar colección"
-                            onClick={manejarDescargarZip}
-                            disabled={descargando}
-                        >
-                            <Download size={16} />
-                            <span>{descargando ? 'Descargando...' : 'Descargar'}</span>
-                        </BotonBase>
-                        <BotonBase variante="ghost"
-                            className={`coleccionAccionBtn ${esPreviewActiva ? 'coleccionAccionActivo' : ''}`}
-                            type="button"
-                            title={esPreviewActiva ? 'Detener preview' : 'Preview'}
-                            onClick={() => coleccion && iniciarPreview(coleccion.id)}
-                            disabled={cargandoPreview}
-                        >
-                            {cargandoPreview ? <Loader2 size={16} className="tarjetaColeccionSpinner" /> : esPreviewActiva ? <Pause size={16} /> : <Play size={16} />}
-                            <span>{cargandoPreview ? 'Cargando...' : esPreviewActiva ? 'Detener' : 'Preview'}</span>
-                        </BotonBase>
-                        {/* C127: Menú 3 puntos */}
-                        <BotonBase variante="ghost"
-                            className="coleccionAccionBtn"
-                            type="button"
-                            title="Más opciones"
-                            onClick={abrirMenuColeccion}
-                        >
-                            <MoreHorizontal size={16} />
-                        </BotonBase>
-                        {/* QL115: Botón deshacer combinación (7 días) */}
-                        {combinacionPendiente?.hayCombinacion && (
-                            <BotonBase variante="ghost"
-                                className="coleccionAccionBtn coleccionAccionUndo"
-                                type="button"
-                                title={`Deshacer combinación con "${combinacionPendiente.origenNombre}"`}
-                                onClick={manejarDeshacerCombinacion}
-                                disabled={deshaciendoCombinacion}
-                            >
-                                <Undo2 size={16} />
-                                <span>{deshaciendoCombinacion ? 'Deshaciendo...' : 'Deshacer'}</span>
-                            </BotonBase>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* QL114: FiltroSubcolecciones se movió dentro de tab samples, debajo de BarraControlFeed */}
+            <ColeccionCabecera
+                coleccion={coleccion}
+                coleccionPadre={coleccionPadre ?? null}
+                navegar={navegar}
+                usuarioId={usuario?.id}
+                metasComunes={metasComunes}
+                guardada={guardada}
+                manejarGuardar={manejarGuardar}
+                descargando={descargando}
+                manejarDescargarZip={manejarDescargarZip}
+                esPadre={esPadre}
+                modoAutoplayForzado={modoAutoplayForzado}
+                iniciarAutoplayForzado={iniciarAutoplayForzado}
+                detenerAutoplayForzado={detenerAutoplayForzado}
+                cargandoAleatorio={cargandoAleatorio}
+                esPreviewActiva={esPreviewActiva}
+                iniciarPreview={iniciarPreview}
+                cargandoPreview={cargandoPreview}
+                abrirMenuColeccion={abrirMenuColeccion}
+                combinacionPendiente={combinacionPendiente}
+                manejarDeshacerCombinacion={manejarDeshacerCombinacion}
+                deshaciendoCombinacion={deshaciendoCombinacion}
+            />
 
             {/* Contenido según tab activa — key distinta fuerza desmontaje para evitar race conditions (C46) */}
             {tabActiva === 'samples' ? (
