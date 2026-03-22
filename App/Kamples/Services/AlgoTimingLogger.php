@@ -124,6 +124,15 @@ class AlgoTimingLogger
             return;
         }
 
+        /* [2203A-1] Throttle: capturar EXPLAIN máximo cada 5 minutos.
+         * EXPLAIN ANALYZE re-ejecuta la query completa (~300ms de overhead).
+         * Sin throttle, cada request del admin paga 2x el costo SQL.
+         * El profiling sigue disponible — solo evita redundancia. */
+        $throttleKey = 'kamples_explain_throttle';
+        if (ServicioCache::obtener($throttleKey) !== false) {
+            return;
+        }
+
         try {
             $explainSql = "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " . $sql;
             $resultado = PostgresService::consultar($explainSql, $params);
@@ -148,6 +157,9 @@ class AlgoTimingLogger
                 'ejecucionMs'     => round($raiz['Execution Time'] ?? 0, 2),
                 'nodos'           => \array_slice($nodos, 0, 25),
             ];
+
+            /* [2203A-1] Marcar como capturado — no repetir en los próximos 5 minutos */
+            ServicioCache::guardar($throttleKey, '1', 300);
         } catch (\Throwable $e) {
             KamplesLogger::error('AlgoTimingLogger: Error capturando EXPLAIN', [
                 'error' => $e->getMessage(),

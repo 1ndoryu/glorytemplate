@@ -290,11 +290,14 @@ return [
         /* [2003A-35] Reducido de 5000 a 2000 para activar pipeline de candidatos
          * con el catálogo actual (2649 samples). Reduce base de scoring de ~2649 a ~1000. */
         'umbral_activacion'  => 2000,
-        'max_trending'       => 300,    /* Trending recientes (14 dias) */
-        'max_embedding'      => 200,    /* Similares por pgvector ANN */
-        'max_seguidos'       => 200,    /* De creadores seguidos */
-        'max_tags'           => 200,    /* Afinidad por tags del usuario */
-        'max_populares'      => 100,    /* Populares all-time */
+        /* [2203A-1] Límites reducidos: con el filtrado de enriched por candidatos,
+         * menos candidatos = menos rows en TODOS los CTEs (score_tags, col_propietario, etc.)
+         * Total teórico: 650 max, con UNION dedup ~350-400 candidatos reales. */
+        'max_trending'       => 200,    /* Trending recientes (14 dias) */
+        'max_embedding'      => 150,    /* Similares por pgvector ANN */
+        'max_seguidos'       => 100,    /* De creadores seguidos */
+        'max_tags'           => 150,    /* Afinidad por tags del usuario */
+        'max_populares'      => 50,     /* Populares all-time */
         'dias_trending'      => 14,     /* Ventana para trending recientes */
     ],
 
