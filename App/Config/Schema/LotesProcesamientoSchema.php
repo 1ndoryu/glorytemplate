@@ -4,7 +4,7 @@
 
 namespace App\Config\Schema;
 
-use Glory\src\Contracts\TableSchema;
+use Glory\Contracts\TableSchema;
 
 class LotesProcesamientoSchema extends TableSchema
 {
