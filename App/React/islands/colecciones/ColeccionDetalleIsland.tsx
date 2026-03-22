@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { Dices, SlidersHorizontal } from 'lucide-react';
+import { Dices, Heart, SlidersHorizontal } from 'lucide-react';
 import { ColeccionCabecera } from '@app/components/colecciones/ColeccionCabecera';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
@@ -154,6 +154,17 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                         {/* [2103A-18] Botón dado para sample aleatorio */}
                         <BotonBase variante="ghost" tamano="ninguno" onClick={reproducirAleatorio} type="button" aria-label="Aleatorio" className={`inicioFiltrosBtn${cargandoAleatorio ? ' cargandoAleatorio' : ''}`} disabled={cargandoAleatorio}>
                             <Dices size={16} />
+                        </BotonBase>
+                        {/* [223A-6] Ciclo corazón: off → like → encanta → off */}
+                        <BotonBase
+                            variante="ghost"
+                            tamano="ninguno"
+                            onClick={filtrosColeccion.ciclarCorazon}
+                            type="button"
+                            aria-label={filtrosColeccion.modoCorazon === 'off' ? 'Filtrar favoritos' : filtrosColeccion.modoCorazon === 'like' ? 'Solo me gusta' : 'Solo me encanta'}
+                            className={`inicioFiltrosBtn ${filtrosColeccion.modoCorazon !== 'off' ? 'filtroEncantaActivo' : ''}`}
+                        >
+                            <Heart size={16} fill={filtrosColeccion.modoCorazon === 'encanta' ? 'currentColor' : 'none'} strokeWidth={filtrosColeccion.modoCorazon === 'like' ? 3 : 2} />
                         </BotonBase>
                         <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
                             <SlidersHorizontal size={16} />
