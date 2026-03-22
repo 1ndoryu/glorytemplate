@@ -38,7 +38,6 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
         <Modal
             abierto={abierto}
             onCerrar={ctrl.cerrar}
-            titulo="Descubrir canción"
             tamano="grande"
         >
             {/* [223A-3-E] Filtros género y década centrados arriba */}
