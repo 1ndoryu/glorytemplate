@@ -1,15 +1,21 @@
 /*
  * Componente: ModalCancionAleatoria — Kamples
- * [223A-4][223A-3-E] Modal de descubrimiento de canciones aleatorias.
- * Filtros de género y década via SelectFiltro. Muestra cancionDetalleTarjeta.
+ * [223A-4][223A-3-E][223A-3-G] Modal de descubrimiento de canciones aleatorias.
+ * Filtros de género y década via SelectFiltro. Muestra cancionDetalleTarjeta
+ * con acciones: like, 3-puntos, siguiente, recorte, youtube (admin).
  */
 
-import { Music, SkipForward, Scissors, Youtube, Loader2 } from 'lucide-react';
+import { Music, SkipForward, Scissors, Youtube, Loader2, Heart, MoreVertical } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectFiltro } from '../ui/SelectFiltro';
+import { MenuContextual } from '../ui/MenuContextual';
+import { ModalContribucion } from './ModalContribucion';
+import { ModalEdicionRelacion } from './ModalEdicionRelacion';
 import type { useCancionAleatoria } from '@app/hooks/useCancionAleatoria';
+import { useMenuCancionDetalle } from '@app/hooks/useMenuCancionDetalle';
+import { useLikeCancion } from '@app/hooks/useLikeCancion';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import { useNavigationStore } from '@/core/router';
 import '../../styles/componentes/cancionDetalle.css';
@@ -23,6 +29,10 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
     const { detalle, cargando, abierto } = ctrl;
     const cancion = detalle?.cancion;
     const artistas = detalle?.artistas ?? [];
+
+    /* [223A-3-G] Like + menu contextual via hooks reutilizables */
+    const { liked, likeando, toggleLike, autenticado } = useLikeCancion(cancion?.id, cancion?.liked ?? false);
+    const menuCtx = useMenuCancionDetalle(detalle, autenticado);
 
     return (
         <Modal
@@ -105,6 +115,71 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
                                 {cancion.album && <Badge variante="neutro" tamano="sm">{cancion.album}</Badge>}
                             </div>
                         </div>
+
+                        {/* [223A-3-G] Acciones: like, 3-puntos, siguiente, recorte, youtube — solo iconos */}
+                        <div className="cancionDetalleAcciones">
+                            {autenticado && (
+                                <>
+                                    <BotonBase
+                                        variante="ghost"
+                                        tamano="ninguno"
+                                        className={`cancionDetalleLikeBtn${liked ? ' cancionDetalleLikeBtnActiva' : ''}`}
+                                        onClick={toggleLike}
+                                        aria-label={liked ? 'Quitar like' : 'Dar like'}
+                                        cargando={likeando}
+                                    >
+                                        <Heart size={20} fill={liked ? 'currentColor' : 'none'} />
+                                    </BotonBase>
+                                    <BotonBase
+                                        variante="ghost"
+                                        tamano="ninguno"
+                                        className="cancionDetalleMenuBtn"
+                                        onClick={menuCtx.abrirMenu}
+                                        aria-label="Acciones"
+                                    >
+                                        <MoreVertical size={20} />
+                                    </BotonBase>
+                                </>
+                            )}
+                            <BotonBase
+                                variante="ghost"
+                                tamano="ninguno"
+                                className="cancionDetalleMenuBtn"
+                                onClick={ctrl.siguiente}
+                                disabled={cargando}
+                                aria-label="Siguiente canción"
+                            >
+                                <SkipForward size={18} />
+                            </BotonBase>
+                            <BotonBase
+                                variante="ghost"
+                                tamano="ninguno"
+                                className="cancionDetalleMenuBtn"
+                                onClick={ctrl.generarRecorte}
+                                disabled={ctrl.generandoRecorte || (detalle.samplesDe.length === 0 && detalle.sampleadaEn.length === 0)}
+                                aria-label="Generar recorte"
+                            >
+                                {ctrl.generandoRecorte
+                                    ? <Loader2 size={18} className="animacionGiro" />
+                                    : <Scissors size={18} />
+                                }
+                            </BotonBase>
+                            {ctrl.esAdmin && cancion.youtubeId && (
+                                <BotonBase
+                                    variante="ghost"
+                                    tamano="ninguno"
+                                    className="cancionDetalleMenuBtn"
+                                    onClick={() => window.open(
+                                        `https://www.youtube.com/watch?v=${cancion.youtubeId}`,
+                                        '_blank',
+                                        'noopener'
+                                    )}
+                                    aria-label="Abrir en YouTube"
+                                >
+                                    <Youtube size={18} />
+                                </BotonBase>
+                            )}
+                        </div>
                     </div>
 
                     {/* [223A-3-C] YouTube embed con autoplay + timestamp de sampleo si existe */}
@@ -139,48 +214,6 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
                         </div>
                     )}
 
-                    {/* Botones de acción */}
-                    <div className="cancionDetalleAcciones" style={{
-                        marginTop: 'var(--espacioLg)',
-                        justifyContent: 'flex-start',
-                        gap: 'var(--espacioSm)',
-                        flexWrap: 'wrap',
-                    }}>
-                        <BotonBase
-                            variante="primario"
-                            tamano="sm"
-                            onClick={ctrl.siguiente}
-                            disabled={cargando}
-                        >
-                            <SkipForward size={16} /> Siguiente
-                        </BotonBase>
-
-                        <BotonBase
-                            variante="secundario"
-                            tamano="sm"
-                            onClick={ctrl.generarRecorte}
-                            disabled={ctrl.generandoRecorte || (detalle.samplesDe.length === 0 && detalle.sampleadaEn.length === 0)}
-                        >
-                            {ctrl.generandoRecorte
-                                ? <Loader2 size={16} className="animacionGiro" />
-                                : <Scissors size={16} />
-                            }
-                            Recorte
-                        </BotonBase>
-
-                        {ctrl.esAdmin && cancion.youtubeId && (
-                            <BotonBase
-                                variante="ghost"
-                                tamano="sm"
-                                onClick={() => {
-                                    window.open(`https://www.youtube.com/watch?v=${cancion.youtubeId}`, '_blank', 'noopener');
-                                }}
-                            >
-                                <Youtube size={16} /> YouTube
-                            </BotonBase>
-                        )}
-                    </div>
-
                     {/* Mensaje de resultado de recorte */}
                     {ctrl.mensajeRecorte && (
                         <div style={{
@@ -195,6 +228,29 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
                     )}
                 </div>
             )}
+
+            {/* [223A-3-G] Menu contextual + modals del 3-puntos */}
+            <MenuContextual
+                abierto={menuCtx.menuAbierto}
+                onCerrar={menuCtx.cerrarMenu}
+                items={menuCtx.items}
+                x={menuCtx.menuPos.x}
+                y={menuCtx.menuPos.y}
+                alinearDerecha
+            />
+            {detalle && (
+                <ModalContribucion
+                    abierto={menuCtx.contribucionAbierta}
+                    cancionBaseId={detalle.cancion.id}
+                    cancionBaseTitulo={detalle.cancion.titulo}
+                    onCerrar={menuCtx.cerrarContribucion}
+                />
+            )}
+            <ModalEdicionRelacion
+                relacion={menuCtx.relacionEditando}
+                modoEliminacion={menuCtx.modoEliminacion}
+                onCerrar={menuCtx.cerrarEdicionRelacion}
+            />
         </Modal>
     );
 };
