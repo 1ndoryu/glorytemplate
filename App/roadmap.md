@@ -77,6 +77,8 @@ Ubicacion: `App/docs (ignorar)/`
 - **223A-3 (2026-03-22):** Automatización extractor audio (20/h) + scraper WhoSampled (500/h) con historial lotes, auto-stop por fallos, notificación admin, reactivación. Cron IA 60s→90s. Tab "Historial" en admin panel.
 
 - **223A-4 (2026-03-22):** Modal aleatorio canciones — botón dado en sidebar, modal con cancionDetalleTarjeta, YouTube embed, botones Siguiente/Recorte/YouTube(admin). Split ArtistasController de CancionesController (SRP).
+- **223A-3-C+223A-3-D (2026-03-22):** YouTube autoplay con timestamps de sampleo + aleatorio de TODO el catálogo (offset random O(1) en vez de top 2000).
+- **223A-7+223A-8 (2026-03-22):** Aleatorio en colección (endpoint acepta coleccion_id, incluye subcolecciones) + autoplay forzado para padre (play continuo hasta pausa). ColeccionCabecera extraída para SRP.
 
 ## Tareas pendientes
 
@@ -104,32 +106,6 @@ Ubicacion: `App/docs (ignorar)/`
 - `App/React/islands/colecciones/ColeccionDetalleIsland.tsx`
 - `App/React/hooks/useColeccionDetalle.ts`
 
-### 223A-7 — Botón aleatorio en colecciones: reproducir de ESA colección
-**Complejidad: BAJA** — Modificar hook existente para filtrar por colección.
-
-- Actualmente el botón dado en ColeccionDetalle reproduce del top 1000 global
-- Debe reproducir aleatorio SOLO de la colección actual
-- Endpoint existente o nuevo parámetro `?coleccion_id=X`
-
-**Archivos clave:**
-- `App/React/hooks/useReproductorAleatorio.ts` — aceptar `coleccionId`
-- `App/React/islands/colecciones/ColeccionDetalleIsland.tsx`
-- Backend: `GET /samples/aleatorio?coleccion_id=X`
-
-### 223A-8 — Play colecciones padre reproduce hijas + autoplay forzado
-**Complejidad: MEDIA** — Lógica de reproducción cross-colección.
-
-- El botón play de una colección padre reproduce samples aleatorios de sus colecciones hijas
-- Pasa obligatoriamente a la siguiente automáticamente hasta que se pause
-- El autoplay forzado opera aunque el autoplay global esté desactivado
-- Necesita: query que obtenga samples de subcolecciones, queue de reproducción especial
-
-**Archivos clave:**
-- `App/React/islands/colecciones/ColeccionDetalleIsland.tsx`
-- `App/React/hooks/useReproductorAleatorio.ts` — nuevo modo "padre"
-- `App/React/stores/` — store del reproductor, autoplay override
-- Backend: endpoint samples de subcolecciones
-
 ### 223A-9 — Bug: like canciones no se actualiza visualmente al instante
 **Complejidad: BAJA** — Fix de estado React.
 
@@ -146,34 +122,19 @@ Ubicacion: `App/docs (ignorar)/`
 
 Sobre eso, la tab de historial de lote no tiene estilos, debería.
 
-## 223A-3-C
+## 223A-3-E — Select filtro género y década en modal aleatorio
 
-Sobre lo de canciones aleatoreas, olvide los detalles de que al dar click, el video de youtube de la cancion tiene que reproducirse automaticamente y si tienen tiempo de sampleo especificados, empezar en esos tiempo, y sino tiene, empezar desde el inicio, pero siempre reproducir el video automaticamente al abrir el modal.
+- Agregar un select dentro del modal centrado arriba para filtrar por género (multi-select como FeedSampled)
+- Otro select para filtrar por año/década (1950s hasta actual, multi-select)
+- Los géneros se basan en metadata real de canciones en BD
 
-## 223A-3-D
+## 223A-3-F — Bug: canciones sin género en scraping WhoSampled
 
-Vi que pusiste  * Selecciona del top 2000 canciones (por total_sampleada + total_samplea) una al azar. */, no, tienen que ser todas, no solo un grupo, esto tiene que ser optimo y eficiente pero necesito que sean todsas. 
+- Canciones se guardan sin género — el scraper no extrae el género correctamente
+- WhoSampled tiene el género en `div.track-meta__el5 > a[href*="/genre/"] span[itemprop="genre"]`
+- Se parcheó sacando el género de otra parte pero no se corrigió de fondo
 
-Agregaremos un select dentro del modal centrado arriba para filtrar por genero, debe ser un select como el feedsampled donde puedes selecionar
+## 223A-3-G 
 
-## Comentarios exactos de las tareas planificadas
+cancionDetalleAcciones no aparece en el modal de aleatoreos, debería, y alli debería aparer el boton de siguiente, recorte y youtube, solo iconos y sin texto
 
-primero planifica
-
-los procesos de Extraccion Audio y whosampled necesito que se ejecuten automaticamente cada hora, en 1 hora se tienen que procesar 20 recortes, y quedar en cola (obligatorio que quede en cola despues de descargar el sampled y que no se procese de una vez), y en para el scraper de whosampled, necesito 500 scrapping por hora, esto tiene que ser automatico, y tiene que haber un historial en el panel con conteo de exito, recortes, smaples publicados, scrapping, canciones, sampleos, resumido y compacto, pero no basta alli, se tienen que detectar los errores, por ejemplo si en una hora, los 20 fallaron, se detiene, y envia una notificaicon al admin id 1 de que hay que revisar el extractor de audio, si el scrapping falla 50 veces seguidas, se tiene e envia una notificacion
-
-esto lleva reducir el procesamiento de la cola a en vez de 1 minuto a 1:30 minutos pues el extractor de audio suma peticiones y hay que ahorrarlas por dia, segundo haz una revision estricta de que todo se vaya a medir bien en resumuen de historial, que esten separados por tipo de procesamiento scrapiing whosampled y extractor de audios son los unicos tipos de procesos, y que el scrapping de extractor la ia que decide si un audio es validono este usando la rotacion de api y que tenga varios modelos de soporte
-
-otra tarea, el el boton de aleateoreo dentro de las coleccioens tiene que reproducir aleatoreo pero dentro de esa coleccion
-
-otra tarea, el boton de corazon ese que filtra por me encanta falta dentro de las colecciones 
-
-otra tarea, el boton de corazon para filtrar, que tenga un modo extra, el corazon a la mitad represente los me gusta, y el corazon completo los me encanta, o sea cambia me gusta, y luego a me encanta con otro click, y con otro click se desactiva
-
-otra tarea, arriba del boton de reporte en el nav, agrega un boton de aleatoreo que hara lo siguiente, abrira un modal con una cancion, aparecera un cancionDetalleTarjeta como modal den el centro de la pantalla, en cancionDetalleAcciones agregaras 3 botones, uno para pasar a la siguiente, y otro de recorte, para generar el recorte con el proceso de extraccion de audio (si es que ya no fue generado antes), con el paso adicional de que no solo se queda en cola sino que descarga el recorte directamente, y otro boton de youtube, que descargara el audio completo, por supuesto no importa la fuente solo importa que se descargue en esos botones, el de youtube solo es para admin. 
-
-el boton de play de las las colecciones padre tambien tiene que reproducir aleatoreamente samples de sus hijas y pasar obligatoramiamente a la siguiente automaticamente hasta que se de pause aunque el autoplay este desactivado
-
-hay un bug en el boton de like de las canciones, no se actualiza al instante o sea no se marca el like visualmente al momento sino despues de recargar, hay que corregir
-
-como ves son muchas tareas, planificalas, no estan el roadmap, agregalas alli y planificalas, luego las haces toda, si tienes dudas, puedes preguntarlas ahora, si esta todo claro importante que anotes todo en el roadmap detalladamente
