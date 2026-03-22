@@ -18,6 +18,7 @@ import {
     Bug,
     Bell,
     Mail,
+    Dice5,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
@@ -34,6 +35,8 @@ import { Avatar } from '../ui/Avatar';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { useT } from '@app/utils/i18n';
+import { useCancionAleatoria } from '@app/hooks/useCancionAleatoria';
+import { ModalCancionAleatoria } from '@app/components/samples/ModalCancionAleatoria';
 import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
@@ -76,6 +79,7 @@ export const Sidebar = ({
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
     const abrirReporte = useReportarStore(s => s.abrir);
     const esMovil = useEsMovil();
+    const cancionAleatoria = useCancionAleatoria();
 
     /* QL16: Estado movil — dropdowns de mensajes y notificaciones en barra inferior */
     const usuario = useAuthStore(s => s.usuario);
@@ -198,6 +202,7 @@ export const Sidebar = ({
     }
 
     return (
+        <>
         <div className="sidebar">
             <a
                 href="/"
@@ -250,6 +255,16 @@ export const Sidebar = ({
 
             <div className="sidebarFooter">
                 <div className="sidebarSeparador" />
+                {/* [223A-4] Botón descubrimiento canción aleatoria */}
+                <BotonBase variante="ghost"
+                    className="sidebarItem"
+                    data-tooltip="Descubrir canción"
+                    onClick={() => cancionAleatoria.abrir()}
+                    type="button"
+                    aria-label="Descubrir canción aleatoria"
+                >
+                    <Dice5 size={20} />
+                </BotonBase>
                 <BotonBase variante="ghost"
                     className="sidebarItem"
                     data-tooltip="Reportar error"
@@ -270,6 +285,8 @@ export const Sidebar = ({
                 </BotonBase>
             </div>
         </div>
+        <ModalCancionAleatoria ctrl={cancionAleatoria} />
+        </>
     );
 };
 

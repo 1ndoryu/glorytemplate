@@ -85,6 +85,29 @@ class CancionesRepository extends BaseRepository
         );
     }
 
+    /* [223A-4] Buscar canción por ID con info de usuario (like, sample adjunto) */
+    public static function buscarPorIdConUsuario(int $id, ?int $userId): ?array
+    {
+        $base = self::buildSelectBase($userId);
+        return static::consultarUno(
+            "{$base} WHERE c." . CancionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /* [223A-4] Canción aleatoria del top 2000 (ranking por total_sampleada + total_samplea) */
+    public static function aleatorio(?int $userId): ?array
+    {
+        $tc = CancionesCols::TABLA;
+        $base = self::buildSelectBase($userId);
+        $sql = "{$base} WHERE c." . CancionesCols::ID . " IN (
+            SELECT " . CancionesCols::ID . " FROM {$tc}
+            ORDER BY (" . CancionesCols::TOTAL_SAMPLEADA . " + " . CancionesCols::TOTAL_SAMPLEA . ") DESC, "
+            . CancionesCols::ID . " DESC LIMIT 2000
+        ) ORDER BY RANDOM() LIMIT 1";
+        return static::consultarUno($sql, []);
+    }
+
     /**
      * Canción con info de artista principal.
      */

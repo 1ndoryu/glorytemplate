@@ -35,6 +35,7 @@ use App\Kamples\Api\Controladores\DuplicadosController;
 use App\Kamples\Api\Controladores\ColaIaController;
 use App\Kamples\Api\Controladores\SyncController;
 use App\Kamples\Api\Controladores\CancionesController;
+use App\Kamples\Api\Controladores\ArtistasController;
 use App\Kamples\Api\Controladores\RelacionesController;
 use App\Kamples\Api\Controladores\ContribucionesController;
 use App\Kamples\Api\Controladores\ReporteLegalController;
@@ -99,6 +100,7 @@ class KamplesController
         ColaIaController::registrarRutas($ns);
         SyncController::registrarRutas($ns);
         CancionesController::registrarRutas($ns);
+        ArtistasController::registrarRutas($ns);
         RelacionesController::registrarRutas($ns);
         ContribucionesController::registrarRutas($ns);
         ReporteLegalController::registrarRutas($ns);

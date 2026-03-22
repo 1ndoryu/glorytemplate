@@ -45,6 +45,10 @@ export const obtenerCancionDetalle = (
 ): Promise<RespuestaApi<CancionDetalle>> =>
     apiGet<CancionDetalle>(`/canciones/${encodeURIComponent(slug)}`);
 
+/* [223A-4] Canción aleatoria con detalle completo para modal descubrimiento */
+export const obtenerCancionAleatoria = (): Promise<RespuestaApi<CancionDetalle>> =>
+    apiGet<CancionDetalle>('/canciones/aleatorio');
+
 /* Top artistas por canciones */
 export const artistasTop = (
     limit = 50

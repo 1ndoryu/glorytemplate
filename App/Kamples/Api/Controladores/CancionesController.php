@@ -1,16 +1,17 @@
 <?php
 
 /**
- * CancionesController — API REST para Canciones y Artistas.
+ * CancionesController — API REST para Canciones.
  *
  * GET  /canciones                      — Listar canciones recientes
  * GET  /canciones/buscar               — Buscar canciones por texto
  * GET  /canciones/top                  — Canciones más sampleadas
  * GET  /canciones/feed                 — Feed paginado con ordenamiento
+ * GET  /canciones/secciones            — Secciones estilo Spotify
+ * GET  /canciones/aleatorio            — Canción aleatoria con detalle completo
  * GET  /canciones/{slug}               — Detalle canción con relaciones
- * GET  /artistas/{slug}                — Detalle artista con canciones
- * GET  /artistas/top                   — Top artistas por canciones
  *
+ * Artistas movidos a ArtistasController [223A-4].
  * Endpoints de relaciones movidos a RelacionesController (SOLID split).
  *
  * @package Kamples
@@ -19,12 +20,10 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\CancionesRepository;
-use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\CancionesArtistasRepository;
 use App\Kamples\Api\Helpers\NormalizadorCancion;
 use App\Kamples\Api\Helpers\UsuarioHelper;
-use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 use App\Kamples\KamplesLogger;
 
 class CancionesController
@@ -87,27 +86,16 @@ class CancionesController
             ],
         ]);
 
+        /* [223A-4] Canción aleatoria con detalle completo para modal descubrimiento */
+        \register_rest_route($namespace, '/canciones/aleatorio', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'aleatorio'],
+            'permission_callback' => '__return_true',
+        ]);
+
         \register_rest_route($namespace, '/canciones/(?P<slug>[a-zA-Z0-9_-]+)', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'detalle'],
-            'permission_callback' => '__return_true',
-            'args'                => [
-                'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
-            ],
-        ]);
-
-        \register_rest_route($namespace, '/artistas/top', [
-            'methods'             => 'GET',
-            'callback'            => [self::class, 'topArtistas'],
-            'permission_callback' => '__return_true',
-            'args'                => [
-                'limit' => ['type' => 'integer', 'default' => 50, 'minimum' => 1, 'maximum' => 100],
-            ],
-        ]);
-
-        \register_rest_route($namespace, '/artistas/(?P<slug>[a-zA-Z0-9_-]+)', [
-            'methods'             => 'GET',
-            'callback'            => [self::class, 'detalleArtista'],
             'permission_callback' => '__return_true',
             'args'                => [
                 'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
@@ -212,6 +200,44 @@ class CancionesController
         }
     }
 
+    /* [223A-4] GET /canciones/aleatorio — Canción aleatoria con detalle para modal descubrimiento.
+     * Selecciona del top 2000 canciones (por total_sampleada + total_samplea) una al azar. */
+    public static function aleatorio(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId  = UsuarioHelper::obtenerIdPg();
+            $cancion = CancionesRepository::aleatorio($userId);
+
+            if (!$cancion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'No hay canciones'], 404);
+            }
+
+            $cancionId = (int) $cancion['id'];
+            $artistas    = CancionesArtistasRepository::artistasDeCancion($cancionId);
+            $samplesDe   = RelacionesSampleRepository::samplesDe($cancionId);
+            $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
+
+            $normSamplesDe   = \array_map([NormalizadorCancion::class, 'relacion'], $samplesDe);
+            $normSampleadaEn = \array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn);
+
+            $dedup = static fn(array $rows): array =>
+                \array_values(\array_intersect_key($rows, \array_unique(\array_column($rows, 'id'))));
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => [
+                    'cancion'     => NormalizadorCancion::cancion($cancion),
+                    'artistas'    => \array_map([NormalizadorCancion::class, 'artistaConRol'], $artistas),
+                    'samplesDe'   => $dedup($normSamplesDe),
+                    'sampleadaEn' => $dedup($normSampleadaEn),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::aleatorio] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
     /**
      * GET /canciones/{slug} — Detalle canción con relaciones sample.
      *
@@ -254,63 +280,6 @@ class CancionesController
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::detalle] ' . $e->getMessage());
-            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
-        }
-    }
-
-    /**
-     * GET /artistas/{slug} — Detalle artista con canciones, relaciones y estadísticas.
-     */
-    public static function detalleArtista(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $slug = (string) $request->get_param('slug');
-            $artista = ArtistasMusicalesRepository::buscarPorSlug($slug);
-
-            if (!$artista) {
-                return new \WP_REST_Response(['ok' => false, 'error' => 'Artista no encontrado'], 404);
-            }
-
-            $artistaId = (int) $artista['id'];
-            $canciones = CancionesArtistasRepository::cancionesDeArtista($artistaId);
-            $cancionIds = \array_map(fn($c) => (int) $c['id'], $canciones);
-
-            /* Relaciones donde canciones del artista son FUENTE (otros lo samplearon)
-             * Se normaliza para que TablaRelaciones reciba los campos de la canción DESTINO
-             * (quién sampleó al artista) en el formato canсion_titulo/artista_nombre. */
-            $sampleadoPorRaw = RelacionesSampleRepository::relacionesDeCancionesFuente($cancionIds);
-            $sampleadoPor = \array_map(
-                fn(array $r) => self::_relacionBilateralAUnilateral($r, ColaExtraccionSamplesEnums::LADO_DESTINO),
-                $sampleadoPorRaw
-            );
-
-            /* Relaciones donde canciones del artista son DESTINO (el artista sampleó)
-             * Se normaliza mostrando la canción FUENTE (a quién sampleó). */
-            $sampleaARaw = RelacionesSampleRepository::relacionesDeCancionesDestino($cancionIds);
-            $sampleaA = \array_map(
-                fn(array $r) => self::_relacionBilateralAUnilateral($r, ColaExtraccionSamplesEnums::LADO_FUENTE),
-                $sampleaARaw
-            );
-
-            /* Géneros predominantes (top 5 por frecuencia) */
-            $generos = CancionesRepository::generosPorArtista($artistaId, 5);
-
-            return new \WP_REST_Response([
-                'ok'   => true,
-                'data' => [
-                    'artista'       => NormalizadorCancion::artista($artista),
-                    'canciones'     => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
-                    'sampleadoPor'  => \array_map([NormalizadorCancion::class, 'relacion'], $sampleadoPor),
-                    'sampleaA'      => \array_map([NormalizadorCancion::class, 'relacion'], $sampleaA),
-                    'estadisticas'  => [
-                        'totalSampleadoPor' => \count($sampleadoPor),
-                        'totalSampleaA'     => \count($sampleaA),
-                        'generos'           => $generos,
-                    ],
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            \error_log('[CancionesController::detalleArtista] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
@@ -376,40 +345,5 @@ class CancionesController
         }
     }
 
-    /**
-     * GET /artistas/top — Top artistas por cantidad de canciones.
-     */
-    public static function topArtistas(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $limit = (int) $request->get_param('limit');
-            $artistas = ArtistasMusicalesRepository::topPorCanciones($limit);
-
-            return new \WP_REST_Response([
-                'ok'   => true,
-                'data' => \array_map([NormalizadorCancion::class, 'artista'], $artistas),
-            ]);
-        } catch (\Throwable $e) {
-            \error_log('[CancionesController::topArtistas] ' . $e->getMessage());
-            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
-        }
-    }
-
-    /*
-     * Transforma una fila bilateral (fuente_/destino_) al formato unilateral
-     * que espera NormalizadorCancion::relacion() (cancion_titulo, artista_nombre).
-     * $lado indica qué lado mostrar: 'destino' o 'fuente'.
-     */
-    private static function _relacionBilateralAUnilateral(array $row, string $lado): array
-    {
-        $row['cancion_titulo']     = $row["{$lado}_titulo"] ?? null;
-        $row['cancion_slug']       = $row["{$lado}_slug"] ?? null;
-        $row['cancion_anio']       = $row["{$lado}_anio"] ?? null;
-        $row['cancion_imagen_url'] = $row["{$lado}_imagen"] ?? null;
-        $row['artista_nombre']     = $row["{$lado}_artista"] ?? null;
-        $row['artista_slug']       = $row["{$lado}_artista_slug"] ?? null;
-
-        return $row;
-    }
 }
 
