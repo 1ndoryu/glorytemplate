@@ -541,6 +541,10 @@ class MotorRecomendacion
                                     ELSE s.{$sMeta}->>'genero'
                                END, 'other'
                            )) AS genero_diversidad,
+                           /* [223A-2] Flag para ordenamiento prioritario: unplayed siempre antes que played.
+                            * rp.sum_ponderada IS NULL = usuario nunca reprodujo este sample.
+                            * Se usa como clave primaria de ORDER BY (es_nuevo DESC, score DESC). */
+                           (rp.sum_ponderada IS NULL) AS es_nuevo,
                            ({$scoreTotal}) as score
                     FROM {$ts} s
                     {$joinsPrecomputo}{$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
@@ -549,7 +553,9 @@ class MotorRecomendacion
                 . BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId)
                 . ")
                 SELECT * FROM base_scores
-                ORDER BY score DESC
+                /* [223A-2] Dos claves: samples no reproducidos primero, luego por score.
+                 * Garantiza que el usuario siempre vea primero lo que no ha oído.*/
+                ORDER BY es_nuevo DESC, score DESC
                 LIMIT :limit OFFSET :offset";
 
             /* [183A-80] Bulk-fetch: si el offset solicitado cabe en PAGINAS_BULK,
@@ -947,8 +953,16 @@ class MotorRecomendacion
         }
         unset($s);
 
-        /* Re-sort por score ajustado */
-        \usort($resultados, fn($a, $b) => (float) $b['score'] <=> (float) $a['score']);
+        /* [223A-2] Re-sort por score ajustado, manteniendo es_nuevo como clave primaria.
+         * Sin esto, el usort destruiría el orden es_nuevo→score restituyendo solo score. */
+        \usort($resultados, static function (array $a, array $b): int {
+            $aNuevo = (bool) ($a['es_nuevo'] ?? false);
+            $bNuevo = (bool) ($b['es_nuevo'] ?? false);
+            if ($aNuevo !== $bNuevo) {
+                return $bNuevo <=> $aNuevo; // true (1) antes que false (0)
+            }
+            return (float) $b['score'] <=> (float) $a['score'];
+        });
 
         return $resultados;
     }
