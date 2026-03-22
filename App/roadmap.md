@@ -136,5 +136,5 @@ Sobre eso, la tab de historial de lote no tiene estilos, debería.
 
 ## 223A-3-G 
 
-cancionDetalleAcciones no aparece en el modal de aleatoreos, debería, y alli debería aparer el boton de siguiente, recorte y youtube, solo iconos y sin texto
+cancionDetalleAcciones no aparece en el modal de aleatoreos, debería, y alli debería aparer el boton de siguiente, recorte y youtube, solo iconos y sin texto, obviamente tambien el de like y los 3 puntos, los botones de siguiente, recorte y youtube solo son para el modal, y el de youtube para admin, verifica que estos 3 botones vayan a funcionar bien
 

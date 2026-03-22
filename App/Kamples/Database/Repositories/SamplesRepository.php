@@ -691,7 +691,7 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar samples favoritos de un usuario (JOIN likes).
      */
-    public static function favoritosDeUsuario(int $userId, int $limit, int $offset, string $orden = 'recientes', string $busqueda = '', bool $soloEncanta = false): array
+    public static function favoritosDeUsuario(int $userId, int $limit, int $offset, string $orden = 'recientes', string $busqueda = '', ?string $filtroReaccion = null): array
     {
         $orderBy = OrdenamientoHelper::construirOrderBy(
             $orden,
@@ -707,9 +707,14 @@ class SamplesRepository extends BaseRepository
             $params['busquedaTag'] = '%' . $busqueda . '%';
         }
 
-           $reacciones = $soloEncanta
-              ? "('" . LikesEnums::REACCION_ENCANTA . "')"
-              : "('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')";
+        /* [223A-5] filtroReaccion: null = like+encanta, 'like' = solo like, 'encanta' = solo encanta */
+        if ($filtroReaccion === LikesEnums::REACCION_ENCANTA) {
+            $reacciones = "('" . LikesEnums::REACCION_ENCANTA . "')";
+        } elseif ($filtroReaccion === LikesEnums::REACCION_LIKE) {
+            $reacciones = "('" . LikesEnums::REACCION_LIKE . "')";
+        } else {
+            $reacciones = "('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')";
+        }
 
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN " . LikesCols::TABLA . " l ON l."
@@ -747,7 +752,8 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar coleccionados (UNION descargas + subidos) con soporte de carpeta.
      */
-    public static function coleccionadosDeUsuario(int $userId, int $limit, int $offset, string $carpeta = '', string $orden = 'recientes', string $busqueda = '', bool $soloEncanta = false): array
+    /* [223A-5] $filtroReaccion: null = sin filtro, 'encanta' = solo encanta, 'like' = solo like */
+    public static function coleccionadosDeUsuario(int $userId, int $limit, int $offset, string $carpeta = '', string $orden = 'recientes', string $busqueda = '', ?string $filtroReaccion = null): array
     {
         $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $limit, 'offset' => $offset];
         $carpetaClause = '';
@@ -782,16 +788,20 @@ class SamplesRepository extends BaseRepository
             $params['busquedaTag'] = '%' . $busqueda . '%';
         }
 
-        $soloEncantaClause = '';
-        if ($soloEncanta) {
-            $params['encantaUser'] = $userId;
-            $soloEncantaClause = " AND EXISTS ("
-                               . " SELECT 1 FROM " . LikesCols::TABLA . " l2"
-                               . " WHERE l2." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
-                               . " AND l2." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
-                               . " AND l2." . LikesCols::USUARIO_ID . " = :encantaUser"
-                               . " AND l2." . LikesCols::REACCION . " = '" . LikesEnums::REACCION_ENCANTA . "'"
-                               . " )";
+        /* [223A-5] Filtro por reacción: encanta, like, o sin filtro */
+        $reaccionClause = '';
+        if ($filtroReaccion !== null) {
+            $params['bind_reaccion_user'] = $userId;
+            $reaccionTarget = $filtroReaccion === LikesEnums::REACCION_ENCANTA
+                ? LikesEnums::REACCION_ENCANTA
+                : LikesEnums::REACCION_LIKE;
+            $reaccionClause = " AND EXISTS ("
+                            . " SELECT 1 FROM " . LikesCols::TABLA . " l2"
+                            . " WHERE l2." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+                            . " AND l2." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+                            . " AND l2." . LikesCols::USUARIO_ID . " = :bind_reaccion_user"
+                            . " AND l2." . LikesCols::REACCION . " = '" . $reaccionTarget . "'"
+                            . " )";
         }
 
         $ordenRecientes = "GREATEST(COALESCE(d." . DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp), s." . SamplesCols::PUBLICADO_AT . ") DESC";
@@ -805,7 +815,7 @@ class SamplesRepository extends BaseRepository
              . " AND ("
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
-             . " ){$carpetaClause}{$busquedaClause}{$soloEncantaClause}"
+             . " ){$carpetaClause}{$busquedaClause}{$reaccionClause}"
              . " ORDER BY {$orderBy}"
              . " LIMIT :limit OFFSET :offset";
 
@@ -815,7 +825,8 @@ class SamplesRepository extends BaseRepository
     /*
      * Contar coleccionados (descargas + subidos) para paginación.
      */
-    public static function contarColeccionados(int $userId, string $carpeta = '', string $busqueda = '', bool $soloEncanta = false): int
+    /* [223A-5] $filtroReaccion: null = sin filtro, 'encanta' = solo encanta, 'like' = solo like */
+    public static function contarColeccionados(int $userId, string $carpeta = '', string $busqueda = '', ?string $filtroReaccion = null): int
     {
         $ts = SamplesCols::TABLA;
         $td = DescargasCols::TABLA;
@@ -845,16 +856,20 @@ class SamplesRepository extends BaseRepository
             $params['busquedaTag'] = '%' . $busqueda . '%';
         }
 
-        $soloEncantaClause = '';
-        if ($soloEncanta) {
-            $params['encantaUser'] = $userId;
-            $soloEncantaClause = " AND EXISTS ("
-                               . " SELECT 1 FROM " . LikesCols::TABLA . " l2"
-                               . " WHERE l2." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
-                               . " AND l2." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
-                               . " AND l2." . LikesCols::USUARIO_ID . " = :encantaUser"
-                               . " AND l2." . LikesCols::REACCION . " = '" . LikesEnums::REACCION_ENCANTA . "'"
-                               . " )";
+        /* [223A-5] Filtro por reacción: encanta, like, o sin filtro */
+        $reaccionClause = '';
+        if ($filtroReaccion !== null) {
+            $params['bind_reaccion_user'] = $userId;
+            $reaccionTarget = $filtroReaccion === LikesEnums::REACCION_ENCANTA
+                ? LikesEnums::REACCION_ENCANTA
+                : LikesEnums::REACCION_LIKE;
+            $reaccionClause = " AND EXISTS ("
+                            . " SELECT 1 FROM " . LikesCols::TABLA . " l2"
+                            . " WHERE l2." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+                            . " AND l2." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+                            . " AND l2." . LikesCols::USUARIO_ID . " = :bind_reaccion_user"
+                            . " AND l2." . LikesCols::REACCION . " = '" . $reaccionTarget . "'"
+                            . " )";
         }
 
         /* F12: Consistente con coleccionadosDeUsuario — propios sin filtro de estado, QQ74: excepto eliminados */
@@ -867,7 +882,7 @@ class SamplesRepository extends BaseRepository
              . " AND ("
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
-             . " ){$carpetaClause}{$busquedaClause}{$soloEncantaClause}";
+             . " ){$carpetaClause}{$busquedaClause}{$reaccionClause}";
 
         $row = static::consultarUno($sql, $params);
         return (int) ($row['total'] ?? 0);

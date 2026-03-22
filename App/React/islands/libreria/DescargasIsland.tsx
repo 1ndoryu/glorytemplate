@@ -62,8 +62,8 @@ const DescargasBase = (): JSX.Element => {
         manejarLike,
     } = useDescargasPagina(
         busquedaDebounced,
-        filtrosDescargas.estaActivo('soloMeEncanta'),
-        filtrosFavoritos.estaActivo('soloMeEncanta')
+        filtrosDescargas.modoCorazon,
+        filtrosFavoritos.modoCorazon
     );
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
@@ -168,25 +168,25 @@ const DescargasBase = (): JSX.Element => {
                         ordenActual={ordenColeccionados}
                         onOrdenCambiar={setOrdenColeccionados}
                     >
-                        {/* [193A-44] Toggle rápido "solo me encanta" */}
+                        {/* [223A-5] Ciclo corazón: off → like → encanta → off */}
                         <BotonBase
                             variante="ghost"
                             tamano="ninguno"
-                            onClick={() => filtrosDescargas.toggle('soloMeEncanta')}
+                            onClick={filtrosDescargas.ciclarCorazon}
                             type="button"
                             aria-label={t('feed.soloMeEncanta')}
-                            className={filtrosDescargas.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}
+                            className={filtrosDescargas.modoCorazon !== 'off' ? 'filtroEncantaActivo' : ''}
                         >
-                            <Heart size={16} fill={filtrosDescargas.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
+                            <Heart size={16} fill={filtrosDescargas.modoCorazon === 'encanta' ? 'currentColor' : 'none'} strokeWidth={filtrosDescargas.modoCorazon === 'like' ? 3 : 2} />
                         </BotonBase>
                         <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label={t('feed.filtros')}>
                             <SlidersHorizontal size={16} />
                         </BotonBase>
                     </BarraControlFeed>
                     <FeedSamples
-                        key={`descargas-coleccionados-${ordenColeccionados}-${busquedaDebounced}-${filtrosDescargas.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
+                        key={`descargas-coleccionados-${ordenColeccionados}-${busquedaDebounced}-${filtrosDescargas.modoCorazon}`}
                         proveedor={proveedorColeccionados}
-                        claveCache={`coleccionados_${ordenColeccionados}_${busquedaDebounced}_${filtrosDescargas.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
+                        claveCache={`coleccionados_${ordenColeccionados}_${busquedaDebounced}_${filtrosDescargas.modoCorazon}`}
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
@@ -204,25 +204,25 @@ const DescargasBase = (): JSX.Element => {
                         ordenActual={ordenFavoritos}
                         onOrdenCambiar={setOrdenFavoritos}
                     >
-                        {/* [193A-44] Toggle rápido "solo me encanta" */}
+                        {/* [223A-5] Ciclo corazón: off → like → encanta → off */}
                         <BotonBase
                             variante="ghost"
                             tamano="ninguno"
-                            onClick={() => filtrosFavoritos.toggle('soloMeEncanta')}
+                            onClick={filtrosFavoritos.ciclarCorazon}
                             type="button"
                             aria-label={t('feed.soloMeEncanta')}
-                            className={filtrosFavoritos.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}
+                            className={filtrosFavoritos.modoCorazon !== 'off' ? 'filtroEncantaActivo' : ''}
                         >
-                            <Heart size={16} fill={filtrosFavoritos.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
+                            <Heart size={16} fill={filtrosFavoritos.modoCorazon === 'encanta' ? 'currentColor' : 'none'} strokeWidth={filtrosFavoritos.modoCorazon === 'like' ? 3 : 2} />
                         </BotonBase>
                         <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label={t('feed.filtros')}>
                             <SlidersHorizontal size={16} />
                         </BotonBase>
                     </BarraControlFeed>
                     <FeedSamples
-                        key={`descargas-favoritos-${ordenFavoritos}-${busquedaDebounced}-${filtrosFavoritos.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
+                        key={`descargas-favoritos-${ordenFavoritos}-${busquedaDebounced}-${filtrosFavoritos.modoCorazon}`}
                         proveedor={proveedorFavoritos}
-                        claveCache={`favoritos_descargas_${ordenFavoritos}_${busquedaDebounced}_${filtrosFavoritos.estaActivo('soloMeEncanta') ? 'encanta' : 'all'}`}
+                        claveCache={`favoritos_descargas_${ordenFavoritos}_${busquedaDebounced}_${filtrosFavoritos.modoCorazon}`}
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}

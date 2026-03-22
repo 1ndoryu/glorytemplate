@@ -19,6 +19,9 @@ export type FiltroContenidoId =
     | 'ocultarLikeados'
     | 'soloDeSeguidos';
 
+/* [223A-5] Modo del filtro corazón: off → like → encanta → off */
+export type ModoCorazon = 'off' | 'like' | 'encanta';
+
 export interface FiltroContenidoDef {
     id: FiltroContenidoId;
     etiqueta: string;
@@ -100,11 +103,17 @@ export interface ResultadoFiltrosContenido {
     resetear: () => void;
     /** Aplicar filtros a una lista de samples */
     aplicar: (samples: SampleResumen[]) => SampleResumen[];
+    /** [223A-5] Modo actual del filtro corazón (off/like/encanta) */
+    modoCorazon: ModoCorazon;
+    /** [223A-5] Ciclar modo corazón: off → like → encanta → off */
+    ciclarCorazon: () => void;
 }
 
 export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): ResultadoFiltrosContenido {
     const { disponibles, servidorSide, idsReproducidos, idsSeguidos } = opciones;
     const [activos, setActivos] = useState<Set<FiltroContenidoId>>(new Set());
+    /* [223A-5] Estado cíclico del filtro corazón: off → like → encanta → off */
+    const [modoCorazon, setModoCorazon] = useState<ModoCorazon>('off');
 
     const filtros = useMemo<FiltroContenidoDef[]>(
         () => disponibles.map(id => ({ id, ...DEFINICIONES[id] })),
@@ -112,6 +121,10 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
     );
 
     const toggle = useCallback((id: FiltroContenidoId) => {
+        /* [223A-5] Si togglean soloMeEncanta desde el ModalFiltros, sincronizar con modoCorazon */
+        if (id === 'soloMeEncanta') {
+            setModoCorazon(prev => prev === 'encanta' ? 'off' : 'encanta');
+        }
         setActivos(prev => {
             const nuevo = new Set(prev);
             if (nuevo.has(id)) nuevo.delete(id);
@@ -120,12 +133,31 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
         });
     }, []);
 
+    /* [223A-5] Ciclar: off → like → encanta → off */
+    const ciclarCorazon = useCallback(() => {
+        setModoCorazon(prev => {
+            const next = prev === 'off' ? 'like' : prev === 'like' ? 'encanta' : 'off';
+            /* Sync activos set para soloMeEncanta (ModalFiltros) */
+            setActivos(a => {
+                const n = new Set(a);
+                if (next === 'encanta') n.add('soloMeEncanta');
+                else n.delete('soloMeEncanta');
+                return n;
+            });
+            return next;
+        });
+    }, []);
+
     const estaActivo = useCallback(
-        (id: FiltroContenidoId) => activos.has(id),
-        [activos]
+        (id: FiltroContenidoId) => {
+            /* [223A-5] soloMeEncanta refleja el modoCorazon */
+            if (id === 'soloMeEncanta') return modoCorazon === 'encanta';
+            return activos.has(id);
+        },
+        [activos, modoCorazon]
     );
 
-    const hayActivos = activos.size > 0;
+    const hayActivos = activos.size > 0 || modoCorazon !== 'off';
 
     const resetear = useCallback(() => setActivos(new Set()), []);
 
@@ -137,7 +169,7 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
 
     const aplicar = useCallback(
         (samples: SampleResumen[]): SampleResumen[] => {
-            if (activos.size === 0) return samples;
+            if (activos.size === 0 && modoCorazon === 'off') return samples;
             let resultado = samples;
 
             if (activos.has('soloWav') && !servidorSideSet.has('soloWav')) {
@@ -145,9 +177,12 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
                     s.formato?.toLowerCase() === 'wav'
                 );
             }
-            if (activos.has('soloMeEncanta') && !servidorSideSet.has('soloMeEncanta')) {
-                /* [193A-44] Filtrar por reaccion 'encanta', no por liked genérico */
+            /* [223A-5] Filtro corazón: like filtra por reaccion 'like', encanta por 'encanta' */
+            if (modoCorazon === 'encanta' && !servidorSideSet.has('soloMeEncanta')) {
                 resultado = resultado.filter(s => s.reaccion === 'encanta');
+            }
+            if (modoCorazon === 'like' && !servidorSideSet.has('soloMeEncanta')) {
+                resultado = resultado.filter(s => s.reaccion === 'like');
             }
             if (activos.has('ocultarDescargados') && !servidorSideSet.has('ocultarDescargados')) {
                 resultado = resultado.filter(s => !s.yaColeccionado);
@@ -167,8 +202,8 @@ export function useFiltrosContenido(opciones: OpcionesFiltrosContenido): Resulta
 
             return resultado;
         },
-        [activos, servidorSideSet, idsReproducidos, idsSeguidos]
+        [activos, modoCorazon, servidorSideSet, idsReproducidos, idsSeguidos]
     );
 
-    return { filtros, estaActivo, toggle, hayActivos, resetear, aplicar };
+    return { filtros, estaActivo, toggle, hayActivos, resetear, aplicar, modoCorazon, ciclarCorazon };
 }

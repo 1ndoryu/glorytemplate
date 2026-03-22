@@ -16,6 +16,7 @@ import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 import { getT } from '@app/utils/i18n';
 import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
+import type { ModoCorazon } from '@app/hooks/useFiltrosContenido';
 
 const log = crearLogger('useDescargasPagina');
 
@@ -35,7 +36,8 @@ export interface UseDescargasPaginaResultado {
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
-export function useDescargasPagina(busqueda = '', soloEncantaColeccionados = false, soloEncantaFavoritos = false): UseDescargasPaginaResultado {
+/* [223A-5] modoCorazon: 'off' = sin filtro, 'like' = solo like, 'encanta' = solo encanta */
+export function useDescargasPagina(busqueda = '', modoCorazonColeccionados: ModoCorazon = 'off', modoCorazonFavoritos: ModoCorazon = 'off'): UseDescargasPaginaResultado {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [comprados, setComprados] = useState<SampleResumen[]>([]);
     const [limites, setLimites] = useState<LimitesDescarga | null>(null);
@@ -71,11 +73,11 @@ export function useDescargasPagina(busqueda = '', soloEncantaColeccionados = fal
     const [ordenColeccionados, setOrdenColeccionados] = useState<TipoOrdenFeed>('recientes');
     const [ordenFavoritos, setOrdenFavoritos] = useState<TipoOrdenFeed>('recientes');
 
-    /* QL53: Fábricas internas de proveedores que aceptan orden */
-    const crearProveedorColeccionados = useCallback((orden: string, busq: string, soloEncanta: boolean) => {
+    /* [223A-5] Fábricas internas de proveedores que aceptan orden y modo corazón */
+    const crearProveedorColeccionados = useCallback((orden: string, busq: string, modoCorazon: ModoCorazon) => {
         return async (pagina: number): Promise<ResultadoProveedor> => {
             try {
-                const resp = await obtenerColeccionados(pagina, 30, '', orden, busq, soloEncanta);
+                const resp = await obtenerColeccionados(pagina, 30, '', orden, busq, modoCorazon === 'encanta', modoCorazon === 'like');
                 return {
                     ok: resp.ok,
                     data: resp.ok && resp.data?.data ? resp.data.data : [],
@@ -88,11 +90,11 @@ export function useDescargasPagina(busqueda = '', soloEncantaColeccionados = fal
         };
     }, []);
 
-    /* QL53: Proveedor de favoritos con sorting */
-    const crearProveedorFavoritos = useCallback((orden: string, busq: string, soloEncanta: boolean) => {
+    /* [223A-5] Proveedor de favoritos con sorting y modo corazón */
+    const crearProveedorFavoritos = useCallback((orden: string, busq: string, modoCorazon: ModoCorazon) => {
         return async (pagina: number): Promise<ResultadoProveedor> => {
             try {
-                const resp = await obtenerMisFavoritos(pagina, 30, orden, busq, soloEncanta);
+                const resp = await obtenerMisFavoritos(pagina, 30, orden, busq, modoCorazon === 'encanta', modoCorazon === 'like');
                 return {
                     ok: resp.ok,
                     data: resp.ok && resp.data?.data ? resp.data.data : [],
@@ -105,14 +107,14 @@ export function useDescargasPagina(busqueda = '', soloEncantaColeccionados = fal
         };
     }, []);
 
-    /* QL53: Proveedores memoizados que se recrean cuando cambia el orden o busqueda */
+    /* [223A-5] Proveedores memoizados que se recrean cuando cambia el orden, busqueda o modo corazón */
     const proveedorColeccionados = useMemo(
-        () => crearProveedorColeccionados(ordenColeccionados, busqueda, soloEncantaColeccionados),
-        [crearProveedorColeccionados, ordenColeccionados, busqueda, soloEncantaColeccionados]
+        () => crearProveedorColeccionados(ordenColeccionados, busqueda, modoCorazonColeccionados),
+        [crearProveedorColeccionados, ordenColeccionados, busqueda, modoCorazonColeccionados]
     );
     const proveedorFavoritos = useMemo(
-        () => crearProveedorFavoritos(ordenFavoritos, busqueda, soloEncantaFavoritos),
-        [crearProveedorFavoritos, ordenFavoritos, busqueda, soloEncantaFavoritos]
+        () => crearProveedorFavoritos(ordenFavoritos, busqueda, modoCorazonFavoritos),
+        [crearProveedorFavoritos, ordenFavoritos, busqueda, modoCorazonFavoritos]
     );
 
     /* Proveedor paginado para tab "Más Ideas" */

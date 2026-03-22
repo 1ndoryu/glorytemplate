@@ -171,22 +171,24 @@ export const FeedUnificado = (): JSX.Element => {
      * QL24: El backend ahora envía total en TODAS las páginas, no solo page 1.
      * [193A-82] Todos los filtros con equivalente SQL se envían al backend.
      */
-    const soloMeEncanta = filtrosContenido.estaActivo('soloMeEncanta');
     const soloWav = filtrosContenido.estaActivo('soloWav');
     const ocultarDescargados = filtrosContenido.estaActivo('ocultarDescargados');
     const ocultarColeccionados = filtrosContenido.estaActivo('ocultarColeccionados');
     const ocultarLikeados = filtrosContenido.estaActivo('ocultarLikeados');
     const soloDeSeguidos = filtrosContenido.estaActivo('soloDeSeguidos');
+    const { modoCorazon } = filtrosContenido;
 
-    /* [193A-82] Objeto estable de filtros backend — useMemo evita recrear en cada render */
+    /* [193A-82] Objeto estable de filtros backend — useMemo evita recrear en cada render
+     * [223A-5] modoCorazon envía soloEncanta o soloLike según el ciclo */
     const filtrosBackend = useMemo<FiltrosFeedBackend>(() => ({
-        soloEncanta: soloMeEncanta,
+        soloEncanta: modoCorazon === 'encanta',
+        soloLike: modoCorazon === 'like',
         soloWav,
         ocultarDescargados,
         ocultarColeccionados,
         ocultarLikeados,
         soloDeSeguidos,
-    }), [soloMeEncanta, soloWav, ocultarDescargados, ocultarColeccionados, ocultarLikeados, soloDeSeguidos]);
+    }), [modoCorazon, soloWav, ocultarDescargados, ocultarColeccionados, ocultarLikeados, soloDeSeguidos]);
 
     const proveedor = useCallback(async (pagina: number) => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
@@ -205,7 +207,7 @@ export const FeedUnificado = (): JSX.Element => {
 
     /* QK83: Incluir búsqueda y filtros en clave de cache para invalidar al cambiar */
     /* [2103A-16] recargarVersion fuerza invalidación del cache cuando el usuario recarga */
-    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${soloMeEncanta}_${soloWav}_${ocultarDescargados}_${ocultarColeccionados}_${ocultarLikeados}_${soloDeSeguidos}_v${recargarVersion}`;
+    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}_${modoCorazon}_${soloWav}_${ocultarDescargados}_${ocultarColeccionados}_${ocultarLikeados}_${soloDeSeguidos}_v${recargarVersion}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {
@@ -307,16 +309,16 @@ export const FeedUnificado = (): JSX.Element => {
                         <Dices size={16} />
                     </BotonBase>
 
-                    {/* [193A-44] Toggle rápido "solo me encanta" en feed */}
+                    {/* [223A-5] Ciclo corazón: off → like (contorno) → encanta (relleno) → off */}
                     <BotonBase
                         variante="ghost"
                         tamano="ninguno"
-                        onClick={() => filtrosContenido.toggle('soloMeEncanta')}
+                        onClick={filtrosContenido.ciclarCorazon}
                         type="button"
-                        aria-label={t('feed.soloMeEncanta')}
-                        className={`inicioFiltrosBtn ${filtrosContenido.estaActivo('soloMeEncanta') ? 'filtroEncantaActivo' : ''}`}
+                        aria-label={modoCorazon === 'off' ? t('feed.soloMeEncanta') : modoCorazon === 'like' ? 'Solo me gusta' : 'Solo me encanta'}
+                        className={`inicioFiltrosBtn ${modoCorazon !== 'off' ? 'filtroEncantaActivo' : ''}`}
                     >
-                        <Heart size={16} fill={filtrosContenido.estaActivo('soloMeEncanta') ? 'currentColor' : 'none'} />
+                        <Heart size={16} fill={modoCorazon === 'encanta' ? 'currentColor' : 'none'} strokeWidth={modoCorazon === 'like' ? 3 : 2} />
                     </BotonBase>
 
                     <BotonBase variante="ghost"

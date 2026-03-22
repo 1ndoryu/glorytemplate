@@ -102,6 +102,7 @@ class SamplesController
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'busqueda_norm' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'solo_like' => ['required' => false, 'type' => 'boolean', 'default' => false],
                 'solo_wav' => ['required' => false, 'type' => 'boolean', 'default' => false],
                 'ocultar_descargados' => ['required' => false, 'type' => 'boolean', 'default' => false],
                 'ocultar_coleccionados' => ['required' => false, 'type' => 'boolean', 'default' => false],
@@ -524,11 +525,26 @@ class SamplesController
             }
         }
 
+        /* [223A-5] Filtro backend "solo like": reaccion = 'like' (me gusta). Mutuamente
+         * exclusivo con solo_encanta. */
+        $soloLike = !$soloEncanta && (bool) $request->get_param('solo_like');
+        if ($soloLike) {
+            $uidLike = UsuarioHelper::obtenerIdPg();
+            if ($uidLike) {
+                $whereExtra .= " AND EXISTS (SELECT 1 FROM " . LikesCols::TABLA . " ll"
+                             . " WHERE ll." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+                             . " AND ll." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+                             . " AND ll." . LikesCols::USUARIO_ID . " = :soloLikeUid"
+                             . " AND ll." . LikesCols::REACCION . " = '" . LikesEnums::REACCION_LIKE . "')";
+                $extraParams['soloLikeUid'] = $uidLike;
+            }
+        }
+
         /* [193A-82] Filtros backend adicionales — migrados desde client-side para evitar
          * conteos incorrectos, paginación rota y el efecto visual de "filtrar y recargar".
          * Todos requieren usuario autenticado. */
         $uidFiltros = UsuarioHelper::obtenerIdPg();
-        $hayFiltroActivo = $soloEncanta;
+        $hayFiltroActivo = $soloEncanta || $soloLike;
 
         if ((bool) $request->get_param('solo_wav')) {
             $whereExtra .= " AND s." . SamplesCols::FORMATO . " = 'wav'";

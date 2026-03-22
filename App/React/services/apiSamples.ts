@@ -73,6 +73,7 @@ export const obtenerSampleAleatorio = async (coleccionId?: number): Promise<Resp
  * porque el historial vive en localStorage, no en la BD. */
 export interface FiltrosFeedBackend {
     soloEncanta?: boolean;
+    soloLike?: boolean;
     soloWav?: boolean;
     ocultarDescargados?: boolean;
     ocultarColeccionados?: boolean;
@@ -100,6 +101,7 @@ export const obtenerFeed = async (
     }
     /* [193A-82] Enviar filtros backend activos */
     if (filtrosBackend.soloEncanta) params.solo_encanta = 1;
+    if (filtrosBackend.soloLike) params.solo_like = 1;
     if (filtrosBackend.soloWav) params.solo_wav = 1;
     if (filtrosBackend.ocultarDescargados) params.ocultar_descargados = 1;
     if (filtrosBackend.ocultarColeccionados) params.ocultar_coleccionados = 1;
@@ -276,10 +278,12 @@ export const obtenerSamplesDeCancion = async (
 /*
  * C87: Obtiene los samples favoritos (liked) del usuario autenticado.
  */
-export const obtenerMisFavoritos = async (page = 1, perPage = 20, orden = 'recientes', busqueda = '', soloEncanta = false): Promise<RespuestaApi<RespuestaListaSamples>> => {
+/* [223A-5] soloLike: filtra solo likes (sin encanta) */
+export const obtenerMisFavoritos = async (page = 1, perPage = 20, orden = 'recientes', busqueda = '', soloEncanta = false, soloLike = false): Promise<RespuestaApi<RespuestaListaSamples>> => {
     const params: Record<string, string | number> = { page, per_page: perPage, orden };
     if (busqueda) params.busqueda = busqueda;
     if (soloEncanta) params.solo_encanta = 1;
+    if (soloLike) params.solo_like = 1;
     return apiGet<RespuestaListaSamples>('/me/favoritos', params);
 };
 

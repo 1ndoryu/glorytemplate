@@ -23,6 +23,7 @@ use App\Kamples\Api\Helpers\OrdenamientoHelper;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
+use App\Config\Schema\_generated\LikesEnums;
 use App\Kamples\KamplesLogger;
 
 class BibliotecaSamplesController
@@ -39,6 +40,7 @@ class BibliotecaSamplesController
                 'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => ''],
                 'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'solo_like' => ['required' => false, 'type' => 'boolean', 'default' => false],
             ],
         ]);
 
@@ -65,6 +67,7 @@ class BibliotecaSamplesController
                 'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
                 'busqueda' => ['required' => false, 'type' => 'string', 'default' => ''],
                 'solo_encanta' => ['required' => false, 'type' => 'boolean', 'default' => false],
+                'solo_like' => ['required' => false, 'type' => 'boolean', 'default' => false],
             ],
         ]);
 
@@ -103,12 +106,15 @@ class BibliotecaSamplesController
         $busqueda = \trim((string) $request->get_param('busqueda'));
 
         $soloEncanta = (bool) $request->get_param('solo_encanta');
+        $soloLike = !$soloEncanta && (bool) $request->get_param('solo_like');
+        /* [223A-5] filtroReaccion unifica ambos filtros para pasarlos al repo */
+        $filtroReaccion = $soloEncanta ? LikesEnums::REACCION_ENCANTA : ($soloLike ? LikesEnums::REACCION_LIKE : null);
 
-        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden, $busqueda, $soloEncanta);
+        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden, $busqueda, $filtroReaccion);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = LikesRepository::contarFavoritosSamples($userId, $busqueda, $soloEncanta);
+        $total = LikesRepository::contarFavoritosSamples($userId, $busqueda, $filtroReaccion);
 
         return new \WP_REST_Response([
             'data' => [
@@ -194,11 +200,13 @@ class BibliotecaSamplesController
         $busqueda = \trim((string) $request->get_param('busqueda'));
 
         $soloEncanta = (bool) $request->get_param('solo_encanta');
+        $soloLike = !$soloEncanta && (bool) $request->get_param('solo_like');
+        $filtroReaccion = $soloEncanta ? LikesEnums::REACCION_ENCANTA : ($soloLike ? LikesEnums::REACCION_LIKE : null);
 
-        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden, $busqueda, $soloEncanta);
+        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden, $busqueda, $filtroReaccion);
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = SamplesRepository::contarColeccionados($userId, $carpeta, $busqueda, $soloEncanta);
+        $total = SamplesRepository::contarColeccionados($userId, $carpeta, $busqueda, $filtroReaccion);
 
         return new \WP_REST_Response([
             'data' => [
