@@ -1,9 +1,9 @@
 # Plan: Optimización Feed SQL — De 696ms a <100ms (escalable a 1M usuarios)
 
-> **Fecha:** 2026-03-20  
-> **Tarea:** 2003A-27  
-> **Estado:** Activo  
-> **Baseline:** 696.2ms query CTE, 2,649 samples activos, 14 resultados  
+> **Fecha:** 2026-03-20 (actualizado 2026-03-22)  
+> **Tarea:** 2003A-27 + 223A-1  
+> **Estado:** Fases 1-3 completadas. Fases 4-5 pendientes para escala >10K samples.  
+> **Baseline:** 696.2ms → 4106ms (con 4812 samples) → **470ms post-optimización**  
 > **Objetivo:** <100ms con 2,649 samples, <200ms con 100K samples, <500ms con 1M
 
 ---
