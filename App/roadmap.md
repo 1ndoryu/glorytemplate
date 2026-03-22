@@ -76,24 +76,9 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **223A-3 (2026-03-22):** Automatización extractor audio (20/h) + scraper WhoSampled (500/h) con historial lotes, auto-stop por fallos, notificación admin, reactivación. Cron IA 60s→90s. Tab "Historial" en admin panel.
 
+- **223A-4 (2026-03-22):** Modal aleatorio canciones — botón dado en sidebar, modal con cancionDetalleTarjeta, YouTube embed, botones Siguiente/Recorte/YouTube(admin). Split ArtistasController de CancionesController (SRP).
+
 ## Tareas pendientes
-
-### 223A-4 — Modal aleatorio canciones (descubrimiento)
-**Complejidad: ALTA** — Nuevo modal + integración con extracción audio.
-
-- Botón aleatorio en el sidebar footer (arriba del botón bug de "Reportar error")
-- Al hacer click, abre un modal centrado con `cancionDetalleTarjeta`
-- En `cancionDetalleAcciones` dentro del modal, 3 botones:
-  1. **Siguiente** — pasa a otra canción aleatoria
-  2. **Recorte** — genera recorte con el proceso de extracción de audio (si no fue generado antes). Descarga el recorte directamente + queda en cola
-  3. **YouTube** — descarga el audio completo (solo para admin)
-- La fuente de descarga no importa, solo que se descargue
-
-**Archivos clave:**
-- Nuevo: `ModalCancionAleatoria.tsx`, `useCancionAleatoria.ts`
-- `App/React/islands/canciones/CancionDetalleIsland.tsx` — reutilizar tarjeta
-- `App/React/components/layout/NavPublico.tsx` — agregar botón
-- Backend: endpoint canción aleatoria + trigger extracción
 
 ### 223A-5 — Filtro corazón 3 modos (me gusta / me encanta / off)
 **Complejidad: MEDIA** — Ciclo de estados en botón filtro.
@@ -157,7 +142,21 @@ Ubicacion: `App/docs (ignorar)/`
 - `App/React/hooks/useCancionDetalle.ts` — estado de like
 - `App/React/services/apiSocial.ts` — toggle like
 
-## Esto se necesita planificar bien 
+## 223A-3-B
+
+Sobre eso, la tab de historial de lote no tiene estilos, debería.
+
+## 223A-3-C
+
+Sobre lo de canciones aleatoreas, olvide los detalles de que al dar click, el video de youtube de la cancion tiene que reproducirse automaticamente y si tienen tiempo de sampleo especificados, empezar en esos tiempo, y sino tiene, empezar desde el inicio, pero siempre reproducir el video automaticamente al abrir el modal.
+
+## 223A-3-D
+
+Vi que pusiste  * Selecciona del top 2000 canciones (por total_sampleada + total_samplea) una al azar. */, no, tienen que ser todas, no solo un grupo, esto tiene que ser optimo y eficiente pero necesito que sean todsas. 
+
+Agregaremos un select dentro del modal centrado arriba para filtrar por genero, debe ser un select como el feedsampled donde puedes selecionar
+
+## Comentarios exactos de las tareas planificadas
 
 primero planifica
 
