@@ -34,7 +34,8 @@ return [
         'grafo_social' => 0.10,
 
         /* Novedad — boost mínimo; los samples no pierden valor con el tiempo */
-        'novedad' => 0.08,
+        /* [2203A-1] TEMPORALMENTE DESACTIVADO — dominaba con samples recientes sobre biblioteca antigua */
+        'novedad' => 0.0,
     ],
 
     /*
@@ -182,8 +183,10 @@ return [
          * [2103A-10] Bajado al mínimo — factor 2.0 dominaba el feed completo porque
          * samples recién scrapeados (<24h) obtenían score×2 y aplastaban al resto.
          * Con 1.05 se mantiene una pequeña ventana de cold start sin distorsionar. */
+        /* [2203A-1] TEMPORALMENTE DESACTIVADO — reforzaba samples recientes sobre biblioteca antigua.
+         * Reactivar cuando se quiera volver a dar ventana de cold start a samples nuevos. */
         'boost_reciente' => [
-            'habilitado'  => true,
+            'habilitado'  => false,
             'horas_full'  => 24,   /* < 24h desde publicación: boost completo */
             'horas_medio' => 72,   /* 24-72h: boost parcial (decae linealmente) */
             'factor_full' => 1.05, /* x1.05 para < 24h (era 2.0 — demasiado dominante) */
@@ -210,9 +213,10 @@ return [
 
         /* [2103A-21] Boost multiplicativo para samples que el usuario nunca ha reproducido.
          * rp.sum_ponderada IS NULL = sin historial de reproducción en repro_peso CTE.
-         * 1.20 = +20% de probabilidad de aparecer en el feed frente a ya-vistos.
+         * [2203A-1] Subido 1.20 → 1.50: compensar la desactivación del boost de novedad,
+         * el feed debe priorizar claramente lo nunca escuchado sobre lo recién subido.
          * El boost desaparece en cuanto el usuario lo reproduce por primera vez. */
-        'boost_no_reproducido' => 1.20,
+        'boost_no_reproducido' => 1.50,
 
         /* Cantidad mínima de interacciones para activar señal de comportamiento */
         'min_interacciones'    => 5,
