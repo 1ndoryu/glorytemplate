@@ -1,13 +1,14 @@
 /*
  * Componente: ModalCancionAleatoria — Kamples
- * [223A-4] Modal de descubrimiento de canciones aleatorias.
- * Muestra cancionDetalleTarjeta con botones: Siguiente, Recorte, YouTube (admin).
+ * [223A-4][223A-3-E] Modal de descubrimiento de canciones aleatorias.
+ * Filtros de género y década via SelectFiltro. Muestra cancionDetalleTarjeta.
  */
 
 import { Music, SkipForward, Scissors, Youtube, Loader2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
+import { SelectFiltro } from '../ui/SelectFiltro';
 import type { useCancionAleatoria } from '@app/hooks/useCancionAleatoria';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import { useNavigationStore } from '@/core/router';
@@ -30,6 +31,30 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
             titulo="Descubrir canción"
             tamano="grande"
         >
+            {/* [223A-3-E] Filtros género y década centrados arriba */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--espacioSm)', marginBottom: 'var(--espacioMd)', flexWrap: 'wrap' }}>
+                {ctrl.generosDisponibles.length > 0 && (
+                    <SelectFiltro
+                        etiqueta="Género"
+                        opciones={ctrl.generosDisponibles}
+                        tagsIncluidos={ctrl.generosIncluidos}
+                        tagsExcluidos={ctrl.generosExcluidos}
+                        onIncluir={ctrl.incluirGenero}
+                        onExcluir={ctrl.excluirGenero}
+                        onQuitar={ctrl.quitarGenero}
+                    />
+                )}
+                <SelectFiltro
+                    etiqueta="Década"
+                    opciones={ctrl.decadasDisponibles}
+                    tagsIncluidos={ctrl.decadasIncluidas}
+                    tagsExcluidos={ctrl.decadasExcluidas}
+                    onIncluir={ctrl.incluirDecada}
+                    onExcluir={ctrl.excluirDecada}
+                    onQuitar={ctrl.quitarDecada}
+                />
+            </div>
+
             {cargando || !cancion ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
                     <Loader2 size={32} className="animacionGiro" />

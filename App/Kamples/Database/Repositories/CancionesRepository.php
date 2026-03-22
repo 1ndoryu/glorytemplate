@@ -95,22 +95,76 @@ class CancionesRepository extends BaseRepository
         );
     }
 
-    /* [223A-4][223A-3-D] Canción aleatoria de todo el catálogo.
-     * Usa offset aleatorio para O(1) en vez de ORDER BY RANDOM() sobre toda la tabla. */
-    public static function aleatorio(?int $userId): ?array
+    /* [223A-4][223A-3-D][223A-3-E] Canción aleatoria de todo el catálogo.
+     * Usa offset aleatorio para O(1). Acepta filtros opcionales de género y década.
+     * @param ?int $userId — usuario autenticado (para liked/sample adjunto)
+     * @param string[] $generos — géneros a incluir (OR)
+     * @param int[] $decadas — décadas como año inicio (ej: 1990 = 1990-1999)
+     */
+    public static function aleatorio(?int $userId, array $generos = [], array $decadas = []): ?array
     {
         $tc = CancionesCols::TABLA;
-        $countRow = static::consultarUno("SELECT COUNT(*) AS total FROM {$tc}", []);
+        $where = [];
+        $params = [];
+
+        /* Filtro género: IN clause con parámetros numerados */
+        if (\count($generos) > 0) {
+            $placeholders = [];
+            foreach ($generos as $i => $g) {
+                $key = "bind_genero_{$i}";
+                $placeholders[] = ":{$key}";
+                $params[$key] = $g;
+            }
+            $where[] = 'c.' . CancionesCols::GENERO . ' IN (' . \implode(', ', $placeholders) . ')';
+        }
+
+        /* Filtro década: rango de años con OR */
+        if (\count($decadas) > 0) {
+            $rangos = [];
+            foreach ($decadas as $i => $d) {
+                $inicio = (int) $d;
+                $fin = $inicio + 9;
+                $keyI = "bind_decada_ini_{$i}";
+                $keyF = "bind_decada_fin_{$i}";
+                $rangos[] = "(c." . CancionesCols::ANIO . " BETWEEN :{$keyI} AND :{$keyF})";
+                $params[$keyI] = $inicio;
+                $params[$keyF] = $fin;
+            }
+            $where[] = '(' . \implode(' OR ', $rangos) . ')';
+        }
+
+        $whereClause = \count($where) > 0 ? ' WHERE ' . \implode(' AND ', $where) : '';
+
+        /* COUNT sin alias (tabla directa) */
+        $countWhere = \str_replace('c.', "{$tc}.", $whereClause);
+        $countRow = static::consultarUno(
+            "SELECT COUNT(*) AS total FROM {$tc}{$countWhere}",
+            $params
+        );
         $total = (int) ($countRow['total'] ?? 0);
         if ($total === 0) {
             return null;
         }
         $offset = random_int(0, $total - 1);
         $base = self::buildSelectBase($userId);
+
+        $params['off'] = $offset;
         return static::consultarUno(
-            "{$base} ORDER BY c." . CancionesCols::ID . " OFFSET :off LIMIT 1",
-            ['off' => $offset]
+            "{$base}{$whereClause} ORDER BY c." . CancionesCols::ID . " OFFSET :off LIMIT 1",
+            $params
         );
+    }
+
+    /* [223A-3-E] Géneros distintos disponibles en el catálogo de canciones.
+     * Retorna array de strings ordenados alfabéticamente. */
+    public static function generosDisponibles(): array
+    {
+        $tc = CancionesCols::TABLA;
+        $rows = static::consultar(
+            "SELECT DISTINCT " . CancionesCols::GENERO . " FROM {$tc} WHERE " . CancionesCols::GENERO . " IS NOT NULL AND " . CancionesCols::GENERO . " != '' ORDER BY " . CancionesCols::GENERO,
+            []
+        );
+        return \array_column($rows, CancionesCols::GENERO);
     }
 
     /**

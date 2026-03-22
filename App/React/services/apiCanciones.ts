@@ -45,9 +45,21 @@ export const obtenerCancionDetalle = (
 ): Promise<RespuestaApi<CancionDetalle>> =>
     apiGet<CancionDetalle>(`/canciones/${encodeURIComponent(slug)}`);
 
-/* [223A-4] Canción aleatoria con detalle completo para modal descubrimiento */
-export const obtenerCancionAleatoria = (): Promise<RespuestaApi<CancionDetalle>> =>
-    apiGet<CancionDetalle>('/canciones/aleatorio');
+/* [223A-4][223A-3-E] Canción aleatoria con detalle completo para modal descubrimiento.
+ * Acepta filtros opcionales de género y década (comma-separated). */
+export const obtenerCancionAleatoria = (
+    generos?: string[],
+    decadas?: number[]
+): Promise<RespuestaApi<CancionDetalle>> => {
+    const params: Record<string, string> = {};
+    if (generos && generos.length > 0) params.generos = generos.join(',');
+    if (decadas && decadas.length > 0) params.decadas = decadas.join(',');
+    return apiGet<CancionDetalle>('/canciones/aleatorio', params);
+};
+
+/* [223A-3-E] Géneros distintos disponibles en el catálogo de canciones */
+export const obtenerGenerosCanciones = (): Promise<RespuestaApi<string[]>> =>
+    apiGet<string[]>('/canciones/generos');
 
 /* Top artistas por canciones */
 export const artistasTop = (

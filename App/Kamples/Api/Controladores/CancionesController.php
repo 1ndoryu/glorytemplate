@@ -1,21 +1,7 @@
 <?php
-
-/**
- * CancionesController — API REST para Canciones.
- *
- * GET  /canciones                      — Listar canciones recientes
- * GET  /canciones/buscar               — Buscar canciones por texto
- * GET  /canciones/top                  — Canciones más sampleadas
- * GET  /canciones/feed                 — Feed paginado con ordenamiento
- * GET  /canciones/secciones            — Secciones estilo Spotify
- * GET  /canciones/aleatorio            — Canción aleatoria con detalle completo
- * GET  /canciones/{slug}               — Detalle canción con relaciones
- *
+/* CancionesController — API REST para Canciones.
  * Artistas movidos a ArtistasController [223A-4].
- * Endpoints de relaciones movidos a RelacionesController (SOLID split).
- *
- * @package Kamples
- */
+ * Relaciones movidos a RelacionesController (SOLID split). */
 
 namespace App\Kamples\Api\Controladores;
 
@@ -86,10 +72,21 @@ class CancionesController
             ],
         ]);
 
-        /* [223A-4] Canción aleatoria con detalle completo para modal descubrimiento */
+        /* [223A-4][223A-3-E] Canción aleatoria con detalle completo para modal descubrimiento */
         \register_rest_route($namespace, '/canciones/aleatorio', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'aleatorio'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'generos' => ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
+                'decadas' => ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
+            ],
+        ]);
+
+        /* [223A-3-E] Géneros distintos disponibles en canciones */
+        \register_rest_route($namespace, '/canciones/generos', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'generos'],
             'permission_callback' => '__return_true',
         ]);
 
@@ -200,40 +197,41 @@ class CancionesController
         }
     }
 
-    /* [223A-4] GET /canciones/aleatorio — Canción aleatoria con detalle para modal descubrimiento.
-     * Selecciona del top 2000 canciones (por total_sampleada + total_samplea) una al azar. */
+    /* [223A-4][223A-3-E] GET /canciones/aleatorio — Canción aleatoria con detalle para modal descubrimiento.
+     * Acepta filtros opcionales: generos (comma-sep), decadas (comma-sep, ej: 1990,2000). */
     public static function aleatorio(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
             $userId  = UsuarioHelper::obtenerIdPg();
-            $cancion = CancionesRepository::aleatorio($userId);
+
+            /* Parsear filtros comma-separated */
+            $generosRaw = \trim((string) $request->get_param('generos'));
+            $decadasRaw = \trim((string) $request->get_param('decadas'));
+            $generos = $generosRaw !== '' ? \array_filter(\explode(',', $generosRaw)) : [];
+            $decadas = $decadasRaw !== '' ? \array_map('intval', \array_filter(\explode(',', $decadasRaw))) : [];
+
+            $cancion = CancionesRepository::aleatorio($userId, $generos, $decadas);
 
             if (!$cancion) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'No hay canciones'], 404);
             }
 
             $cancionId = (int) $cancion['id'];
-            $artistas    = CancionesArtistasRepository::artistasDeCancion($cancionId);
-            $samplesDe   = RelacionesSampleRepository::samplesDe($cancionId);
-            $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
-
-            $normSamplesDe   = \array_map([NormalizadorCancion::class, 'relacion'], $samplesDe);
-            $normSampleadaEn = \array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn);
-
-            $dedup = static fn(array $rows): array =>
-                \array_values(\array_intersect_key($rows, \array_unique(\array_column($rows, 'id'))));
-
-            return new \WP_REST_Response([
-                'ok'   => true,
-                'data' => [
-                    'cancion'     => NormalizadorCancion::cancion($cancion),
-                    'artistas'    => \array_map([NormalizadorCancion::class, 'artistaConRol'], $artistas),
-                    'samplesDe'   => $dedup($normSamplesDe),
-                    'sampleadaEn' => $dedup($normSampleadaEn),
-                ],
-            ]);
+            return new \WP_REST_Response(['ok' => true, 'data' => self::construirDetalle($cancion, $cancionId)]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::aleatorio] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /* [223A-3-E] GET /canciones/generos — Géneros distintos disponibles en el catálogo. */
+    public static function generos(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $lista = CancionesRepository::generosDisponibles();
+            return new \WP_REST_Response(['ok' => true, 'data' => $lista]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::generos] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
@@ -257,27 +255,7 @@ class CancionesController
             }
 
             $cancionId = (int) $cancion['id'];
-
-            $artistas    = CancionesArtistasRepository::artistasDeCancion($cancionId);
-            $samplesDe   = RelacionesSampleRepository::samplesDe($cancionId);
-            $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
-
-            $normSamplesDe   = \array_map([NormalizadorCancion::class, 'relacion'], $samplesDe);
-            $normSampleadaEn = \array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn);
-
-            /* Dedup defensivo por id: evita React key conflicts si la BD tiene duplicados */
-            $dedup = static fn(array $rows): array =>
-                \array_values(\array_intersect_key($rows, \array_unique(\array_column($rows, 'id'))));
-
-            return new \WP_REST_Response([
-                'ok'   => true,
-                'data' => [
-                    'cancion'     => NormalizadorCancion::cancion($cancion),
-                    'artistas'    => \array_map([NormalizadorCancion::class, 'artistaConRol'], $artistas),
-                    'samplesDe'   => $dedup($normSamplesDe),
-                    'sampleadaEn' => $dedup($normSampleadaEn),
-                ],
-            ]);
+            return new \WP_REST_Response(['ok' => true, 'data' => self::construirDetalle($cancion, $cancionId)]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::detalle] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
@@ -343,6 +321,22 @@ class CancionesController
             \error_log('[CancionesController::secciones] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
+    }
+
+    /* Helper compartido entre aleatorio() y detalle(): normaliza canción con artistas y relaciones dedup. */
+    private static function construirDetalle(array $cancion, int $cancionId): array
+    {
+        $artistas    = CancionesArtistasRepository::artistasDeCancion($cancionId);
+        $samplesDe   = RelacionesSampleRepository::samplesDe($cancionId);
+        $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
+        $dedup = static fn(array $rows): array =>
+            \array_values(\array_intersect_key($rows, \array_unique(\array_column($rows, 'id'))));
+        return [
+            'cancion'     => NormalizadorCancion::cancion($cancion),
+            'artistas'    => \array_map([NormalizadorCancion::class, 'artistaConRol'], $artistas),
+            'samplesDe'   => $dedup(\array_map([NormalizadorCancion::class, 'relacion'], $samplesDe)),
+            'sampleadaEn' => $dedup(\array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn)),
+        ];
     }
 
 }
