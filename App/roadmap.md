@@ -75,3 +75,136 @@ Ubicacion: `App/docs (ignorar)/`
 - **223A-2 (2026-03-22):** Unplayed first — ORDER BY es_nuevo DESC, score DESC. El boost 1.50x no era suficiente; ahora todos los no-reproducidos van antes de cualquier ya-reproducido. Fix también en usort de diversidad PHP que destruía el orden.
 
 ## Tareas pendientes
+
+### 223A-3 — Automatización extractor audio + scraper WhoSampled
+**Complejidad: ALTA** — Sistema de automatización completo con historial, errores y notificaciones.
+
+**Extractor de audio (cola IA):**
+- Ejecutar automáticamente cada hora, procesando 20 recortes/hora
+- Después de descargar el sampled, OBLIGATORIO que quede en cola (no procesarlo de inmediato)
+- Reducir intervalo de procesamiento de cola de 60s a 90s (ahorrar peticiones Groq diarias)
+- IA que decide si audio es válido debe usar rotación de API con varios modelos de soporte
+- Si 20 recortes fallan seguidos en 1 hora → DETENER + notificar admin (user 1)
+
+**Scraper WhoSampled:**
+- 500 scrapings/hora, automático (actualmente es manual/diario)
+- Si 50 scrapes fallan seguidos → notificar admin (user 1)
+
+**Panel historial admin:**
+- Nuevo historial compacto en el panel admin con conteo de:
+  - Éxitos / fallos por tipo
+  - Recortes procesados
+  - Samples publicados
+  - Scrapings realizados
+  - Canciones / sampleos encontrados
+- Separado por tipo: "Scraping WhoSampled" y "Extractor Audio"
+- Resumen compacto, no verbose
+
+**Archivos clave:**
+- `App/Kamples/Services/ProcesadorColaIA.php` — cron intervalo 60→90s, batch 20/hora
+- `App/Kamples/Api/GroqHttpClient.php` — rotación keys
+- `App/Kamples/Api/ServicioIA.php` — múltiples modelos soporte
+- `kamples-scraper/` — automatizar ejecución horaria
+- `App/React/components/admin/` — panel historial
+- Backend notificaciones admin
+
+### 223A-4 — Modal aleatorio canciones (descubrimiento)
+**Complejidad: ALTA** — Nuevo modal + integración con extracción audio.
+
+- Botón aleatorio en el nav (arriba del botón de reporte)
+- Al hacer click, abre un modal centrado con `cancionDetalleTarjeta`
+- En `cancionDetalleAcciones` dentro del modal, 3 botones:
+  1. **Siguiente** — pasa a otra canción aleatoria
+  2. **Recorte** — genera recorte con el proceso de extracción de audio (si no fue generado antes). Descarga el recorte directamente + queda en cola
+  3. **YouTube** — descarga el audio completo (solo para admin)
+- La fuente de descarga no importa, solo que se descargue
+
+**Archivos clave:**
+- Nuevo: `ModalCancionAleatoria.tsx`, `useCancionAleatoria.ts`
+- `App/React/islands/canciones/CancionDetalleIsland.tsx` — reutilizar tarjeta
+- `App/React/components/layout/NavPublico.tsx` — agregar botón
+- Backend: endpoint canción aleatoria + trigger extracción
+
+### 223A-5 — Filtro corazón 3 modos (me gusta / me encanta / off)
+**Complejidad: MEDIA** — Ciclo de estados en botón filtro.
+
+- El botón de filtro corazón en colecciones/feed:
+  - Click 1: corazón a la mitad = filtra por "me gusta"
+  - Click 2: corazón completo = filtra por "me encanta"
+  - Click 3: desactiva filtro
+- Ciclo: off → me gusta (mitad) → me encanta (completo) → off
+
+**Archivos clave:**
+- Componente de filtro existente en feed/colecciones
+- Nuevo icono: corazón medio lleno
+- Hook de filtrado que acepte tipo de reacción
+
+### 223A-6 — Botón corazón filtro dentro de colecciones
+**Complejidad: BAJA** — Agregar filtro que ya existe en feed pero falta en colecciones.
+
+- El botón de filtro por "me encanta" falta dentro de ColeccionDetalle
+- Debe filtrar los samples de la colección por los que el usuario le dio like/encanta
+
+**Archivos clave:**
+- `App/React/islands/colecciones/ColeccionDetalleIsland.tsx`
+- `App/React/hooks/useColeccionDetalle.ts`
+
+### 223A-7 — Botón aleatorio en colecciones: reproducir de ESA colección
+**Complejidad: BAJA** — Modificar hook existente para filtrar por colección.
+
+- Actualmente el botón dado en ColeccionDetalle reproduce del top 1000 global
+- Debe reproducir aleatorio SOLO de la colección actual
+- Endpoint existente o nuevo parámetro `?coleccion_id=X`
+
+**Archivos clave:**
+- `App/React/hooks/useReproductorAleatorio.ts` — aceptar `coleccionId`
+- `App/React/islands/colecciones/ColeccionDetalleIsland.tsx`
+- Backend: `GET /samples/aleatorio?coleccion_id=X`
+
+### 223A-8 — Play colecciones padre reproduce hijas + autoplay forzado
+**Complejidad: MEDIA** — Lógica de reproducción cross-colección.
+
+- El botón play de una colección padre reproduce samples aleatorios de sus colecciones hijas
+- Pasa obligatoriamente a la siguiente automáticamente hasta que se pause
+- El autoplay forzado opera aunque el autoplay global esté desactivado
+- Necesita: query que obtenga samples de subcolecciones, queue de reproducción especial
+
+**Archivos clave:**
+- `App/React/islands/colecciones/ColeccionDetalleIsland.tsx`
+- `App/React/hooks/useReproductorAleatorio.ts` — nuevo modo "padre"
+- `App/React/stores/` — store del reproductor, autoplay override
+- Backend: endpoint samples de subcolecciones
+
+### 223A-9 — Bug: like canciones no se actualiza visualmente al instante
+**Complejidad: BAJA** — Fix de estado React.
+
+- Al dar like a una canción, el corazón no se marca visualmente al momento
+- Solo se actualiza después de recargar la página
+- Falta update optimista del estado local
+
+**Archivos clave:**
+- `App/React/islands/canciones/CancionDetalleIsland.tsx` — botón like
+- `App/React/hooks/useCancionDetalle.ts` — estado de like
+- `App/React/services/apiSocial.ts` — toggle like
+
+## Esto se necesita planificar bien 
+
+primero planifica
+
+los procesos de Extraccion Audio y whosampled necesito que se ejecuten automaticamente cada hora, en 1 hora se tienen que procesar 20 recortes, y quedar en cola (obligatorio que quede en cola despues de descargar el sampled y que no se procese de una vez), y en para el scraper de whosampled, necesito 500 scrapping por hora, esto tiene que ser automatico, y tiene que haber un historial en el panel con conteo de exito, recortes, smaples publicados, scrapping, canciones, sampleos, resumido y compacto, pero no basta alli, se tienen que detectar los errores, por ejemplo si en una hora, los 20 fallaron, se detiene, y envia una notificaicon al admin id 1 de que hay que revisar el extractor de audio, si el scrapping falla 50 veces seguidas, se tiene e envia una notificacion
+
+esto lleva reducir el procesamiento de la cola a en vez de 1 minuto a 1:30 minutos pues el extractor de audio suma peticiones y hay que ahorrarlas por dia, segundo haz una revision estricta de que todo se vaya a medir bien en resumuen de historial, que esten separados por tipo de procesamiento scrapiing whosampled y extractor de audios son los unicos tipos de procesos, y que el scrapping de extractor la ia que decide si un audio es validono este usando la rotacion de api y que tenga varios modelos de soporte
+
+otra tarea, el el boton de aleateoreo dentro de las coleccioens tiene que reproducir aleatoreo pero dentro de esa coleccion
+
+otra tarea, el boton de corazon ese que filtra por me encanta falta dentro de las colecciones 
+
+otra tarea, el boton de corazon para filtrar, que tenga un modo extra, el corazon a la mitad represente los me gusta, y el corazon completo los me encanta, o sea cambia me gusta, y luego a me encanta con otro click, y con otro click se desactiva
+
+otra tarea, arriba del boton de reporte en el nav, agrega un boton de aleatoreo que hara lo siguiente, abrira un modal con una cancion, aparecera un cancionDetalleTarjeta como modal den el centro de la pantalla, en cancionDetalleAcciones agregaras 3 botones, uno para pasar a la siguiente, y otro de recorte, para generar el recorte con el proceso de extraccion de audio (si es que ya no fue generado antes), con el paso adicional de que no solo se queda en cola sino que descarga el recorte directamente, y otro boton de youtube, que descargara el audio completo, por supuesto no importa la fuente solo importa que se descargue en esos botones, el de youtube solo es para admin. 
+
+el boton de play de las las colecciones padre tambien tiene que reproducir aleatoreamente samples de sus hijas y pasar obligatoramiamente a la siguiente automaticamente hasta que se de pause aunque el autoplay este desactivado
+
+hay un bug en el boton de like de las canciones, no se actualiza al instante o sea no se marca el like visualmente al momento sino despues de recargar, hay que corregir
+
+como ves son muchas tareas, planificalas, no estan el roadmap, agregalas alli y planificalas, luego las haces toda, si tienes dudas, puedes preguntarlas ahora, si esta todo claro importante que anotes todo en el roadmap detalladamente
