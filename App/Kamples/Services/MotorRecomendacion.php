@@ -460,15 +460,6 @@ class MotorRecomendacion
         $maxPorColeccion = (int) ($params['max_por_coleccion'] ?? 3);
         $sMeta = SamplesCols::METADATA;
 
-        /*
-         * CTEs de pre-cómputo: tags enriquecidos (1× en vez de 9×),
-         * flags usuario (LEFT JOIN en vez de 4 EXISTS), vectores de afinidad.
-         * FIX verificado_sample: alias obligatorio para NormalizadorSample.
-         */
-        $ctesPrecomputo = PrecomputadorFeed::generarCtes($userId, $config);
-        $ctesPrecomputoPrefijo = PrecomputadorFeed::serializarCtes($ctesPrecomputo);
-        AlgoTimingLogger::marcar($userId, 'generacionSQL');
-
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
         $sId = SamplesCols::ID;
@@ -484,26 +475,37 @@ class MotorRecomendacion
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
         $userId_int = (int) $userId;
 
-        /*
-         * Pipeline de candidatos: pre-filtro rápido si >5000 samples activos.
-         * Se inserta como CTE adicional entre pre-cómputo y base_scores.
-         */
+        /* [2203A-1] Pipeline de candidatos ANTES de pre-cómputo.
+         * Root cause del rendimiento: CTEs (enriched, score_tags, col_propietario) procesaban
+         * TODOS los samples activos (~4812) aunque solo ~525 candidatos se usaban en base_scores.
+         * Ahora: candidatos se define primero en el WITH, y enriched/score_tags filtran por candidatos.
+         * Resultado: CTEs pasan de O(4812) a O(~525 candidatos), ~6-9x reducción. */
         $umbralCandidatos = (int) ($config['candidatos']['umbral_activacion'] ?? 5000);
         $totalActivos = SelectorCandidatos::contarActivos();
         $usarCandidatos = $totalActivos > $umbralCandidatos;
 
-        $cteCandidatosSql = '';
+        $cteCandidatosPrefijo = '';
         $joinCandidatos = '';
-        $joinTrendingMV = '';
         if ($usarCandidatos) {
             $cteCandidatos = SelectorCandidatos::seleccionar($userId, $perfilUsuario, $queryParams, $config);
-            $cteCandidatosSql = ",\n                " . $cteCandidatos;
+            $cteCandidatosPrefijo = $cteCandidatos . ",\n                ";
             $joinCandidatos = "JOIN (SELECT id FROM candidatos) cand ON s.{$sId} = cand.id\n                    ";
             KamplesLogger::info('Algoritmo: Usando pipeline de candidatos', [
                 'totalActivos' => $totalActivos, 'umbral' => $umbralCandidatos,
             ]);
         }
 
+        /*
+         * CTEs de pre-cómputo: tags enriquecidos (1× en vez de 9×),
+         * flags usuario (LEFT JOIN en vez de 4 EXISTS), vectores de afinidad.
+         * [2203A-1] Cuando pipeline activo, enriched/col_propietario filtran por candidatos.
+         * FIX verificado_sample: alias obligatorio para NormalizadorSample.
+         */
+        $ctesPrecomputo = PrecomputadorFeed::generarCtes($userId, $config, $usarCandidatos);
+        $ctesPrecomputoPrefijo = PrecomputadorFeed::serializarCtes($ctesPrecomputo);
+        AlgoTimingLogger::marcar($userId, 'generacionSQL');
+
+        $joinTrendingMV = '';
         if ($usarVistaMatTrending) {
             $joinTrendingMV = "LEFT JOIN mv_trending_samples mvt ON mvt.sample_id = s.{$sId}\n                    ";
         }
@@ -512,7 +514,7 @@ class MotorRecomendacion
 
         $sImagen = SamplesCols::IMAGEN_URL;
 
-        $sql = "WITH {$ctesPrecomputoPrefijo}{$cteCandidatosSql},
+        $sql = "WITH {$cteCandidatosPrefijo}{$ctesPrecomputoPrefijo},
                 base_scores AS (
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                            u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif},

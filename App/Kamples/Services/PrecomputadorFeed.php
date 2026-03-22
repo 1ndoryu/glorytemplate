@@ -45,7 +45,7 @@ class PrecomputadorFeed
      *
      * @return array<string, string> Mapa nombreCte => SQL (sin el "AS (...)")
      */
-    public static function generarCtes(int $userId, array $config = []): array
+    public static function generarCtes(int $userId, array $config = [], bool $usarCandidatos = false): array
     {
         $uid = (int) $userId;
 
@@ -72,7 +72,7 @@ class PrecomputadorFeed
         $usarTagsMaterializados = TagAffinityService::tieneScoresRecientes($uid);
 
         /* Nivel 0: sin dependencias */
-        $ctes['enriched'] = self::cteEnriched();
+        $ctes['enriched'] = self::cteEnriched($usarCandidatos);
         $ctes['user_likes'] = self::cteUserLikes($uid);
         $ctes['user_descargas'] = self::cteUserDescargas($uid);
         $ctes['user_colecciones'] = self::cteUserColecciones($uid);
@@ -94,8 +94,8 @@ class PrecomputadorFeed
         /* [2003A-3] Nivel 1: colección del propietario pre-computada.
          * Elimina 2 subqueries correlacionadas en base_scores que se ejecutaban
          * 2,611 veces cada una (~500-900ms de ahorro). */
-        $ctes['col_propietario'] = self::cteColPropietario();
-        $ctes['col_imagen_prop'] = self::cteColImagenPropietario();
+        $ctes['col_propietario'] = self::cteColPropietario($usarCandidatos);
+        $ctes['col_imagen_prop'] = self::cteColImagenPropietario($usarCandidatos);
 
         /* Nivel 2: scores pre-agregados */
         $ctes['score_tags'] = $usarTagsMaterializados
@@ -157,12 +157,18 @@ class PrecomputadorFeed
      */
     private static ?bool $columnaTagsEnriquecidosExiste = null;
 
-    private static function cteEnriched(): string
+    private static function cteEnriched(bool $usarCandidatos = false): string
     {
         $sId = SamplesCols::ID;
         $sEstado = SamplesCols::ESTADO;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
         $ts = SamplesCols::TABLA;
+
+        /* [2203A-1] Cuando pipeline candidatos activo, enriched solo procesa candidatos.
+         * Root cause: enriched procesaba TODOS los samples activos (~4812) aunque solo
+         * ~525 candidatos se usaban en base_scores. Filtrar aquí cascada a score_tags,
+         * repro_peso y todos los JOINs — reducción de O(N_total) a O(N_candidatos). */
+        $filtroCandidatos = $usarCandidatos ? " AND s.{$sId} IN (SELECT id FROM candidatos)" : '';
 
         if (self::$columnaTagsEnriquecidosExiste === null) {
             $cached = ServicioCache::obtener('kamples_col_tags_enr_ok');
@@ -186,14 +192,14 @@ class PrecomputadorFeed
             /* Columna materializada: 0 cost de computacion */
             $sCol = SamplesCols::TAGS_ENRIQUECIDOS;
             return "SELECT s.{$sId} AS sample_id, s.{$sCol} AS etags
-                FROM {$ts} s WHERE s.{$sEstado} = '{$eActivo}'";
+                FROM {$ts} s WHERE s.{$sEstado} = '{$eActivo}'{$filtroCandidatos}";
         }
 
         /* Fallback: calculo dinamico con JSONB (pre-v058) */
         $etagsExpr = ConstructorSenales::sqlTagsEnriquecidos('s');
 
         return "SELECT s.{$sId} AS sample_id, {$etagsExpr} AS etags
-            FROM {$ts} s WHERE s.{$sEstado} = '{$eActivo}'";
+            FROM {$ts} s WHERE s.{$sEstado} = '{$eActivo}'{$filtroCandidatos}";
     }
 
     private static function cteUserLikes(int $uid): string
@@ -726,13 +732,16 @@ class PrecomputadorFeed
     /* [2003A-3] CTE col_propietario: primera colección del creador para cada sample activo.
      * Elimina la subquery correlacionada sqlColeccionOriginalJson() que se ejecutaba
      * 2,611 veces (una por sample candidato). Ahora es 1 scan + DISTINCT ON. */
-    private static function cteColPropietario(): string
+    private static function cteColPropietario(bool $usarCandidatos = false): string
     {
         $ts = SamplesCols::TABLA;
         $sId = SamplesCols::ID;
         $sCreadorId = SamplesCols::CREADOR_ID;
         $sEstado = SamplesCols::ESTADO;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
+
+        /* [2203A-1] Filtrar por candidatos cuando pipeline activo */
+        $filtroCandidatos = $usarCandidatos ? " AND s2.{$sId} IN (SELECT id FROM candidatos)" : '';
         $csTabla = ColeccionSamplesCols::TABLA;
         $csColId = ColeccionSamplesCols::COLECCION_ID;
         $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
@@ -751,7 +760,7 @@ class PrecomputadorFeed
         FROM {$csTabla} cs
         JOIN {$cTabla} c ON cs.{$csColId} = c.{$cId}
         JOIN {$ts} s2 ON cs.{$csSampleId} = s2.{$sId} AND c.{$cUsuarioId} = s2.{$sCreadorId}
-        WHERE s2.{$sEstado} = '{$eActivo}'
+        WHERE s2.{$sEstado} = '{$eActivo}'{$filtroCandidatos}
         ORDER BY cs.{$csSampleId}, cs.{$csAddedAt} ASC";
     }
 
@@ -759,13 +768,16 @@ class PrecomputadorFeed
      * Elimina la subquery correlacionada sqlImagenColeccionPropietario().
      * Filtro adicional: c.imagen_url IS NOT NULL (porque busca la portada de coleccion
      * como fallback cuando el sample no tiene imagen directa). */
-    private static function cteColImagenPropietario(): string
+    private static function cteColImagenPropietario(bool $usarCandidatos = false): string
     {
         $ts = SamplesCols::TABLA;
         $sId = SamplesCols::ID;
         $sCreadorId = SamplesCols::CREADOR_ID;
         $sEstado = SamplesCols::ESTADO;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
+
+        /* [2203A-1] Filtrar por candidatos cuando pipeline activo */
+        $filtroCandidatos = $usarCandidatos ? " AND s2.{$sId} IN (SELECT id FROM candidatos)" : '';
         $csTabla = ColeccionSamplesCols::TABLA;
         $csColId = ColeccionSamplesCols::COLECCION_ID;
         $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
@@ -781,7 +793,7 @@ class PrecomputadorFeed
         FROM {$csTabla} cs
         JOIN {$cTabla} c ON cs.{$csColId} = c.{$cId}
         JOIN {$ts} s2 ON cs.{$csSampleId} = s2.{$sId} AND c.{$cUsuarioId} = s2.{$sCreadorId}
-        WHERE s2.{$sEstado} = '{$eActivo}' AND c.{$cImagenUrl} IS NOT NULL
+        WHERE s2.{$sEstado} = '{$eActivo}'{$filtroCandidatos} AND c.{$cImagenUrl} IS NOT NULL
         ORDER BY cs.{$csSampleId}, cs.{$csAddedAt} ASC";
     }
 }
