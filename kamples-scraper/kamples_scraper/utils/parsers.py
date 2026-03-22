@@ -239,6 +239,10 @@ def extraer_cancion_de_box(response, box_id: str) -> dict:
     lado_embed = "dest" if "dest" in box_id else "source"
     spotify_id = _extraer_spotify_id_de_embed(response, lado_embed)
 
+    # [223A-3-F] Intentar extraer género del box (presente en algunos layouts)
+    genero_raw = response.css(f"{box_id} span[itemprop='genre']::text").get("")
+    genero = genero_raw.strip() if genero_raw else None
+
     anio = None
     if anio_raw:
         anio_match = re.search(r"\d{4}", anio_raw)
@@ -256,6 +260,7 @@ def extraer_cancion_de_box(response, box_id: str) -> dict:
         "imagen_url": imagen,
         "whosampled_url": normalizar_url(track_url),
         "spotify_id": spotify_id,
+        "genero": genero,
     }
 
 

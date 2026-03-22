@@ -12,11 +12,12 @@ import logging
 
 import scrapy
 
-from kamples_scraper.items import RelacionItem
-from kamples_scraper.utils.dedup import marcar_procesada, marcar_error
+from kamples_scraper.items import RelacionItem, TrackMetadataItem
+from kamples_scraper.utils.dedup import marcar_procesada, marcar_error, url_ya_procesada, registrar_url
 from kamples_scraper.utils.parsers import (
     extraer_cancion_de_box,
     extraer_featuring_artists,
+    extraer_metadata_track_overview,
     extraer_productores_de_box,
     extraer_whosampled_id,
     identificar_subseccion,
@@ -55,6 +56,10 @@ class SampleDetailSpider(scrapy.Spider):
             if item:
                 marcar_procesada(url_norm, body_size)
                 yield item
+
+                # [223A-3-F] Seguir a las overview de ambos tracks para obtener género.
+                # extraer_cancion_de_box no tiene access al género (solo en track overview).
+                yield from self._seguir_track_overviews(item)
 
                 # Seguir links a related songs (cadena de samples)
                 yield from self._seguir_related(response)
@@ -164,8 +169,6 @@ class SampleDetailSpider(scrapy.Spider):
                 if not any(p in link for p in ["/sample/", "/cover/", "/remix/"]):
                     continue
 
-                from kamples_scraper.utils.dedup import url_ya_procesada, registrar_url
-
                 if url_ya_procesada(norm_url):
                     continue
 
@@ -177,3 +180,46 @@ class SampleDetailSpider(scrapy.Spider):
 
                 registrar_url(norm_url, tipo_det, "pendiente")
                 yield scrapy.Request(full_url, callback=self.parse_detail)
+
+    def _seguir_track_overviews(self, item: RelacionItem):
+        """
+        [223A-3-F] Generar requests a las páginas overview de ambos tracks
+        para extraer genre/tags/youtube_id que no están en la página de detalle.
+        Solo si no fueron ya procesadas.
+        """
+        for cancion_data in [item["cancion_destino"], item["cancion_fuente"]]:
+            ws_url = cancion_data.get("whosampled_url", "")
+            if not ws_url:
+                continue
+            overview_url = f"https://www.whosampled.com{ws_url}"
+            norm = normalizar_url(overview_url)
+            if url_ya_procesada(norm):
+                continue
+            registrar_url(norm, "track_overview", "pendiente")
+            yield scrapy.Request(
+                overview_url,
+                callback=self._parse_track_overview,
+                priority=-1,
+            )
+
+    def _parse_track_overview(self, response):
+        """
+        [223A-3-F] Callback para track overview: extrae metadata (genero, tags, youtube_id)
+        y emite TrackMetadataItem para actualizar la canción en BD.
+        """
+        url_norm = normalizar_url(response.url)
+        body_size = len(response.body) if response.body else 0
+        try:
+            meta = extraer_metadata_track_overview(response)
+            if meta["genero"] or meta["youtube_id"] or meta["spotify_id"] or meta["tags"]:
+                yield TrackMetadataItem(
+                    whosampled_url=meta["whosampled_url"],
+                    genero=meta["genero"],
+                    youtube_id=meta["youtube_id"],
+                    spotify_id=meta["spotify_id"],
+                    tags=meta["tags"],
+                )
+            marcar_procesada(url_norm, body_size, tipo_pagina="track_overview")
+        except Exception as e:
+            logger.exception("Error parseando overview %s", response.url)
+            marcar_error(url_norm, str(e)[:500])
