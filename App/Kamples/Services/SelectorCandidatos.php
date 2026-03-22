@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Services\ServicioCache;
 
@@ -86,6 +87,7 @@ class SelectorCandidatos
         $maxSeguidos = (int) ($candidatosConfig['max_seguidos'] ?? 200);
         $maxTags = (int) ($candidatosConfig['max_tags'] ?? 200);
         $maxPopulares = (int) ($candidatosConfig['max_populares'] ?? 100);
+        $maxNuevos = (int) ($candidatosConfig['max_nuevos'] ?? 150);
         $diasTrending = (int) ($candidatosConfig['dias_trending'] ?? 14);
 
         /* Whitelist para intervalo (seguridad: no interpolar directamente) */
@@ -124,6 +126,7 @@ class SelectorCandidatos
         $params['candMaxSeguidos'] = $maxSeguidos;
         $params['candMaxTags'] = $maxTags;
         $params['candMaxPopulares'] = $maxPopulares;
+        $params['candMaxNuevos'] = $maxNuevos;
         /* [213A-1] Bug fix: :userId se usa en Fuente 3 (seguidos) pero nunca se bindeaba.
          * Sin este binding, PDO falla silenciosamente y el CTE candidatos retorna 0 rows,
          * haciendo que el algoritmo caiga al fallback recientes para todos los usuarios
@@ -186,6 +189,24 @@ class SelectorCandidatos
             WHERE s.{$sEstado} = :candEstado
             ORDER BY (s.{$sTotLikes} + s.{$sTotRepro} + s.{$sTotDesc}) DESC
             LIMIT :candMaxPopulares)";
+
+        /* [223A-2] Fuente 6: Samples no reproducidos por el usuario (aleatorios).
+         * Las fuentes 1-5 se basan en comportamiento del usuario: si usó mucho la app,
+         * casi todos sus candidatos serán ya-reproducidos y es_nuevo=false para todos.
+         * Esta fuente garantiza candidatos frescos sin importar el historial del usuario.
+         * NOT EXISTS usa el índice sobre reproducciones(usuario_id, sample_id). */
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $partes[] = "(SELECT s.{$sId} AS id
+            FROM {$ts} s
+            WHERE s.{$sEstado} = :candEstado
+            AND NOT EXISTS (
+                SELECT 1 FROM {$trep} r
+                WHERE r.{$trUid} = :userId AND r.{$trSid} = s.{$sId}
+            )
+            ORDER BY RANDOM()
+            LIMIT :candMaxNuevos)";
 
         /* UNION elimina duplicados automaticamente */
         $unionSql = implode("\n            UNION\n            ", $partes);

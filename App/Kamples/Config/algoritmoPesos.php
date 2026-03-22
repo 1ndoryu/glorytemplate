@@ -298,6 +298,9 @@ return [
         'max_seguidos'       => 100,    /* De creadores seguidos */
         'max_tags'           => 150,    /* Afinidad por tags del usuario */
         'max_populares'      => 50,     /* Populares all-time */
+        /* [223A-2] Fuente 6: no reproducidos aleatorios. Garantiza candidatos frescos
+         * aunque el usuario haya reproducido todos los trending/populares. */
+        'max_nuevos'         => 150,    /* No reproducidos por el usuario (RANDOM) */
         'dias_trending'      => 14,     /* Ventana para trending recientes */
     ],
 
