@@ -111,7 +111,7 @@
 .adminThContenido {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--espacioXs);
 }
 
 .adminSortIcono {
@@ -147,7 +147,7 @@
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--colorError);
+    color: var(--error);
     font-size: var(--fuenteXs);
 }
 
@@ -179,4 +179,101 @@
         flex-direction: column;
         align-items: stretch;
     }
+}
+
+/* [223A-3-B] Historial de lotes — contenedor genérico de tab admin */
+.adminTablaContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.adminTablaBarraSuperior {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.adminTabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fuenteSm);
+    white-space: nowrap;
+}
+
+.adminTabla th {
+    text-align: left;
+    padding: var(--espacioSm) var(--espacioMd);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado1);
+}
+
+.adminTabla td {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    color: var(--textoPrimario);
+}
+
+.adminTabla tr:hover td {
+    background: var(--fondoElevado2);
+}
+
+.adminTabla .celdaCompacta {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+.adminTabla .celdaNumero {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.adminTablaPaginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Tarjeta de estado de proceso (extracción / scraper) */
+.tarjetaEstadoProceso {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+    flex: 1 1 200px;
+}
+
+.tarjetaEstadoEncabezado {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    margin-bottom: var(--espacioXs);
+}
+
+.tarjetaEstadoInfo {
+    font-size: var(--fuenteXs);
+    opacity: 0.7;
+}
+
+.tarjetaEstadoUltimo {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    margin-top: var(--espacioXs);
+}
+
+.tarjetaEstadoReactivar {
+    margin-top: var(--espacioSm);
+}
+
+/* Detalles de lote (celda de tabla) */
+.detalleLoteTexto {
+    font-size: var(--fuenteXs);
 }

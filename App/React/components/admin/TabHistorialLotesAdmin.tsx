@@ -58,7 +58,7 @@ export const TabHistorialLotesAdmin = (): JSX.Element => {
         <div className="adminTablaContenedor">
             {/* Estado de automatización */}
             {hist.estado && (
-                <div className="adminTablaBarraSuperior" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+                <div className="adminTablaBarraSuperior">
                     <TarjetaEstadoProceso
                         titulo="Extracción Audio"
                         activo={hist.estado.extraccion.activo}
@@ -178,25 +178,20 @@ const TarjetaEstadoProceso = ({
     reactivando: boolean;
     onReactivar: () => void;
 }): JSX.Element => (
-    <div style={{
-        padding: '0.75rem 1rem',
-        borderRadius: 'var(--radio-md, 8px)',
-        border: '1px solid var(--colorBorde, #333)',
-        flex: '1 1 200px',
-    }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+    <div className="tarjetaEstadoProceso">
+        <div className="tarjetaEstadoEncabezado">
             {activo ? <CheckCircle size={14} color="var(--colorExito, #22c55e)" /> : <PauseCircle size={14} color="var(--colorError, #ef4444)" />}
             <strong>{titulo}</strong>
             <Badge variante={activo ? 'exito' : 'error'}>{activo ? 'Activo' : 'Detenido'}</Badge>
         </div>
-        <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+        <div className="tarjetaEstadoInfo">
             {limiteLote} items/lote · Cada hora
             {fallosConsecutivos !== undefined && fallosConsecutivos > 0 && (
                 <span> · <AlertTriangle size={12} style={{ verticalAlign: 'middle' }} /> {fallosConsecutivos} fallos consecutivos</span>
             )}
         </div>
         {ultimoLote && (
-            <div style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.25rem' }}>
+            <div className="tarjetaEstadoUltimo">
                 Último: {ultimoLote.exitosos ?? 0} ok / {ultimoLote.fallidos ?? 0} err — {formatearFecha(ultimoLote.iniciado_at ?? null)}
             </div>
         )}
@@ -206,7 +201,7 @@ const TarjetaEstadoProceso = ({
                 tamano="sm"
                 onClick={onReactivar}
                 disabled={reactivando}
-                style={{ marginTop: '0.5rem' }}
+                className="tarjetaEstadoReactivar"
             >
                 {reactivando ? <Loader2 size={14} className="animacionGiro" /> : <Play size={14} />}
                 Reactivar
@@ -219,7 +214,7 @@ const TarjetaEstadoProceso = ({
 const DetallesLote = ({ lote }: { lote: { tipo: string; recortes: number; samples_publicados: number; canciones_nuevas: number; sampleos_nuevos: number; error_mensaje: string | null } }): JSX.Element => {
     if (lote.tipo === 'extraccion') {
         return (
-            <span style={{ fontSize: '0.8rem' }}>
+            <span className="detalleLoteTexto">
                 {lote.recortes > 0 && <span>🎵 {lote.recortes} recortes</span>}
                 {lote.samples_publicados > 0 && <span> · 📤 {lote.samples_publicados} pub.</span>}
                 {lote.error_mensaje && <span title={lote.error_mensaje}> ⚠</span>}
@@ -227,7 +222,7 @@ const DetallesLote = ({ lote }: { lote: { tipo: string; recortes: number; sample
         );
     }
     return (
-        <span style={{ fontSize: '0.8rem' }}>
+        <span className="detalleLoteTexto">
             {lote.canciones_nuevas > 0 && <span>🎶 {lote.canciones_nuevas} canciones</span>}
             {lote.sampleos_nuevos > 0 && <span> · 🔗 {lote.sampleos_nuevos} sampleos</span>}
             {lote.error_mensaje && <span title={lote.error_mensaje}> ⚠</span>}
