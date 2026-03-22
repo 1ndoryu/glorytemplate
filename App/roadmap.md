@@ -74,44 +74,14 @@ Ubicacion: `App/docs (ignorar)/`
 - **223A-1 (2026-03-22):** Optimización feed SQL 4106ms→470ms (88%). CTE reordering: candidatos primero, enriched/col_propietario filtran por candidatos. EXPLAIN throttled 5min. Límites candidatos 1000→650.
 - **223A-2 (2026-03-22):** Unplayed first — ORDER BY es_nuevo DESC, score DESC. El boost 1.50x no era suficiente; ahora todos los no-reproducidos van antes de cualquier ya-reproducido. Fix también en usort de diversidad PHP que destruía el orden.
 
+- **223A-3 (2026-03-22):** Automatización extractor audio (20/h) + scraper WhoSampled (500/h) con historial lotes, auto-stop por fallos, notificación admin, reactivación. Cron IA 60s→90s. Tab "Historial" en admin panel.
+
 ## Tareas pendientes
-
-### 223A-3 — Automatización extractor audio + scraper WhoSampled
-**Complejidad: ALTA** — Sistema de automatización completo con historial, errores y notificaciones.
-
-**Extractor de audio (cola IA):**
-- Ejecutar automáticamente cada hora, procesando 20 recortes/hora
-- Después de descargar el sampled, OBLIGATORIO que quede en cola (no procesarlo de inmediato)
-- Reducir intervalo de procesamiento de cola de 60s a 90s (ahorrar peticiones Groq diarias)
-- IA que decide si audio es válido debe usar rotación de API con varios modelos de soporte
-- Si 20 recortes fallan seguidos en 1 hora → DETENER + notificar admin (user 1)
-
-**Scraper WhoSampled:**
-- 500 scrapings/hora, automático (actualmente es manual/diario)
-- Si 50 scrapes fallan seguidos → notificar admin (user 1)
-
-**Panel historial admin:**
-- Nuevo historial compacto en el panel admin con conteo de:
-  - Éxitos / fallos por tipo
-  - Recortes procesados
-  - Samples publicados
-  - Scrapings realizados
-  - Canciones / sampleos encontrados
-- Separado por tipo: "Scraping WhoSampled" y "Extractor Audio"
-- Resumen compacto, no verbose
-
-**Archivos clave:**
-- `App/Kamples/Services/ProcesadorColaIA.php` — cron intervalo 60→90s, batch 20/hora
-- `App/Kamples/Api/GroqHttpClient.php` — rotación keys
-- `App/Kamples/Api/ServicioIA.php` — múltiples modelos soporte
-- `kamples-scraper/` — automatizar ejecución horaria
-- `App/React/components/admin/` — panel historial
-- Backend notificaciones admin
 
 ### 223A-4 — Modal aleatorio canciones (descubrimiento)
 **Complejidad: ALTA** — Nuevo modal + integración con extracción audio.
 
-- Botón aleatorio en el nav (arriba del botón de reporte)
+- Botón aleatorio en el sidebar footer (arriba del botón bug de "Reportar error")
 - Al hacer click, abre un modal centrado con `cancionDetalleTarjeta`
 - En `cancionDetalleAcciones` dentro del modal, 3 botones:
   1. **Siguiente** — pasa a otra canción aleatoria
