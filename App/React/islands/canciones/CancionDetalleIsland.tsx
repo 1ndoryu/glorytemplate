@@ -91,8 +91,10 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
             ? await quitarLike('cancion', detalle.cancion.id)
             : await darLike('cancion', detalle.cancion.id);
 
+        /* [223A-9] Fix: backend ahora retorna { liked, reaccion } dentro de data.
+         * Defensivo: si liked no viene, mantener el estado optimista. */
         if (!resp.ok) setLiked(anterior);
-        else if (resp.data) setLiked(resp.data.liked);
+        else if (resp.data && typeof resp.data.liked === 'boolean') setLiked(resp.data.liked);
         setLikeando(false);
     }, [autenticado, likeando, liked, detalle]);
 

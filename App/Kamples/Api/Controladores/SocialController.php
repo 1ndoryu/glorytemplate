@@ -253,7 +253,7 @@ class SocialController
             /* C45: registrar interacción para el planificador del algoritmo */
             PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === LikesEnums::REACCION_DISLIKE ? 'dislike' : 'like');
 
-            return new \WP_REST_Response(['ok' => true, 'reaccion' => $reaccion], 200);
+            return new \WP_REST_Response(['ok' => true, 'data' => ['liked' => true, 'reaccion' => $reaccion]], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::darLike error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
@@ -289,7 +289,7 @@ class SocialController
             /* Invalidar cache del feed para que el algoritmo recalcule */
             MotorRecomendacion::invalidarCache($userId);
 
-            return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
+            return new \WP_REST_Response(['ok' => true, 'data' => ['liked' => false, 'reaccion' => null]], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::quitarLike error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
