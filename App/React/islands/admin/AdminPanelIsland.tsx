@@ -9,7 +9,7 @@
  * Protegido por conAutenticacion + guard rol admin.
  */
 
-import { Loader2, ShieldAlert, Users, Shield, BrainCircuit, Copy, Cog, HandHeart, Globe, Headphones, Music } from 'lucide-react';
+import { Loader2, ShieldAlert, Users, Shield, BrainCircuit, Copy, Cog, HandHeart, Globe, Headphones, Music, Clock } from 'lucide-react';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import { TabUsuariosAdmin } from '@app/components/admin/TabUsuariosAdmin';
 import { TabModeracionAdmin } from '@app/components/admin/TabModeracionAdmin';
@@ -20,6 +20,7 @@ import { TabContribucionesAdmin } from '@app/components/admin/TabContribucionesA
 import { TabScrapersAdmin } from '@app/components/admin/TabScrapersAdmin';
 import { TabColaExtraccionAdmin } from '@app/components/admin/TabColaExtraccionAdmin';
 import { TabCancionesAdmin } from '@app/components/admin/TabCancionesAdmin';
+import { TabHistorialLotesAdmin } from '@app/components/admin/TabHistorialLotesAdmin';
 import { useAdminPanel } from '@app/hooks/useAdminPanel';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
@@ -40,6 +41,7 @@ const TABS_ADMIN: TabTopBar[] = [
     { id: 'scrapers', etiqueta: 'Scrapers', icono: <Globe size={TAM_ICONO} /> },
     { id: 'cola-extraccion', etiqueta: 'Cola Extracción', icono: <Headphones size={TAM_ICONO} /> },
     { id: 'canciones', etiqueta: 'Canciones', icono: <Music size={TAM_ICONO} /> },
+    { id: 'historial', etiqueta: 'Historial', icono: <Clock size={TAM_ICONO} /> },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -126,6 +128,10 @@ const AdminPanelBase = (): JSX.Element => {
 
             {admin.tabActiva === 'canciones' && (
                 <TabCancionesAdmin />
+            )}
+
+            {admin.tabActiva === 'historial' && (
+                <TabHistorialLotesAdmin />
             )}
         </div>
     );

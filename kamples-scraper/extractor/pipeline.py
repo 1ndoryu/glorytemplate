@@ -320,6 +320,45 @@ def notificar_publicacion(exitosos: int) -> None:
         logger.warning("No se pudo llamar al endpoint de publicacion: %s", e)
 
 
+def reportar_lote(exitosos: int, fallidos: int, motivos_fallo: dict[str, int] | None = None) -> None:
+    """
+    [223A-3] Reporta resultados del lote al endpoint de automatizacion PHP.
+    Usa KAMPLES_BATCH_ID (inyectado por ServicioAutomatizacion) para identificar el lote.
+    Si no hay batch_id (ejecucion manual), no reporta.
+    """
+    batch_id = os.getenv("KAMPLES_BATCH_ID", "").strip()
+    if not batch_id:
+        return
+
+    site_url = os.getenv("KAMPLES_INTERNAL_URL", "").rstrip("/") or os.getenv(
+        "KAMPLES_SITE_URL", ""
+    ).rstrip("/")
+    secret = os.getenv("KAMPLES_CRON_SECRET", "")
+
+    if not site_url or not secret:
+        logger.warning("No se puede reportar lote — URL/secret no configurados")
+        return
+
+    payload = json.dumps({
+        "batch_id": int(batch_id),
+        "exitosos": exitosos,
+        "fallidos": fallidos,
+        "recortes": exitosos,
+        "metadata": {"motivos_fallo": motivos_fallo or {}},
+    }).encode("utf-8")
+
+    endpoint = f"{site_url}/wp-json/kamples/v1/admin/automatizacion/reporte-lote"
+    try:
+        req = urllib.request.Request(endpoint, method="POST", data=payload)
+        req.add_header("Content-Type", "application/json")
+        req.add_header("X-Kamples-Secret", secret)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            logger.info("Reporte de lote enviado [HTTP %s]: %s", resp.status, body[:200])
+    except Exception as e:
+        logger.warning("No se pudo reportar lote batch_id=%s: %s", batch_id, e)
+
+
 def _parsear_timings(raw) -> list:
     """Parsear campo timings (puede ser string JSON, lista, o None)."""
     if isinstance(raw, list):
@@ -515,6 +554,7 @@ def main():
                 "Error: %s", e,
             )
             notificar_publicacion(exitosos)
+            reportar_lote(exitosos, fallidos, motivos_fallo)
             return
 
         logger.info(
@@ -528,6 +568,7 @@ def main():
             )
 
         notificar_publicacion(exitosos)
+        reportar_lote(exitosos, fallidos, motivos_fallo)
 
         if not args.continuo:
             break

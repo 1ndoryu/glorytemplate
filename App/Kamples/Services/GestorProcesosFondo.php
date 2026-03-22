@@ -259,8 +259,12 @@ class GestorProcesosFondo
             . \str_repeat('-', 60) . "\n";
         \file_put_contents($logFile, $cabecera, FILE_APPEND | LOCK_EX);
 
-        /* Entorno */
+        /* Entorno — [223A-3] Soporta env vars extra desde $opcionesExtra['env'] */
         $env = self::prepararEntorno();
+        $extraEnv = $opcionesExtra['env'] ?? [];
+        if (!empty($extraEnv) && \is_array($extraEnv)) {
+            $env = \array_merge($env, $extraEnv);
+        }
 
         $descriptores = [
             0 => ['file', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null', 'r'],

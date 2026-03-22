@@ -50,15 +50,17 @@ class ProcesadorColaIA
      */
     /* [2003A-21] LIMITE_DIARIO eliminado — no hay razón de negocio para limitar el procesamiento
      * diario de samples IA. El límite era protección temporal que ya no aplica. */
-    private const GAP_MINIMO_AUDIO_SEGUNDOS = 45;
+    /* [223A-3] Gap subido a 60s acorde al nuevo intervalo de 90s. Margen de 30s. */
+    private const GAP_MINIMO_AUDIO_SEGUNDOS = 60;
     private const TRANSIENT_CONTADOR_DIARIO = 'kmpl_ia_daily_count';
     private const TRANSIENT_ULTIMO_AUDIO = 'kmpl_ia_ultimo_audio';
     /* Nombre del hook WP Cron */
     public const CRON_HOOK = 'kamples_cola_ia_cron';
 
-    /* [193A-72] La cola IA debe dispararse cada minuto, no en ráfagas de 15 min. */
-    public const CRON_INTERVALO = 'kamples_1min';
-    public const CRON_INTERVALO_SEGUNDOS = 60;
+    /* [223A-3] Intervalo aumentado a 90s — el extractor automático suma peticiones Groq
+     * y 90s ahorra ~33% de peticiones/día respecto a 60s. Con 3 keys y GAP 60s es seguro. */
+    public const CRON_INTERVALO = 'kamples_90s';
+    public const CRON_INTERVALO_SEGUNDOS = 90;
 
     /**
      * Registra el hook de WP Cron para procesamiento de la cola IA.
@@ -71,7 +73,7 @@ class ProcesadorColaIA
             if (!isset($schedules[self::CRON_INTERVALO])) {
                 $schedules[self::CRON_INTERVALO] = [
                     'interval' => self::CRON_INTERVALO_SEGUNDOS,
-                    'display'  => 'Kamples: cada 1 minuto (Cola IA)',
+                    'display'  => 'Kamples: cada 90s (Cola IA)',
                 ];
             }
             return $schedules;

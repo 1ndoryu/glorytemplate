@@ -7,14 +7,18 @@ Uso en Windows (Task Scheduler) o Linux (cron):
     python scripts/cron_runner.py extraction --limit 50
 
 Lock file previene ejecuciones concurrentes del mismo tipo.
+
+[223A-3] Soporte para batch reporting via KAMPLES_BATCH_ID env var.
 """
 
 import argparse
+import json
 import logging
 import os
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -87,6 +91,81 @@ def ejecutar_extraction(limit: int = int(os.environ.get('KAMPLES_BATCH_LIMIT', '
     return result.returncode
 
 
+def contar_stats_scraper(desde: datetime) -> dict:
+    """
+    [223A-3] Cuenta items insertados por el scraper desde una fecha.
+    Consulta directamente PostgreSQL para obtener stats del lote.
+    """
+    try:
+        sys.path.insert(0, str(PROJECT_DIR))
+        from kamples_scraper.utils.db import get_connection
+        conn = get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM canciones WHERE created_at >= %s",
+                    (desde,),
+                )
+                canciones = cur.fetchone()[0]
+
+                cur.execute(
+                    "SELECT COUNT(*) FROM relaciones_sample WHERE created_at >= %s",
+                    (desde,),
+                )
+                sampleos = cur.fetchone()[0]
+
+                return {
+                    "canciones_nuevas": canciones,
+                    "sampleos_nuevos": sampleos,
+                    "exitosos": canciones + sampleos,
+                    "fallidos": 0,
+                }
+        finally:
+            conn.close()
+    except Exception:
+        logger.exception("Error contando stats del scraper")
+        return {"canciones_nuevas": 0, "sampleos_nuevos": 0, "exitosos": 0, "fallidos": 0}
+
+
+def reportar_lote_scraper(stats: dict) -> None:
+    """
+    [223A-3] Reporta resultados del lote scraper al endpoint PHP.
+    Solo reporta si hay KAMPLES_BATCH_ID en env (lote automatico).
+    """
+    batch_id = os.environ.get("KAMPLES_BATCH_ID", "").strip()
+    if not batch_id:
+        return
+
+    site_url = (
+        os.environ.get("KAMPLES_INTERNAL_URL", "").rstrip("/")
+        or os.environ.get("KAMPLES_SITE_URL", "").rstrip("/")
+    )
+    secret = os.environ.get("KAMPLES_CRON_SECRET", "")
+
+    if not site_url or not secret:
+        logger.warning("No se puede reportar lote scraper — URL/secret no configurados")
+        return
+
+    payload = json.dumps({
+        "batch_id": int(batch_id),
+        "exitosos": stats.get("exitosos", 0),
+        "fallidos": stats.get("fallidos", 0),
+        "canciones_nuevas": stats.get("canciones_nuevas", 0),
+        "sampleos_nuevos": stats.get("sampleos_nuevos", 0),
+    }).encode("utf-8")
+
+    endpoint = f"{site_url}/wp-json/kamples/v1/admin/automatizacion/reporte-lote"
+    try:
+        req = urllib.request.Request(endpoint, method="POST", data=payload)
+        req.add_header("Content-Type", "application/json")
+        req.add_header("X-Kamples-Secret", secret)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            logger.info("Reporte lote scraper [HTTP %s]: %s", resp.status, body[:200])
+    except Exception as e:
+        logger.warning("No se pudo reportar lote scraper batch_id=%s: %s", batch_id, e)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Cron runner para pipeline Kamples")
     parser.add_argument("tarea", choices=["daily", "extraction"], help="Tipo de tarea")
@@ -102,9 +181,16 @@ def main():
         logger.info("=== Iniciando tarea: %s ===", args.tarea)
 
         if args.tarea == "daily":
+            inicio_lote = datetime.utcnow()
             code = ejecutar_daily()
+            # [223A-3] Reportar stats del scraper al finalizar
+            stats = contar_stats_scraper(inicio_lote)
+            if code != 0:
+                stats["fallidos"] = max(stats["fallidos"], 1)
+            reportar_lote_scraper(stats)
         else:
             code = ejecutar_extraction(args.limit)
+            # Extraction reports its own batch via pipeline.py
 
         if code == 0:
             logger.info("=== Tarea '%s' completada OK ===", args.tarea)

@@ -33,6 +33,7 @@ use App\Kamples\Database\MigradorLocal;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioLimpiezaModeracion;
 use App\Kamples\Services\ServicioCache;
+use App\Kamples\Services\ServicioAutomatizacion;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\MotorRecomendacion;
 
@@ -79,9 +80,12 @@ class KamplesInit
         /* Cron para recálculos temporales del algoritmo (C45) */
         self::registrarCronAlgoritmo();
 
-        /* [193A-72] Cron para reprocesar cola IA cada 60s (1 audio por ejecución).
-         * Requiere system cron del host cada 1 min — ver crontab del servidor. */
+        /* [193A-72] Cron para reprocesar cola IA cada 90s (1 audio por ejecución).
+         * [223A-3] Intervalo cambiado de 60s a 90s para ahorrar peticiones Groq. */
         ProcesadorColaIA::registrarCron();
+
+        /* [223A-3] Cron horario para automatización de extracción y scraping */
+        ServicioAutomatizacion::registrarCron();
 
         /* D1.5: Cron para backfill de hashes SHA-256 en samples existentes */
         BackfillHashService::registrarCron();
