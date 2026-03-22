@@ -82,18 +82,25 @@ export const ModalCancionAleatoria = ({ ctrl }: Props): JSX.Element | null => {
                         </div>
                     </div>
 
-                    {/* YouTube embed si existe */}
-                    {cancion.youtubeId && /^[a-zA-Z0-9_-]{11}$/.test(cancion.youtubeId) && (
-                        <div className="cancionDetalleYoutube" style={{ marginTop: 'var(--espacioMd)' }}>
-                            <iframe
-                                src={`https://www.youtube-nocookie.com/embed/${cancion.youtubeId}`}
-                                title={`${cancion.titulo} - YouTube`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-                                allowFullScreen
-                                style={{ width: '100%', aspectRatio: '16/9', border: 'none', borderRadius: 'var(--radio-md, 8px)' }}
-                            />
-                        </div>
-                    )}
+                    {/* [223A-3-C] YouTube embed con autoplay + timestamp de sampleo si existe */}
+                    {cancion.youtubeId && /^[a-zA-Z0-9_-]{11}$/.test(cancion.youtubeId) && (() => {
+                        /* Buscar primer timing disponible: fuente (samplesDe) o destino (sampleadaEn) */
+                        const primerTiming = detalle.samplesDe.find(r => r.timingsFuente?.length > 0)?.timingsFuente[0]
+                            ?? detalle.sampleadaEn.find(r => r.timingsDestino?.length > 0)?.timingsDestino[0]
+                            ?? 0;
+                        const startParam = primerTiming > 0 ? `&start=${Math.floor(primerTiming)}` : '';
+                        return (
+                            <div className="cancionDetalleYoutube" style={{ marginTop: 'var(--espacioMd)' }}>
+                                <iframe
+                                    src={`https://www.youtube-nocookie.com/embed/${cancion.youtubeId}?autoplay=1${startParam}`}
+                                    title={`${cancion.titulo} - YouTube`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+                                    allowFullScreen
+                                    style={{ width: '100%', aspectRatio: '16/9', border: 'none', borderRadius: 'var(--radio-md, 8px)' }}
+                                />
+                            </div>
+                        );
+                    })()}
 
                     {/* Resumen relaciones */}
                     {(detalle.samplesDe.length > 0 || detalle.sampleadaEn.length > 0) && (

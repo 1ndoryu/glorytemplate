@@ -95,17 +95,22 @@ class CancionesRepository extends BaseRepository
         );
     }
 
-    /* [223A-4] Canción aleatoria del top 2000 (ranking por total_sampleada + total_samplea) */
+    /* [223A-4][223A-3-D] Canción aleatoria de todo el catálogo.
+     * Usa offset aleatorio para O(1) en vez de ORDER BY RANDOM() sobre toda la tabla. */
     public static function aleatorio(?int $userId): ?array
     {
         $tc = CancionesCols::TABLA;
+        $countRow = static::consultarUno("SELECT COUNT(*) AS total FROM {$tc}", []);
+        $total = (int) ($countRow['total'] ?? 0);
+        if ($total === 0) {
+            return null;
+        }
+        $offset = random_int(0, $total - 1);
         $base = self::buildSelectBase($userId);
-        $sql = "{$base} WHERE c." . CancionesCols::ID . " IN (
-            SELECT " . CancionesCols::ID . " FROM {$tc}
-            ORDER BY (" . CancionesCols::TOTAL_SAMPLEADA . " + " . CancionesCols::TOTAL_SAMPLEA . ") DESC, "
-            . CancionesCols::ID . " DESC LIMIT 2000
-        ) ORDER BY RANDOM() LIMIT 1";
-        return static::consultarUno($sql, []);
+        return static::consultarUno(
+            "{$base} ORDER BY c." . CancionesCols::ID . " OFFSET :off LIMIT 1",
+            ['off' => $offset]
+        );
     }
 
     /**
