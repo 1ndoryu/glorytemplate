@@ -21,9 +21,11 @@ class GestorProcesosFondo
     private const PROCESO_EXTRACCION = 'extraccion';
     private const PROCESO_SEED       = 'seed';
 
-    /* Procesos conocidos y sus comandos */
+    /* Procesos conocidos y sus comandos.
+     * [243A-1] Scraping usa cron_runner.py para que reporte stats vía REST
+     * (antes iba directo a scrapy y nunca reportaba → 0/0 eternos). */
     private const PROCESOS = [
-        self::PROCESO_SCRAPING   => ['modulo' => 'scrapy', 'args' => ['crawl', 'hot_samples']],
+        self::PROCESO_SCRAPING   => ['script' => 'scripts/cron_runner.py', 'args' => ['daily']],
         self::PROCESO_EXTRACCION => ['modulo' => 'extractor.pipeline', 'args' => ['--limit', '20']],
         self::PROCESO_SEED       => ['tipo' => 'php'],
     ];
@@ -217,10 +219,14 @@ class GestorProcesosFondo
         $logFile  = $logsDir . '/' . $nombre . '-output-' . \date('Y-m-d') . '.log';
 
         /* Construir comando */
-        $modulo = $config['modulo'];
+        $modulo = $config['modulo'] ?? null;
+        $script = $config['script'] ?? null;
         $args   = $config['args'] ?? [];
 
-        if ($modulo === 'scrapy') {
+        /* [243A-1] Script directo (cron_runner.py) — no va con -m */
+        if ($script !== null) {
+            $cmdArray = \array_merge([$python, $script], $args);
+        } elseif ($modulo === 'scrapy') {
             $cmdArray = \array_merge([$python, '-m', $modulo], $args);
             /* Parametros opcionales del caller */
             $limit = $opcionesExtra['limit'] ?? 0;

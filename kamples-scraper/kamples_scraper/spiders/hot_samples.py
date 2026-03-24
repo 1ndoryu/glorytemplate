@@ -8,7 +8,9 @@ Delega al spider de detalle para extraer toda la información.
 Selectores verificados contra HTML real (estructura.html).
 """
 
+import json
 import logging
+import os
 
 import scrapy
 
@@ -31,6 +33,16 @@ class HotSamplesSpider(scrapy.Spider):
     # Máximo 5 páginas por lista (20 entries/página)
     MAX_PAGES = 5
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # [243A-1] Contadores para telemetría de scraping.
+        # entries_total: entries con link al detalle
+        # entries_skipped: skipados por dedup (ya procesados)
+        # entries_new: nuevos que generaron request al detalle
+        self.entries_total = 0
+        self.entries_skipped = 0
+        self.entries_new = 0
+
     def parse(self, response):
         """
         Parsear lista hot-samples/covers/remixes.
@@ -51,12 +63,16 @@ class HotSamplesSpider(scrapy.Spider):
             if not detail_href:
                 continue
 
+            self.entries_total += 1
             detail_url = response.urljoin(detail_href)
             detail_norm = normalizar_url(detail_url)
 
             if url_ya_procesada(detail_norm):
+                self.entries_skipped += 1
                 logger.debug("Skip (ya procesada): %s", detail_norm)
                 continue
+
+            self.entries_new += 1
 
             # Determinar tipo de detalle por la URL
             tipo_detalle = self._tipo_detalle(detail_href)
@@ -76,6 +92,27 @@ class HotSamplesSpider(scrapy.Spider):
                 yield scrapy.Request(response.urljoin(next_page), callback=self.parse)
 
         marcar_procesada(url_norm, body_size)
+
+    def closed(self, reason):
+        """[243A-1] Escribe stats del spider a JSON para que cron_runner reporte al backend."""
+        stats_path = os.environ.get('SCRAPY_STATS_FILE')
+
+        logger.info(
+            "Spider cerrado: %d entries total, %d skipped, %d new, reason=%s",
+            self.entries_total, self.entries_skipped, self.entries_new, reason,
+        )
+
+        if stats_path:
+            try:
+                with open(stats_path, 'w', encoding='utf-8') as f:
+                    json.dump({
+                        'entries_total': self.entries_total,
+                        'entries_skipped': self.entries_skipped,
+                        'entries_new': self.entries_new,
+                        'close_reason': reason,
+                    }, f)
+            except OSError:
+                logger.exception("Error escribiendo stats a %s", stats_path)
 
     def parse_detail(self, response):
         """

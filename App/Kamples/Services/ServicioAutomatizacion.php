@@ -31,7 +31,9 @@ class ServicioAutomatizacion
 
     /* Umbral de fallos para auto-stop */
     private const UMBRAL_FALLOS_EXTRACCION = 20;
-    private const UMBRAL_FALLOS_SCRAPING = 50;
+    /* [243A-1] Bajado de 50 a 5: si el scraper lleva 5h seguidas sin items
+     * nuevos (todo dedup o sin entries), auto-stop para no gastar proxy. */
+    private const UMBRAL_FALLOS_SCRAPING = 5;
 
     /* WordPress options para estado */
     private const OPT_EXTRACCION_ACTIVO = 'kmpl_auto_extraccion_activo';
@@ -227,6 +229,9 @@ class ServicioAutomatizacion
 
     /**
      * Scraping: tracker de fallos consecutivos. Se resetea si hay éxitos.
+     * [243A-1] Cuando exitosos=0 y fallidos=0 (caso de reporte sin telemetría
+     * o legacy), contar como 1 fallo idle para que el auto-stop progrese
+     * en vez de quedarse paralizado infinitamente.
      */
     private static function evaluarAutoStopScraping(int $exitosos, int $fallidos): void
     {
@@ -236,14 +241,16 @@ class ServicioAutomatizacion
             return;
         }
 
-        /* Solo fallos — acumular */
+        /* exitosos=0: acumular fallos. Si fallidos también es 0, contar como 1
+         * (run idle — no hay items nuevos ni errores, solo gasto de proxy). */
+        $increment = \max($fallidos, 1);
         $acumulado = (int) \get_option(self::OPT_SCRAPING_FALLOS, 0);
-        $nuevo = $acumulado + $fallidos;
+        $nuevo = $acumulado + $increment;
         \update_option(self::OPT_SCRAPING_FALLOS, $nuevo, false);
 
         if ($nuevo >= self::UMBRAL_FALLOS_SCRAPING) {
             self::autoDetener(LotesProcesamientoEnums::TIPO_SCRAPING,
-                "{$nuevo} fallos consecutivos de scraping. Proceso detenido automáticamente."
+                "{$nuevo} lotes consecutivos sin items nuevos. Scraper detenido para no gastar proxy."
             );
             \update_option(self::OPT_SCRAPING_FALLOS, 0, false);
         }

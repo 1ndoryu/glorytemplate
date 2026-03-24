@@ -65,6 +65,18 @@ def ejecutar_daily() -> int:
     """Ejecutar spider de scraping diario."""
     LOGS_DIR.mkdir(exist_ok=True)
     log_file = LOGS_DIR / f"hot_samples_{datetime.now():%Y%m%d}.log"
+    stats_file = PROJECT_DIR / ".last_spider_stats.json"
+
+    # [243A-1] Limpiar stats anteriores para no confundir con un run viejo
+    if stats_file.exists():
+        try:
+            stats_file.unlink()
+        except OSError:
+            pass
+
+    # [243A-1] El spider escribe telemetría (entries found/skipped/new) aquí
+    env = os.environ.copy()
+    env['SCRAPY_STATS_FILE'] = str(stats_file)
 
     cmd = [
         sys.executable, "-m", "scrapy", "crawl", "hot_samples",
@@ -73,7 +85,7 @@ def ejecutar_daily() -> int:
     ]
 
     logger.info("Ejecutando: %s", " ".join(cmd))
-    result = subprocess.run(cmd, cwd=str(PROJECT_DIR), timeout=3600)
+    result = subprocess.run(cmd, cwd=str(PROJECT_DIR), timeout=3600, env=env)
     return result.returncode
 
 
@@ -94,8 +106,14 @@ def ejecutar_extraction(limit: int = int(os.environ.get('KAMPLES_BATCH_LIMIT', '
 def contar_stats_scraper(desde: datetime) -> dict:
     """
     [223A-3] Cuenta items insertados por el scraper desde una fecha.
-    Consulta directamente PostgreSQL para obtener stats del lote.
+    [243A-1] Lee también stats del spider (entries found/skipped/new)
+    para detectar runs idle (todo deduplicado) y reportar fallidos reales
+    en vez de hardcodear 0.
     """
+    fallidos = 0
+    canciones = 0
+    sampleos = 0
+
     try:
         sys.path.insert(0, str(PROJECT_DIR))
         from kamples_scraper.utils.db import get_connection
@@ -113,18 +131,55 @@ def contar_stats_scraper(desde: datetime) -> dict:
                     (desde,),
                 )
                 sampleos = cur.fetchone()[0]
-
-                return {
-                    "canciones_nuevas": canciones,
-                    "sampleos_nuevos": sampleos,
-                    "exitosos": canciones + sampleos,
-                    "fallidos": 0,
-                }
         finally:
             conn.close()
     except Exception:
         logger.exception("Error contando stats del scraper")
-        return {"canciones_nuevas": 0, "sampleos_nuevos": 0, "exitosos": 0, "fallidos": 0}
+
+    # [243A-1] Leer telemetría del spider para detectar runs idle
+    spider_stats = _leer_spider_stats()
+    entries_total = spider_stats.get('entries_total', 0)
+    entries_new = spider_stats.get('entries_new', 0)
+    entries_skipped = spider_stats.get('entries_skipped', 0)
+
+    exitosos = canciones + sampleos
+
+    if exitosos == 0:
+        if entries_total > 0 and entries_new == 0:
+            # Todo dedup’d — run idle, contar como fallo para auto-stop
+            fallidos = 1
+            logger.info(
+                "Run idle: %d entries revisados, todos ya procesados",
+                entries_total,
+            )
+        elif entries_total == 0:
+            # Spider no encontró entries — posible cambio de selectores o bloqueo
+            fallidos = 1
+            logger.warning(
+                "Spider no encontró ningún entry en las páginas de listas"
+            )
+
+    return {
+        "canciones_nuevas": canciones,
+        "sampleos_nuevos": sampleos,
+        "exitosos": exitosos,
+        "fallidos": fallidos,
+        "entries_total": entries_total,
+        "entries_skipped": entries_skipped,
+        "entries_new": entries_new,
+    }
+
+
+def _leer_spider_stats() -> dict:
+    """[243A-1] Lee el JSON de telemetría escrito por el spider."""
+    stats_file = PROJECT_DIR / ".last_spider_stats.json"
+    if not stats_file.exists():
+        return {}
+    try:
+        return json.loads(stats_file.read_text(encoding='utf-8'))
+    except (json.JSONDecodeError, OSError):
+        logger.exception("Error leyendo spider stats de %s", stats_file)
+        return {}
 
 
 def reportar_lote_scraper(stats: dict) -> None:
