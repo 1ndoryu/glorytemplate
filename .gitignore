@@ -113,3 +113,5 @@ App1/
 dist/ 
 src-tauri/
 colors/
+kamples-scraper/
+temp/
