@@ -15,7 +15,7 @@ Antes de ejecutar cualquier tarea, la primera respuesta al usuario SIEMPRE debe 
 
 > **Flujo que voy a seguir:**
 > 1. Leer roadmap completo
-> 2. Por cada tarea: ejecutar → validar errores → testear → archivar en completados/ → actualizar roadmap → commit y push. Seguir cada paso estrictamente, paso 1 a 10 y repetir.
+> 2. Por bloque de tareas abordables: ejecutar todas las tareas posibles → validar/testear una sola vez al cierre del bloque → archivar en completados/ → actualizar roadmap → commit y push. Seguir cada paso estrictamente, paso 1 a 10 y repetir.
 > 3. Repetir hasta vaciar pendientes.
 >
 > **Tareas identificadas:** [lista de IDs y títulos]
@@ -23,10 +23,10 @@ Antes de ejecutar cualquier tarea, la primera respuesta al usuario SIEMPRE debe 
 Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agente no optimice el flujo a conveniencia propia, salte pasos o agrupe lo que no debe agruparse.
 
 **Prohibido explícitamente:**
-- Completar una tarea sin archivarla inmediatamente en `completados/` antes de pasar a la siguiente.
-- Hacer commit de una tarea sin haber actualizado el roadmap (quitar la tarea de pendientes).
-- Avanzar a la siguiente tarea si la anterior no tiene: commit + entrada en `completados/` + roadmap actualizado.
-- Enfocarse en varias tareas al mismo tiempo al menos que esten muy relacionadas.
+- Cerrar un bloque de tareas sin archivar inmediatamente las tareas completadas en `completados/`.
+- Hacer commit del bloque sin haber actualizado el roadmap (quitar las tareas completadas de pendientes).
+- Cerrar la sesion o cambiar de frente si el bloque completado no tiene: validacion final + commit + entrada en `completados/` + roadmap actualizado.
+- Enfocarse en varias tareas no relacionadas si eso aumenta el riesgo de mezclar dominios; se permite agrupar tareas relacionadas o endpoints faltantes del mismo barrido.
 - Detenerte a mitad de ejecución o pedir confirmacion para tareas triviales o pasos del flujo. El flujo es un ciclo continuo, no un checklist individual.
 
 **1. Autonomia total.** Trabaja continua y prolongadamente sin detenerte. Prohibido pedir confirmacion trivial, dividir tareas artificialmente o interrumpir el flujo. Maxima eficiencia por interaccion.
@@ -37,7 +37,7 @@ Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agen
 
 **2.1 Pensamiento expansivo obligatorio.** Incluso si la tarea parece pequena, primero evaluar si revela un problema de arquitectura, sincronizacion, contratos, cache, observabilidad o UX mas profundo. No limitarse al sintoma pedido si existe una solucion raiz claramente superior. Cada tarea es una oportunidad para mejorar el sistema, no solo para apagar un fuego local.
 
-**3. Ediciones controladas.** Prohibido editar muchos archivos simultaneamente en un solo parche. Los cambios grandes fallan — dividir en ediciones pequenas, archivo por archivo, validando despues de cada uno. Un parche que toca 10 archivos a la vez es un parche que rompe cosas. Secuencia: editar archivo → validar → siguiente archivo.
+**3. Ediciones controladas.** Prohibido editar muchos archivos simultaneamente en un solo parche. Los cambios grandes fallan — dividir en ediciones pequenas, archivo por archivo o por modulo. No ejecutar validaciones pesadas despues de cada microedicion; la validacion completa va al cierre del bloque de tareas. Solo hacer chequeos puntuales durante la edicion si el editor muestra errores, si el cambio toca una zona critica, o si una duda tecnica bloquea avanzar.
 
 **4. Guardian del orden.** Eres responsable absoluto de que el proyecto no se desordene. Al tocar un archivo, corregir toda violacion visible de bajo riesgo (imports muertos, hardcodeo, codigo muerto, nombres confusos). Si la correccion es compleja, dejar TO-DO en el codigo. No existe "no es mi tarea".
 
@@ -77,12 +77,13 @@ Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agen
   - No borrar comentarios de tareas anteriores — son registro de evolucion. Actualizar si quedan obsoletos.
   - Las lecciones aprendidas viven en los comentarios del codigo, no en MDs.
 
-**11. Validacion obligatoria — errores ajenos incluidos.**
-  - Despues de editar cualquier archivo: ejecutar `get_errors` sobre ese archivo.
-  - Despues de editar `.ts`/`.tsx`: ejecutar `npm run type-check`.
-  - Despues de editar `.css`: ejecutar VarSense (`cssVarsValidator.scanAllDiagnostics`).
-  - Generacion masiva (>3 archivos): ejecutar Code Sentinel (`codeSentinel.analyzeWorkspace`).
-  - Antes de cada commit: `npm run type-check` como minimo.
+**11. Validacion obligatoria al cierre del bloque — errores ajenos incluidos.**
+  - No validar despues de cada archivo ni despues de cada microcambio; completar primero todas las tareas abordables del bloque actual.
+  - Durante la edicion, usar `get_errors` o checks puntuales solo si hay diagnosticos visibles, una zona critica o una duda tecnica que bloquee avanzar.
+  - Al cierre de un bloque `.ts`/`.tsx`: ejecutar `npm run type-check`.
+  - Al cierre de un bloque `.css`: ejecutar VarSense (`cssVarsValidator.scanAllDiagnostics`) si disponible o el build/lint que compile CSS.
+  - Generacion masiva (>3 archivos): ejecutar Code Sentinel (`codeSentinel.analyzeWorkspace`) al cierre del bloque.
+  - Antes del commit final del bloque: `npm run type-check` como minimo.
   - **Si los comandos reportan errores — aunque no esten relacionados con tu tarea — corregirlos es tu responsabilidad.** No se avanza ni se commitea con errores pendientes. Los errores pre-existentes encontrados se corrigen en el mismo commit o en uno separado si son muchos.
 
 **12. Commits.**
@@ -102,7 +103,7 @@ Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agen
 
 ## II. FLUJO DE TRABAJO (ciclo continuo)
 
-El roadmap (`App/roadmap.md`) es el canal de comunicacion. El usuario escribe tareas ahi, tu las ejecutas. El flujo es un ciclo **tarea por tarea**: los 10 pasos se ejecutan completos para UNA tarea antes de tomar la siguiente. No se acumulan tareas ni se saltan pasos.
+El roadmap (`App/roadmap.md`) es el canal de comunicacion. El usuario escribe tareas ahi, tu las ejecutas. El flujo es un ciclo **por bloque de tareas abordables**: completar todas las tareas relacionadas o posibles del bloque, validar una sola vez al cierre, archivar, actualizar roadmap, commit y push. No validar ni commitear una por una salvo que una tarea sea aislada, riesgosa o bloquee al resto.
 
 ### ID de tarea
 Cada tarea recibe un ID unico basado en la fecha: `{DD}{M}{A}-{N}`
@@ -119,27 +120,27 @@ Si una tarea del roadmap no es suficientemente clara para ejecutarse con segurid
 
 ### Paso 2 — Ejecutar tarea
 Tomar una tarea pendiente y completarla. Reglas:
-- **2.1** Cada tarea = un commit separado con mensaje claro.
-- **2.2** Completar una tarea individualmente antes de pasar a otra. Se permite agrupar solo tareas completamente relacionadas.
+- **2.1** Cada bloque coherente = un commit separado con mensaje claro.
+- **2.2** Completar todas las tareas abordables del bloque antes de validar. Se permite agrupar endpoints faltantes, fixes relacionados o tareas del mismo dominio.
 - **2.3** Dejar comentarios en el codigo referenciando la tarea: que se hizo, instrucciones clave, problemas enfrentados, pendientes sobre esa funcionalidad. No borrar comentarios anteriores.
-- **2.4** Prohibido avanzar sin marcar la tarea como completada, hacer commit y organizar los MDs.
-- **2.5** Editar archivo por archivo. No acumular cambios en muchos archivos sin validar entre cada uno.
+- **2.4** Prohibido cerrar el bloque sin marcar las tareas completadas, hacer commit y organizar los MDs.
+- **2.5** Editar archivo por archivo o por modulo, pero no ejecutar validaciones pesadas entre cada archivo. Acumular cambios coherentes y validar al cierre del bloque.
 - **2.6** Si la tarea es compleja (>1 sesion o multiples fases) o es un problema repetitivo que ya reaparecio, crear un plan en `App/Agente/planes/` con nombre `plan-tema-YYYY-MM-DD.md` describiendo fases, estado actual y proximos pasos. Continuar desde donde se quedo.
 
 ### Paso 3 — Validar y corregir errores reportados
-Despues de cada tarea, ejecutar los comandos de validacion correspondientes (ver seccion V). **Si los comandos reportan errores — aunque no tengan relacion con la tarea actual — corregirlos antes de continuar.** Los errores reportados por herramientas son tu responsabilidad. No se avanza con errores pendientes.
+Despues de completar todas las tareas abordables del bloque, ejecutar los comandos de validacion correspondientes (ver seccion V) una sola vez. **Si los comandos reportan errores — aunque no tengan relacion con el bloque actual — corregirlos antes de cerrar/commitear.** Los errores reportados por herramientas son tu responsabilidad. No se cierra el bloque con errores pendientes.
 
 Si la tarea toca React, hooks, stores, islands o servicios frontend, no alcanza con type-check abstracto: revisar especificamente que el flujo renderizado afectado siga funcionando y que no haya regresiones evidentes en hydration, estados vacios, modales, menus, contadores o navegacion.
 
 Si Glory Sentinel reporta un **falso positivo** (la regla no aplica al caso concreto), crear un MD en `App/Agente/prevencion/` describiendo el falso positivo y la correccion necesaria en la regla de Sentinel para evitarlo en el futuro.
 
 ### Paso 4 — Testear la tarea
-Antes de marcar como completada, verificar que la funcionalidad implementada o corregida funciona:
+Antes de marcar el bloque como completado, verificar que la funcionalidad implementada o corregida funciona:
 - Ejecutar la feature o el fix en local y confirmar el resultado esperado.
 - Si el problema es visible en UI/HTML/CSS o texto renderizado, la verificacion local debe incluir abrir el flujo afectado y comprobar exactamente el elemento cambiado. No alcanza con type-check, lectura de codigo o asumir que "deberia funcionar".
 - Si hay tests existentes, ejecutarlos. Si la tarea lo amerita y es viable, agregar un test.
 - Solo si no es posible testear en local (dependencia de terceros, hardware, etc.), omitir con justificacion en el comentario del commit.
-- **Una tarea no se marca como completada hasta que este testeada y confirmada.**
+- **Un bloque no se marca como completado hasta que este testeado y confirmado.**
 
 ### Regla adicional de cierre
 - Prohibido mover una tarea a completados si el sintoma original sigue visible localmente o si no se verifico el selector/texto/flujo exacto reportado por el usuario cuando el entorno local permite hacerlo.
@@ -271,10 +272,11 @@ App/
 ### Validacion de codigo
 | Cuando | Comando |
 |--------|---------|
-| Editar `.ts`/`.tsx` | `npm run type-check` + `get_errors` |
-| Editar `.css` | VarSense: `cssVarsValidator.scanAllDiagnostics` |
-| Generacion masiva | Code Sentinel: `codeSentinel.analyzeWorkspace` |
-| Antes de commit | `npm run type-check` minimo |
+| Durante edicion de `.ts`/`.tsx` | Sin `type-check` por archivo; usar `get_errors` solo si hay diagnosticos visibles o bloqueo tecnico |
+| Cierre de bloque frontend | `npm run type-check` minimo |
+| Cierre de bloque CSS | VarSense (`cssVarsValidator.scanAllDiagnostics`) si disponible o build/lint que compile CSS |
+| Generacion masiva | Code Sentinel (`codeSentinel.analyzeWorkspace`) al cierre del bloque |
+| Antes de commit del bloque | `npm run type-check` minimo |
 | Lint + types integrado | `codeSentinel.runExternalTools` |
 
 ### Deploy (solo si el roadmap indica que aplica)
