@@ -15,7 +15,7 @@ class MemPalaceService
 {
     private const API_LOCAL  = 'http://127.0.0.1:4001';
     private const API_DOCKER = 'http://host.docker.internal:4001';
-    private const TIMEOUT    = 3; // [135A-5] 3s máximo — MemPalace es local (host.docker.internal), 8s era demasiado para una búsqueda vectorial
+    private const TIMEOUT    = 6; // [185A-2] 6s — búsqueda vectorial tarda ~3-4s; 3s causaba timeout en cada mensaje
 
     private string $baseUrl;
     private bool   $disponible;
