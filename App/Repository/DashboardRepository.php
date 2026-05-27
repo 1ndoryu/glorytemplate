@@ -116,13 +116,17 @@ class DashboardRepository
         ];
     }
 
-    public function saveAll(array $data): bool
+    public function saveAll(array $data, bool $partialUpdate = false, bool $inTransaction = false): bool
     {
         $timestamp = time() * 1000;
         $results = [];
 
         global $wpdb;
-        $wpdb->query('START TRANSACTION');
+        /* [275A-1] Solución 5: Si el llamador ya abrió una transacción (ej: BackupsApiController::restoreBackup),
+         * no abrimos otra — MySQL hace implicit COMMIT al anidar START TRANSACTION, rompiendo el ROLLBACK exterior. */
+        if (!$inTransaction) {
+            $wpdb->query('START TRANSACTION');
+        }
 
         try {
             if (isset($data['habitos'])) {
@@ -150,17 +154,22 @@ class DashboardRepository
             /* Verificar resultados antes de commit: si algun componente fallo, hacer ROLLBACK */
             $failedComponents = array_keys(array_filter($results, fn($v) => $v === false));
             if (!empty($failedComponents)) {
+            if (!$inTransaction) {
                 $wpdb->query('ROLLBACK');
-                error_log('[DashboardRepo] saveAll fallo en componentes: ' . implode(', ', $failedComponents));
+            }
                 return false;
             }
 
             // sentinel-disable-next-line retorno-ignorado-repo — dentro de transaccion, excepcion dispara ROLLBACK
             $this->configRepo->updateSyncStatus($timestamp);
+            if (!$inTransaction) {
             $wpdb->query('COMMIT');
+        }
             return true;
         } catch (\Exception $e) {
-            $wpdb->query('ROLLBACK');
+            if (!$inTransaction) {
+                $wpdb->query('ROLLBACK');
+            }
             error_log('[DashboardRepo] Error saving dashboard: ' . $e->getMessage());
             return false;
         }

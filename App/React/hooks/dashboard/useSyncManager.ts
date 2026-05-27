@@ -45,6 +45,24 @@ function esServidorVacio(serverData: DashboardData | null): boolean {
 }
 
 /*
+ * [275A-1] Safety guard contra wipeout: NUNCA subir datos si TODOS los arrays
+ * principales están vacíos y ya existía una sincronización previa (lastSync > 0).
+ * Esto previene la catástrofe cuando Zustand aún no ha hidratado sus stores
+ * (habitos = []) pero isDataReady ya es true, causando que performInitialSync
+ * o el auto-save envíen un estado vacío al servidor que soft-deletea todo.
+ * Excepción: lastSync === 0 = primera sincronización (usuario nuevo), permitido.
+ */
+function esProbableWipeout(data: DashboardData, lastSync: number): boolean {
+    if (lastSync === 0) return false; // Primera vez = usuario nuevo, ok subir vacío
+    const sinHabitos = !data.habitos || data.habitos.length === 0;
+    const sinTareas = !data.tareas || data.tareas.length === 0;
+    const sinProyectos = !data.proyectos || data.proyectos.length === 0;
+    /* Solo bloquear si TODOS los arrays están vacíos simultáneamente.
+     * Que un solo array sea vacío es normal (ej: el usuario no tiene proyectos). */
+    return sinHabitos && sinTareas && sinProyectos;
+}
+
+/*
  * Verifica si el usuario ya fue inicializado previamente con datos de bienvenida.
  * Esto evita que al borrar localStorage y recargar, se vuelvan a subir datos iniciales.
  */
@@ -130,6 +148,13 @@ export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, 
 
                     // Prioridad a local: Intentar subir primero
                     console.log('[SyncManager] Subiendo cambios locales pendientes...');
+                    /* [275A-1] Safety guard: abortar si los datos están vacíos
+                     * pero ya hubo una sync previa (race condition de hidratación). */
+                    if (esProbableWipeout(currentData, lastSync)) {
+                        console.error('[SyncManager] ABORTADO: Se intentó subir datos completamente vacíos. Posible race condition de hidratación.');
+                        sessionStorage.removeItem(RETRY_KEY);
+                        return;
+                    }
                     const success = await saveData({
                         ...currentData,
                         // @ts-ignore - Flag opcional para backend
@@ -286,6 +311,14 @@ export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, 
 
             debounceTimer.current = setTimeout(async () => {
                 console.log('[SyncManager] Auto-guardando cambios...');
+                /* [275A-1] Safety guard: abortar auto-save si los datos estan vacios.
+                 * Esto atrapa el caso donde la hidratacion se completa tarde
+                 * y el auto-save se dispara con datos parciales. */
+                if (syncMeta && esProbableWipeout(currentData, syncMeta.lastSync)) {
+                    console.error('[SyncManager] Auto-save ABORTADO: datos completamente vacios. Posible race condition.');
+                    markChangesAsSynced(); // Resetear hash para evitar loop
+                    return;
+                }
 
                 // Actualizar meta justo antes de guardar o al intentar guardar
                 setSyncMeta(prev => ({...prev, lastModified: Date.now()}));

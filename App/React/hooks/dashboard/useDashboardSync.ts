@@ -1,7 +1,7 @@
 import {useMemo, useCallback, useEffect, useRef} from 'react';
 import type {Habito, Tarea, Proyecto} from '../../types/dashboard';
 import type {DashboardData} from '../useDashboardApi';
-import {useHabitosStore} from '../../stores/habitosStore';
+import {useHabitosStore, useHabitosInicializado} from '../../stores/habitosStore';
 import {useSyncManager} from './useSyncManager';
 import {useSuscripcion} from '../useSuscripcion';
 import {useSincronizacionTiempoReal} from '../useSincronizacionTiempoReal';
@@ -17,8 +17,8 @@ interface UseDashboardSyncProps {
     tareas: Tarea[];
     proyectos: Proyecto[];
     notas: string;
-    setTareas: (t: Tarea[]) => void;
-    setProyectos: (p: Proyecto[]) => void;
+    setTareas: (t: Tarea[] | ((prev: Tarea[]) => Tarea[])) => void;
+    setProyectos: (p: Proyecto[] | ((prev: Proyecto[]) => Proyecto[])) => void;
     setNotas: (n: string) => void;
     cargandoDatos: boolean;
     cargandoDatosLocales: boolean;
@@ -26,6 +26,10 @@ interface UseDashboardSyncProps {
 
 export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, setProyectos, setNotas, cargandoDatos, cargandoDatosLocales}: UseDashboardSyncProps) {
     const storeSetHabitos = useHabitosStore(state => state.setHabitos);
+    /* [275A-1] Solución 3: esDataReady SOLO cuando Zustand persist ya hidrató
+     * los hábitos. Sin esto, isDataReady=true mientras habitos=[] (aún no hidratados)
+     * y performInitialSync sube datos vacíos que borran todo el servidor. */
+    const habitosInicializado = useHabitosInicializado();
     const ayunoEstado = useAyunoStore(state => state.estado);
     const ayunoSesionActiva = useAyunoStore(state => state.sesionActiva);
     const ayunoHistorial = useAyunoStore(state => state.historial);
@@ -164,14 +168,15 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                 }
                 const tareasActuales = tareasRef.current;
                 if (accion === 'eliminar' && datos.id) {
-                    setTareas(tareasActuales.filter(t => t.id !== datos.id));
+                    /* [275A-1] Sol.4: update funcional evita race conditions WS */
+                setTareas((prev: Tarea[]) => prev.filter(t => t.id !== datos.id));
                 } else if (accion === 'crear' && datos.id) {
                     /* Verificar que no exista ya */
                     if (!tareasActuales.find(t => t.id === datos.id)) {
                         setTareas([...tareasActuales, datos as Tarea]);
                     }
                 } else if ((accion === 'editar' || accion === 'toggle') && datos.id) {
-                    setTareas(tareasActuales.map(t => (t.id === datos.id ? {...t, ...datos} : t)));
+                    setTareas((prev: Tarea[]) => prev.map(t => (t.id === datos.id ? {...t, ...datos} : t)));
                 }
             },
             onHabitoRemoto: (accion: 'crear' | 'editar' | 'eliminar' | 'toggle', datos: Partial<Habito>) => {
@@ -217,16 +222,18 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                     contadorCambiosRemotosRef.current++;
                 }
                 const proyectosActuales = proyectosRef.current;
-                if (accion === 'eliminar' && datos.id) {
-                    setProyectos(proyectosActuales.filter(p => p.id !== datos.id));
-                } else if (accion === 'crear' && datos.id) {
-                    if (!proyectosActuales.find(p => p.id === datos.id)) {
-                        setProyectos([...proyectosActuales, datos as Proyecto]);
-                    }
-                } else if ((accion === 'editar' || accion === 'toggle') && datos.id) {
-                    setProyectos(proyectosActuales.map(p => (p.id === datos.id ? {...p, ...datos} : p)));
-                }
-            },
+            if (accion === 'eliminar' && datos.id) {
+                /* [275A-1] Sol.4: update funcional evita race conditions WS */
+                setProyectos((prev: Proyecto[]) => prev.filter(p => p.id !== datos.id));
+            } else if (accion === 'crear' && datos.id) {
+                setProyectos((prev: Proyecto[]) => {
+                    if (prev.find(p => p.id === datos.id)) return prev;
+                    return [...prev, datos as Proyecto];
+                });
+            } else if ((accion === 'editar' || accion === 'toggle') && datos.id) {
+                setProyectos((prev: Proyecto[]) => prev.map(p => (p.id === datos.id ? {...p, ...datos} : p)));
+            }
+        },
             onNotaRemota: (_accion: 'crear' | 'editar' | 'eliminar' | 'toggle', datos: {contenido: string; id?: number; titulo?: string}) => {
                 console.log('[SyncRT] Nota remota recibida');
                 /* [014A-19] Registrar como remoto para absorción HTTP */
@@ -354,7 +361,7 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
         currentData: datosActuales,
         onDataReceived: handleDatosServidor,
         debounceMs: 2000,
-        isDataReady: !cargandoDatosLocales,
+        isDataReady: !cargandoDatosLocales && habitosInicializado,
         /* [014A-19] Contador de cambios remotos WS para absorción HTTP */
         contadorCambiosRemotosRef,
         onInitComplete: () => {

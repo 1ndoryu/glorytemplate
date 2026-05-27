@@ -131,8 +131,9 @@ class BackupsApiController
             // sentinel-disable-next-line retorno-ignorado-repo — dentro de try/catch con ROLLBACK, saveAll valida despues
             $dashboardRepo->deleteAll();
 
-            /* Guardamos la versión del backup */
-            $result = $dashboardRepo->saveAll($data);
+/* [275A-1] Solución 5: inTransaction=true evita START TRANSACTION anidado.
+         * MySQL hace implicit COMMIT al anidar transacciones, rompiendo el ROLLBACK exterior. */
+        $result = $dashboardRepo->saveAll($data, false, true);
 
             if ($result) {
                 $wpdb->query('COMMIT');

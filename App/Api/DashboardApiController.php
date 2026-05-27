@@ -97,33 +97,36 @@ class DashboardApiController
     /**
      * Argumentos de validacion para el endpoint de guardado
      */
+    /* [275A-1] Argumentos sin defaults destructivos.
+     * ANTES: 'default' => [] hacía que WordPress inyectara arrays vacíos
+     * cuando el cliente no enviaba un campo, causando soft-delete masivo
+     * en los repositorios (sync-by-diff interpretaba [] como "borrar todo").
+     * AHORA: Sin defaults, isset($data['habitos']) solo es true si el
+     * cliente realmente envió esa clave. Los repositorios ignoran entidades
+     * omitidas, procesando solo lo que viene explícitamente en la petición.
+     */
     private static function getSaveArgs(): array
     {
         return [
             'habitos' => [
                 'required' => false,
                 'validate_callback' => fn($param) => is_array($param),
-                'default' => [],
             ],
             'tareas' => [
                 'required' => false,
                 'validate_callback' => fn($param) => is_array($param),
-                'default' => [],
             ],
             'proyectos' => [
                 'required' => false,
                 'validate_callback' => fn($param) => is_array($param),
-                'default' => [],
             ],
             'notas' => [
                 'required' => false,
                 'validate_callback' => fn($param) => is_string($param) || is_array($param),
-                'default' => '',
             ],
             'configuracion' => [
                 'required' => false,
                 'validate_callback' => fn($param) => is_array($param),
-                'default' => [],
             ],
             'generateBackup' => [
                 'required' => false,
@@ -184,13 +187,24 @@ class DashboardApiController
         $userId = get_current_user_id();
         self::syncTimezoneFromRequest($userId, $request);
 
-        $data = [
-            'habitos' => $request->get_param('habitos') ?? [],
-            'tareas' => $request->get_param('tareas') ?? [],
-            'proyectos' => $request->get_param('proyectos') ?? [],
-            'notas' => $request->get_param('notas') ?? '',
-            'configuracion' => $request->get_param('configuracion') ?? [],
-        ];
+        /* [275A-1] Construir $data solo con campos presentes en la petición.
+         * ANTES: ?? [] convertía campos ausentes en arrays vacíos, causando
+         * borrado masivo en los repositorios (sync-by-diff: [] = borrar todo).
+         * AHORA: Solo se incluye en $data lo que el cliente envió explícitamente.
+         * DashboardRepository::saveAll() usa isset() para saltar entidades omitidas.
+         */
+        $data = [];
+        $habitos = $request->get_param('habitos');
+        if ($habitos !== null) { $data['habitos'] = $habitos; }
+        $tareas = $request->get_param('tareas');
+        if ($tareas !== null) { $data['tareas'] = $tareas; }
+        $proyectos = $request->get_param('proyectos');
+        if ($proyectos !== null) { $data['proyectos'] = $proyectos; }
+        $notas = $request->get_param('notas');
+        if ($notas !== null) { $data['notas'] = $notas; }
+        $configuracion = $request->get_param('configuracion');
+        if ($configuracion !== null) { $data['configuracion'] = $configuracion; }
+
         $ayuno = $request->get_param('ayuno');
         if (is_array($ayuno)) {
             $data['ayuno'] = $ayuno;
