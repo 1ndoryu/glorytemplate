@@ -18,6 +18,7 @@ interface UseSyncManagerProps {
     debounceMs?: number;
     onInitComplete?: () => void;
     isDataReady?: boolean;
+  habitosInicializado?: boolean;
     /* [014A-19] Contador de cambios recibidos vía WebSocket remoto.
      * Cuando > 0, el auto-save HTTP se inhibe y el hash se actualiza
      * sin enviar datos al servidor (los cambios ya están allí). */
@@ -52,14 +53,22 @@ function esServidorVacio(serverData: DashboardData | null): boolean {
  * o el auto-save envíen un estado vacío al servidor que soft-deletea todo.
  * Excepción: lastSync === 0 = primera sincronización (usuario nuevo), permitido.
  */
-function esProbableWipeout(data: DashboardData, lastSync: number): boolean {
-    if (lastSync === 0) return false; // Primera vez = usuario nuevo, ok subir vacío
-    const sinHabitos = !data.habitos || data.habitos.length === 0;
-    const sinTareas = !data.tareas || data.tareas.length === 0;
-    const sinProyectos = !data.proyectos || data.proyectos.length === 0;
-    /* Solo bloquear si TODOS los arrays están vacíos simultáneamente.
-     * Que un solo array sea vacío es normal (ej: el usuario no tiene proyectos). */
-    return sinHabitos && sinTareas && sinProyectos;
+function esProbableWipeout(data: DashboardData, lastSync: number, habitosInicializado?: boolean): boolean {
+  if (lastSync === 0) return false; // Primera vez = usuario nuevo, ok subir vacio
+  const sinHabitos = !data.habitos || data.habitos.length === 0;
+  const sinTareas = !data.tareas || data.tareas.length === 0;
+  const sinProyectos = !data.proyectos || data.proyectos.length === 0;
+  /* [275A-1] Si Zustand persist aun no hidrato (habitosInicializado=false),
+   * los arrays de habitos SIEMPRE estan vacios. Cualquier subida en este
+   * estado es peligrosa: bloquear si hay al menos 2 arrays vacios (no solo 3).
+   * Si habitosInicializado=true, mantenemos el umbral estricto (3 vacios). */
+  if (habitosInicializado === false) {
+    const arraysVacios = [sinHabitos, sinTareas, sinProyectos].filter(Boolean).length;
+    return arraysVacios >= 2;
+  }
+  /* Solo bloquear si TODOS los arrays estan vacios simultaneamente.
+   * Que un solo array sea vacio es normal (ej: el usuario no tiene proyectos). */
+  return sinHabitos && sinTareas && sinProyectos;
 }
 
 /*
@@ -103,7 +112,7 @@ function generarDatosInicialesUsuarioNuevo(baseData: DashboardData): DashboardDa
     };
 }
 
-export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, onInitComplete, isDataReady = true, contadorCambiosRemotosRef}: UseSyncManagerProps) {
+export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, onInitComplete, isDataReady = true, habitosInicializado, contadorCambiosRemotosRef}: UseSyncManagerProps) {
     const {esPremium} = useSuscripcion();
 
     // 1. Detector de Cambios
@@ -150,7 +159,7 @@ export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, 
                     console.log('[SyncManager] Subiendo cambios locales pendientes...');
                     /* [275A-1] Safety guard: abortar si los datos están vacíos
                      * pero ya hubo una sync previa (race condition de hidratación). */
-                    if (esProbableWipeout(currentData, lastSync)) {
+                    if (esProbableWipeout(currentData, lastSync, habitosInicializado)) {
                         console.error('[SyncManager] ABORTADO: Se intentó subir datos completamente vacíos. Posible race condition de hidratación.');
                         sessionStorage.removeItem(RETRY_KEY);
                         return;
@@ -314,7 +323,7 @@ export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, 
                 /* [275A-1] Safety guard: abortar auto-save si los datos estan vacios.
                  * Esto atrapa el caso donde la hidratacion se completa tarde
                  * y el auto-save se dispara con datos parciales. */
-                if (syncMeta && esProbableWipeout(currentData, syncMeta.lastSync)) {
+                if (syncMeta && esProbableWipeout(currentData, syncMeta.lastSync, habitosInicializado)) {
                     console.error('[SyncManager] Auto-save ABORTADO: datos completamente vacios. Posible race condition.');
                     markChangesAsSynced(); // Resetear hash para evitar loop
                     return;

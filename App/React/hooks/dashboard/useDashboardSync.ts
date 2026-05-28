@@ -26,10 +26,15 @@ interface UseDashboardSyncProps {
 
 export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, setProyectos, setNotas, cargandoDatos, cargandoDatosLocales}: UseDashboardSyncProps) {
     const storeSetHabitos = useHabitosStore(state => state.setHabitos);
-    /* [275A-1] Solución 3: esDataReady SOLO cuando Zustand persist ya hidrató
-     * los hábitos. Sin esto, isDataReady=true mientras habitos=[] (aún no hidratados)
-     * y performInitialSync sube datos vacíos que borran todo el servidor. */
-    const habitosInicializado = useHabitosInicializado();
+    /* [275A-1] Solución 3 (revisada): habitosInicializado se consulta como guard
+ * DENTRO de esProbableWipeout y antes del auto-save, NO para bloquear
+ * isDataReady. Si lo usamos en isDataReady, creamos deadlock circular:
+ * isDataReady espera habitosInicializado, pero habitosInicializado solo
+ * se marca cuando llegan datos del servidor (que nunca llegan porque
+ * isDataReady=false bloquea la sync inicial). El guard esProbableWipeout
+ * ya protege contra subir datos vacíos.
+ */
+ const habitosInicializado = useHabitosInicializado();
     const ayunoEstado = useAyunoStore(state => state.estado);
     const ayunoSesionActiva = useAyunoStore(state => state.sesionActiva);
     const ayunoHistorial = useAyunoStore(state => state.historial);
@@ -361,8 +366,10 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
         currentData: datosActuales,
         onDataReceived: handleDatosServidor,
         debounceMs: 2000,
-        isDataReady: !cargandoDatosLocales && habitosInicializado,
-        /* [014A-19] Contador de cambios remotos WS para absorción HTTP */
+        isDataReady: !cargandoDatosLocales,        /* [275A-1] Pasamos habitosInicializado al guard esProbableWipeout.
+         * Si Zustand aun no hidrato, el guard es mas agresivo (bloquea con 2 arrays vacios).
+         */
+        habitosInicializado,        /* [014A-19] Contador de cambios remotos WS para absorción HTTP */
         contadorCambiosRemotosRef,
         onInitComplete: () => {
             /*
