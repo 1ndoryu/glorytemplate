@@ -173,7 +173,38 @@
     gap: var(--dashboard-espacioSm);
 }
 
-/* 
+/* [300A-10] Ocultar encabezados de paneles en modo sidebar */
+.dashboardSidebarLayout .seccionEncabezado--panelHeader {
+    display: none;
+}
+
+/* [300A-10] Contenedor fijo arriba-derecha para acciones del panel activo en sidebar */
+.sidebarAccionesPortal {
+    position: absolute;
+    top: var(--dashboard-espacioSm);
+    right: var(--dashboard-espacioSm);
+    z-index: 10;
+    display: flex;
+    pointer-events: none;
+}
+
+/* [300A-10] Acciones dentro del portal sidebar: estilo compacto, pointer activo */
+.seccionAcciones--sidebar {
+    pointer-events: auto;
+    gap: var(--dashboard-espacioXs);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioMedio);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    opacity: 0.5;
+    transition: opacity var(--dashboard-transicionNormal);
+}
+
+.seccionAcciones--sidebar:hover {
+    opacity: 1;
+}
+
+/*
  * VARIANTE PANEL HEADER
  * Simula barra de titulo de ventana de programa
  * Altura fija de 42px, borde inferior para separar del contenido
