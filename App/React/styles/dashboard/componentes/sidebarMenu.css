@@ -13,7 +13,6 @@
  *   - transicionRapida, transicionNormal → animaciones
  */
 
-/* ===== LAYOUT HORIZONTAL PRINCIPAL ===== */
 .dashboardSidebarLayout {
     display: flex;
     flex-direction: row;
@@ -26,7 +25,6 @@
     gap: 10px;
 }
 
-/* ===== ÁREA PRINCIPAL (header + contenido + footer) ===== */
 .dashboardSidebarMain {
     display: flex;
     flex-direction: column;
@@ -38,7 +36,6 @@
     border-radius: 5px;
 }
 
-/* ===== BARRA LATERAL ===== */
 .sidebarMenu {
     display: flex;
     flex-direction: column;
@@ -49,6 +46,7 @@
     border-radius: 5px;
     overflow: hidden;
     transition: width var(--dashboard-transicionNormal);
+    gap: 10px;
 }
 
 /* Expandido: ancho fijo 180px para icono + texto */
@@ -79,9 +77,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--dashboard-espacioSm) var(--dashboard-espacioSm) var(--dashboard-espacioXs);
-    border-bottom: 1px solid var(--dashboard-bordeSutil);
-    margin-bottom: var(--dashboard-espacioXs);
+    padding: 8px 18px;
+    padding-right: 10px;
 }
 
 .sidebarMenuHeaderTitulo {
@@ -99,12 +96,10 @@
     padding: var(--dashboard-espacioSm) var(--dashboard-espacioXs) var(--dashboard-espacioXs);
 }
 
-/* ===== FOOTER: boton de configuracion ===== */
 .sidebarMenuFooter {
     flex-shrink: 0;
     display: flex;
     padding: var(--dashboard-espacioXs) var(--dashboard-espacioXs) var(--dashboard-espacioSm);
-    border-top: 1px solid var(--dashboard-bordeSutil);
     margin-top: var(--dashboard-espacioXs);
 }
 
@@ -117,12 +112,24 @@
     border-radius: var(--dashboard-radioXs);
 }
 
-/* ===== ITEM INDIVIDUAL DEL SIDEBAR (usa Boton ghost) ===== */
 /* Quitar bordes del boton ghost dentro del sidebar y alinear icono+texto */
 .sidebarMenuBoton.boton--ghost {
     border: none;
     justify-content: flex-start;
     white-space: nowrap;
+    padding-left: 12px;
+    height: 32px;
+    opacity: 0.6;
+}
+
+/* [300A-8d] Iconos +2px y fuente +1px en botones del sidebar */
+.sidebarMenuBoton.boton--ghost .botonIcono svg {
+    width: 15px;
+    height: 15px;
+}
+
+.sidebarMenuBoton.boton--ghost .botonTexto {
+    font-size: calc(var(--dashboard-tamanoPequeno) + 1px);
 }
 
 /* Colapsado: centrar icono */
@@ -133,17 +140,8 @@
 /* Indicador activo: barra vertical izquierda */
 .sidebarMenuBoton--activo {
     position: relative;
-    color: var(--dashboard-acento);
-}
-.sidebarMenuBoton--activo::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 20%;
-    bottom: 20%;
-    width: 3px;
-    background: var(--dashboard-acento);
-    border-radius: var(--dashboard-radioXs);
+    opacity: 1 !important;
+    filter: brightness(1.6);
 }
 
 /* Hover sutil */
@@ -152,7 +150,6 @@
     filter: none;
 }
 
-/* ===== TOGGLE EXPANDIR/CONTRAER ===== */
 .sidebarMenuToggleBoton.boton--ghost {
     border: none;
     color: var(--dashboard-textoApagado);
@@ -163,7 +160,6 @@
     filter: none;
 }
 
-/* ===== BOTON CONFIGURACION ===== */
 .sidebarMenuConfigBoton.boton--ghost {
     border: none;
     color: var(--dashboard-textoApagado);
@@ -179,7 +175,6 @@
     filter: none;
 }
 
-/* ===== ÁREA DE CONTENIDO ===== */
 .dashboardSidebarContenido {
     flex: 1;
     min-width: 0;
@@ -201,7 +196,11 @@
     transition: opacity var(--dashboard-transicionNormal), transform var(--dashboard-transicionNormal);
 }
 
-/* ===== RESPONSIVE ===== */
+/* [300A-9] Ocultar areaNuevoInline (+ Añadir tarea) en modo sidebar */
+.dashboardSidebarLayout .areaNuevoInline {
+    display: none;
+}
+
 @media (max-width: 1023px) {
     .sidebarMenu--expandido {
         width: 160px;
