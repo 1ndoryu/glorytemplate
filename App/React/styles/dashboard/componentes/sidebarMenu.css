@@ -103,6 +103,12 @@
     margin-top: var(--dashboard-espacioXs);
 }
 
+/* Colapsado: footer centrado */
+.sidebarMenu--colapsado .sidebarMenuFooter {
+    justify-content: center;
+    padding: var(--dashboard-espacioXs) 0;
+}
+
 /* Scrollbar minimalista en sidebar */
 .sidebarMenuItems::-webkit-scrollbar {
     width: 2px;
