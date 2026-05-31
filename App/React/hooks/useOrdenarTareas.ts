@@ -153,10 +153,16 @@ export function useOrdenarTareas(tareas: Tarea[]) {
         return fechaA.localeCompare(fechaB);
     };
 
+    /* [315A-1] Prioridad con fecha como desempate.
+     * Cuando dos tareas tienen la misma prioridad, la más vencida
+     * o más cercana a vencer va primero. Sin fecha → al final. */
     const compararPorPrioridad = (a: Tarea, b: Tarea) => {
         const pA = PESO_PRIORIDAD[a.prioridad || 'default'];
         const pB = PESO_PRIORIDAD[b.prioridad || 'default'];
-        return pB - pA;
+
+        if (pB !== pA) return pB - pA;
+
+        return compararPorFecha(a, b);
     };
 
     /* Comparación inteligente usando pesos totales */
