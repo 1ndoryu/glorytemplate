@@ -45,70 +45,101 @@
     width: 56px;
     min-width: 56px;
     flex-shrink: 0;
-    background-color: var(--dashboard-fondoPrincipal);
-    /* border-right: 1px solid var(--dashboard-bordePrincipal); */
+    background: #0e0e0e;
+    border-radius: 200px;
     padding: var(--dashboard-espacioSm) 0;
+    overflow: hidden;
+    transition: width var(--dashboard-transicionNormal),
+                min-width var(--dashboard-transicionNormal);
+}
+
+/* Expandido: ancho auto para acomodar icono + texto */
+.sidebarMenu--expandido {
+    width: auto;
+    min-width: 56px;
+}
+
+/* Colapsado: solo iconos */
+.sidebarMenu--colapsado {
+    width: 56px;
+    min-width: 56px;
+}
+
+/* Contenedor de items (scroll independiente del toggle) */
+.sidebarMenuItems {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     gap: var(--dashboard-espacioXs);
     overflow-y: auto;
     overflow-x: hidden;
-    background: #0e0e0e;
-    border-radius: 200px;
-}
-/* Scrollbar minimalista en sidebar */
-.sidebarMenu::-webkit-scrollbar {
-    width: 2px;
+    padding: 0 var(--dashboard-espacioXs);
 }
 
-.sidebarMenu::-webkit-scrollbar-thumb {
+/* Toggle de expandir/contraer fijo al fondo */
+.sidebarMenuToggle {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioXs) 0;
+    border-top: 1px solid var(--dashboard-bordeSutil);
+    margin-top: var(--dashboard-espacioXs);
+}
+
+/* Scrollbar minimalista en sidebar */
+.sidebarMenuItems::-webkit-scrollbar {
+    width: 2px;
+}
+.sidebarMenuItems::-webkit-scrollbar-thumb {
     background: var(--dashboard-scrollbarThumb);
     border-radius: var(--dashboard-radioXs);
 }
 
-/* ===== ITEM INDIVIDUAL DEL SIDEBAR ===== */
-.sidebarMenuIcono {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    width: 100%;
-    height: 44px;
-    padding: var(--dashboard-espacioSm);
-    background: none;
+/* ===== ITEM INDIVIDUAL DEL SIDEBAR (usa Boton ghost) ===== */
+/* Quitar bordes del boton ghost dentro del sidebar y alinear icono+texto */
+.sidebarMenuBoton.boton--ghost {
     border: none;
-    cursor: pointer;
-    color: var(--dashboard-textoSecundario);
-    transition: color var(--dashboard-transicionRapida), background-color var(--dashboard-transicionRapida);
-}
-
-.sidebarMenuTooltip {
-    position: absolute;
-    left: calc(100% + 8px);
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: var(--dashboard-fondoTerciario);
-    color: var(--dashboard-textoActivo);
-    font-family: var(--dashboard-fuenteMonoespaciada);
-    font-size: var(--dashboard-tamanoPequeno);
-    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
-    border-radius: var(--dashboard-radioMedio);
-    border: 1px solid var(--dashboard-bordeSutil);
+    justify-content: flex-start;
     white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity var(--dashboard-transicionRapida);
-    z-index: 1000;
 }
 
-.sidebarMenuIcono:hover .sidebarMenuTooltip {
-    opacity: 1;
+/* Colapsado: centrar icono */
+.sidebarMenu--colapsado .sidebarMenuBoton.boton--ghost {
+    justify-content: center;
 }
 
-/* ===== SEPARADOR VISUAL ===== */
-.sidebarMenuSeparador {
-    height: 1px;
-    background-color: var(--dashboard-bordeSutil);
-    margin: var(--dashboard-espacioSm) var(--dashboard-espacioSm);
-    opacity: 0.5;
+/* Indicador activo: barra vertical izquierda */
+.sidebarMenuBoton--activo {
+    position: relative;
+    color: var(--dashboard-acento);
+}
+.sidebarMenuBoton--activo::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    background: var(--dashboard-acento);
+    border-radius: var(--dashboard-radioXs);
+}
+
+/* Hover sutil */
+.sidebarMenuBoton.boton--ghost:hover:not(:disabled) {
+    background: var(--dashboard-fondoHover);
+    filter: none;
+}
+
+/* ===== TOGGLE EXPANDIR/CONTRAER ===== */
+.sidebarMenuToggleBoton.boton--ghost {
+    border: none;
+    color: var(--dashboard-textoApagado);
+}
+.sidebarMenuToggleBoton.boton--ghost:hover:not(:disabled) {
+    color: var(--dashboard-textoSecundario);
+    background: var(--dashboard-fondoHover);
+    filter: none;
 }
 
 /* ===== ÁREA DE CONTENIDO ===== */
@@ -135,9 +166,15 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1023px) {
-    .sidebarMenu {
-        width: 140px;
-        min-width: 140px;
+    .sidebarMenu--expandido {
+        width: auto;
+        min-width: 56px;
+        max-width: 180px;
+    }
+
+    .sidebarMenu--colapsado {
+        width: 48px;
+        min-width: 48px;
     }
 
     .dashboardSidebarContenido {
