@@ -176,7 +176,6 @@
 }
 
 .dashboardSidebarContenido {
-    position: relative;
     flex: 1;
     min-width: 0;
     overflow-y: auto;
@@ -200,6 +199,12 @@
 /* [300A-9] Ocultar areaNuevoInline (+ Añadir tarea) en modo sidebar */
 .dashboardSidebarLayout .areaNuevoInline {
     display: none;
+}
+
+/* [300A-10] Botones de seccionAcciones 2px más grandes en modo sidebar */
+.dashboardSidebarLayout .seccionAcciones .botonIcono svg {
+    width: 16px;
+    height: 16px;
 }
 
 @media (max-width: 1023px) {
