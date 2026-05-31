@@ -39,8 +39,9 @@ export function DashboardPanelView({panelId, ctx, esMovil = false}: DashboardPan
     const definicionPanel = obtenerPanelOBase(panelId);
     if (!definicionPanel) return <div className="dashboardPanelVacio">Panel no encontrado</div>;
 
-    /* En modo sidebar no hay handles de arrastre ni botón minimizar */
-    const noopHandle = () => (<></>);
+    /* En modo sidebar no hay handles de arrastre ni botón minimizar,
+     * pero sí mostramos el título del panel en el encabezado */
+    const noopHandle = (titulo?: string) => titulo ? <span className="handleArrastre__titulo">{titulo}</span> : <></>;
     const noopMinimizar = (<></>);
 
     const generadorProps = obtenerGeneradorPropsPanel(panelId, baseId);
