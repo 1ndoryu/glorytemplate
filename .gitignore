@@ -116,3 +116,5 @@ kamples-scraper/
 .opencode/agents/whatsapp-code.md
 .opencode/
 AGENTS.md
+.agent/code-sentinel/integrations/zed/target/
+target/

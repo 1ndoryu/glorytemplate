@@ -27,14 +27,14 @@ interface UseDashboardSyncProps {
 export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, setProyectos, setNotas, cargandoDatos, cargandoDatosLocales}: UseDashboardSyncProps) {
     const storeSetHabitos = useHabitosStore(state => state.setHabitos);
     /* [275A-1] Solución 3 (revisada): habitosInicializado se consulta como guard
- * DENTRO de esProbableWipeout y antes del auto-save, NO para bloquear
- * isDataReady. Si lo usamos en isDataReady, creamos deadlock circular:
- * isDataReady espera habitosInicializado, pero habitosInicializado solo
- * se marca cuando llegan datos del servidor (que nunca llegan porque
- * isDataReady=false bloquea la sync inicial). El guard esProbableWipeout
- * ya protege contra subir datos vacíos.
- */
- const habitosInicializado = useHabitosInicializado();
+     * DENTRO de esProbableWipeout y antes del auto-save, NO para bloquear
+     * isDataReady. Si lo usamos en isDataReady, creamos deadlock circular:
+     * isDataReady espera habitosInicializado, pero habitosInicializado solo
+     * se marca cuando llegan datos del servidor (que nunca llegan porque
+     * isDataReady=false bloquea la sync inicial). El guard esProbableWipeout
+     * ya protege contra subir datos vacíos.
+     */
+    const habitosInicializado = useHabitosInicializado();
     const ayunoEstado = useAyunoStore(state => state.estado);
     const ayunoSesionActiva = useAyunoStore(state => state.sesionActiva);
     const ayunoHistorial = useAyunoStore(state => state.historial);
@@ -117,23 +117,7 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                 ordenHabitos: 'importancia'
             }
         }),
-        [
-            habitos,
-            tareas,
-            proyectos,
-            notas,
-            ayunoEstado,
-            ayunoSesionActiva,
-            ayunoHistorial,
-            ayunoUltimoCompletado,
-            ayunoUpdatedAt,
-            deficitDatosUsuario,
-            deficitComidas,
-            deficitHistorial,
-            deficitCargandoIA,
-            deficitErrorIA,
-            deficitUpdatedAt
-        ]
+        [habitos, tareas, proyectos, notas, ayunoEstado, ayunoSesionActiva, ayunoHistorial, ayunoUltimoCompletado, ayunoUpdatedAt, deficitDatosUsuario, deficitComidas, deficitHistorial, deficitCargandoIA, deficitErrorIA, deficitUpdatedAt]
     );
 
     /*
@@ -174,7 +158,7 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                 const tareasActuales = tareasRef.current;
                 if (accion === 'eliminar' && datos.id) {
                     /* [275A-1] Sol.4: update funcional evita race conditions WS */
-                setTareas((prev: Tarea[]) => prev.filter(t => t.id !== datos.id));
+                    setTareas((prev: Tarea[]) => prev.filter(t => t.id !== datos.id));
                 } else if (accion === 'crear' && datos.id) {
                     /* Verificar que no exista ya */
                     if (!tareasActuales.find(t => t.id === datos.id)) {
@@ -227,18 +211,18 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                     contadorCambiosRemotosRef.current++;
                 }
                 const proyectosActuales = proyectosRef.current;
-            if (accion === 'eliminar' && datos.id) {
-                /* [275A-1] Sol.4: update funcional evita race conditions WS */
-                setProyectos((prev: Proyecto[]) => prev.filter(p => p.id !== datos.id));
-            } else if (accion === 'crear' && datos.id) {
-                setProyectos((prev: Proyecto[]) => {
-                    if (prev.find(p => p.id === datos.id)) return prev;
-                    return [...prev, datos as Proyecto];
-                });
-            } else if ((accion === 'editar' || accion === 'toggle') && datos.id) {
-                setProyectos((prev: Proyecto[]) => prev.map(p => (p.id === datos.id ? {...p, ...datos} : p)));
-            }
-        },
+                if (accion === 'eliminar' && datos.id) {
+                    /* [275A-1] Sol.4: update funcional evita race conditions WS */
+                    setProyectos((prev: Proyecto[]) => prev.filter(p => p.id !== datos.id));
+                } else if (accion === 'crear' && datos.id) {
+                    setProyectos((prev: Proyecto[]) => {
+                        if (prev.find(p => p.id === datos.id)) return prev;
+                        return [...prev, datos as Proyecto];
+                    });
+                } else if ((accion === 'editar' || accion === 'toggle') && datos.id) {
+                    setProyectos((prev: Proyecto[]) => prev.map(p => (p.id === datos.id ? {...p, ...datos} : p)));
+                }
+            },
             onNotaRemota: (_accion: 'crear' | 'editar' | 'eliminar' | 'toggle', datos: {contenido: string; id?: number; titulo?: string}) => {
                 console.log('[SyncRT] Nota remota recibida');
                 /* [014A-19] Registrar como remoto para absorción HTTP */
@@ -257,14 +241,10 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                                 /* [263A-12] Actualizar todos los paneles que tengan esta nota abierta */
                                 const nuevasNotasPorPanel: Record<string, import('../../types/notas').NotaActiva> = {};
                                 for (const [pid, nota] of Object.entries(state.notasActivaPorPanel)) {
-                                    nuevasNotasPorPanel[pid] = nota.id === datos.id
-                                        ? {...nota, contenido: datos.contenido, modificada: false}
-                                        : nota;
+                                    nuevasNotasPorPanel[pid] = nota.id === datos.id ? {...nota, contenido: datos.contenido, modificada: false} : nota;
                                 }
                                 return {
-                                    notas: state.notas.map(n =>
-                                        n.id === datos.id ? {...n, contenido: datos.contenido, fechaModificacion: new Date().toISOString()} : n
-                                    ),
+                                    notas: state.notas.map(n => (n.id === datos.id ? {...n, contenido: datos.contenido, fechaModificacion: new Date().toISOString()} : n)),
                                     notasActivaPorPanel: nuevasNotasPorPanel
                                 };
                             });
@@ -322,7 +302,7 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
     useEffect(() => {
         if (!wsConectado || userId <= 0) return;
 
-        const unsub = useNotasStore.subscribe((state) => {
+        const unsub = useNotasStore.subscribe(state => {
             /* [263A-12] Sincronizar la nota del panel principal */
             const notaActiva = state.notasActivaPorPanel[PANEL_SCRATCHPAD];
             if (!notaActiva?.id || !notaActiva.modificada) return;
@@ -366,10 +346,11 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
         currentData: datosActuales,
         onDataReceived: handleDatosServidor,
         debounceMs: 2000,
-        isDataReady: !cargandoDatosLocales,        /* [275A-1] Pasamos habitosInicializado al guard esProbableWipeout.
+        isDataReady: !cargandoDatosLocales
+        /* [275A-1] Pasamos habitosInicializado al guard esProbableWipeout.
          * Si Zustand aun no hidrato, el guard es mas agresivo (bloquea con 2 arrays vacios).
-         */
-        habitosInicializado,        /* [014A-19] Contador de cambios remotos WS para absorción HTTP */
+         */,
+        habitosInicializado /* [014A-19] Contador de cambios remotos WS para absorción HTTP */,
         contadorCambiosRemotosRef,
         onInitComplete: () => {
             /*

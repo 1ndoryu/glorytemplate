@@ -1,5 +1,5 @@
 # GloryTemplate Roadmap
-
+pp
 > **Descripcion:** Dashboard personal con tareas, habitos, proyectos, notas, actividad y mas. Tema WordPress con React islands.
 > **Stack:** WordPress + PHP (backend REST), React + TypeScript (frontend islands), Zustand (estado), CSS modular
 > **URL produccion:** https://task.nakomi.studio

@@ -172,6 +172,11 @@
     --dashboard-alturaHeaderMovil: 56px;
     --dashboard-alturaNavInferior: 52px;
     --mapa-calor-tamano-celda: 14px;
+    
+    --font-primary: "Neue Montreal", system-ui, -apple-system, sans-serif;
+    --font-serif: "Anthropic Serif", serif;
+    --font-mono: "JetBrains Mono", monospace;
+    --font-sans-alt: "Anthropic Sans", sans-serif;
 }
 /* 1e1e1e
  * TEMA OSCURO (Dark Mode Estándar)

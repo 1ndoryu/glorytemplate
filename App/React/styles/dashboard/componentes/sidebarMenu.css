@@ -183,8 +183,11 @@
     overflow-x: hidden;
     padding: var(--dashboard-espacioLg);
     min-height: 0;
+    padding-top: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 0px;
 }
-
 /* Transición suave al cambiar de panel */
 .dashboardSidebarPanel--entrando {
     opacity: 0;
