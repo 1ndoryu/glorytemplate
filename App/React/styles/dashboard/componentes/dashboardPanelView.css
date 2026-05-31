@@ -37,6 +37,15 @@
     display: none;
 }
 
+/* Scratchpad: quitar fondo y barra decorativa, ocupar toda la altura */
+.dashboardPanelView .scratchpadPanel {
+    background: transparent !important;
+    min-height: 0;
+}
+.dashboardPanelView .scratchpadBarra {
+    display: none;
+}
+
 /* ===== ESTADO VACÍO ===== */
 .dashboardPanelVacio {
     display: flex;
