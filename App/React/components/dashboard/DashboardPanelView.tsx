@@ -23,7 +23,7 @@ interface DashboardPanelViewProps {
 }
 
 export function DashboardPanelView({panelId, ctx, esMovil = false}: DashboardPanelViewProps): JSX.Element | null {
-    const {propsContexto, manejarToggleTarea} = useDashboardGrid(ctx, esMovil);
+    const {propsContexto, manejarToggleTarea, manejarEditarHabitoPorId} = useDashboardGrid(ctx, esMovil);
     const [animando, setAnimando] = useState(false);
 
     /* Animación de fade al cambiar de panel */
@@ -50,7 +50,7 @@ export function DashboardPanelView({panelId, ctx, esMovil = false}: DashboardPan
     // sentinel-disable-next-line any-type-explicito — dispatch dinámico por registro de paneles
     let props: any;
     if (baseId === 'ejecucion') {
-        props = generadorProps(propsContexto, noopHandle, noopMinimizar, manejarToggleTarea, undefined, esMovil);
+        props = generadorProps(propsContexto, noopHandle, noopMinimizar, manejarToggleTarea, manejarEditarHabitoPorId, esMovil);
     } else {
         props = generadorProps(propsContexto, noopHandle, noopMinimizar, esMovil);
     }
