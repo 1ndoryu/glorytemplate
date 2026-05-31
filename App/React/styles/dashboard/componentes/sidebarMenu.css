@@ -151,6 +151,15 @@
     filter: brightness(1.6);
 }
 
+/* [multi-panel-sidebar] Panel presente en la grilla sidebar */
+.sidebarMenuBoton--enGrilla {
+    opacity: 1 !important;
+}
+
+.sidebarMenuBoton--enGrilla .botonIcono {
+    /* color: var(--dashboard-acento, #5a6bf3); */
+}
+
 /* Hover sutil */
 .sidebarMenuBoton.boton--ghost:hover:not(:disabled) {
     background: var(--dashboard-fondoHover);
@@ -176,6 +185,7 @@
 .sidebarMenu--colapsado .sidebarMenuConfigBoton.boton--ghost {
     justify-content: center;
 }
+
 .sidebarMenuConfigBoton.boton--ghost:hover:not(:disabled) {
     color: var(--dashboard-textoSecundario);
     background: var(--dashboard-fondoHover);

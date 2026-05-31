@@ -20,9 +20,12 @@ interface DashboardPanelViewProps {
     panelId: PanelId;
     ctx: DashboardCompletoRetorno;
     esMovil?: boolean;
+    /** [multi-panel-sidebar] Botones extra para renderizar en seccionAcciones
+     *  Se inyectan a través de handleMinimizar que los paneles colocan en acciones */
+    accionesExtra?: React.ReactNode;
 }
 
-export function DashboardPanelView({panelId, ctx, esMovil = false}: DashboardPanelViewProps): JSX.Element | null {
+export function DashboardPanelView({panelId, ctx, esMovil = false, accionesExtra}: DashboardPanelViewProps): JSX.Element | null {
     const {propsContexto, manejarToggleTarea, manejarEditarHabitoPorId} = useDashboardGrid(ctx, esMovil);
     const [animando, setAnimando] = useState(false);
 
@@ -40,9 +43,11 @@ export function DashboardPanelView({panelId, ctx, esMovil = false}: DashboardPan
     if (!definicionPanel) return <div className="dashboardPanelVacio">Panel no encontrado</div>;
 
     /* En modo sidebar no hay handles de arrastre ni botón minimizar,
-     * pero sí mostramos el título del panel en el encabezado */
+     * pero sí mostramos el título del panel en el encabezado.
+     * [multi-panel-sidebar] accionesExtra se inyectan via handleMinimizar
+     * para que aparezcan en seccionAcciones de cada panel */
     const noopHandle = (titulo?: string) => titulo ? <span className="handleArrastre__titulo">{titulo}</span> : <></>;
-    const noopMinimizar = (<></>);
+    const handleConAcciones = (<>{accionesExtra}</>);
 
     const generadorProps = obtenerGeneradorPropsPanel(panelId, baseId);
 
@@ -50,9 +55,9 @@ export function DashboardPanelView({panelId, ctx, esMovil = false}: DashboardPan
     // sentinel-disable-next-line any-type-explicito — dispatch dinámico por registro de paneles
     let props: any;
     if (baseId === 'ejecucion') {
-        props = generadorProps(propsContexto, noopHandle, noopMinimizar, manejarToggleTarea, manejarEditarHabitoPorId, esMovil);
+        props = generadorProps(propsContexto, noopHandle, handleConAcciones, manejarToggleTarea, manejarEditarHabitoPorId, esMovil);
     } else {
-        props = generadorProps(propsContexto, noopHandle, noopMinimizar, esMovil);
+        props = generadorProps(propsContexto, noopHandle, handleConAcciones, esMovil);
     }
 
     /* Inyectar panelId para scratchpad */

@@ -1,6 +1,6 @@
 /*
  * DashboardIsland
- * Componente principal del Dashboard
+ * sentinel-disable-file limite-lineas — Componente orquestador principal de composición.
  * Refactorizado: Lógica dividida en subcomponentes y hook de composición
  * Fase 10.8.3: Integración de opciones móvil en el header
  * TAREA 1: Integración de useBackButtonCapacitor para manejo de botón back en APK
@@ -11,7 +11,7 @@ import {useEffect, useMemo, useState, useCallback} from 'react';
 /* Importar store de configuración temprano para inicializar horaFinDia antes que otros módulos */
 import '../stores/configuracionUsuarioStore';
 
-import {DashboardEncabezado, DashboardFooter, DashboardGrid, DashboardModales, SidebarMenu, DashboardPanelView} from '../components/dashboard';
+import {DashboardEncabezado, DashboardFooter, DashboardGrid, DashboardModales, SidebarMenu, DashboardSidebarGrid} from '../components/dashboard';
 import {useDashboardCompleto} from '../hooks/useDashboardCompleto';
 import {VERSION_ACTUAL} from '../data/changelog';
 import {Landing} from '../components/landing/Landing';
@@ -28,6 +28,7 @@ import {ModalNotasExpandido} from '../components/dashboard/notas/ModalNotasExpan
 import {useBackButtonCapacitor} from '../hooks/useBackButtonCapacitor';
 import {useDeteccionCambioDia} from '../hooks/useDeteccionCambioDia';
 import {obtenerTodosPanelesNavegables} from '../config/registroPaneles';
+import {useSidebarPaneles} from '../hooks/dashboard/useSidebarPanels';
 
 import '../styles/dashboard/componentes/experimentos.css';
 import '../styles/dashboard/componentes/buscador.css';
@@ -62,13 +63,29 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
     const toggleModoSeleccionManual = useSeleccionMultipleStore(s => s.toggleModoSeleccionManual);
 
     /* [300A-2] Estado del panel activo en modo sidebar */
+    /* [multi-panel-sidebar] Reemplazado por useSidebarPaneles que soporta multi-panel */
     const [panelSidebarActivo, setPanelSidebarActivo] = useState<string>(() => {
         const visibles = obtenerTodosPanelesNavegables();
         const primerVisible = visibles.find(p => layout.visibilidad[p.id] !== false);
         return primerVisible?.id || 'ejecucion';
     });
 
+    /* [multi-panel-sidebar] Hook de paneles sidebar multi-panel.
+     * Se inicializa con el panel activo actual para migración automática. */
+    const {
+        sidebarState,
+        agregarPanel,
+        quitarPanel,
+        tienePanel,
+        moverPanel,
+        setPaneles,
+        ajustarAnchos,
+        ajustarAlturasFilas,
+        cantidad: cantidadPanelesSidebar
+    } = useSidebarPaneles(panelSidebarActivo);
+
     /* [300A-2] Si el panel activo se oculta desde config, cambiar al primero visible */
+    /* [multi-panel-sidebar] También quita de la grilla los paneles ocultos */
     useEffect(() => {
         if (tipoLayout !== 'sidebar') return;
         if (layout.visibilidad[panelSidebarActivo] === false) {
@@ -76,7 +93,15 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
             const primerVisible = visibles.find(p => layout.visibilidad[p.id] !== false);
             if (primerVisible) setPanelSidebarActivo(primerVisible.id);
         }
-    }, [layout.visibilidad, tipoLayout, panelSidebarActivo]);
+        /* Quitar de la grilla los paneles que se ocultaron desde config */
+        const panelesOcultos = sidebarState.paneles.filter(id => layout.visibilidad[id] === false);
+        panelesOcultos.forEach(id => {
+            if (sidebarState.paneles.length > 1) {
+                quitarPanel(id);
+            }
+        });
+    }, [layout.visibilidad, tipoLayout, panelSidebarActivo, sidebarState.paneles, quitarPanel]);
+
 
     /*
      * Detección de cambio de día y retorno tras inactividad.
@@ -286,20 +311,35 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                     )}
                 </>
             ) : (
-                /* ── MODO SIDEBAR: menú lateral + contenido ── */
+                /* ── MODO SIDEBAR: menú lateral + contenido multi-panel ── */
                 <div className="dashboardSidebarLayout">
                     <SidebarMenu
                         paneles={obtenerTodosPanelesNavegables().filter(p => layout.visibilidad[p.id] !== false)}
                         panelActivo={panelSidebarActivo}
-                        onSeleccionarPanel={setPanelSidebarActivo}
+                        onSeleccionarPanel={(panelId) => {
+                            /* Click en sidebar: cambia a un solo panel (no agrega a grilla) */
+                            setPaneles([panelId]);
+                            setPanelSidebarActivo(panelId);
+                        }}
                         onAbrirConfig={() => modales.abrirModalConfigGlobal(null)}
+                        panelesActivos={sidebarState.paneles}
+                        onAgregarPanel={agregarPanel}
                     />
                     <div className="dashboardSidebarMain">
                         {dashboard.cargandoDatos ? (
                             <IndicadorCarga />
                         ) : (
                             <div className="dashboardSidebarContenido">
-                                <DashboardPanelView panelId={panelSidebarActivo} ctx={ctx} />
+                                <DashboardSidebarGrid
+                                    paneles={sidebarState.paneles}
+                                    ctx={ctx}
+                                    anchos={sidebarState.anchos}
+                                    alturaFilas={sidebarState.alturaFilas}
+                                    onQuitarPanel={quitarPanel}
+                                    onAjustarAnchos={ajustarAnchos}
+                                    onAjustarAlturasFilas={ajustarAlturasFilas}
+                                    onMoverPanel={moverPanel}
+                                />
                             </div>
                         )}
                     </div>
