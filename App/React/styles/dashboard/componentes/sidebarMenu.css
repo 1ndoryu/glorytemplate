@@ -35,7 +35,7 @@
     min-height: 0;
     overflow: hidden;
     background: #0e0e0e;
-    border-radius: 28px;
+    border-radius: 5px;
 }
 
 /* ===== BARRA LATERAL ===== */
@@ -46,12 +46,26 @@
     min-width: 56px;
     flex-shrink: 0;
     background: #0e0e0e;
-    border-radius: 200px;
+    border-radius: 5px;
     padding: var(--dashboard-espacioSm) 0;
     overflow: hidden;
+    transition: width var(--dashboard-transicionNormal),
+                min-width var(--dashboard-transicionNormal);
 }
 
-/* Contenedor de items */
+/* Expandido: ancho auto para acomodar icono + texto */
+.sidebarMenu--expandido {
+    width: auto;
+    min-width: 56px;
+}
+
+/* Colapsado: solo iconos */
+.sidebarMenu--colapsado {
+    width: 56px;
+    min-width: 56px;
+}
+
+/* Contenedor de items (scroll independiente del toggle) */
 .sidebarMenuItems {
     display: flex;
     flex-direction: column;
@@ -63,7 +77,42 @@
     padding: 0 var(--dashboard-espacioXs);
 }
 
-/* Scrollbar minimalista */
+/* ===== HEADER: nombre de app + toggle expandir/contraer ===== */
+.sidebarMenuHeader {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioSm) var(--dashboard-espacioXs);
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
+    margin-bottom: var(--dashboard-espacioXs);
+}
+
+.sidebarMenuHeaderTitulo {
+    font-size: var(--dashboard-tamanoMedio);
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Colapsado: header solo con toggle centrado */
+.sidebarMenu--colapsado .sidebarMenuHeader {
+    justify-content: center;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioXs) var(--dashboard-espacioXs);
+}
+
+/* ===== FOOTER: boton de configuracion ===== */
+.sidebarMenuFooter {
+    flex-shrink: 0;
+    display: flex;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-top: 1px solid var(--dashboard-bordeSutil);
+    margin-top: var(--dashboard-espacioXs);
+}
+
+/* Scrollbar minimalista en sidebar */
 .sidebarMenuItems::-webkit-scrollbar {
     width: 2px;
 }
@@ -72,23 +121,17 @@
     border-radius: var(--dashboard-radioXs);
 }
 
-/* ===== ITEM INDIVIDUAL DEL SIDEBAR ===== */
-/* Quitar bordes del ghost, centrar icono, altura 40px */
+/* ===== ITEM INDIVIDUAL DEL SIDEBAR (usa Boton ghost) ===== */
+/* Quitar bordes del boton ghost dentro del sidebar y alinear icono+texto */
 .sidebarMenuBoton.boton--ghost {
     border: none;
-    justify-content: center;
-    height: 40px;
+    justify-content: flex-start;
+    white-space: nowrap;
 }
 
-/* Iconos del sidebar */
-.sidebarMenuBoton .botonIcono {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-}
-.sidebarMenuBoton .botonIcono svg {
-    width: 16px;
-    height: 16px;
+/* Colapsado: centrar icono */
+.sidebarMenu--colapsado .sidebarMenuBoton.boton--ghost {
+    justify-content: center;
 }
 
 /* Indicador activo: barra vertical izquierda */
@@ -107,9 +150,36 @@
     border-radius: var(--dashboard-radioXs);
 }
 
-/* Sin background ni hover visual */
+/* Hover sutil */
 .sidebarMenuBoton.boton--ghost:hover:not(:disabled) {
-    background: none;
+    background: var(--dashboard-fondoHover);
+    filter: none;
+}
+
+/* ===== TOGGLE EXPANDIR/CONTRAER ===== */
+.sidebarMenuToggleBoton.boton--ghost {
+    border: none;
+    color: var(--dashboard-textoApagado);
+}
+.sidebarMenuToggleBoton.boton--ghost:hover:not(:disabled) {
+    color: var(--dashboard-textoSecundario);
+    background: var(--dashboard-fondoHover);
+    filter: none;
+}
+
+/* ===== BOTON CONFIGURACION ===== */
+.sidebarMenuConfigBoton.boton--ghost {
+    border: none;
+    color: var(--dashboard-textoApagado);
+    justify-content: flex-start;
+    white-space: nowrap;
+}
+.sidebarMenu--colapsado .sidebarMenuConfigBoton.boton--ghost {
+    justify-content: center;
+}
+.sidebarMenuConfigBoton.boton--ghost:hover:not(:disabled) {
+    color: var(--dashboard-textoSecundario);
+    background: var(--dashboard-fondoHover);
     filter: none;
 }
 
@@ -137,13 +207,15 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1023px) {
-    .sidebarMenu {
-        width: 48px;
-        min-width: 48px;
+    .sidebarMenu--expandido {
+        width: auto;
+        min-width: 56px;
+        max-width: 180px;
     }
 
-    .sidebarMenuItems {
-        padding: 0 var(--dashboard-espacioXs);
+    .sidebarMenu--colapsado {
+        width: 48px;
+        min-width: 48px;
     }
 
     .dashboardSidebarContenido {

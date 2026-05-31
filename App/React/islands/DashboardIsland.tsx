@@ -292,6 +292,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                         paneles={obtenerTodosPanelesNavegables().filter(p => layout.visibilidad[p.id] !== false)}
                         panelActivo={panelSidebarActivo}
                         onSeleccionarPanel={setPanelSidebarActivo}
+                        onAbrirConfig={() => modales.abrirModalConfigGlobal(null)}
                     />
                     <div className="dashboardSidebarMain">
                         {dashboard.cargandoDatos ? (
