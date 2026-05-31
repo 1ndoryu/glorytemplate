@@ -346,7 +346,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                 </div>
             )}
 
-            <DashboardFooter />
+            {esMovil || tipoLayout !== 'sidebar' ? <DashboardFooter /> : null}
             <DashboardModales ctx={ctx} />
 
 
