@@ -71,7 +71,6 @@
     padding: 0 var(--dashboard-espacioXs);
 }
 
-
 .sidebarMenuHeader {
     flex-shrink: 0;
     display: flex;
@@ -94,6 +93,7 @@
 .sidebarMenu--colapsado .sidebarMenuHeader {
     justify-content: center;
     padding: var(--dashboard-espacioSm) var(--dashboard-espacioXs) var(--dashboard-espacioXs);
+    height: 34px;
 }
 
 .sidebarMenuFooter {
@@ -135,6 +135,7 @@
 /* Colapsado: centrar icono */
 .sidebarMenu--colapsado .sidebarMenuBoton.boton--ghost {
     justify-content: center;
+    padding-left: var(--dashboard-espacioSm);
 }
 
 /* Indicador activo: barra vertical izquierda */
@@ -203,8 +204,13 @@
 
 /* [300A-10] Botones de seccionAcciones 2px más grandes en modo sidebar */
 .dashboardSidebarLayout .seccionAcciones .botonIcono svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
+}
+
+/* [300A-12] Títulos de paneles en modo sidebar: texto normal sin uppercase */
+.dashboardSidebarLayout .seccionTitulo {
+    text-transform: none;
 }
 
 @media (max-width: 1023px) {
