@@ -286,7 +286,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                     )}
                 </>
             ) : (
-                /* ── MODO SIDEBAR: menú lateral + header + contenido + footer ── */
+                /* ── MODO SIDEBAR: menú lateral + contenido ── */
                 <div className="dashboardSidebarLayout">
                     <SidebarMenu
                         paneles={obtenerTodosPanelesNavegables().filter(p => layout.visibilidad[p.id] !== false)}
@@ -294,47 +294,6 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                         onSeleccionarPanel={setPanelSidebarActivo}
                     />
                     <div className="dashboardSidebarMain">
-                        <DashboardEncabezado
-                            titulo={titulo}
-                            version={version}
-                            usuario={auth.user ? auth.user.name : usuario}
-                            avatarUrl={auth.user?.avatarUrl}
-                            sincronizacion={sincronizacionConAuth}
-                            suscripcion={suscripcion}
-                            esAdmin={esAdmin}
-                            equiposPendientes={equipos.pendientes}
-                            notificacionesPendientes={notificaciones.noLeidas}
-                            onClickPlan={modales.abrirModalUpgrade}
-                            onClickSeguridad={() => modales.abrirModalConfigGlobal('seguridad')}
-                            onClickAdmin={modales.abrirPanelAdmin}
-                            onClickLayout={() => modales.abrirModalConfigGlobal('layout')}
-                            onClickVersion={modales.abrirModalVersiones}
-                            onClickUsuario={() => modales.abrirModalConfigGlobal('perfil')}
-                            onClickEquipos={modales.abrirModalEquipos}
-                            onClickNotificaciones={(evento?: React.MouseEvent) => { if (evento) acciones.manejarClickNotificaciones(evento); }}
-                            onClickExperimentos={esAdmin ? modales.abrirModalExperimentos : undefined}
-                            onClickTemas={() => modales.abrirModalConfigGlobal('temas')}
-                            onClickConfigUsuario={() => modales.abrirModalConfigGlobal(null)}
-                            onClickBackups={() => modales.abrirModalConfigGlobal('backups')}
-                            onClickConfigMCP={() => modales.abrirModalConfigGlobal('ia')}
-                            onClickPlugins={modales.abrirModalPlugins}
-                            onClickFeedback={modales.abrirModalFeedback}
-                            onExportarDatos={dashboard.exportarTodosDatos}
-                            onImportarDatos={dashboard.importarTodosDatos}
-                            tareas={dashboard.tareas}
-                            habitos={dashboard.habitos}
-                            proyectos={dashboard.proyectos}
-                            onSeleccionarTarea={modales.abrirModalEditarTarea}
-                            onSeleccionarHabito={dashboard.abrirModalEditarHabito}
-                            onSeleccionarProyecto={modales.abrirModalEditarProyecto}
-                            onCrearRapido={modales.abrirCreacionRapida}
-                            opcionesMovil={esMovil ? opcionesMovil : undefined}
-                            paginaMovilActiva={esMovil ? paginaMovil.paginaActiva : undefined}
-                            onCambiarPagina={esMovil ? paginaMovil.cambiarPagina : undefined}
-                            modoSeleccionActivo={modoSeleccionActivo}
-                            onToggleSeleccion={toggleModoSeleccionManual}
-                        />
-
                         {dashboard.cargandoDatos ? (
                             <IndicadorCarga />
                         ) : (

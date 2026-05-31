@@ -33,14 +33,12 @@ export function SidebarMenu({paneles, panelActivo, onSeleccionarPanel}: SidebarM
             {paneles.map(panel => (
                 <button
                     key={panel.id}
-                    className={`sidebarMenuIcono ${panelActivo === panel.id ? 'sidebarMenuIcono--activo' : ''}`}
+                    className={`sidebarMenuBoton ${panelActivo === panel.id ? 'sidebarMenuBoton--activo' : ''}`}
                     onClick={() => onSeleccionarPanel(panel.id)}
-                    aria-label={panel.titulo}
                     aria-current={panelActivo === panel.id ? 'page' : undefined}
-                    title={panel.titulo}
                 >
-                    {panel.icono || <span className="sidebarMenuIconoTexto">{panel.titulo.charAt(0)}</span>}
-                    <span className="sidebarMenuTooltip">{panel.titulo}</span>
+                    <span className="sidebarMenuBotonIcono">{panel.icono || panel.titulo.charAt(0)}</span>
+                    <span className="sidebarMenuBotonTexto">{panel.titulo}</span>
                 </button>
             ))}
         </nav>

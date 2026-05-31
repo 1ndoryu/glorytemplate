@@ -22,6 +22,16 @@
     flex-direction: column;
 }
 
+/* [300A-5] Quitar fondos, bordes y sombras de los paneles dentro del sidebar */
+.dashboardPanelView .panelDashboard,
+.dashboardPanelView .panelDashboard > *,
+.dashboardPanelView .panelContenido,
+.dashboardPanelView [class*="panel"] {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 /* ===== ESTADO VACÍO ===== */
 .dashboardPanelVacio {
     display: flex;

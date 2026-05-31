@@ -22,6 +22,8 @@
     flex: 1;
     gap: 0;
     overflow: hidden;
+    padding: 10px;
+    gap: 10px;
 }
 
 /* ===== ÁREA PRINCIPAL (header + contenido + footer) ===== */
@@ -32,6 +34,8 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+    background: #0e0e0e;
+    border-radius: 28px;
 }
 
 /* ===== BARRA LATERAL ===== */
@@ -42,13 +46,14 @@
     min-width: 56px;
     flex-shrink: 0;
     background-color: var(--dashboard-fondoPrincipal);
-    border-right: 1px solid var(--dashboard-bordePrincipal);
+    /* border-right: 1px solid var(--dashboard-bordePrincipal); */
     padding: var(--dashboard-espacioSm) 0;
     gap: var(--dashboard-espacioXs);
     overflow-y: auto;
     overflow-x: hidden;
+    background: #0e0e0e;
+    border-radius: 200px;
 }
-
 /* Scrollbar minimalista en sidebar */
 .sidebarMenu::-webkit-scrollbar {
     width: 2px;
@@ -72,34 +77,9 @@
     border: none;
     cursor: pointer;
     color: var(--dashboard-textoSecundario);
-    transition: color var(--dashboard-transicionRapida),
-                background-color var(--dashboard-transicionRapida);
+    transition: color var(--dashboard-transicionRapida), background-color var(--dashboard-transicionRapida);
 }
 
-.sidebarMenuIcono:hover {
-    color: var(--dashboard-textoActivo);
-    background-color: var(--dashboard-fondoHover);
-}
-
-/* ===== ESTADO ACTIVO ===== */
-.sidebarMenuIcono--activo {
-    color: var(--dashboard-textoActivo);
-    background-color: var(--dashboard-fondoSecundario);
-}
-
-/* Indicador izquierdo (barra de color sutil) */
-.sidebarMenuIcono--activo::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 25%;
-    height: 50%;
-    width: 3px;
-    background-color: var(--dashboard-acento);
-    border-radius: 0 var(--dashboard-radioXs) var(--dashboard-radioXs) 0;
-}
-
-/* ===== TOOLTIP EN HOVER ===== */
 .sidebarMenuTooltip {
     position: absolute;
     left: calc(100% + 8px);
@@ -150,15 +130,14 @@
 .dashboardSidebarPanel--visible {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity var(--dashboard-transicionNormal),
-                transform var(--dashboard-transicionNormal);
+    transition: opacity var(--dashboard-transicionNormal), transform var(--dashboard-transicionNormal);
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1023px) {
     .sidebarMenu {
-        width: 48px;
-        min-width: 48px;
+        width: 140px;
+        min-width: 140px;
     }
 
     .dashboardSidebarContenido {
