@@ -4,7 +4,7 @@
  * Cada sección usa sus hooks directamente */
 
 import {useState, type Ref} from 'react';
-import {Square, Columns2, Columns3, ArrowUpDown, RotateCcw, Target, Folder, Terminal, FileText, Activity} from 'lucide-react';
+import {Square, Columns2, Columns3, ArrowUpDown, RotateCcw, Target, Folder, Terminal, FileText, Activity, LayoutGrid, PanelLeft} from 'lucide-react';
 import {Lock, Unlock, Shield, ShieldCheck, Camera, Save, Moon, Sun, Check, Sparkles, Globe, Plug as PlugIcon, Loader2} from 'lucide-react';
 import {RotateCcw as RotateCcwBackup, ShieldCheck as ShieldCheckBackup, AlertTriangle, Database, Trash2} from 'lucide-react';
 import {ToggleSwitch} from '../../shared/ToggleSwitch';
@@ -37,33 +37,68 @@ const PANELES: {id: PanelId; nombre: string; icono: JSX.Element; descripcion: st
 
 /* ── LAYOUT ────────────────────────────────────────────── */
 export function SeccionConfigLayout(): JSX.Element {
-    const {modoColumnas, visibilidad, ordenPaneles, cambiarModoColumnas, toggleVisibilidadPanel, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, resetearLayout} = useConfiguracionLayout();
+    const {tipoLayout, modoColumnas, visibilidad, ordenPaneles, cambiarTipoLayout, cambiarModoColumnas, toggleVisibilidadPanel, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, resetearLayout} = useConfiguracionLayout();
+    const esGrid = tipoLayout === 'grid';
+
     return (
         <div className="configLayoutContenido">
+            {/* [300A-2] Selector de modo: Grid ↔ Sidebar */}
             <div className="configLayoutSeccion">
-                <h4 className="configLayoutSeccionTitulo">Distribución de Columnas</h4>
-                <p className="configLayoutSeccionDescripcion">Selecciona cuántas columnas quieres en el dashboard</p>
+                <h4 className="configLayoutSeccionTitulo">Modo de Visualización</h4>
+                <p className="configLayoutSeccionDescripcion">Grid muestra todos los paneles a la vez. Sidebar los muestra uno por uno.</p>
                 <div className="configLayoutColumnasOpciones">
-                    {([1, 2, 3] as ModoColumnas[]).map(modo => (
-                        <Boton key={modo} variante={modoColumnas === modo ? 'primario' : 'ghost'} onClick={() => cambiarModoColumnas(modo)} claseAdicional={`configLayoutColumnaOpcion ${modoColumnas === modo ? 'activo' : ''}`} icono={modo === 1 ? <Square size={20} /> : modo === 2 ? <Columns2 size={20} /> : <Columns3 size={20} />}>
-                            {modo} Columna{modo > 1 ? 's' : ''}
-                        </Boton>
-                    ))}
+                    <Boton
+                        variante={esGrid ? 'primario' : 'ghost'}
+                        onClick={() => cambiarTipoLayout('grid')}
+                        title="Modo grid"
+                        claseAdicional={`configLayoutColumnaOpcion ${esGrid ? 'activo' : ''}`}
+                        icono={<LayoutGrid size={20} />}
+                    >
+                        Grid
+                    </Boton>
+                    <Boton
+                        variante={!esGrid ? 'primario' : 'ghost'}
+                        onClick={() => cambiarTipoLayout('sidebar')}
+                        title="Modo sidebar"
+                        claseAdicional={`configLayoutColumnaOpcion ${!esGrid ? 'activo' : ''}`}
+                        icono={<PanelLeft size={20} />}
+                    >
+                        Sidebar
+                    </Boton>
                 </div>
             </div>
-            <div className="configLayoutSeccion">
-                <div className="configLayoutSeccionHeader">
-                    <div>
-                        <h4 className="configLayoutSeccionTitulo"><ArrowUpDown size={14} /> <span>Orden de Paneles</span></h4>
-                        <p className="configLayoutSeccionDescripcion">Reordena los paneles usando los botones o cambia su columna</p>
+
+            {/* Columnas + Orden: solo en modo grid */}
+            {esGrid && (
+                <>
+                    <div className="configLayoutSeccion">
+                        <h4 className="configLayoutSeccionTitulo">Distribución de Columnas</h4>
+                        <p className="configLayoutSeccionDescripcion">Selecciona cuántas columnas quieres en el dashboard</p>
+                        <div className="configLayoutColumnasOpciones">
+                            {([1, 2, 3] as ModoColumnas[]).map(modo => (
+                                <Boton key={modo} variante={modoColumnas === modo ? 'primario' : 'ghost'} onClick={() => cambiarModoColumnas(modo)} claseAdicional={`configLayoutColumnaOpcion ${modoColumnas === modo ? 'activo' : ''}`} icono={modo === 1 ? <Square size={20} /> : modo === 2 ? <Columns2 size={20} /> : <Columns3 size={20} />}>
+                                    {modo} Columna{modo > 1 ? 's' : ''}
+                                </Boton>
+                            ))}
+                        </div>
                     </div>
-                    <Boton variante="icono" onClick={resetearOrdenPaneles} title="Restaurar orden por defecto" icono={<RotateCcw size={12} />} claseAdicional="configLayoutBotonResetPequeno" />
-                </div>
-                <ListaOrdenPaneles ordenPaneles={ordenPaneles} modoColumnas={modoColumnas} onMoverArriba={moverPanelArriba} onMoverAbajo={moverPanelAbajo} onCambiarColumna={moverPanelAColumna} />
-            </div>
+                    <div className="configLayoutSeccion">
+                        <div className="configLayoutSeccionHeader">
+                            <div>
+                                <h4 className="configLayoutSeccionTitulo"><ArrowUpDown size={14} /> <span>Orden de Paneles</span></h4>
+                                <p className="configLayoutSeccionDescripcion">Reordena los paneles usando los botones o cambia su columna</p>
+                            </div>
+                            <Boton variante="icono" onClick={resetearOrdenPaneles} title="Restaurar orden por defecto" icono={<RotateCcw size={12} />} claseAdicional="configLayoutBotonResetPequeno" />
+                        </div>
+                        <ListaOrdenPaneles ordenPaneles={ordenPaneles} modoColumnas={modoColumnas} onMoverArriba={moverPanelArriba} onMoverAbajo={moverPanelAbajo} onCambiarColumna={moverPanelAColumna} />
+                    </div>
+                </>
+            )}
+
+            {/* Visibilidad: siempre visible */}
             <div className="configLayoutSeccion">
                 <h4 className="configLayoutSeccionTitulo">Visibilidad de Paneles</h4>
-                <p className="configLayoutSeccionDescripcion">Oculta paneles que no necesites</p>
+                <p className="configLayoutSeccionDescripcion">{esGrid ? 'Oculta paneles que no necesites' : 'Selecciona qué paneles aparecen en el menú lateral'}</p>
                 <div className="configLayoutPaneles">
                     {PANELES.map(panel => (
                         <div key={panel.id} className="configLayoutPanelItem">
@@ -79,6 +114,7 @@ export function SeccionConfigLayout(): JSX.Element {
                     ))}
                 </div>
             </div>
+
             <div className="configLayoutAcciones">
                 <Boton variante="secundario" onClick={resetearLayout} title="Restaurar todo" icono={<RotateCcw size={12} />} claseAdicional="configLayoutBotonReset">
                     Restaurar todo por defecto
