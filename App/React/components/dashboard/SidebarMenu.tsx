@@ -12,6 +12,7 @@
 
 import type {PanelId} from '../../hooks/useConfiguracionLayout';
 import type {ReactNode} from 'react';
+import {Boton} from '../ui';
 
 export interface PanelSidebar {
     id: PanelId;
@@ -31,15 +32,15 @@ export function SidebarMenu({paneles, panelActivo, onSeleccionarPanel}: SidebarM
     return (
         <nav className="sidebarMenu" aria-label="Menú de paneles">
             {paneles.map(panel => (
-                <button
+                <Boton
                     key={panel.id}
-                    className={`sidebarMenuBoton ${panelActivo === panel.id ? 'sidebarMenuBoton--activo' : ''}`}
+                    variante="ghost"
+                    claseAdicional={`sidebarMenuBoton ${panelActivo === panel.id ? 'sidebarMenuBoton--activo' : ''}`}
                     onClick={() => onSeleccionarPanel(panel.id)}
-                    aria-current={panelActivo === panel.id ? 'page' : undefined}
+                    icono={panel.icono}
                 >
-                    <span className="sidebarMenuBotonIcono">{panel.icono || panel.titulo.charAt(0)}</span>
-                    <span className="sidebarMenuBotonTexto">{panel.titulo}</span>
-                </button>
+                    {panel.titulo}
+                </Boton>
             ))}
         </nav>
     );
