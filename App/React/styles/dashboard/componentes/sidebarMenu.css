@@ -73,10 +73,11 @@
 }
 
 /* ===== ITEM INDIVIDUAL DEL SIDEBAR ===== */
-/* Quitar bordes del ghost, centrar icono */
+/* Quitar bordes del ghost, centrar icono, altura 40px */
 .sidebarMenuBoton.boton--ghost {
     border: none;
     justify-content: center;
+    height: 40px;
 }
 
 /* Iconos del sidebar */
@@ -106,9 +107,9 @@
     border-radius: var(--dashboard-radioXs);
 }
 
-/* Hover sutil */
+/* Sin background ni hover visual */
 .sidebarMenuBoton.boton--ghost:hover:not(:disabled) {
-    background: var(--dashboard-fondoHover);
+    background: none;
     filter: none;
 }
 
