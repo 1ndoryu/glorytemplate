@@ -12,7 +12,7 @@
 
 import {useState, useCallback} from 'react';
 import type {PanelId} from '../../hooks/useConfiguracionLayout';
-import {ChevronsLeft, ChevronsRight, Settings} from 'lucide-react';
+import {PanelLeftClose, PanelLeftOpen, Settings} from 'lucide-react';
 import type {ReactNode} from 'react';
 import {Boton} from '../ui';
 
@@ -68,7 +68,7 @@ export function SidebarMenu({paneles, panelActivo, onSeleccionarPanel, onAbrirCo
                     soloIcono
                     claseAdicional="sidebarMenuToggleBoton"
                     onClick={toggleExpandido}
-                    icono={expandido ? <ChevronsLeft size={18} /> : <ChevronsRight size={18} />}
+                    icono={expandido ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
                 />
             </div>
 
