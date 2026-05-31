@@ -235,62 +235,115 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
 
     return (
         <div id="dashboard-contenedor" className={clasesContenedor}>
-            <DashboardEncabezado
-                titulo={titulo}
-                version={version}
-                usuario={auth.user ? auth.user.name : usuario}
-                avatarUrl={auth.user?.avatarUrl}
-                sincronizacion={sincronizacionConAuth}
-                suscripcion={suscripcion}
-                esAdmin={esAdmin}
-                equiposPendientes={equipos.pendientes}
-                notificacionesPendientes={notificaciones.noLeidas}
-                onClickPlan={modales.abrirModalUpgrade}
-                onClickSeguridad={() => modales.abrirModalConfigGlobal('seguridad')}
-                onClickAdmin={modales.abrirPanelAdmin}
-                onClickLayout={() => modales.abrirModalConfigGlobal('layout')}
-                onClickVersion={modales.abrirModalVersiones}
-                onClickUsuario={() => modales.abrirModalConfigGlobal('perfil')}
-                onClickEquipos={modales.abrirModalEquipos}
-                onClickNotificaciones={(evento?: React.MouseEvent) => { if (evento) acciones.manejarClickNotificaciones(evento); }}
-                onClickExperimentos={esAdmin ? modales.abrirModalExperimentos : undefined}
-                onClickTemas={() => modales.abrirModalConfigGlobal('temas')}
-                onClickConfigUsuario={() => modales.abrirModalConfigGlobal(null)}
-                onClickBackups={() => modales.abrirModalConfigGlobal('backups')}
-                onClickConfigMCP={() => modales.abrirModalConfigGlobal('ia')}
-                onClickPlugins={modales.abrirModalPlugins}
-                onClickFeedback={modales.abrirModalFeedback}
-                onExportarDatos={dashboard.exportarTodosDatos}
-                onImportarDatos={dashboard.importarTodosDatos}
-                tareas={dashboard.tareas}
-                habitos={dashboard.habitos}
-                proyectos={dashboard.proyectos}
-                onSeleccionarTarea={modales.abrirModalEditarTarea}
-                onSeleccionarHabito={dashboard.abrirModalEditarHabito}
-                onSeleccionarProyecto={modales.abrirModalEditarProyecto}
-                onCrearRapido={modales.abrirCreacionRapida}
-                opcionesMovil={esMovil ? opcionesMovil : undefined}
-                paginaMovilActiva={esMovil ? paginaMovil.paginaActiva : undefined}
-                onCambiarPagina={esMovil ? paginaMovil.cambiarPagina : undefined}
-                modoSeleccionActivo={modoSeleccionActivo}
-                onToggleSeleccion={toggleModoSeleccionManual}
-            />
+            {esMovil || tipoLayout !== 'sidebar' ? (
+                /* ── MODO GRID (clásico) o móvil ── */
+                <>
+                    <DashboardEncabezado
+                        titulo={titulo}
+                        version={version}
+                        usuario={auth.user ? auth.user.name : usuario}
+                        avatarUrl={auth.user?.avatarUrl}
+                        sincronizacion={sincronizacionConAuth}
+                        suscripcion={suscripcion}
+                        esAdmin={esAdmin}
+                        equiposPendientes={equipos.pendientes}
+                        notificacionesPendientes={notificaciones.noLeidas}
+                        onClickPlan={modales.abrirModalUpgrade}
+                        onClickSeguridad={() => modales.abrirModalConfigGlobal('seguridad')}
+                        onClickAdmin={modales.abrirPanelAdmin}
+                        onClickLayout={() => modales.abrirModalConfigGlobal('layout')}
+                        onClickVersion={modales.abrirModalVersiones}
+                        onClickUsuario={() => modales.abrirModalConfigGlobal('perfil')}
+                        onClickEquipos={modales.abrirModalEquipos}
+                        onClickNotificaciones={(evento?: React.MouseEvent) => { if (evento) acciones.manejarClickNotificaciones(evento); }}
+                        onClickExperimentos={esAdmin ? modales.abrirModalExperimentos : undefined}
+                        onClickTemas={() => modales.abrirModalConfigGlobal('temas')}
+                        onClickConfigUsuario={() => modales.abrirModalConfigGlobal(null)}
+                        onClickBackups={() => modales.abrirModalConfigGlobal('backups')}
+                        onClickConfigMCP={() => modales.abrirModalConfigGlobal('ia')}
+                        onClickPlugins={modales.abrirModalPlugins}
+                        onClickFeedback={modales.abrirModalFeedback}
+                        onExportarDatos={dashboard.exportarTodosDatos}
+                        onImportarDatos={dashboard.importarTodosDatos}
+                        tareas={dashboard.tareas}
+                        habitos={dashboard.habitos}
+                        proyectos={dashboard.proyectos}
+                        onSeleccionarTarea={modales.abrirModalEditarTarea}
+                        onSeleccionarHabito={dashboard.abrirModalEditarHabito}
+                        onSeleccionarProyecto={modales.abrirModalEditarProyecto}
+                        onCrearRapido={modales.abrirCreacionRapida}
+                        opcionesMovil={esMovil ? opcionesMovil : undefined}
+                        paginaMovilActiva={esMovil ? paginaMovil.paginaActiva : undefined}
+                        onCambiarPagina={esMovil ? paginaMovil.cambiarPagina : undefined}
+                        modoSeleccionActivo={modoSeleccionActivo}
+                        onToggleSeleccion={toggleModoSeleccionManual}
+                    />
 
-            {dashboard.cargandoDatos ? (
-                <IndicadorCarga />
-            ) : esMovil || tipoLayout !== 'sidebar' ? (
-                /* Modo grid (clásico) o móvil: todos los paneles visibles */
-                <DashboardGrid ctx={ctx} esMovil={esMovil} paginaMovilActiva={paginaMovil.paginaActiva} />
+                    {dashboard.cargandoDatos ? (
+                        <IndicadorCarga />
+                    ) : (
+                        <DashboardGrid ctx={ctx} esMovil={esMovil} paginaMovilActiva={paginaMovil.paginaActiva} />
+                    )}
+                </>
             ) : (
-                /* Modo sidebar: menú lateral con un panel a la vez */
+                /* ── MODO SIDEBAR: menú lateral + header + contenido + footer ── */
                 <div className="dashboardSidebarLayout">
                     <SidebarMenu
                         paneles={obtenerTodosPanelesNavegables().filter(p => layout.visibilidad[p.id] !== false)}
                         panelActivo={panelSidebarActivo}
                         onSeleccionarPanel={setPanelSidebarActivo}
                     />
-                    <div className="dashboardSidebarContenido">
-                        <DashboardPanelView panelId={panelSidebarActivo} ctx={ctx} />
+                    <div className="dashboardSidebarMain">
+                        <DashboardEncabezado
+                            titulo={titulo}
+                            version={version}
+                            usuario={auth.user ? auth.user.name : usuario}
+                            avatarUrl={auth.user?.avatarUrl}
+                            sincronizacion={sincronizacionConAuth}
+                            suscripcion={suscripcion}
+                            esAdmin={esAdmin}
+                            equiposPendientes={equipos.pendientes}
+                            notificacionesPendientes={notificaciones.noLeidas}
+                            onClickPlan={modales.abrirModalUpgrade}
+                            onClickSeguridad={() => modales.abrirModalConfigGlobal('seguridad')}
+                            onClickAdmin={modales.abrirPanelAdmin}
+                            onClickLayout={() => modales.abrirModalConfigGlobal('layout')}
+                            onClickVersion={modales.abrirModalVersiones}
+                            onClickUsuario={() => modales.abrirModalConfigGlobal('perfil')}
+                            onClickEquipos={modales.abrirModalEquipos}
+                            onClickNotificaciones={(evento?: React.MouseEvent) => { if (evento) acciones.manejarClickNotificaciones(evento); }}
+                            onClickExperimentos={esAdmin ? modales.abrirModalExperimentos : undefined}
+                            onClickTemas={() => modales.abrirModalConfigGlobal('temas')}
+                            onClickConfigUsuario={() => modales.abrirModalConfigGlobal(null)}
+                            onClickBackups={() => modales.abrirModalConfigGlobal('backups')}
+                            onClickConfigMCP={() => modales.abrirModalConfigGlobal('ia')}
+                            onClickPlugins={modales.abrirModalPlugins}
+                            onClickFeedback={modales.abrirModalFeedback}
+                            onExportarDatos={dashboard.exportarTodosDatos}
+                            onImportarDatos={dashboard.importarTodosDatos}
+                            tareas={dashboard.tareas}
+                            habitos={dashboard.habitos}
+                            proyectos={dashboard.proyectos}
+                            onSeleccionarTarea={modales.abrirModalEditarTarea}
+                            onSeleccionarHabito={dashboard.abrirModalEditarHabito}
+                            onSeleccionarProyecto={modales.abrirModalEditarProyecto}
+                            onCrearRapido={modales.abrirCreacionRapida}
+                            opcionesMovil={esMovil ? opcionesMovil : undefined}
+                            paginaMovilActiva={esMovil ? paginaMovil.paginaActiva : undefined}
+                            onCambiarPagina={esMovil ? paginaMovil.cambiarPagina : undefined}
+                            modoSeleccionActivo={modoSeleccionActivo}
+                            onToggleSeleccion={toggleModoSeleccionManual}
+                        />
+
+                        {dashboard.cargandoDatos ? (
+                            <IndicadorCarga />
+                        ) : (
+                            <div className="dashboardSidebarContenido">
+                                <DashboardPanelView panelId={panelSidebarActivo} ctx={ctx} />
+                            </div>
+                        )}
+
+                        <DashboardFooter />
                     </div>
                 </div>
             )}

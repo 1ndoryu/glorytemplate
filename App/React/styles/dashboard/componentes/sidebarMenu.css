@@ -17,9 +17,21 @@
 .dashboardSidebarLayout {
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 120px);
+    height: 100%;
     min-height: 0;
+    flex: 1;
     gap: 0;
+    overflow: hidden;
+}
+
+/* ===== ÁREA PRINCIPAL (header + contenido + footer) ===== */
+.dashboardSidebarMain {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* ===== BARRA LATERAL ===== */
@@ -126,6 +138,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: var(--dashboard-espacioLg);
+    min-height: 0;
 }
 
 /* Transición suave al cambiar de panel */
