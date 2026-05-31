@@ -38,6 +38,7 @@ export function generarOrdenPanelesDefecto(): Record<ModoColumnas, OrdenPanel[]>
  * Los anchos usan el preset de 2 columnas (58/42/0). */
 export function generarConfigLayoutDefecto(): ConfiguracionLayout {
     return {
+        tipoLayout: 'grid',
         modoColumnas: 2,
         anchos: {
             columna1: 58,
@@ -88,6 +89,9 @@ export const ORDEN_PANELES_DEFECTO: Record<ModoColumnas, OrdenPanel[]> = {
 };
 
 export const CONFIG_LAYOUT_DEFECTO: ConfiguracionLayout = {
+    get tipoLayout() {
+        return obtenerConfigLayoutDefecto().tipoLayout;
+    },
     get modoColumnas() {
         return obtenerConfigLayoutDefecto().modoColumnas;
     },

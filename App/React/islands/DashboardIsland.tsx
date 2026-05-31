@@ -11,7 +11,7 @@ import {useEffect, useMemo, useState, useCallback} from 'react';
 /* Importar store de configuración temprano para inicializar horaFinDia antes que otros módulos */
 import '../stores/configuracionUsuarioStore';
 
-import {DashboardEncabezado, DashboardFooter, DashboardGrid, DashboardModales} from '../components/dashboard';
+import {DashboardEncabezado, DashboardFooter, DashboardGrid, DashboardModales, SidebarMenu, DashboardPanelView} from '../components/dashboard';
 import {useDashboardCompleto} from '../hooks/useDashboardCompleto';
 import {VERSION_ACTUAL} from '../data/changelog';
 import {Landing} from '../components/landing/Landing';
@@ -27,6 +27,7 @@ import {habitosActions} from '../stores/habitosStore';
 import {ModalNotasExpandido} from '../components/dashboard/notas/ModalNotasExpandido';
 import {useBackButtonCapacitor} from '../hooks/useBackButtonCapacitor';
 import {useDeteccionCambioDia} from '../hooks/useDeteccionCambioDia';
+import {obtenerTodosPanelesNavegables} from '../config/registroPaneles';
 
 import '../styles/dashboard/componentes/experimentos.css';
 import '../styles/dashboard/componentes/buscador.css';
@@ -53,11 +54,29 @@ function IndicadorCarga({texto = 'Cargando datos...'}: {texto?: string}): JSX.El
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTUAL, usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
     const ctx = useDashboardCompleto();
-    const {dashboard, auth, suscripcion, esAdmin, modales, equipos, notificaciones, acciones, filtroTareas, ordenTareas, ordenHabitos, opciones, configProyectos} = ctx;
+    const {dashboard, auth, suscripcion, esAdmin, modales, equipos, notificaciones, acciones, filtroTareas, ordenTareas, ordenHabitos, opciones, configProyectos, layout} = ctx;
+    const {tipoLayout} = layout;
     const {esMovil} = useEsMovil();
     const paginaMovil = usePaginaMovil();
     const modoSeleccionActivo = useSeleccionMultipleStore(s => s.modoSeleccionActivo);
     const toggleModoSeleccionManual = useSeleccionMultipleStore(s => s.toggleModoSeleccionManual);
+
+    /* [300A-2] Estado del panel activo en modo sidebar */
+    const [panelSidebarActivo, setPanelSidebarActivo] = useState<string>(() => {
+        const visibles = obtenerTodosPanelesNavegables();
+        const primerVisible = visibles.find(p => layout.visibilidad[p.id] !== false);
+        return primerVisible?.id || 'ejecucion';
+    });
+
+    /* [300A-2] Si el panel activo se oculta desde config, cambiar al primero visible */
+    useEffect(() => {
+        if (tipoLayout !== 'sidebar') return;
+        if (layout.visibilidad[panelSidebarActivo] === false) {
+            const visibles = obtenerTodosPanelesNavegables();
+            const primerVisible = visibles.find(p => layout.visibilidad[p.id] !== false);
+            if (primerVisible) setPanelSidebarActivo(primerVisible.id);
+        }
+    }, [layout.visibilidad, tipoLayout, panelSidebarActivo]);
 
     /*
      * Detección de cambio de día y retorno tras inactividad.
@@ -257,7 +276,24 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                 onToggleSeleccion={toggleModoSeleccionManual}
             />
 
-            {dashboard.cargandoDatos ? <IndicadorCarga /> : <DashboardGrid ctx={ctx} esMovil={esMovil} paginaMovilActiva={paginaMovil.paginaActiva} />}
+            {dashboard.cargandoDatos ? (
+                <IndicadorCarga />
+            ) : esMovil || tipoLayout !== 'sidebar' ? (
+                /* Modo grid (clásico) o móvil: todos los paneles visibles */
+                <DashboardGrid ctx={ctx} esMovil={esMovil} paginaMovilActiva={paginaMovil.paginaActiva} />
+            ) : (
+                /* Modo sidebar: menú lateral con un panel a la vez */
+                <div className="dashboardSidebarLayout">
+                    <SidebarMenu
+                        paneles={obtenerTodosPanelesNavegables().filter(p => layout.visibilidad[p.id] !== false)}
+                        panelActivo={panelSidebarActivo}
+                        onSeleccionarPanel={setPanelSidebarActivo}
+                    />
+                    <div className="dashboardSidebarContenido">
+                        <DashboardPanelView panelId={panelSidebarActivo} ctx={ctx} />
+                    </div>
+                </div>
+            )}
 
             <DashboardFooter />
             <DashboardModales ctx={ctx} />

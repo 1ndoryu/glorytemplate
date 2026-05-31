@@ -104,6 +104,14 @@ export function migrarConfiguracion(valorActual: ConfiguracionLayout, todosLosPa
         };
     }
 
+    /* [300A-1] Migrar tipoLayout: configs viejas sin el campo van a 'grid' (default histórico) */
+    if (!config.tipoLayout) {
+        config = {
+            ...config,
+            tipoLayout: 'grid'
+        };
+    }
+
     return config;
 }
 

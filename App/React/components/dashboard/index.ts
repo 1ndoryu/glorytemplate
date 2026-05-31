@@ -22,6 +22,8 @@ export {DashboardGrid} from './DashboardGrid';
 export {DashboardModales} from './DashboardModales';
 export {ModalNotasGuardadas} from './ModalNotasGuardadas';
 export {ModalNotasExpandido} from './notas/ModalNotasExpandido';
+export {SidebarMenu} from './SidebarMenu';
+export {DashboardPanelView} from './DashboardPanelView';
 export {BuscadorGlobal} from './BuscadorGlobal';
 export {BottomSheetTarea} from './BottomSheetTarea';
 export {BottomSheetHabito} from './BottomSheetHabito';

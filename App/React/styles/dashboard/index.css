@@ -94,6 +94,10 @@
 @import './utilidades/acciones.css';
 @import './utilidades/inline-fix.css';
 
+/* Layout Sidebar */
+@import './componentes/sidebarMenu.css';
+@import './componentes/dashboardPanelView.css';
+
 /* Panel de Administración */
 @import './admin/panelAdministracion.css';
 @import './admin/detalleUsuario.css';

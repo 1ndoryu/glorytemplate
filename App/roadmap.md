@@ -16,4 +16,5 @@
 
 ## Tareas pendientes
 
-(sin tareas pendientes)
+<!-- sin tareas pendientes -->
+

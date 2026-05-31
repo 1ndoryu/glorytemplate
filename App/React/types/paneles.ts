@@ -9,6 +9,9 @@ import type {ReactNode, ComponentType, RefObject} from 'react';
 /* Tipos de modo de columnas disponibles */
 export type ModoColumnas = 1 | 2 | 3;
 
+/* Tipo de layout: grid (vista múltiple) o sidebar (menú lateral, un panel a la vez) */
+export type TipoLayout = 'grid' | 'sidebar';
+
 /* Configuración de posición por defecto según modo de columnas */
 export interface PosicionDefectoPanel {
     columna: 1 | 2 | 3;
@@ -73,6 +76,8 @@ export interface AnchoColumnas {
 
 /* Configuración completa del layout */
 export interface ConfiguracionLayout {
+    /* Tipo de layout: 'grid' (paneles en columnas) o 'sidebar' (menú lateral) */
+    tipoLayout?: TipoLayout;
     modoColumnas: ModoColumnas;
     anchos: AnchoColumnas;
     anchoTotal: number;

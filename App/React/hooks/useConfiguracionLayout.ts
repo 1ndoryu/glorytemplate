@@ -9,12 +9,12 @@
 import {useLocalStorage} from './useLocalStorage';
 import {useCallback, useMemo} from 'react';
 import {obtenerIdsPaneles} from '../config/registroPaneles';
-import type {ModoColumnas, OrdenPanel, AnchoColumnas, ConfiguracionLayout} from '../types/paneles';
+import type {ModoColumnas, OrdenPanel, AnchoColumnas, ConfiguracionLayout, TipoLayout} from '../types/paneles';
 import {generarConfigLayoutDefecto, generarOrdenPanelesDefecto, PRESETS_ANCHOS, ANCHO_MINIMO_COLUMNA, ANCHO_MAXIMO_COLUMNA} from '../utils/layoutFactory';
 import {migrarConfiguracion, normalizarPosiciones, crearDuplicadoPanel, eliminarPanelDuplicado} from '../utils/layoutLogica';
 
 /* Re-exportar tipos para compatibilidad hacia atrás */
-export type {ModoColumnas, OrdenPanel, AnchoColumnas, ConfiguracionLayout} from '../types/paneles';
+export type {ModoColumnas, OrdenPanel, AnchoColumnas, ConfiguracionLayout, TipoLayout} from '../types/paneles';
 
 /*
  * PanelId ahora es string para permitir paneles dinámicos
@@ -379,6 +379,17 @@ export function useConfiguracionLayout() {
     /* Obtener cantidad de paneles visibles */
     const cantidadPanelesVisibles = Object.values(configuracionNormalizada.visibilidad).filter(Boolean).length;
 
+    /* [300A-1] Cambiar tipo de layout (grid ↔ sidebar) */
+    const cambiarTipoLayout = useCallback(
+        (tipo: TipoLayout) => {
+            setValor(prev => ({
+                ...prev,
+                tipoLayout: tipo
+            }));
+        },
+        [setValor]
+    );
+
     /* Cambiar ancho total del grid */
     const cambiarAnchoTotal = useCallback(
         (ancho: number) => {
@@ -393,6 +404,7 @@ export function useConfiguracionLayout() {
 
     return {
         configuracion: configuracionNormalizada,
+        tipoLayout: configuracionNormalizada.tipoLayout || 'grid',
         modoColumnas: configuracionNormalizada.modoColumnas,
         anchos: configuracionNormalizada.anchos,
         anchoTotal: configuracionNormalizada.anchoTotal ?? 100,
@@ -420,6 +432,7 @@ export function useConfiguracionLayout() {
         cerrarPanelDuplicado,
         cambiarAlturaPanel,
         obtenerAlturaPanel,
+        cambiarTipoLayout,
         actualizarConfiguracion: setValor
     };
 }
