@@ -15,6 +15,15 @@
     min-height: 0;
 }
 
+/* El wrapper de animacion (.dashboardSidebarPanel--visible/--entrando) debe
+   participar en la cadena flex, no ser un div neutro */
+.dashboardPanelView > [class*="dashboardSidebarPanel"] {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
 /* El panel ocupa todo el alto disponible */
 .dashboardPanelView .panelDashboard {
     height: 100%;
