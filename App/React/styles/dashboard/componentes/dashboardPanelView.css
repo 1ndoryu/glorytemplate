@@ -32,6 +32,11 @@
     box-shadow: none !important;
 }
 
+/* Ocultar "+ Añadir" inline — en sidebar ya existe el botón "+" en el header del panel */
+.dashboardPanelView .añadirHabito {
+    display: none;
+}
+
 /* ===== ESTADO VACÍO ===== */
 .dashboardPanelVacio {
     display: flex;
