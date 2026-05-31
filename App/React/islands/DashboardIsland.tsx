@@ -231,7 +231,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
     }
 
     /* Clase del contenedor con padding extra para navegación móvil */
-    const clasesContenedor = `dashboardContenedor ${esMovil && auth.user ? 'dashboardContenedor--conNavegacionInferior' : ''}`;
+    const clasesContenedor = `dashboardContenedor ${esMovil && auth.user ? 'dashboardContenedor--conNavegacionInferior' : ''} ${tipoLayout === 'sidebar' && !esMovil ? 'dashboardContenedor--sidebar' : ''}`;
 
     return (
         <div id="dashboard-contenedor" className={clasesContenedor}>
@@ -342,8 +342,6 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                                 <DashboardPanelView panelId={panelSidebarActivo} ctx={ctx} />
                             </div>
                         )}
-
-                        <DashboardFooter />
                     </div>
                 </div>
             )}

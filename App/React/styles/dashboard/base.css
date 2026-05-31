@@ -19,6 +19,11 @@
     flex-direction: column;
 }
 
+/* [300A-3] En modo sidebar el padding lo gestiona el layout interno */
+.dashboardContenedor--sidebar {
+    padding: 0;
+}
+
 /* 
  * SCROLLBAR GLOBAL - BODY Y HTML
  * Aplica el estilo minimalista dark mode al scroll de la pagina principal
