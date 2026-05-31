@@ -148,10 +148,10 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
                     {esHabito && (
                         <AccionesItem
                             acciones={[{id: estaEnTracking ? 'detener-tracking' : 'iniciar-tracking', icono: estaEnTracking ? <Square size={12} /> : <Play size={12} />, titulo: estaEnTracking ? 'Detener tracking' : 'Iniciar tracking', onClick: manejarTracking}]}
-                            mostrarConfigurar={!!onEditarHabito}
-                            mostrarEliminar={!!onEliminarHabito}
-                            onConfigurar={onEditarHabito ? () => onEditarHabito((tarea as TareaHabito).habitoId) : undefined}
-                            onEliminar={onEliminarHabito ? () => onEliminarHabito((tarea as TareaHabito).habitoId) : undefined}
+                            mostrarConfigurar={!!(onEditarHabito || onConfigurar)}
+                            mostrarEliminar={!!(onEliminarHabito || onEliminar)}
+                            onConfigurar={onEditarHabito ? () => onEditarHabito((tarea as TareaHabito).habitoId) : onConfigurar}
+                            onEliminar={onEliminarHabito ? () => onEliminarHabito((tarea as TareaHabito).habitoId) : onEliminar}
                         />
                     )}
                 </div>
