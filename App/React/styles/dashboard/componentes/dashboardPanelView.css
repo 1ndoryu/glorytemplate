@@ -45,6 +45,11 @@
 .dashboardPanelView .scratchpadBarra {
     display: none;
 }
+/* internaColumna debe llenar el panel en modo sidebar */
+.dashboardPanelView .internaColumna {
+    flex: 1;
+    min-height: 0;
+}
 
 /* ===== ESTADO VACÍO ===== */
 .dashboardPanelVacio {
