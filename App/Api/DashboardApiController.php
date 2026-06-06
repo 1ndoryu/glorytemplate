@@ -275,9 +275,11 @@ class DashboardApiController
                     'savedAt' => current_time('c'),
                     'serverTimestamp' => time() * 1000,
                     'counts' => [
-                        'habitos' => count($data['habitos']),
-                        'tareas' => count($data['tareas']),
-                        'proyectos' => count($data['proyectos']),
+                        /* [066A-1] Usar ?? [] para evitar Undefined array key cuando
+                         * el cliente envía solo algunos campos (ej: solo configuracion). */
+                        'habitos' => count($data['habitos'] ?? []),
+                        'tareas' => count($data['tareas'] ?? []),
+                        'proyectos' => count($data['proyectos'] ?? []),
                     ],
                 ],
             ], 200);

@@ -52,8 +52,6 @@ const CONFIG_WS = {
     reconexionBaseMs: 1000,
     /* Máximo delay de reconexión (backoff exponencial) */
     reconexionMaxMs: 30000,
-    /* Máximo de intentos de reconexión antes de pausar */
-    maxIntentosReconexion: 10,
     /* Tiempo de inactividad antes de considerar pestaña inactiva */
     inactividadMs: 60000,
     /* WebSocket ya no está bloqueado, wss:// configurado */
@@ -277,11 +275,11 @@ export function useWebSocket(userId: number | null, onMensaje?: MensajeHandler, 
         intentosReconexionRef.current += 1;
         setEstado('reconectando');
 
-        if (intentosReconexionRef.current > CONFIG_WS.maxIntentosReconexion) {
-            console.warn('[WebSocket] Máximo de intentos alcanzado, pausando reconexión');
-            setEstado('error');
-            return;
-        }
+        /* [066A-1] Sin límite de reintentos: backoff exponencial hasta 30s y reintenta
+         * indefinidamente. El WS debe reconectar siempre, incluso si el servidor
+         * estuvo caído largo rato. Sin esto, tras 10 intentos fallidos el hook
+         * se quedaba en estado 'error' y el usuario perdía sync en tiempo real
+         * hasta refrescar la página. */
 
         /* Backoff exponencial: 1s, 2s, 4s, 8s... hasta 30s */
         const delay = Math.min(CONFIG_WS.reconexionBaseMs * Math.pow(2, intentosReconexionRef.current - 1), CONFIG_WS.reconexionMaxMs);
@@ -289,7 +287,7 @@ export function useWebSocket(userId: number | null, onMensaje?: MensajeHandler, 
         console.log(`[WebSocket] Reconectando en ${delay}ms (intento ${intentosReconexionRef.current})`);
 
         reconexionTimeoutRef.current = setTimeout(() => {
-            if (montadoRef.current && habilitado) {
+            if (montadoRef.current) {
                 conectar();
             }
         }, delay);
@@ -335,6 +333,11 @@ export function useWebSocket(userId: number | null, onMensaje?: MensajeHandler, 
                 /* Verificar si la conexión sigue viva */
                 if (wsRef.current?.readyState !== WebSocket.OPEN) {
                     console.log('[WebSocket] Conexión perdida, reconectando...');
+                    /* [066A-1] Limpiar timeout de reconexión pendiente y reconectar
+                     * inmediatamente al volver a la pestaña. Sin esto, si el backoff
+                     * estaba esperando 30s, el usuario tendría que esperar ese tiempo
+                     * al volver a la pestaña aunque el servidor ya esté disponible. */
+                    limpiarReconexion();
                     intentosReconexionRef.current = 0;
                     conectar();
                 } else {
@@ -346,7 +349,7 @@ export function useWebSocket(userId: number | null, onMensaje?: MensajeHandler, 
 
         document.addEventListener('visibilitychange', manejarVisibilidad);
         return () => document.removeEventListener('visibilitychange', manejarVisibilidad);
-    }, [habilitado, conectar, enviarHeartbeat]);
+    }, [habilitado, conectar, enviarHeartbeat, limpiarReconexion]);
 
     /* Detectar online/offline */
     useEffect(() => {

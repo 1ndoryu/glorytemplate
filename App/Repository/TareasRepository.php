@@ -319,13 +319,11 @@ class TareasRepository
 
         /* Soft Delete (Solo si NO es actualizacion parcial) */
         if (!$partialUpdate) {
-            /* [275A-1] Solución 6: Sanity check — si incomingIds está vacío pero había
-             * registros existentes, abortar para prevenir wipeout accidental. El único caso
-             * legítimo de eliminar TODO es deleteAll(), no saveAll() con array vacío. */
-            if (count($existingIds) > 5 && count($incomingIds) === 0) {
-                error_log("[TareasRepo] ABORTADO: saveAll() intentó eliminar TODOS los registros (count=" . count($existingIds) . "). userId={$this->userId}");
-                return false;
-            }
+            /* [066A-1] Sanity check eliminado: el guard frontal (esProbableWipeout en
+             * useSyncManager) ya previene envíos accidentales de arrays vacíos.
+             * El check anterior (count>5 && incoming=0) bloqueaba eliminaciones
+             * legítimas del usuario, causando save_error 500 y reaparición de
+             * tareas al recargar (localStorage conservaba datos stale). */
             $toDelete = array_diff($existingIds, $incomingIds);
             if (!empty($toDelete)) {
                 $deleteIds = array_values(array_map('intval', $toDelete));
