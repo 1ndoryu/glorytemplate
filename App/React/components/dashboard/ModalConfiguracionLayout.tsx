@@ -10,6 +10,7 @@ import {Boton} from '../ui';
 import {Columns2, Columns3, Square, Target, Folder, Terminal, FileText, RotateCcw, ArrowUpDown, Activity, LayoutGrid, PanelLeft} from 'lucide-react';
 import {ListaOrdenPaneles} from './ListaOrdenPaneles';
 import type {ModoColumnas, VisibilidadPaneles, PanelId, OrdenPanel, TipoLayout} from '../../hooks/useConfiguracionLayout';
+import {useTema} from '../../hooks/useTema';
 
 interface ModalConfiguracionLayoutProps {
     estaAbierto: boolean;
@@ -63,6 +64,7 @@ const PANELES: {id: PanelId; nombre: string; icono: JSX.Element; descripcion: st
 ];
 
 export function ModalConfiguracionLayout({estaAbierto, onCerrar, tipoLayout, modoColumnas, visibilidad, ordenPaneles, onCambiarTipoLayout, onCambiarModo, onTogglePanel, onMoverPanelArriba, onMoverPanelAbajo, onMoverPanelAColumna, onResetearOrden, onResetear}: ModalConfiguracionLayoutProps): JSX.Element {
+    const {cambiarTema} = useTema();
     const esGrid = tipoLayout === 'grid';
 
     return (
@@ -86,7 +88,10 @@ export function ModalConfiguracionLayout({estaAbierto, onCerrar, tipoLayout, mod
 
                         <Boton
                             variante={!esGrid ? 'primario' : 'ghost'}
-                            onClick={() => onCambiarTipoLayout('sidebar')}
+                            onClick={() => {
+                                onCambiarTipoLayout('sidebar');
+                                cambiarTema('oscuro');
+                            }}
                             title="Modo sidebar"
                             claseAdicional={`configLayoutColumnaOpcion ${!esGrid ? 'activo' : ''}`}
                             icono={<PanelLeft size={20} />}

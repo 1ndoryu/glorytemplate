@@ -35,7 +35,8 @@
 .dashboardPanelView .panelDashboard,
 .dashboardPanelView .panelDashboard > *,
 .dashboardPanelView .panelContenido,
-.dashboardPanelView [class*="panel"] {
+.dashboardPanelView [class*="panel"],
+.dashboardPanelView .mapaCalorContenedor {
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;

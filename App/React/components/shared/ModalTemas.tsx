@@ -8,6 +8,7 @@ import {Check} from 'lucide-react';
 import {Modal} from './Modal';
 import {Boton} from '../ui/Boton';
 import {TEMAS_DISPONIBLES, type TipoTema} from '../../hooks/useTema';
+import {useConfiguracionLayout} from '../../hooks/useConfiguracionLayout';
 
 interface ModalTemasProps {
     estaAbierto: boolean;
@@ -20,10 +21,14 @@ interface ModalTemasProps {
  * Modal principal de selección de temas 
  */
 export function ModalTemas({estaAbierto, onCerrar, temaActual, onCambiarTema}: ModalTemasProps): JSX.Element | null {
+    const {tipoLayout} = useConfiguracionLayout();
+    const temasVisibles = tipoLayout === 'sidebar'
+        ? TEMAS_DISPONIBLES.filter(t => t.id !== 'original')
+        : TEMAS_DISPONIBLES;
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo="Tema" claseExtra="modalContenedor--temas">
             <div id="selector-temas" className="selectorTemas">
-                {TEMAS_DISPONIBLES.map(tema => (
+                {temasVisibles.map(tema => (
                     <Boton
                         key={tema.id}
                         type="button"

@@ -38,6 +38,7 @@ const PANELES: {id: PanelId; nombre: string; icono: JSX.Element; descripcion: st
 /* ── LAYOUT ────────────────────────────────────────────── */
 export function SeccionConfigLayout(): JSX.Element {
     const {tipoLayout, modoColumnas, visibilidad, ordenPaneles, cambiarTipoLayout, cambiarModoColumnas, toggleVisibilidadPanel, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, resetearLayout} = useConfiguracionLayout();
+    const {cambiarTema} = useTema();
     const esGrid = tipoLayout === 'grid';
 
     return (
@@ -58,7 +59,10 @@ export function SeccionConfigLayout(): JSX.Element {
                     </Boton>
                     <Boton
                         variante={!esGrid ? 'primario' : 'ghost'}
-                        onClick={() => cambiarTipoLayout('sidebar')}
+                        onClick={() => {
+                            cambiarTipoLayout('sidebar');
+                            cambiarTema('oscuro');
+                        }}
                         title="Modo sidebar"
                         claseAdicional={`configLayoutColumnaOpcion ${!esGrid ? 'activo' : ''}`}
                         icono={<PanelLeft size={20} />}
@@ -150,9 +154,13 @@ export function SeccionConfigPreferencias(): JSX.Element {
 /* ── TEMAS ─────────────────────────────────────────────── */
 export function SeccionConfigTemas(): JSX.Element {
     const {tema, cambiarTema} = useTema();
+    const {tipoLayout} = useConfiguracionLayout();
+    const temasVisibles = tipoLayout === 'sidebar'
+        ? TEMAS_DISPONIBLES.filter(t => t.id !== 'original')
+        : TEMAS_DISPONIBLES;
     return (
         <div className="selectorTemas">
-            {TEMAS_DISPONIBLES.map(t => (
+            {temasVisibles.map(t => (
                 <Boton key={t.id} type="button" claseAdicional={`selectorTemas__opcion ${tema === t.id ? 'selectorTemas__opcion--activa' : ''}`} onClick={() => cambiarTema(t.id)}>
                     <span className="selectorTemas__nombre">{t.nombre}</span>
                     {tema === t.id && <Check size={14} className="selectorTemas__check" />}

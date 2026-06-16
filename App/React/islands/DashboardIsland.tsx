@@ -55,7 +55,7 @@ function IndicadorCarga({texto = 'Cargando datos...'}: {texto?: string}): JSX.El
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTUAL, usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
     const ctx = useDashboardCompleto();
-    const {dashboard, auth, suscripcion, esAdmin, modales, equipos, notificaciones, acciones, filtroTareas, ordenTareas, ordenHabitos, opciones, configProyectos, layout} = ctx;
+    const {dashboard, auth, suscripcion, esAdmin, modales, equipos, notificaciones, acciones, filtroTareas, ordenTareas, ordenHabitos, opciones, configProyectos, layout, temas} = ctx;
     const {tipoLayout} = layout;
     const {esMovil} = useEsMovil();
     const paginaMovil = usePaginaMovil();
@@ -102,6 +102,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
         });
     }, [layout.visibilidad, tipoLayout, panelSidebarActivo, sidebarState.paneles, quitarPanel]);
 
+    /* [06JA-1] Al activar sidebar, forzar tema oscuro si estaba en 'original' (Terminal) */
+    useEffect(() => {
+        if (tipoLayout === 'sidebar' && !esMovil && temas.tema === 'original') {
+            temas.cambiarTema('oscuro');
+        }
+    }, [tipoLayout, esMovil, temas.tema, temas.cambiarTema]);
 
     /*
      * Detección de cambio de día y retorno tras inactividad.
