@@ -16,5 +16,4 @@ pp
 
 ## Tareas pendientes
 
-<!-- sin tareas pendientes -->
-
+1. Refactor subhábitos: crear tipo `TareaSubHabito`, registrar actividad al marcar, menú contextual funcional (posponer/prioridad), edición con click simple, botón configuración. Plan detallado en `Agente/planes/plan-subhabitos-refactor-2026-07-20.md`.
