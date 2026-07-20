@@ -9,7 +9,7 @@
  */
 
 import {useMemo} from 'react';
-import type {Habito, Tarea, TareaHabito, SubHabito, NivelUrgencia, NivelPrioridad} from '../types/dashboard';
+import type {Habito, Tarea, TareaHabito, TareaSubHabito, SubHabito, NivelUrgencia, NivelPrioridad} from '../types/dashboard';
 import {tocaHoy, estaEnVentanaOportunidad} from '../utils/frecuenciaHabitos';
 import {FRECUENCIA_POR_DEFECTO} from '../types/dashboard';
 import {obtenerFechaHoy} from '../utils/fecha';
@@ -201,9 +201,10 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
                     if (subNombresVistos.has(nombreNorm)) continue;
                     subNombresVistos.add(nombreNorm);
 
-                    /* [253A-1] Crear tarea virtual para el subhábito.
+                    /* [207A-3] Crear tarea virtual para el subhábito con tipo TareaSubHabito.
+                     * Esto permite routing correcto en menú contextual y registro de actividad.
                      * Prioridad hereda siempre del padre para consistencia visual en ejecución. */
-                    const tareaSubhabito: Tarea = {
+                    const tareaSubhabito: TareaSubHabito = {
                         id: generarIdSubHabitoTarea(habito.id, subhabito.id),
                         texto: subhabito.nombre,
                         completado: false,
@@ -211,7 +212,11 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
                         prioridad: mapearImportanciaAPrioridad(habito.importancia),
                         parentId: tareaHabito.id,
                         /* Sin urgencia propia (heredada del hábito visual) */
-                        urgencia: undefined
+                        urgencia: undefined,
+                        /* [207A-3] Campos de TareaSubHabito para routing y actividad */
+                        esSubHabito: true,
+                        habitoPadreId: habito.id,
+                        subHabitoId: subhabito.id
                     };
 
                     resultado.push(tareaSubhabito);

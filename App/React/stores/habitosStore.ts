@@ -17,7 +17,7 @@ import {persist, devtools} from 'zustand/middleware';
 import type {Habito, DatosNuevoHabito, SubHabito, DatosNuevoSubHabito} from '../types/dashboard';
 import type {EstadoHabito, DiaHistorial} from '../types/historialHabitos';
 import {obtenerFechaHoy, fueCompletadoHoy} from '../utils/fecha';
-import {registrarHabitoCumplido, registrarHabitoDesmarcado, registrarHabitoPospuesto} from '../services/actividadService';
+import {registrarHabitoCumplido, registrarHabitoDesmarcado, registrarHabitoPospuesto, registrarTareaCompletada, registrarTareaDesmarcada} from '../services/actividadService';
 import {invalidarCache} from '../services/actividadStore';
 import {habitosService} from '../services/habitosService';
 import {calcularToggleHabito, calcularPosponerHabito, calcularPausarHabito, generarResumen7Dias} from '../utils/habitosLogica';
@@ -745,6 +745,16 @@ export const useHabitosStore = create<HabitosStore>()(
                         false,
                         `toggleSubHabito/${accion}`
                     );
+
+                    /* [207A-3] Registrar actividad al completar/desmarcar subhábito.
+                     * Antes no se registraba, lo que causaba que el dashboard no contabilizara
+                     * subhábitos completados en las estadísticas de actividad. */
+                    const idVirtualSub = -(habitoId * 1000 + subHabitoId) - 100000;
+                    if (accion === 'completado') {
+                        registrarTareaCompletada(idVirtualSub, undefined, subHabito.nombre);
+                    } else {
+                        registrarTareaDesmarcada(idVirtualSub, undefined, subHabito.nombre);
+                    }
 
                     return {accion};
                 }

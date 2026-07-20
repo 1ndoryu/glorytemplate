@@ -9,6 +9,7 @@
 
 import type {DashboardCompletoRetorno} from '../useDashboardCompleto';
 import {usePluginsStore} from '../../stores/pluginsStore';
+import {useHabitosStore} from '../../stores/habitosStore';
 import type {DatosEdicionTarea, Tarea, Habito} from '../../types/dashboard';
 
 /*
@@ -122,6 +123,9 @@ export function generarPropsPanelEjecucion(
         onPosponerHabitoConTiempo: dashboard.posponerHabitoConTiempo,
         onPausarHabito: dashboard.pausarHabito,
         onActualizarHabito: dashboard.editarHabito,
+        /* [207A-3] Subhábitos: store directo para toggle y eliminar */
+        onToggleSubHabito: useHabitosStore.getState().toggleSubHabito,
+        onEliminarSubHabito: useHabitosStore.getState().eliminarSubHabito,
         modoCompacto: configTareas.configuracion.modoCompacto,
         onConfigurarTarea: manejarConfigurarTarea
     };

@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {Settings, Plus, Folder, Flag, X, Zap, Trash2, Play, Square, Clock} from 'lucide-react';
-import type {Tarea, TareaHabito, NivelPrioridad, NivelUrgencia, DatosEdicionTarea, DatosNuevoHabito} from '../../../types/dashboard';
+import type {Tarea, TareaHabito, TareaSubHabito, NivelPrioridad, NivelUrgencia, DatosEdicionTarea, DatosNuevoHabito} from '../../../types/dashboard';
+import {esTareaSubHabito} from '../../../types/dashboard';
 import {MENU_HABITO_IDS, generarOpcionesMenuHabito, extraerImportanciaDeOpcion, POSPONER_IDS, calcularFechaPosponer, opcionesMenuPosponerTiempo} from '../../../config/opcionesMenuHabito';
 import type {OpcionMenu} from '../../shared/MenuContextual';
 import {opcionesMenuPrioridad, opcionesMenuUrgencia} from '../../../utils/nivelesConfig';
@@ -30,12 +31,16 @@ interface UseTareaMenuProps {
     habitoPausado?: boolean;
     habitoPospuestoHoy?: boolean;
 
+    /* [207A-3] Props para subhábitos */
+    onToggleSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+    onEliminarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+
     /* Props para selección múltiple */
     estaSeleccionada?: boolean;
     cantidadSeleccionadas?: number;
 }
 
-export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigurar, onCrearNueva, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy, habitoPausado, habitoPospuestoHoy, estaSeleccionada = false, cantidadSeleccionadas = 0}: UseTareaMenuProps) {
+export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigurar, onCrearNueva, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy, habitoPausado, habitoPospuestoHoy, onToggleSubHabito, onEliminarSubHabito, estaSeleccionada = false, cantidadSeleccionadas = 0}: UseTareaMenuProps) {
     /* Menú contextual coordinado globalmente */
     const menuContextual = useMenuContextualConId(`tarea-${tarea.id}`);
     const tracker = useTimeTrackerStore(useShallow(s => ({sesionActiva: s.sesionActiva, estado: s.estado, iniciarTracking: s.iniciarTracking, completarTracking: s.completarTracking})));
@@ -105,6 +110,56 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
                 return;
             }
 
+            /* [207A-3] Acciones para subhábitos.
+             * Los subhábitos usan el menú del hábito padre pero con handlers específicos.
+             * Toggle, eliminar y tracking van al subhábito directamente.
+             * Posponer y prioridad se heredan del hábito padre. */
+            if (esTareaSubHabito(tarea)) {
+                const sub = tarea as TareaSubHabito;
+
+                if (opcionId === 'iniciar-tracking') {
+                    tracker.iniciarTracking(sub.subHabitoId, 'tarea', sub.texto);
+                    return;
+                }
+                if (opcionId === 'detener-tracking') {
+                    tracker.completarTracking();
+                    return;
+                }
+
+                switch (opcionId) {
+                    case MENU_HABITO_IDS.TOGGLE:
+                        onToggleSubHabito?.(sub.habitoPadreId, sub.subHabitoId);
+                        break;
+                    case MENU_HABITO_IDS.ELIMINAR:
+                        onEliminarSubHabito?.(sub.habitoPadreId, sub.subHabitoId);
+                        break;
+                    case MENU_HABITO_IDS.CONFIGURAR:
+                    case MENU_HABITO_IDS.EDITAR:
+                        onEditarHabito?.(sub.habitoPadreId);
+                        break;
+                    case MENU_HABITO_IDS.POSPONER:
+                        onPosponerHabito?.(sub.habitoPadreId);
+                        break;
+                    case POSPONER_IDS.UNA_HORA:
+                    case POSPONER_IDS.CUATRO_HORAS:
+                    case POSPONER_IDS.OCHO_HORAS:
+                    case POSPONER_IDS.MANANA:
+                    case POSPONER_IDS.DOS_DIAS:
+                    case POSPONER_IDS.UNA_SEMANA:
+                    case POSPONER_IDS.QUITAR:
+                        onPosponerHabitoConTiempo?.(sub.habitoPadreId, calcularFechaPosponer(opcionId));
+                        break;
+                    case MENU_HABITO_IDS.PAUSAR:
+                        onPausarHabito?.(sub.habitoPadreId);
+                        break;
+                }
+                const nuevaImportancia = extraerImportanciaDeOpcion(opcionId) as import('../../../types/dashboard').NivelImportancia | null;
+                if (nuevaImportancia) {
+                    onActualizarHabito?.(sub.habitoPadreId, {importancia: nuevaImportancia});
+                }
+                return;
+            }
+
             /* Acciones para tareas normales */
             if (opcionId === 'iniciar-tracking') {
                 tracker.iniciarTracking(tarea.id, 'tarea', tarea.texto);
@@ -144,12 +199,42 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
     );
 
     /* Detectar si esta tarea/hábito está siendo trackeada */
-    const entidadTrackingId = esHabito ? (tarea as TareaHabito).habitoId : tarea.id;
+    const entidadTrackingId = esHabito ? (tarea as TareaHabito).habitoId : esTareaSubHabito(tarea) ? (tarea as TareaSubHabito).subHabitoId : tarea.id;
     const estaEnTracking = tracker.sesionActiva?.entidadId === entidadTrackingId && tracker.estado !== 'inactivo';
 
     /* Opciones del menu contextual */
     const opcionesMenu: OpcionMenu[] = useMemo(() => {
         if (esHabito) return []; // Se generan por separado para hábitos
+
+        /* [207A-3] Subhábitos: menú simplificado (sin agregar subtarea, sin mover a proyecto) */
+        if (esTareaSubHabito(tarea)) {
+            const opcionTracking: OpcionMenu = estaEnTracking
+                ? {id: 'detener-tracking', etiqueta: 'Detener tracking', icono: <Square size={12} />, separadorDespues: true}
+                : {id: 'iniciar-tracking', etiqueta: 'Iniciar tracking', icono: <Play size={12} />, separadorDespues: true};
+
+            return [
+                {
+                    id: 'configurar',
+                    etiqueta: 'Configurar hábito',
+                    icono: <Settings size={12} />,
+                    separadorDespues: false
+                },
+                opcionTracking,
+                {
+                    id: 'posponer-menu',
+                    etiqueta: 'Posponer',
+                    icono: <Clock size={12} />,
+                    subOpciones: opcionesMenuPosponerTiempo(false),
+                    separadorDespues: true
+                },
+                {
+                    id: 'eliminar',
+                    etiqueta: 'Eliminar subhábito',
+                    icono: <Trash2 size={12} />,
+                    variante: 'peligro'
+                }
+            ];
+        }
 
         /* Opción de tracking dinámica */
         const opcionTracking: OpcionMenu = estaEnTracking
@@ -222,7 +307,7 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
             }
         ];
         return opciones;
-    }, [tarea.prioridad, tarea.pospuestoHasta, esHabito, estaEnTracking]);
+    }, [tarea, tarea.prioridad, tarea.pospuestoHasta, esHabito, estaEnTracking]);
 
     /* Opciones para hábitos */
     const opcionesMenuHabito: OpcionMenu[] = useMemo(() => {

@@ -45,6 +45,9 @@ interface ListaTareasProps {
     onPosponerHabitoConTiempo?: (habitoId: number, hasta: string | null) => void;
     onPausarHabito?: (habitoId: number) => void;
     onActualizarHabito?: (habitoId: number, datos: Partial<DatosNuevoHabito>) => void;
+    /* [207A-3] Callbacks para subhábitos */
+    onToggleSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+    onEliminarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     modoCompacto?: boolean;
     onConfigurarTarea?: (tarea: Tarea) => void;
     /* Callback para abrir modal de creación rápida (usado en estado vacío y botón añadir) */
@@ -55,7 +58,7 @@ interface ListaTareasProps {
     ocultarPlaceholderVacio?: boolean;
 }
 
-export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, onToggleSubHabito, onEliminarSubHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
     const {
         pendientes, completadas,
         estaSeleccionada, manejarSeleccionMultiple, manejarClickDerechoLista,
@@ -112,6 +115,9 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
             onPosponerHabitoConTiempo={onPosponerHabitoConTiempo}
             onPausarHabito={onPausarHabito}
             onActualizarHabito={onActualizarHabito}
+            /* [207A-3] Subhábitos */
+            onToggleSubHabito={onToggleSubHabito}
+            onEliminarSubHabito={onEliminarSubHabito}
             // Selección múltiple - TAREA 3.1
             estaSeleccionada={estaSeleccionada(tarea.id)}
             onSeleccionMultiple={manejarSeleccionMultiple}

@@ -38,6 +38,9 @@ export interface TareaItemProps {
     habitoPausado?: boolean;
     /* Indica si el hábito fue pospuesto hoy (para menú contextual) */
     habitoPospuestoHoy?: boolean;
+    /* [207A-3] Callbacks para subhábitos */
+    onToggleSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+    onEliminarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     /* Indica si la tarea tiene subtareas (para ajustar padding y evitar colisión con el contador) */
     tieneSubtareas?: boolean;
     modoCompacto?: boolean;

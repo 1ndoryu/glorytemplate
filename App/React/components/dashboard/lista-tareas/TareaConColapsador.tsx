@@ -49,9 +49,13 @@ interface TareaConColapsadorProps {
     estaSeleccionada?: boolean;
     onSeleccionMultiple?: (tarea: Tarea, evento: React.MouseEvent) => void;
     modoSeleccionActivo?: boolean;
+
+    /* [207A-3] Subhábitos: callbacks para menú contextual */
+    onToggleSubHabito?: (habitoId: number, subHabitoId: number) => void;
+    onEliminarSubHabito?: (habitoId: number, subHabitoId: number) => void;
 }
 
-export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, esSubtarea, tareas, tareasExpandidas, onToggleExpandir, proyectos, modoCompacto, ocultarBadgeProyecto, mensajesNoLeidos, estaCompartida, onToggleTarea, onEditarTarea, onEliminarTarea, onIndent, onOutdent, onCrearNueva, onConfigurar, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, estaSeleccionada, onSeleccionMultiple, modoSeleccionActivo}) => {
+export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, esSubtarea, tareas, tareasExpandidas, onToggleExpandir, proyectos, modoCompacto, ocultarBadgeProyecto, mensajesNoLeidos, estaCompartida, onToggleTarea, onEditarTarea, onEliminarTarea, onIndent, onOutdent, onCrearNueva, onConfigurar, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, estaSeleccionada, onSeleccionMultiple, modoSeleccionActivo, onToggleSubHabito, onEliminarSubHabito}) => {
     const {esMovil} = useEsMovil();
     const esHabito = esTareaHabito(tarea);
     const esColapsable = !esSubtarea && tieneSubtareas(tareas, tarea.id);
@@ -146,6 +150,9 @@ export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, es
             estaSeleccionada={estaSeleccionada}
             onSeleccionMultiple={onSeleccionMultiple}
             modoSeleccionActivo={modoSeleccionActivo}
+            /* [207A-3] Subhábitos: callbacks para menú contextual */
+            onToggleSubHabito={onToggleSubHabito}
+            onEliminarSubHabito={onEliminarSubHabito}
         />
     );
 

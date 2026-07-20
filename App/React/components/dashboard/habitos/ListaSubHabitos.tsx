@@ -9,7 +9,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect} from 'react';
-import {Check, Plus, Trash2, Pencil, Flame} from 'lucide-react';
+import {Check, Plus, Trash2, Pencil, Flame, Settings} from 'lucide-react';
 import type {SubHabito, NivelImportancia, FrecuenciaHabito, DatosNuevoSubHabito} from '../../../types/dashboard';
 import {FRECUENCIA_POR_DEFECTO} from '../../../types/dashboard';
 import {obtenerFechaHoy} from '../../../utils/fecha';
@@ -21,6 +21,7 @@ interface ListaSubHabitosProps {
     onEditar?: (subHabitoId: number, datos: DatosNuevoSubHabito) => void;
     onEliminar: (subHabitoId: number) => void;
     onToggle: (subHabitoId: number) => void;
+    onConfigurarHabito?: () => void;
     importanciaPadre: NivelImportancia;
     frecuenciaPadre?: FrecuenciaHabito;
 }
@@ -34,9 +35,10 @@ interface FilaSubHabitoProps {
     onToggle: () => void;
     onEliminar: () => void;
     onEditar?: (nombre: string) => void;
+    onConfigurar?: () => void;
 }
 
-function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar}: FilaSubHabitoProps): JSX.Element {
+function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar, onConfigurar}: FilaSubHabitoProps): JSX.Element {
     const hoy = obtenerFechaHoy();
     const completadoHoy = subhabito.ultimoCompletado === hoy;
     const [editando, setEditando] = useState(false);
@@ -96,7 +98,7 @@ function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar}: FilaSubHabit
                 ) : (
                     <span
                         className="listaTareasHabito__texto"
-                        onDoubleClick={() => {
+                        onClick={() => {
                             if (onEditar) {
                                 setTextoEdicion(subhabito.nombre);
                                 setEditando(true);
@@ -113,6 +115,21 @@ function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar}: FilaSubHabit
                     </span>
                 )}
             </div>
+
+            {/* Botón configurar hábito padre */}
+            {onConfigurar && !editando && (
+                <Boton
+                    variante="icono"
+                    claseAdicional="listaTareasHabito__eliminar"
+                    onClick={e => {
+                        e.stopPropagation();
+                        onConfigurar();
+                    }}
+                    onPointerDown={e => e.stopPropagation()}
+                    title="Configurar hábito">
+                    <Settings size={14} />
+                </Boton>
+            )}
 
             {/* Botón editar (solo si hay callback) */}
             {onEditar && !editando && (
@@ -150,7 +167,7 @@ function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar}: FilaSubHabit
 /*
  * Lista principal de subhábitos - Usa clases listaTareasHabito__* para consistencia con subtareas
  */
-export function ListaSubHabitos({subhabitos, onCrear, onEditar, onEliminar, onToggle, importanciaPadre, frecuenciaPadre}: ListaSubHabitosProps): JSX.Element {
+export function ListaSubHabitos({subhabitos, onCrear, onEditar, onEliminar, onToggle, onConfigurarHabito, importanciaPadre, frecuenciaPadre}: ListaSubHabitosProps): JSX.Element {
     const [textoNuevo, setTextoNuevo] = useState('');
     const [mostrarInput, setMostrarInput] = useState(false);
 
@@ -204,6 +221,7 @@ export function ListaSubHabitos({subhabitos, onCrear, onEditar, onEliminar, onTo
                                           })
                                     : undefined
                             }
+                            onConfigurar={onConfigurarHabito}
                         />
                     ))}
                 </div>

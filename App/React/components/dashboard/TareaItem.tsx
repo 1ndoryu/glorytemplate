@@ -2,7 +2,7 @@ import {useCallback, type ChangeEvent} from 'react';
 import {Check, Play, Square} from 'lucide-react';
 import {Input} from '../ui';
 import type {TareaHabito} from '../../types/dashboard';
-import {esTareaHabito} from '../../types/dashboard';
+import {esTareaHabito, esTareaSubHabito} from '../../types/dashboard';
 import {MenuContextualAdaptivo} from '../shared/MenuContextualAdaptivo';
 import {BadgeGroup} from '../shared/BadgeInfo';
 import {AccionesItem} from '../shared/AccionesItem';
@@ -16,7 +16,7 @@ import {useShallow} from 'zustand/react/shallow';
 import type {TareaItemProps} from './tarea-item/types';
 
 export function TareaItem(props: TareaItemProps): JSX.Element {
-    const {tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy = false, habitoPausado = false, habitoPospuestoHoy = false, tieneSubtareas = false, modoCompacto = false, estaSeleccionada = false, onSeleccionMultiple, modoSeleccionActivo = false} = props;
+    const {tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy = false, habitoPausado = false, habitoPospuestoHoy = false, onToggleSubHabito, onEliminarSubHabito, tieneSubtareas = false, modoCompacto = false, estaSeleccionada = false, onSeleccionMultiple, modoSeleccionActivo = false} = props;
 
     /* Detectar si es una tarea-hábito virtual */
     const esHabito = esTareaHabito(tarea);
@@ -70,6 +70,8 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
         habitoCompletadoHoy,
         habitoPausado,
         habitoPospuestoHoy,
+        onToggleSubHabito,
+        onEliminarSubHabito,
         estaSeleccionada,
         cantidadSeleccionadas
     });
@@ -100,6 +102,13 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
             if (esHabito && onEditarHabito) {
                 evento.stopPropagation();
                 onEditarHabito((tarea as TareaHabito).habitoId);
+                return;
+            }
+
+            /* [207A-3] Subhábitos: click abre la configuración del hábito padre */
+            if (esTareaSubHabito(tarea) && onEditarHabito) {
+                evento.stopPropagation();
+                onEditarHabito(tarea.habitoPadreId);
                 return;
             }
 
@@ -136,7 +145,7 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
                 </div>
 
                 <div className="tareaAccionesContenedor" onPointerDown={e => e.stopPropagation()}>
-                    {!esHabito && (
+                    {!esHabito && !esTareaSubHabito(tarea) && (
                         <AccionesItem
                             acciones={[{id: estaEnTracking ? 'detener-tracking' : 'iniciar-tracking', icono: estaEnTracking ? <Square size={12} /> : <Play size={12} />, titulo: estaEnTracking ? 'Detener tracking' : 'Iniciar tracking', onClick: manejarTracking}]}
                             mostrarConfigurar={true}
@@ -152,6 +161,16 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
                             mostrarEliminar={!!(onEliminarHabito || onEliminar)}
                             onConfigurar={onEditarHabito ? () => onEditarHabito((tarea as TareaHabito).habitoId) : onConfigurar}
                             onEliminar={onEliminarHabito ? () => onEliminarHabito((tarea as TareaHabito).habitoId) : onEliminar}
+                        />
+                    )}
+                    {/* [207A-3] Subhábitos: acciones con configurar=hábito padre, eliminar=subhábito */}
+                    {esTareaSubHabito(tarea) && (
+                        <AccionesItem
+                            acciones={[{id: estaEnTracking ? 'detener-tracking' : 'iniciar-tracking', icono: estaEnTracking ? <Square size={12} /> : <Play size={12} />, titulo: estaEnTracking ? 'Detener tracking' : 'Iniciar tracking', onClick: manejarTracking}]}
+                            mostrarConfigurar={!!onEditarHabito}
+                            mostrarEliminar={!!onEliminarSubHabito}
+                            onConfigurar={onEditarHabito ? () => onEditarHabito(tarea.habitoPadreId) : undefined}
+                            onEliminar={onEliminarSubHabito ? () => onEliminarSubHabito(tarea.habitoPadreId, tarea.subHabitoId) : undefined}
                         />
                     )}
                 </div>

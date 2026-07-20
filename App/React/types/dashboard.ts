@@ -306,13 +306,31 @@ export interface TareaHabito extends Tarea {
 /*
  * Tipo unión para tareas regulares y tareas-hábito
  */
-export type TareaOHabito = Tarea | TareaHabito;
+export type TareaOHabito = Tarea | TareaHabito | TareaSubHabito;
 
 /*
  * Type guard para verificar si una tarea es un hábito virtual
  */
 export function esTareaHabito(tarea: TareaOHabito): tarea is TareaHabito {
     return 'esHabito' in tarea && tarea.esHabito === true;
+}
+
+/*
+ * [207A-3] Tarea virtual derivada de un subhábito
+ * Similar a TareaHabito pero para subhábitos individuales.
+ * Permite routing correcto en menú contextual y registro de actividad.
+ */
+export interface TareaSubHabito extends Tarea {
+    esSubHabito: true;
+    habitoPadreId: number;
+    subHabitoId: number;
+}
+
+/*
+ * Type guard para verificar si una tarea es un subhábito virtual
+ */
+export function esTareaSubHabito(tarea: TareaOHabito): tarea is TareaSubHabito {
+    return 'esSubHabito' in tarea && tarea.esSubHabito === true;
 }
 
 export interface DashboardData {
