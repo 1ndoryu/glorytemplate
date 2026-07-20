@@ -469,6 +469,50 @@
     border-color: var(--dashboard-estadoExitoBorde);
 }
 
+/* [207A-4] Submenu de areaNuevoInline: elegir entre Tarea y Hábito */
+.submenuNuevoInline {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    background: var(--dashboard-fondoPanel);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: var(--dashboard-radioMd);
+    box-shadow: var(--dashboard-sombraMediana);
+    z-index: var(--dashboard-zMenuContextual, 100);
+    min-width: 140px;
+    padding: var(--dashboard-espacioXxs) 0;
+    animation: aparecer var(--dashboard-transicionRapida) ease;
+    margin-bottom: var(--dashboard-espacioXxs);
+}
+
+.submenuNuevoInline__opcion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: none;
+    border: none;
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background-color var(--dashboard-transicionRapida);
+}
+
+.submenuNuevoInline__opcion:hover {
+    background-color: var(--dashboard-fondoHover);
+}
+
+.submenuNuevoInline__opcion svg {
+    color: var(--dashboard-textoApagado);
+    flex-shrink: 0;
+}
+
 /* 
  * ARRASTRAR Y REORDENAR
  */

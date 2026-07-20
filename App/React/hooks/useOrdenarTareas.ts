@@ -153,14 +153,21 @@ export function useOrdenarTareas(tareas: Tarea[]) {
         return fechaA.localeCompare(fechaB);
     };
 
-    /* [315A-1] Prioridad con fecha como desempate.
-     * Cuando dos tareas tienen la misma prioridad, la más vencida
-     * o más cercana a vencer va primero. Sin fecha → al final. */
+    /* [315A-1] Prioridad con orden manual como desempate.
+     * Cuando dos tareas tienen la misma prioridad, se usa el campo 'orden'
+     * (establecido por drag & drop) para mantener el orden personalizado.
+     * Sin orden → fecha como fallback. */
     const compararPorPrioridad = (a: Tarea, b: Tarea) => {
         const pA = PESO_PRIORIDAD[a.prioridad || 'default'];
         const pB = PESO_PRIORIDAD[b.prioridad || 'default'];
 
         if (pB !== pA) return pB - pA;
+
+        /* [207A-1] Desempatar por orden manual si ambos tienen.
+         * Esto permite drag reorder dentro del mismo grupo de prioridad. */
+        if (a.orden !== undefined && b.orden !== undefined && a.orden !== b.orden) {
+            return a.orden - b.orden;
+        }
 
         return compararPorFecha(a, b);
     };
@@ -202,7 +209,7 @@ export function useOrdenarTareas(tareas: Tarea[]) {
         modoActual,
         cambiarModo: setModoActual,
         tareasOrdenadas,
-        esOrdenManual: modoActual === 'manual',
+        esOrdenManual: modoActual === 'manual' || modoActual === 'prioridad',
         modosDisponibles: MODOS_ORDEN_TAREAS
     };
 }

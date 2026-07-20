@@ -8,8 +8,8 @@
  * - Click con texto o Enter: crea tarea directamente
  */
 
-import {useState, useCallback, useRef, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check} from 'lucide-react';
+import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
+import {Check, ListTodo, Repeat} from 'lucide-react';
 import type {DatosEdicionTarea} from '../../types/dashboard';
 import {Input, Boton} from '../ui';
 
@@ -17,12 +17,16 @@ interface InputNuevaTareaProps {
     onCrear: (datos: DatosEdicionTarea) => void;
     /* Callback opcional para abrir modal de creación completo */
     onAbrirModalCrear?: () => void;
+    /* [207A-4] Callback para abrir modal de creación de hábito */
+    onAbrirModalCrearHabito?: () => void;
 }
 
-export function InputNuevaTarea({onCrear, onAbrirModalCrear}: InputNuevaTareaProps): JSX.Element {
+export function InputNuevaTarea({onCrear, onAbrirModalCrear, onAbrirModalCrearHabito}: InputNuevaTareaProps): JSX.Element {
     const [texto, setTexto] = useState('');
     const [enfocado, setEnfocado] = useState(false);
+    const [submenuAbierto, setSubmenuAbierto] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const submenuRef = useRef<HTMLDivElement>(null);
 
     const manejarEnvio = useCallback(() => {
         const textoLimpio = texto.trim();
@@ -52,15 +56,38 @@ export function InputNuevaTarea({onCrear, onAbrirModalCrear}: InputNuevaTareaPro
 
     const tieneTexto = texto.trim().length > 0;
 
-    /* Manejar click en "+ Añadir" cuando no hay texto */
+    /* [207A-4] Cerrar submenu al hacer click fuera */
+    useEffect(() => {
+        if (!submenuAbierto) return;
+        const manejarClickFuera = (e: MouseEvent) => {
+            if (submenuRef.current && !submenuRef.current.contains(e.target as Node)) {
+                setSubmenuAbierto(false);
+            }
+        };
+        document.addEventListener('mousedown', manejarClickFuera);
+        return () => document.removeEventListener('mousedown', manejarClickFuera);
+    }, [submenuAbierto]);
+
+    /* [207A-4] Manejar click en "+ Añadir": si hay callbacks de modal, mostrar submenu */
     const manejarClickAñadir = useCallback(() => {
-        if (onAbrirModalCrear) {
+        if (onAbrirModalCrear && onAbrirModalCrearHabito) {
+            /* Ambos callbacks disponibles → mostrar submenu */
+            setSubmenuAbierto(prev => !prev);
+        } else if (onAbrirModalCrear) {
             onAbrirModalCrear();
         } else {
-            /* Fallback: enfocar el input */
             inputRef.current?.focus();
         }
-    }, [onAbrirModalCrear]);
+    }, [onAbrirModalCrear, onAbrirModalCrearHabito]);
+
+    const manejarSeleccionSubmenu = useCallback((tipo: 'tarea' | 'habito') => {
+        setSubmenuAbierto(false);
+        if (tipo === 'tarea') {
+            onAbrirModalCrear?.();
+        } else {
+            onAbrirModalCrearHabito?.();
+        }
+    }, [onAbrirModalCrear, onAbrirModalCrearHabito]);
 
     return (
         <div className={`areaNuevoInline ${enfocado || tieneTexto ? 'areaNuevoInlineActivo' : ''}`} onClick={manejarClickAñadir}>
@@ -92,6 +119,19 @@ export function InputNuevaTarea({onCrear, onAbrirModalCrear}: InputNuevaTareaPro
                 <Boton claseAdicional="tareaNuevoInlineConfirmar" onClick={manejarEnvio} title="Crear tarea (Enter)">
                     <Check size={12} />
                 </Boton>
+            )}
+            {/* [207A-4] Submenu para elegir entre Tarea y Hábito */}
+            {submenuAbierto && (
+                <div className="submenuNuevoInline" ref={submenuRef}>
+                    <button className="submenuNuevoInline__opcion" onMouseDown={e => { e.preventDefault(); e.stopPropagation(); manejarSeleccionSubmenu('tarea'); }}>
+                        <ListTodo size={14} />
+                        <span>Tarea</span>
+                    </button>
+                    <button className="submenuNuevoInline__opcion" onMouseDown={e => { e.preventDefault(); e.stopPropagation(); manejarSeleccionSubmenu('habito'); }}>
+                        <Repeat size={14} />
+                        <span>Hábito</span>
+                    </button>
+                </div>
             )}
         </div>
     );

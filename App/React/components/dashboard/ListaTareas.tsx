@@ -49,11 +49,13 @@ interface ListaTareasProps {
     onConfigurarTarea?: (tarea: Tarea) => void;
     /* Callback para abrir modal de creación rápida (usado en estado vacío y botón añadir) */
     onAbrirModalCrear?: () => void;
+    /* [207A-4] Callback para abrir modal de creación de hábito desde areaNuevoInline */
+    onAbrirModalCrearHabito?: () => void;
     /* Ocultar placeholder vacío completo (útil dentro de proyectos expandidos) */
     ocultarPlaceholderVacio?: boolean;
 }
 
-export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
     const {
         pendientes, completadas,
         estaSeleccionada, manejarSeleccionMultiple, manejarClickDerechoLista,
@@ -225,11 +227,11 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
                     {!ocultarCompletadas && completadas.map(tarea => <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={tarea.proyectoId ? proyectos?.find(p => p.id === tarea.proyectoId)?.nombre : undefined} soloIconoProyecto={ocultarBadgeProyecto} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} mensajesNoLeidos={mensajesNoLeidosPorTarea[tarea.id] || 0} modoCompacto={modoCompacto} />)}
 
-                    {onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} onAbrirModalCrear={onAbrirModalCrear} />}
+                    {onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} onAbrirModalCrear={onAbrirModalCrear} onAbrirModalCrearHabito={onAbrirModalCrearHabito} />}
                 </>
             ) : (
                 /* Tareas vacías dentro de proyecto: solo mostrar botón añadir */
-                onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} onAbrirModalCrear={onAbrirModalCrear} />
+                onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} onAbrirModalCrear={onAbrirModalCrear} onAbrirModalCrearHabito={onAbrirModalCrearHabito} />
             )}
 
             {tareaConfigurando && (

@@ -365,7 +365,14 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
                     esMovil={esMovil}
                     onCompletarEntidad={(entidadId, tipoEntidad, detallesActividad) => {
                         if (tipoEntidad === 'tarea') {
-                            dashboard.toggleTarea(entidadId, {detallesActividad});
+                            /* [207A-5] Interceptar tareas-hábito/subhábito (IDs negativos)
+                             * antes de llamar toggleTarea que solo opera sobre tareas reales.
+                             * Sin esto, completar tracking de un hábito no lo marcaba como
+                             * completado → la tarea virtual reaparecía en el siguiente render. */
+                            const fueHabito = ctx.habitosComoTareas.manejarToggleTareaHabito(entidadId);
+                            if (!fueHabito) {
+                                dashboard.toggleTarea(entidadId, {detallesActividad});
+                            }
                             return;
                         }
                         habitosActions.completarHabitoHoy(entidadId, detallesActividad);

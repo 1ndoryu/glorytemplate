@@ -96,6 +96,7 @@ export function generarPropsPanelEjecucion(
         opcionesOrdenTareas: opciones.opcionesOrdenTareas,
         esOrdenManual: ordenTareas.esOrdenManual,
         onAbrirModalNuevaTarea: () => modales.abrirCreacionRapida('tarea'),
+        onAbrirModalCrearHabito: () => modales.abrirCreacionRapida('habito'),
         onAbrirModalConfigTareas: () => modales.abrirModalConfigGlobal('tareas'),
         onToggleTarea: manejarToggleTarea,
         onCrearTarea: crearTareaConLimite,
