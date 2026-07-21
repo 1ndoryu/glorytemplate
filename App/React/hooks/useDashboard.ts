@@ -44,6 +44,11 @@ interface UseDashboardReturn {
     habitoEditando: Habito | null;
     abrirModalEditarHabito: (habito: Habito) => void;
     cerrarModalEditarHabito: () => void;
+    subHabitoEditando: import('../types/dashboard').SubHabito | null;
+    habitoPadreDelSubHabito: Habito | null;
+    abrirModalEditarSubHabito: (habitoId: number, subHabitoId: number) => void;
+    cerrarModalEditarSubHabito: () => void;
+    posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => void;
     exportarTodosDatos: () => void;
     importarTodosDatos: (archivo: File) => void;
     importando: importandoState;
@@ -131,7 +136,7 @@ export function useDashboard(): UseDashboardReturn {
     }, [cargandoDatosLocales, setTareas]);
 
     // 3. Gestión de Hábitos
-    const {habitos, cargandoHabitos, toggleHabito, posponerHabito, posponerHabitoConTiempo, pausarHabito, actualizarHistorialHabito, actualizarOrdenTareasHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito} = useDashboardHabitos({registrarAccion, mostrarMensaje});
+    const {habitos, cargandoHabitos, toggleHabito, posponerHabito, posponerHabitoConTiempo, pausarHabito, actualizarHistorialHabito, actualizarOrdenTareasHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, subHabitoEditando, habitoPadreDelSubHabito, abrirModalEditarSubHabito, cerrarModalEditarSubHabito, posponerSubHabitoConTiempo} = useDashboardHabitos({registrarAccion, mostrarMensaje});
 
     const cargandoDatos = cargandoHabitos || cargandoDatosLocales;
 
@@ -232,6 +237,11 @@ export function useDashboard(): UseDashboardReturn {
         habitoEditando,
         abrirModalEditarHabito,
         cerrarModalEditarHabito,
+        subHabitoEditando,
+        habitoPadreDelSubHabito,
+        abrirModalEditarSubHabito,
+        cerrarModalEditarSubHabito,
+        posponerSubHabitoConTiempo,
         exportarTodosDatos,
         importarTodosDatos,
         importando,

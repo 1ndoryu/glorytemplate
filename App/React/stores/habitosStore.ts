@@ -77,6 +77,8 @@ interface HabitosActions {
     editarSubHabito: (habitoId: number, subHabitoId: number, datos: DatosNuevoSubHabito) => void;
     eliminarSubHabito: (habitoId: number, subHabitoId: number) => SubHabito | null;
     toggleSubHabito: (habitoId: number, subHabitoId: number) => {accion: 'completado' | 'desmarcado'} | null;
+    /* Posponer subhábito por tiempo (independiente del padre). null = quitar */
+    posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => void;
 }
 
 export type HabitosStore = HabitosState & HabitosActions;
@@ -766,6 +768,32 @@ export const useHabitosStore = create<HabitosStore>()(
                     }
 
                     return {accion};
+                },
+
+                /* [217A-2] Posponer subhábito por tiempo (independiente del padre).
+                 * Similar a posponerHabitoConTiempo pero para subhábitos individuales.
+                 * null = quitar posposición temporal. */
+                posponerSubHabitoConTiempo: (habitoId, subHabitoId, hasta) => {
+                    set(
+                        state => ({
+                            habitos: state.habitos.map(h => {
+                                if (h.id !== habitoId) return h;
+                                return {
+                                    ...h,
+                                    subhabitos: (h.subhabitos || []).map(sh => {
+                                        if (sh.id !== subHabitoId) return sh;
+                                        if (hasta === null) {
+                                            const {pospuestoHasta: _, ...sinPospuesto} = sh;
+                                            return sinPospuesto as SubHabito;
+                                        }
+                                        return {...sh, pospuestoHasta: hasta};
+                                    })
+                                };
+                            })
+                        }),
+                        false,
+                        `posponerSubHabitoConTiempo/${hasta ? 'establecer' : 'quitar'}`
+                    );
                 }
             }),
             {
@@ -945,7 +973,8 @@ export const habitosActions = {
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => useHabitosStore.getState().crearSubHabito(habitoId, datos),
     editarSubHabito: (habitoId: number, subHabitoId: number, datos: DatosNuevoSubHabito) => useHabitosStore.getState().editarSubHabito(habitoId, subHabitoId, datos),
     eliminarSubHabito: (habitoId: number, subHabitoId: number) => useHabitosStore.getState().eliminarSubHabito(habitoId, subHabitoId),
-    toggleSubHabito: (habitoId: number, subHabitoId: number) => useHabitosStore.getState().toggleSubHabito(habitoId, subHabitoId)
+    toggleSubHabito: (habitoId: number, subHabitoId: number) => useHabitosStore.getState().toggleSubHabito(habitoId, subHabitoId),
+    posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => useHabitosStore.getState().posponerSubHabitoConTiempo(habitoId, subHabitoId, hasta)
 };
 
 /* Exponer store globalmente para debugging/migración */

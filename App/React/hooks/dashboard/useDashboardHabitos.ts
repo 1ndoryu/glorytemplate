@@ -246,6 +246,41 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
         [storeActualizarOrdenTareasHabito]
     );
 
+    /*
+     * Estado del modal de editar subhábito
+     * Guardamos el ID del subhábito Y el ID del hábito padre
+     */
+    const [subHabitoEditandoIds, setSubHabitoEditandoIds] = useState<{habitoId: number; subHabitoId: number} | null>(null);
+
+    const subHabitoEditando = useMemo(() => {
+        if (!subHabitoEditandoIds) return null;
+        const padre = habitos.find(h => h.id === subHabitoEditandoIds.habitoId);
+        if (!padre) return null;
+        return padre.subhabitos?.find(sh => sh.id === subHabitoEditandoIds.subHabitoId) ?? null;
+    }, [habitos, subHabitoEditandoIds]);
+
+    const habitoPadreDelSubHabito = useMemo(() => {
+        if (!subHabitoEditandoIds) return null;
+        return habitos.find(h => h.id === subHabitoEditandoIds.habitoId) ?? null;
+    }, [habitos, subHabitoEditandoIds]);
+
+    const abrirModalEditarSubHabito = useCallback((habitoId: number, subHabitoId: number) => {
+        setSubHabitoEditandoIds({habitoId, subHabitoId});
+    }, []);
+
+    const cerrarModalEditarSubHabito = useCallback(() => {
+        setSubHabitoEditandoIds(null);
+    }, []);
+
+    /* Posponer subhábito por tiempo */
+    const storePosponerSubHabitoConTiempo = useHabitosStore(state => state.posponerSubHabitoConTiempo);
+    const posponerSubHabitoConTiempo = useCallback(
+        (habitoId: number, subHabitoId: number, hasta: string | null) => {
+            storePosponerSubHabitoConTiempo(habitoId, subHabitoId, hasta);
+        },
+        [storePosponerSubHabitoConTiempo]
+    );
+
     return {
         habitos,
         cargandoHabitos,
@@ -266,6 +301,12 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
         habitoEditando,
         abrirModalEditarHabito,
         cerrarModalEditarHabito,
+        /* Modal subhábito */
+        subHabitoEditando,
+        habitoPadreDelSubHabito,
+        abrirModalEditarSubHabito,
+        cerrarModalEditarSubHabito,
+        posponerSubHabitoConTiempo,
         /* Utilidades de sistema */
         setHabitos: useHabitosStore.getState().setHabitos
     };

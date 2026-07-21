@@ -84,6 +84,10 @@ export interface SubHabito {
     racha: number;
     pausado?: boolean;
     fechaPausa?: string;
+    /* Posposición temporal individual (diferente de historialPospuestos que es por día) */
+    pospuestoHasta?: string;
+    /* Ventana de oportunidad individual (hereda del padre si no se define) */
+    ventanaOportunidad?: VentanaOportunidad;
 }
 
 export interface Habito {
@@ -374,6 +378,7 @@ export interface DatosNuevoSubHabito {
     nombre: string;
     importancia: NivelImportancia;
     frecuencia?: FrecuenciaHabito;
+    ventanaOportunidad?: VentanaOportunidad;
 }
 
 /*

@@ -34,13 +34,17 @@ interface UseTareaMenuProps {
     /* [207A-3] Props para subhábitos */
     onToggleSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     onEliminarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+    /* [217A-2] Configuración independiente de subhábitos */
+    onPosponerSubHabitoConTiempo?: (habitoPadreId: number, subHabitoId: number, hasta: string | null) => void;
+    onActualizarSubHabito?: (habitoPadreId: number, subHabitoId: number, datos: Partial<DatosNuevoHabito>) => void;
+    onConfigurarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
 
     /* Props para selección múltiple */
     estaSeleccionada?: boolean;
     cantidadSeleccionadas?: number;
 }
 
-export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigurar, onCrearNueva, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy, habitoPausado, habitoPospuestoHoy, onToggleSubHabito, onEliminarSubHabito, estaSeleccionada = false, cantidadSeleccionadas = 0}: UseTareaMenuProps) {
+export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigurar, onCrearNueva, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy, habitoPausado, habitoPospuestoHoy, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, estaSeleccionada = false, cantidadSeleccionadas = 0}: UseTareaMenuProps) {
     /* Menú contextual coordinado globalmente */
     const menuContextual = useMenuContextualConId(`tarea-${tarea.id}`);
     const tracker = useTimeTrackerStore(useShallow(s => ({sesionActiva: s.sesionActiva, estado: s.estado, iniciarTracking: s.iniciarTracking, completarTracking: s.completarTracking})));
@@ -110,10 +114,8 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
                 return;
             }
 
-            /* [207A-3] Acciones para subhábitos.
-             * Los subhábitos usan el menú del hábito padre pero con handlers específicos.
-             * Toggle, eliminar y tracking van al subhábito directamente.
-             * Posponer y prioridad se heredan del hábito padre. */
+            /* [217A-2] Acciones para subhábitos: ahora independientes del hábito padre.
+             * Toggle, eliminar, posponer, prioridad y configuración van al subhábito directamente. */
             if (esTareaSubHabito(tarea)) {
                 const sub = tarea as TareaSubHabito;
 
@@ -135,10 +137,10 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
                         break;
                     case MENU_HABITO_IDS.CONFIGURAR:
                     case MENU_HABITO_IDS.EDITAR:
-                        onEditarHabito?.(sub.habitoPadreId);
+                        onConfigurarSubHabito?.(sub.habitoPadreId, sub.subHabitoId);
                         break;
                     case MENU_HABITO_IDS.POSPONER:
-                        onPosponerHabito?.(sub.habitoPadreId);
+                        onPosponerSubHabitoConTiempo?.(sub.habitoPadreId, sub.subHabitoId, calcularFechaPosponer(POSPONER_IDS.MANANA));
                         break;
                     case POSPONER_IDS.UNA_HORA:
                     case POSPONER_IDS.CUATRO_HORAS:
@@ -147,15 +149,12 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
                     case POSPONER_IDS.DOS_DIAS:
                     case POSPONER_IDS.UNA_SEMANA:
                     case POSPONER_IDS.QUITAR:
-                        onPosponerHabitoConTiempo?.(sub.habitoPadreId, calcularFechaPosponer(opcionId));
-                        break;
-                    case MENU_HABITO_IDS.PAUSAR:
-                        onPausarHabito?.(sub.habitoPadreId);
+                        onPosponerSubHabitoConTiempo?.(sub.habitoPadreId, sub.subHabitoId, calcularFechaPosponer(opcionId));
                         break;
                 }
                 const nuevaImportancia = extraerImportanciaDeOpcion(opcionId) as import('../../../types/dashboard').NivelImportancia | null;
                 if (nuevaImportancia) {
-                    onActualizarHabito?.(sub.habitoPadreId, {importancia: nuevaImportancia});
+                    onActualizarSubHabito?.(sub.habitoPadreId, sub.subHabitoId, {importancia: nuevaImportancia});
                 }
                 return;
             }
@@ -195,7 +194,7 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
                 onEditar?.({pospuestoHasta: calcularFechaPosponer(opcionId)});
             }
         },
-        [onEliminar, onEditar, onConfigurar, onMoverProyecto, onCompartir, esHabito, tarea, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, tracker]
+        [onEliminar, onEditar, onConfigurar, onMoverProyecto, onCompartir, esHabito, tarea, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, tracker, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito]
     );
 
     /* Detectar si esta tarea/hábito está siendo trackeada */
@@ -215,7 +214,7 @@ export function useTareaMenu({tarea, esHabito, onEditar, onEliminar, onConfigura
             return [
                 {
                     id: 'configurar',
-                    etiqueta: 'Configurar hábito',
+                    etiqueta: 'Configurar subhábito',
                     icono: <Settings size={12} />,
                     separadorDespues: false
                 },

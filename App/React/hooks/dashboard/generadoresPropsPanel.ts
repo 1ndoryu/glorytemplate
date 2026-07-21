@@ -126,6 +126,10 @@ export function generarPropsPanelEjecucion(
         /* [207A-3] Subhábitos: store directo para toggle y eliminar */
         onToggleSubHabito: useHabitosStore.getState().toggleSubHabito,
         onEliminarSubHabito: useHabitosStore.getState().eliminarSubHabito,
+        /* [217A-2] Subhábitos: acciones independientes */
+        onPosponerSubHabitoConTiempo: useHabitosStore.getState().posponerSubHabitoConTiempo,
+        onActualizarSubHabito: useHabitosStore.getState().editarSubHabito,
+        onConfigurarSubHabito: dashboard.abrirModalEditarSubHabito,
         modoCompacto: configTareas.configuracion.modoCompacto,
         onConfigurarTarea: manejarConfigurarTarea
     };

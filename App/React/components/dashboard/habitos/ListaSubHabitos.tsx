@@ -21,7 +21,7 @@ interface ListaSubHabitosProps {
     onEditar?: (subHabitoId: number, datos: DatosNuevoSubHabito) => void;
     onEliminar: (subHabitoId: number) => void;
     onToggle: (subHabitoId: number) => void;
-    onConfigurarHabito?: () => void;
+    onConfigurarSubHabito?: (subhabito: SubHabito) => void;
     importanciaPadre: NivelImportancia;
     frecuenciaPadre?: FrecuenciaHabito;
 }
@@ -167,7 +167,7 @@ function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar, onConfigurar}
 /*
  * Lista principal de subhábitos - Usa clases listaTareasHabito__* para consistencia con subtareas
  */
-export function ListaSubHabitos({subhabitos, onCrear, onEditar, onEliminar, onToggle, onConfigurarHabito, importanciaPadre, frecuenciaPadre}: ListaSubHabitosProps): JSX.Element {
+export function ListaSubHabitos({subhabitos, onCrear, onEditar, onEliminar, onToggle, onConfigurarSubHabito, importanciaPadre, frecuenciaPadre}: ListaSubHabitosProps): JSX.Element {
     const [textoNuevo, setTextoNuevo] = useState('');
     const [mostrarInput, setMostrarInput] = useState(false);
 
@@ -221,7 +221,7 @@ export function ListaSubHabitos({subhabitos, onCrear, onEditar, onEliminar, onTo
                                           })
                                     : undefined
                             }
-                            onConfigurar={onConfigurarHabito}
+                            onConfigurar={onConfigurarSubHabito ? () => onConfigurarSubHabito(sh) : undefined}
                         />
                     ))}
                 </div>

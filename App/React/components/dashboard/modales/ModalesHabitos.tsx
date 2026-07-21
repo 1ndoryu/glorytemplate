@@ -5,10 +5,11 @@
  */
 
 import {ModalHabito} from '../ModalHabito';
+import {ModalSubHabito} from '../ModalSubHabito';
 import {BottomSheetHabito} from '../BottomSheetHabito';
 
 import type {DashboardCompletoRetorno} from '../../../hooks/useDashboardCompleto';
-import type {DatosNuevoHabito, DatosEdicionTarea} from '../../../types/dashboard';
+import type {DatosNuevoHabito, DatosEdicionTarea, SubHabito} from '../../../types/dashboard';
 import type {DatosHabito} from '../BottomSheetHabito';
 
 interface ModalesHabitosProps {
@@ -57,6 +58,7 @@ export function ModalesHabitos({dashboard, modales, esMovil, manejarCrearHabitoC
                 onConfigurarTarea={modales.abrirModalEditarTarea}
                 onActualizarOrdenTareasHabito={dashboard.actualizarOrdenTareasHabito}
                 onEditarTarea={dashboard.editarTarea}
+                onConfigurarSubHabito={dashboard.habitoEditando ? (subhabito: SubHabito) => dashboard.abrirModalEditarSubHabito(dashboard.habitoEditando!.id, subhabito.id) : undefined}
             />
 
             {/* BottomSheet móvil para crear hábito */}
@@ -79,6 +81,14 @@ export function ModalesHabitos({dashboard, modales, esMovil, manejarCrearHabitoC
                     }}
                 />
             )}
+
+            {/* [217A-2] Modal configuración independiente de subhábito */}
+            <ModalSubHabito
+                estaAbierto={dashboard.subHabitoEditando !== null}
+                onCerrar={dashboard.cerrarModalEditarSubHabito}
+                subhabito={dashboard.subHabitoEditando}
+                habitoPadre={dashboard.habitoPadreDelSubHabito}
+            />
         </>
     );
 }

@@ -84,7 +84,9 @@ const subhabitoTocaHoy = (subhabito: SubHabito, frecuenciaPadre: Habito['frecuen
     const hoy = obtenerFechaHoy();
     const completadoHoy = subhabito.ultimoCompletado === hoy;
     const pospuestoHoy = subhabito.historialPospuestos?.includes(hoy) ?? false;
-    return tocaHoy(frecuencia, subhabito.ultimoCompletado) && !completadoHoy && !pospuestoHoy;
+    /* [217A-2] Filtrar por pospuestoHasta (posponer con tiempo) */
+    const pospuestoHasta = subhabito.pospuestoHasta ? new Date(subhabito.pospuestoHasta) > new Date() : false;
+    return tocaHoy(frecuencia, subhabito.ultimoCompletado) && !completadoHoy && !pospuestoHoy && !pospuestoHasta;
 };
 
 /*

@@ -41,6 +41,10 @@ export interface TareaItemProps {
     /* [207A-3] Callbacks para subhábitos */
     onToggleSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     onEliminarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+    /* [217A-2] Subhábitos: acciones independientes */
+    onPosponerSubHabitoConTiempo?: (habitoPadreId: number, subHabitoId: number, hasta: string | null) => void;
+    onActualizarSubHabito?: (habitoPadreId: number, subHabitoId: number, datos: Partial<DatosNuevoHabito>) => void;
+    onConfigurarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     /* Indica si la tarea tiene subtareas (para ajustar padding y evitar colisión con el contador) */
     tieneSubtareas?: boolean;
     modoCompacto?: boolean;

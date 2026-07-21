@@ -48,6 +48,10 @@ interface ListaTareasProps {
     /* [207A-3] Callbacks para subhábitos */
     onToggleSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     onEliminarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
+    /* [217A-2] Subhábitos: acciones independientes */
+    onPosponerSubHabitoConTiempo?: (habitoPadreId: number, subHabitoId: number, hasta: string | null) => void;
+    onActualizarSubHabito?: (habitoPadreId: number, subHabitoId: number, datos: Partial<DatosNuevoHabito>) => void;
+    onConfigurarSubHabito?: (habitoPadreId: number, subHabitoId: number) => void;
     modoCompacto?: boolean;
     onConfigurarTarea?: (tarea: Tarea) => void;
     /* Callback para abrir modal de creación rápida (usado en estado vacío y botón añadir) */
@@ -58,7 +62,7 @@ interface ListaTareasProps {
     ocultarPlaceholderVacio?: boolean;
 }
 
-export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, onToggleSubHabito, onEliminarSubHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
     const {
         pendientes, completadas,
         estaSeleccionada, manejarSeleccionMultiple, manejarClickDerechoLista,
@@ -118,6 +122,10 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
             /* [207A-3] Subhábitos */
             onToggleSubHabito={onToggleSubHabito}
             onEliminarSubHabito={onEliminarSubHabito}
+            /* [217A-2] Subhábitos: acciones independientes */
+            onPosponerSubHabitoConTiempo={onPosponerSubHabitoConTiempo}
+            onActualizarSubHabito={onActualizarSubHabito}
+            onConfigurarSubHabito={onConfigurarSubHabito}
             // Selección múltiple - TAREA 3.1
             estaSeleccionada={estaSeleccionada(tarea.id)}
             onSeleccionMultiple={manejarSeleccionMultiple}

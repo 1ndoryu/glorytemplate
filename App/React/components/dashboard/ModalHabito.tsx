@@ -13,7 +13,7 @@
  */
 
 import {Activity, BarChart2} from 'lucide-react';
-import type {DatosNuevoHabito, Habito, Participante, Tarea, DatosEdicionTarea} from '../../types/dashboard';
+import type {DatosNuevoHabito, Habito, SubHabito, Participante, Tarea, DatosEdicionTarea} from '../../types/dashboard';
 import {AccionesFormulario, Modal} from '../shared';
 import {Boton} from '../ui';
 import {FormularioHabitoModerno} from './habitos/FormularioHabitoModerno';
@@ -37,9 +37,11 @@ interface ModalHabitoProps {
     onConfigurarTarea?: (tarea: Tarea) => void;
     onActualizarOrdenTareasHabito?: (habitoId: number, tareasIds: number[]) => void;
     onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
+    /* [217A-2] Configuración independiente de subhábitos */
+    onConfigurarSubHabito?: (subhabito: SubHabito) => void;
 }
 
-export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes = [], tareas = [], onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea}: ModalHabitoProps): JSX.Element | null {
+export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes = [], tareas = [], onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea, onConfigurarSubHabito}: ModalHabitoProps): JSX.Element | null {
     const {
         modoEdicion, nombre, setNombre, descripcion, setDescripcion,
         icono, setIcono, colorIcono, setColorIcono,
@@ -123,6 +125,7 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, h
                                     onEditarSubHabito={esHabitoEspecialAyuno ? undefined : manejarEditarSubHabito}
                                     onEliminarSubHabito={esHabitoEspecialAyuno ? undefined : manejarEliminarSubHabito}
                                     onToggleSubHabito={esHabitoEspecialAyuno ? undefined : manejarToggleSubHabito}
+                                    onConfigurarSubHabito={onConfigurarSubHabito}
                                 />
                             </div>
                             {/* Input de comentario cuando el chat esta oculto */}
