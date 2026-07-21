@@ -8,7 +8,6 @@
 import {Reorder} from 'framer-motion';
 import {CheckSquare} from 'lucide-react';
 import type {Tarea, DatosEdicionTarea, DatosNuevoHabito, Proyecto, Participante, GrupoTareas} from '../../types/dashboard';
-import {esTareaHabito} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
@@ -18,6 +17,7 @@ import {EstadoVacio} from '../shared/EstadoVacio';
 import {MenuAccionesMasivas} from './lista-tareas/MenuAccionesMasivas';
 import {GrupoTareasHeader} from './lista-tareas/GrupoTareasHeader';
 import {TareaConColapsador} from './lista-tareas/TareaConColapsador';
+import {TareaReorderItem} from './lista-tareas/TareaReorderItem';
 import {useListaTareas} from '../../hooks/dashboard/useListaTareas';
 
 interface ListaTareasProps {
@@ -95,7 +95,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
             key={`wrapper-${tarea.id}`}
             tarea={tarea}
             esSubtarea={esSubtarea}
-            tareas={tareas}
+            tareas={pendientes}
             tareasExpandidas={tareasExpandidas}
             onToggleExpandir={toggleColapsar}
             proyectos={proyectos}
@@ -128,6 +128,8 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
             onPosponerSubHabitoConTiempo={onPosponerSubHabitoConTiempo}
             onActualizarSubHabito={onActualizarSubHabito}
             onConfigurarSubHabito={onConfigurarSubHabito}
+            // Suprimir click tras drag - [218A-2]
+            suprimirClickRef={seArrastroRef}
             // Selección múltiple - TAREA 3.1
             estaSeleccionada={estaSeleccionada(tarea.id)}
             onSeleccionMultiple={manejarSeleccionMultiple}
@@ -178,42 +180,24 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
                     {/* Tareas sin grupo (o todas si secciones desactivadas) */}
                     {habilitarDrag ? (
-                        <>
-                            <Reorder.Group axis="y" values={seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes" onContextMenu={manejarClickDerechoLista} as="div">
-                                {(seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes).map(tareaPadre => {
-                                    const subtareasVisibles = obtenerSubtareasVisibles(tareaPadre.id);
-
-                                    return (
-                                        <Reorder.Item
-                                            key={tareaPadre.id}
-                                            value={tareaPadre}
-                                            as="div"
-                                            className={`posicionRelativa tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
-                                            /* [218A-2] dragListener eliminado: hábitos ahora SÍ son arrastrables.
-                                             * El handleReorder extrae la posición de los hábitos virtuales
-                                             * antes de filtrarlos, actualizando habito.orden en el store. */
-                                            onPointerDown={(e: React.PointerEvent) => handleDragStart(tareaPadre.id, e)}
-                                            onDragEnd={handleDragEnd}
-                                            onClickCapture={(e: React.MouseEvent) => { if (seArrastroRef.current) { e.stopPropagation(); e.preventDefault(); } }}
-                                            onDrag={(_: unknown, info: {offset: {x: number; y: number}}) => {
-                                                dragCurrentXRef.current = dragStartXRef.current + info.offset.x;
-                                                const nuevoEsGesto = info.offset.x > UMBRAL_INDENT;
-                                                if (nuevoEsGesto !== esGestoSubtarea) {
-                                                    setEsGestoSubtarea(nuevoEsGesto);
-                                                }
-                                            }}>
-                                            {tareaArrastrandoId === tareaPadre.id && esGestoSubtarea && <div className="tareaDropIndicador tareaDropIndicadorSubtarea tareaDropIndicadorActivo" />}
-
-                                            {renderTareaItem(tareaPadre, false)}
-
-                                            {subtareasVisibles.map(subtarea => (
-                                                <div key={subtarea.id} className="subtareaContenedor">
-                                                    {renderTareaItem(subtarea, true)}
-                                                </div>
-                                            ))}
-                                        </Reorder.Item>
-                                    );
-                                })}
+                        <>                            <Reorder.Group axis="y" values={seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes" onContextMenu={manejarClickDerechoLista} as="div">
+                                {(seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes).map(tareaPadre => (
+                                    <TareaReorderItem
+                                        key={tareaPadre.id}
+                                        tareaPadre={tareaPadre}
+                                        subtareasVisibles={obtenerSubtareasVisibles(tareaPadre.id)}
+                                        tareaArrastrandoId={tareaArrastrandoId}
+                                        esGestoSubtarea={esGestoSubtarea}
+                                        UMBRAL_INDENT={UMBRAL_INDENT}
+                                        seArrastroRef={seArrastroRef}
+                                        dragStartXRef={dragStartXRef}
+                                        dragCurrentXRef={dragCurrentXRef}
+                                        setEsGestoSubtarea={setEsGestoSubtarea}
+                                        handleDragStart={handleDragStart}
+                                        handleDragEnd={handleDragEnd}
+                                        renderTareaItem={renderTareaItem}
+                                    />
+                                ))}
                             </Reorder.Group>
 
                             {/* [044A-1] Hábitos ahora se incluyen dentro del Reorder.Group

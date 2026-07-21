@@ -16,7 +16,7 @@ import {useShallow} from 'zustand/react/shallow';
 import type {TareaItemProps} from './tarea-item/types';
 
 export function TareaItem(props: TareaItemProps): JSX.Element {
-    const {tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy = false, habitoPausado = false, habitoPospuestoHoy = false, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, tieneSubtareas = false, modoCompacto = false, estaSeleccionada = false, onSeleccionMultiple, modoSeleccionActivo = false} = props;
+    const {tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy = false, habitoPausado = false, habitoPospuestoHoy = false, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, tieneSubtareas = false, modoCompacto = false, estaSeleccionada = false, onSeleccionMultiple, modoSeleccionActivo = false, suprimirClickRef} = props;
 
     /* Detectar si es una tarea-hábito virtual */
     const esHabito = esTareaHabito(tarea);
@@ -82,6 +82,14 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
     /* Handler para clicks en el contenido de la tarea */
     const manejarClickContenido = useCallback(
         (evento: React.MouseEvent) => {
+            /* [218A-2] Si acabamos de terminar un drag, ignorar el click para evitar
+             * que se abra la configuración del hábito al soltar. */
+            if (suprimirClickRef?.current) {
+                evento.preventDefault();
+                evento.stopPropagation();
+                return;
+            }
+
             /* 1. Si el modo de selección manual está activo (móvil) -> Seleccionar */
             if (modoSeleccionActivo && onSeleccionMultiple) {
                 evento.preventDefault();
@@ -118,7 +126,7 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
             /* 3. Click normal en tarea = editar/configurar */
             iniciarEdicion();
         },
-        [iniciarEdicion, onSeleccionMultiple, tarea, modoSeleccionActivo, esHabito, onEditarHabito, onConfigurarSubHabito]
+        [iniciarEdicion, onSeleccionMultiple, tarea, modoSeleccionActivo, esHabito, onEditarHabito, onConfigurarSubHabito, suprimirClickRef]
     );
 
     if (editando) {

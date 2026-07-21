@@ -57,9 +57,11 @@ interface TareaConColapsadorProps {
     onPosponerSubHabitoConTiempo?: (habitoId: number, subHabitoId: number, hasta: string | null) => void;
     onActualizarSubHabito?: (habitoId: number, subHabitoId: number, datos: Partial<DatosNuevoHabito>) => void;
     onConfigurarSubHabito?: (habitoId: number, subHabitoId: number) => void;
+    /* [218A-2] Ref para suprimir clicks posteriores a un drag */
+    suprimirClickRef?: React.RefObject<boolean>;
 }
 
-export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, esSubtarea, tareas, tareasExpandidas, onToggleExpandir, proyectos, modoCompacto, ocultarBadgeProyecto, mensajesNoLeidos, estaCompartida, onToggleTarea, onEditarTarea, onEliminarTarea, onIndent, onOutdent, onCrearNueva, onConfigurar, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, estaSeleccionada, onSeleccionMultiple, modoSeleccionActivo, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito}) => {
+export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, esSubtarea, tareas, tareasExpandidas, onToggleExpandir, proyectos, modoCompacto, ocultarBadgeProyecto, mensajesNoLeidos, estaCompartida, onToggleTarea, onEditarTarea, onEliminarTarea, onIndent, onOutdent, onCrearNueva, onConfigurar, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, estaSeleccionada, onSeleccionMultiple, modoSeleccionActivo, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, suprimirClickRef}) => {
     const {esMovil} = useEsMovil();
     const esHabito = esTareaHabito(tarea);
     const esColapsable = !esSubtarea && tieneSubtareas(tareas, tarea.id);
@@ -161,11 +163,13 @@ export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, es
             onPosponerSubHabitoConTiempo={onPosponerSubHabitoConTiempo}
             onActualizarSubHabito={onActualizarSubHabito}
             onConfigurarSubHabito={onConfigurarSubHabito}
+            /* [218A-2] Suprimir click después de drag */
+            suprimirClickRef={suprimirClickRef}
         />
     );
 
     return (
-        <div className={`tareaConColapsador ${modoCompacto ? 'tareaConColapsador--compacto' : ''}`} key={`wrapper-${tarea.id}`}>
+        <div className={`tareaConColapsador ${modoCompacto ? 'tareaConColapsador--compacto' : ''}`} key={`wrapper-${tarea.id}`} onClickCapture={(e: React.MouseEvent) => { if (suprimirClickRef?.current) { e.stopPropagation(); e.preventDefault(); } }}>
             {/* En móvil: envolver con SwipeableItem para gestos */}
             {esMovil ? (
                 <SwipeableItem onSwipeRight={manejarSwipeCompletar} onSwipeLeft={manejarSwipeIzquierda} accionDerecha={accionCompletar} accionIzquierda={accionIzquierda}>

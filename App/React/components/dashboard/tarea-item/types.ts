@@ -51,7 +51,8 @@ export interface TareaItemProps {
     /* Props para selección múltiple (Ctrl+Click) */
     estaSeleccionada?: boolean;
     onSeleccionMultiple?: (tarea: Tarea, evento: React.MouseEvent) => void;
-    modoSeleccionActivo?: boolean;
+    modoSeleccionActivo?: boolean;    /* [218A-2] Ref para suprimir clicks posteriores a un drag */
+    suprimirClickRef?: React.RefObject<boolean>;
 }
 
 export interface MenuContextualEstado {
