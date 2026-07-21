@@ -134,7 +134,9 @@ const calcularPesoTotal = (tarea: Tarea): number => {
     return pesoTotal;
 };
 
-export function useOrdenarTareas(tareas: Tarea[]) {
+export function useOrdenarTareas(tareas: Tarea[], opciones: {ignorarUrgencia?: boolean} = {}) {
+    const {ignorarUrgencia} = opciones;
+
     /*
      * Persistencia del modo de orden
      * Por defecto: inteligente (Beta: facilita la adopción inicial)
@@ -156,12 +158,21 @@ export function useOrdenarTareas(tareas: Tarea[]) {
     /* [315A-1] Prioridad con orden manual como desempate.
      * Cuando dos tareas tienen la misma prioridad, se usa el campo 'orden'
      * (establecido por drag & drop) para mantener el orden personalizado.
-     * Sin orden → fecha como fallback. */
+     * Sin orden → fecha como fallback.
+     * Si se activa 'ignorarUrgencia', la urgencia no actúa como desempate. */
     const compararPorPrioridad = (a: Tarea, b: Tarea) => {
         const pA = PESO_PRIORIDAD[a.prioridad || 'default'];
         const pB = PESO_PRIORIDAD[b.prioridad || 'default'];
 
         if (pB !== pA) return pB - pA;
+
+        /* Si no se ignora la urgencia, usarla como desempate primario
+         * dentro del mismo grupo de prioridad. */
+        if (!ignorarUrgencia) {
+            const uA = PESO_URGENCIA[a.urgencia || 'normal'];
+            const uB = PESO_URGENCIA[b.urgencia || 'normal'];
+            if (uB !== uA) return uB - uA;
+        }
 
         /* [207A-1] Desempatar por orden manual si ambos tienen.
          * Esto permite drag reorder dentro del mismo grupo de prioridad. */
@@ -203,7 +214,7 @@ export function useOrdenarTareas(tareas: Tarea[]) {
             default:
                 return tareas;
         }
-    }, [tareas, modoActual]);
+    }, [tareas, modoActual, ignorarUrgencia]);
 
     return {
         modoActual,

@@ -76,6 +76,8 @@ interface HabitosActions {
     reordenarHabitos: (habitosReordenados: Habito[]) => void;
     /* [218A-2] Actualizar orden de hábitos desde drag en panel de ejecución. Recibe Map<habitoId, orden>. */
     actualizarOrdenHabitos: (ordenes: Map<number, number>) => void;
+    /* Orden específico para el panel de Ejecución (no toca el panel de Hábitos) */
+    actualizarOrdenEjecucionHabitos: (ordenes: Map<number, number>) => void;
 
     /* SubHabitos: CRUD y toggle para hábitos anidados */
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => SubHabito | null;
@@ -650,6 +652,23 @@ export const useHabitosStore = create<HabitosStore>()(
                     );
                 },
 
+                /* Orden exclusivo para el panel de Ejecución: separa el orden del drag en Ejecución
+                 * del orden manual del panel de Hábitos. */
+                actualizarOrdenEjecucionHabitos: (ordenes) => {
+                    set(
+                        state => ({
+                            habitos: state.habitos.map(h => {
+                                const nuevoOrden = ordenes.get(h.id);
+                                if (nuevoOrden === undefined) return h;
+                                if (h.ordenEjecucion === nuevoOrden) return h;
+                                return {...h, ordenEjecucion: nuevoOrden};
+                            })
+                        }),
+                        false,
+                        'actualizarOrdenEjecucionHabitos'
+                    );
+                },
+
                 /* SubHabitos: Crear subhábito heredando propiedades del padre */
                 crearSubHabito: (habitoId, datos) => {
                     /* [253A-1] Validar nombre no vacío para evitar subhábitos fantasma */
@@ -1136,6 +1155,8 @@ export const habitosActions = {
     reordenarHabitos: (habitosReordenados: Habito[]) => useHabitosStore.getState().reordenarHabitos(habitosReordenados),
     /* [218A-2] Actualizar orden de hábitos desde drag en panel de ejecución */
     actualizarOrdenHabitos: (ordenes: Map<number, number>) => useHabitosStore.getState().actualizarOrdenHabitos(ordenes),
+    /* Orden exclusivo para el panel de Ejecución */
+    actualizarOrdenEjecucionHabitos: (ordenes: Map<number, number>) => useHabitosStore.getState().actualizarOrdenEjecucionHabitos(ordenes),
 
     /* SubHabitos */
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => useHabitosStore.getState().crearSubHabito(habitoId, datos),

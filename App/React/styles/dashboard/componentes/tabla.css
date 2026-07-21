@@ -719,3 +719,11 @@ button.añadirHabito {
 .tareaPadreReorder .tablaFila:active {
     cursor: grabbing;
 }
+
+/* 
+ * SUBHÁBITOS EN PANEL DE HÁBITOS
+ * Indentación visual del nombre para distinguir subhábitos bajo su padre.
+ */
+.filaNombreSubhabito {
+    padding-left: 1.5rem;
+}

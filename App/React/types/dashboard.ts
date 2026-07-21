@@ -124,6 +124,8 @@ export interface Habito {
     updatedAt?: number;
     /* Orden manual para drag & drop (menor = primero). Igual patrón que Tarea.orden */
     orden?: number;
+    /* Orden exclusivo para el panel de Ejecución, separado del panel de Hábitos */
+    ordenEjecucion?: number;
 }
 
 /*

@@ -151,8 +151,9 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
                     prioridad: mapearImportanciaAPrioridad(habito.importancia),
                     urgencia: urgenciaAutomatica,
                     /* [218A-2] Heredar orden del hábito para que el drag en el panel de ejecución
-                     * se refleje correctamente al ordenar (useOrdenarTareas usa orden como desempate) */
-                    orden: habito.orden,
+                     * se refleje correctamente al ordenar (useOrdenarTareas usa orden como desempate).
+                     * Si existe un orden específico para Ejecución, lo usamos para no tocar el panel de Hábitos. */
+                    orden: habito.ordenEjecucion ?? habito.orden,
                     /* Campos específicos de TareaHabito */
                     esHabito: true,
                     habitoId: habito.id,

@@ -111,7 +111,9 @@ export function useDashboardCompleto() {
     }, [filtroTareas.tareasFiltradas, filtroTareas.filtroActual.tipo, habitosComoTareas.tareasConSubtareas]);
 
     /* Ordenar la combinación de tareas + tareas-hábito */
-    const ordenTareas = useOrdenarTareas(tareasConHabitos);
+    const ordenTareas = useOrdenarTareas(tareasConHabitos, {
+        ignorarUrgencia: configTareas.configuracion.ignorarUrgenciaEnPrioridad
+    });
 
     const layout = useConfiguracionLayout();
     const arrastre = useArrastrePaneles(layout.ordenPaneles, layout.reordenarPanel);

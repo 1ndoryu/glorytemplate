@@ -20,9 +20,10 @@ interface ModalConfiguracionTareasProps {
     onToggleMostrarHabitos: () => void;
     onToggleModoCompacto: () => void;
     onToggleOcultarSubtareas: () => void;
+    onToggleIgnorarUrgencia: () => void;
 }
 
-export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, onToggleCompletadas, onToggleBadgeProyecto, onToggleEliminarCompletadas, onToggleMostrarHabitos, onToggleModoCompacto, onToggleOcultarSubtareas}: ModalConfiguracionTareasProps): JSX.Element {
+export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, onToggleCompletadas, onToggleBadgeProyecto, onToggleEliminarCompletadas, onToggleMostrarHabitos, onToggleModoCompacto, onToggleOcultarSubtareas, onToggleIgnorarUrgencia}: ModalConfiguracionTareasProps): JSX.Element {
     const {seccionesActivas: _seccionesActivas, toggleSecciones: _toggleSecciones, ordenamientoGrupos: _ordenamientoGrupos, setOrdenamientoGrupos: _setOrdenamientoGrupos} = useGruposTareasStore(useShallow(s => ({seccionesActivas: s.seccionesActivas, toggleSecciones: s.toggleSecciones, ordenamientoGrupos: s.ordenamientoGrupos, setOrdenamientoGrupos: s.setOrdenamientoGrupos})));
 
     return (
@@ -91,7 +92,18 @@ export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, 
 
                 <div className="separadorOpcionesConfig" />
 
-                {/* Opcion 7 y 8: Secciones y Ordenamiento (DESACTIVADO TEMPORALMENTE)
+                {/* Opcion 7: Ignorar urgencia en ordenamiento por prioridad */}
+                <div className="itemOpcionConfig">
+                    <div className="detallesOpcionConfig">
+                        <span className="tituloOpcionConfig">Ignorar urgencia en Prioridad</span>
+                        <span className="descripcionOpcionConfig">Permite reordenar tareas (y hábitos) de igual prioridad sin que la urgencia altere el orden</span>
+                    </div>
+                    <ToggleSwitch checked={configuracion.ignorarUrgenciaEnPrioridad} onChange={onToggleIgnorarUrgencia} />
+                </div>
+
+                <div className="separadorOpcionesConfig" />
+
+                {/* Opcion 8 y 9: Secciones y Ordenamiento (DESACTIVADO TEMPORALMENTE)
                    TO-DO: Reactivar cuando se corrija la lógica de grupos
                 <div className="itemOpcionConfig">
                     <div className="detallesOpcionConfig">

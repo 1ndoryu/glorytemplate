@@ -517,6 +517,34 @@
  * ARRASTRAR Y REORDENAR
  */
 
+/* [218A-3] Handle de arrastre dedicado para Reorder.Item */
+.tareaArrastreHandle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: var(--dashboard-textoApagado);
+    opacity: 0.35;
+    padding: 0 4px;
+    margin-left: -4px;
+    transition: opacity var(--dashboard-transicionRapida), color var(--dashboard-transicionRapida);
+    flex-shrink: 0;
+}
+
+.tareaArrastreHandle:hover {
+    opacity: 0.9;
+    color: var(--dashboard-textoNormal);
+}
+
+.tareaArrastreHandle:active {
+    cursor: grabbing;
+}
+
+.tareaItem:hover .tareaArrastreHandle {
+    opacity: 0.7;
+}
+
+
 /* 
  * Contenedor del item padre en el reorder
  * Contiene la tarea padre y todas sus subtareas

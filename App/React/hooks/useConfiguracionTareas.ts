@@ -9,6 +9,8 @@ export interface ConfiguracionTareas {
     modoCompacto: boolean;
     /* Ocultar subtareas automáticamente (colapsadas por defecto) */
     ocultarSubtareasAutomaticamente: boolean;
+    /* Ignorar urgencia en el ordenamiento por prioridad para permitir drag reorder */
+    ignorarUrgenciaEnPrioridad: boolean;
 }
 
 /* 
@@ -22,7 +24,8 @@ export const CONFIG_POR_DEFECTO: ConfiguracionTareas = {
     eliminarCompletadasDespuesDeUnDia: false,
     mostrarHabitosEnEjecucion: true,
     modoCompacto: false,
-    ocultarSubtareasAutomaticamente: false
+    ocultarSubtareasAutomaticamente: false,
+    ignorarUrgenciaEnPrioridad: false
 };
 
 export function useConfiguracionTareas() {
@@ -54,6 +57,10 @@ export function useConfiguracionTareas() {
         setValor(prev => ({...prev, ocultarSubtareasAutomaticamente: !prev.ocultarSubtareasAutomaticamente}));
     };
 
+    const toggleIgnorarUrgenciaEnPrioridad = () => {
+        setValor(prev => ({...prev, ignorarUrgenciaEnPrioridad: !prev.ignorarUrgenciaEnPrioridad}));
+    };
+
     return {
         configuracion: valor,
         actualizarConfiguracion: setValor,
@@ -62,6 +69,7 @@ export function useConfiguracionTareas() {
         toggleEliminarCompletadasDespuesDeUnDia,
         toggleMostrarHabitosEnEjecucion,
         toggleModoCompacto,
-        toggleOcultarSubtareasAutomaticamente
+        toggleOcultarSubtareasAutomaticamente,
+        toggleIgnorarUrgenciaEnPrioridad
     };
 }

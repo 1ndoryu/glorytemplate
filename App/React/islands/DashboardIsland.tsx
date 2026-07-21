@@ -76,12 +76,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = VERSION_ACTU
         sidebarState,
         agregarPanel,
         quitarPanel,
-        tienePanel,
         moverPanel,
         setPaneles,
         ajustarAnchos,
-        ajustarAlturasFilas,
-        cantidad: cantidadPanelesSidebar
+        ajustarAlturasFilas
     } = useSidebarPaneles(panelSidebarActivo);
 
     /* [300A-2] Si el panel activo se oculta desde config, cambiar al primero visible */

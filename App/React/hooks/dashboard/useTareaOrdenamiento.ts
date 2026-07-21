@@ -31,13 +31,15 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
     }, []);
 
     const handleDragEnd = useCallback(() => {
-        if (tareaArrastrandoId !== null) {
-            seArrastroRef.current = true;
-            setTimeout(() => { seArrastroRef.current = false; }, 100);
-        }
+        /* Se activa siempre que Framer Motion dispare onDragEnd, evitando el
+         * stale closure que dejaba tareaArrastrandoId como null y no suprimía
+         * el click posterior al soltar (218A-2 fix). */
+        seArrastroRef.current = true;
+        setTimeout(() => { seArrastroRef.current = false; }, 300);
+
         setTareaArrastrandoId(null);
         setEsGestoSubtarea(false);
-    }, [tareaArrastrandoId]);
+    }, []);
 
     const handleReorder = useCallback(
         (nuevoOrdenPrincipales: Tarea[]) => {

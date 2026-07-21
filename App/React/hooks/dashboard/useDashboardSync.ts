@@ -210,7 +210,6 @@ export function useDashboardSync({habitos, tareas, proyectos, notas, setTareas, 
                     cambiosRemotosRecientesRef.current.proyectos.add(datos.id);
                     contadorCambiosRemotosRef.current++;
                 }
-                const proyectosActuales = proyectosRef.current;
                 if (accion === 'eliminar' && datos.id) {
                     /* [275A-1] Sol.4: update funcional evita race conditions WS */
                     setProyectos((prev: Proyecto[]) => prev.filter(p => p.id !== datos.id));

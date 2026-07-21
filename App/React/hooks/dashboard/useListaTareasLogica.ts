@@ -22,8 +22,9 @@ export function useListaTareasLogica({tareas, proyectoId, onEditarTarea, onCrear
      */
     const [tareasExpandidas, setTareasExpandidas] = useState<Set<number>>(() => {
         if (ocultarSubtareasAutomaticamente) return new Set();
-        /* Expandir todas las tareas que tienen subtareas */
-        const padresIds = tareas.filter(t => !t.parentId && tieneSubtareas(tareas, t.id)).map(t => t.id);
+        /* Expandir todas las tareas que tienen subtareas, excepto los hábitos virtuales
+         * (esTareaHabito), para que su Reorder.Item sea de una sola fila y el drag funcione mejor. */
+        const padresIds = tareas.filter(t => !t.parentId && tieneSubtareas(tareas, t.id) && !esTareaHabito(t)).map(t => t.id);
         return new Set(padresIds);
     });
     const [tareaConfigurando, setTareaConfigurando] = useState<Tarea | null>(null);
@@ -41,8 +42,8 @@ export function useListaTareasLogica({tareas, proyectoId, onEditarTarea, onCrear
                 /* Colapsar todas */
                 setTareasExpandidas(new Set());
             } else {
-                /* Expandir todas las tareas padre */
-                const padresIds = tareas.filter(t => !t.parentId && tieneSubtareas(tareas, t.id)).map(t => t.id);
+                /* Expandir todas las tareas padre, excepto los hábitos virtuales */
+                const padresIds = tareas.filter(t => !t.parentId && tieneSubtareas(tareas, t.id) && !esTareaHabito(t)).map(t => t.id);
                 setTareasExpandidas(new Set(padresIds));
             }
         }
@@ -56,8 +57,8 @@ export function useListaTareasLogica({tareas, proyectoId, onEditarTarea, onCrear
     useEffect(() => {
         if (ocultarSubtareasAutomaticamente) return;
 
-        /* Obtener todas las tareas padre actuales */
-        const padresActuales = new Set(tareas.filter(t => !t.parentId && tieneSubtareas(tareas, t.id)).map(t => t.id));
+        /* Obtener todas las tareas padre actuales (excepto hábitos virtuales) */
+        const padresActuales = new Set(tareas.filter(t => !t.parentId && tieneSubtareas(tareas, t.id) && !esTareaHabito(t)).map(t => t.id));
 
         /* Encontrar nuevas tareas padre (que no estaban antes) */
         const nuevasTareasPadre = Array.from(padresActuales).filter(id => !prevTareasPadreRef.current.has(id));
