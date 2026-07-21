@@ -16,4 +16,4 @@ pp
 
 ## Tareas pendientes
 
-1. Hay un problema, anteriormente no se entiendo mi proposito, cuando doy click a un subhabito para abrir su configuracion se abre la configuracion del habito principal cuando deberia poder modificar el subhabito, esa nunca fue la intencion, los subhabitos deberían poder: posponerse individualmente, cambiar prioridad individualmente, o las otras caracteristica como en los habitos normales, por ejemplo en listaTareasHabito listaTareasHabito--compacto dentro de la configuracion del habito sigue habiendo el boton de lapiz para modificar el nombre en vez de haber un boton de configuracion para modificar el subhabito
+(ninguna)
