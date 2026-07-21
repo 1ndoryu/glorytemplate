@@ -5,7 +5,6 @@
  */
 
 import {ModalHabito} from '../ModalHabito';
-import {ModalSubHabito} from '../ModalSubHabito';
 import {BottomSheetHabito} from '../BottomSheetHabito';
 
 import type {DashboardCompletoRetorno} from '../../../hooks/useDashboardCompleto';
@@ -43,21 +42,26 @@ export function ModalesHabitos({dashboard, modales, esMovil, manejarCrearHabitoC
             {/* Modal crear hábito */}
             <ModalHabito estaAbierto={dashboard.modalCrearHabitoAbierto} onCerrar={dashboard.cerrarModalCrearHabito} onGuardar={manejarCrearHabitoConLimite} />
 
-            {/* Modal editar hábito (desktop) */}
+            {/* Modal editar hábito (desktop) — [217A-2c] también maneja subhábitos */}
             <ModalHabito
                 estaAbierto={dashboard.habitoEditando !== null}
-                onCerrar={dashboard.cerrarModalEditarHabito}
+                onCerrar={dashboard.subHabitoEditando ? dashboard.cerrarModalEditarSubHabito : dashboard.cerrarModalEditarHabito}
                 onGuardar={datos => dashboard.editarHabito(dashboard.habitoEditando!.id, datos)}
                 onPausarHabito={dashboard.pausarHabito}
-                habito={dashboard.habitoEditando ?? undefined}
+                habito={dashboard.subHabitoEditando ? undefined : (dashboard.habitoEditando ?? undefined)}
+                participantes={[]}
                 /* Props para tareas del hábito - Fase 14.8 */
-                tareas={dashboard.tareas}
+                tareas={dashboard.subHabitoEditando ? [] : dashboard.tareas}
                 onToggleTarea={dashboard.toggleTarea}
                 onCrearTarea={manejarCrearTareaConLimite}
                 onEliminarTarea={dashboard.eliminarTarea}
                 onConfigurarTarea={modales.abrirModalEditarTarea}
                 onActualizarOrdenTareasHabito={dashboard.actualizarOrdenTareasHabito}
                 onEditarTarea={dashboard.editarTarea}
+                /* [217A-2c] Subhábito: pasa datos para modo subhábito */
+                subHabito={dashboard.subHabitoEditando}
+                habitoPadre={dashboard.subHabitoEditando ? dashboard.habitoEditando ?? undefined : undefined}
+                /* ⚙️ en lista de subhábitos → abrir para ese subhábito */
                 onConfigurarSubHabito={dashboard.habitoEditando ? (subhabito: SubHabito) => dashboard.abrirModalEditarSubHabito(dashboard.habitoEditando!.id, subhabito.id) : undefined}
             />
 
@@ -82,13 +86,7 @@ export function ModalesHabitos({dashboard, modales, esMovil, manejarCrearHabitoC
                 />
             )}
 
-            {/* [217A-2] Modal configuración independiente de subhábito */}
-            <ModalSubHabito
-                estaAbierto={dashboard.subHabitoEditando !== null}
-                onCerrar={dashboard.cerrarModalEditarSubHabito}
-                subhabito={dashboard.subHabitoEditando}
-                habitoPadre={dashboard.habitoPadreDelSubHabito}
-            />
+            {/* [217A-2c] ModalSubHabito eliminado — ModalHabito maneja subhábitos directamente */}
         </>
     );
 }

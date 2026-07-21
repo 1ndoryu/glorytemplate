@@ -37,25 +37,28 @@ interface ModalHabitoProps {
     onConfigurarTarea?: (tarea: Tarea) => void;
     onActualizarOrdenTareasHabito?: (habitoId: number, tareasIds: number[]) => void;
     onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
-    /* [217A-2] Configuración independiente de subhábitos */
+    /* [217A-2c] Unificación: subhábitos se editan con el mismo modal */
+    subHabito?: SubHabito | null;
+    habitoPadre?: Habito | null;
+    /** ⚙️ en lista de subhábitos → abrir ModalHabito para ese subhábito */
     onConfigurarSubHabito?: (subhabito: SubHabito) => void;
 }
 
-export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes = [], tareas = [], onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea, onConfigurarSubHabito}: ModalHabitoProps): JSX.Element | null {
+export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes = [], tareas = [], onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea, subHabito, habitoPadre, onConfigurarSubHabito}: ModalHabitoProps): JSX.Element | null {
     const {
         modoEdicion, nombre, setNombre, descripcion, setDescripcion,
         icono, setIcono, colorIcono, setColorIcono,
         importancia, setImportancia, frecuencia, setFrecuencia,
-        ventanaOportunidad, setVentanaOportunidad, errores, esHabitoEspecialAyuno,
+        ventanaOportunidad, setVentanaOportunidad, errores, esHabitoEspecialAyuno, esModoSubHabito,
         estadoHoy, manejarCambioEstado,
         chatVisible, toggleChat, tieneMensajesSinLeer, participantesChat, mostrarChatColumna,
         tareasDelHabito, manejarReordenarTareas,
         manejarCrearSubHabito, manejarEditarSubHabito, manejarEliminarSubHabito, manejarToggleSubHabito,
         manejarGuardar, manejarCerrarConGuardado, manejarPausarHabito
-    } = useModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes, tareas, onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea});
+    } = useModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes, tareas, onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea, subHabito, habitoPadre});
 
-    /* Header Icons (similar a ModalProyecto) */
-    const accionesHeader = modoEdicion ? (
+    /* Header Icons — ocultos en modo subhábito */
+    const accionesHeader = (modoEdicion && !esModoSubHabito) ? (
         <div className="accionesHeaderFlex">
             {/* Estadisticas (Placeholder) */}
             <Boton type="button" variante="icono" title="Estadísticas (Próximamente)" claseAdicional="botonIcono--deshabilitado">
@@ -76,12 +79,38 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, h
         </div>
     ) : undefined;
 
+    /* Título dinámico según modo */
+    const titulo = esModoSubHabito ? 'Configurar subhábito' : (modoEdicion ? 'Modificar habito' : 'Nuevo habito');
+
     /* Clase del modal */
-    const claseModal = modoEdicion ? 'panelConfiguracionContenedor modalContenedor--expandido' : 'modalContenedor--moderno';
+    const claseModal = (modoEdicion || esModoSubHabito) ? 'panelConfiguracionContenedor modalContenedor--expandido' : 'modalContenedor--moderno';
 
     return (
-        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={modoEdicion ? 'Modificar habito' : 'Nuevo habito'} claseExtra={claseModal} accionesEncabezado={accionesHeader} ocultarBotonCerrar={modoEdicion}>
-            {modoEdicion ? (
+        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={titulo} claseExtra={claseModal} accionesEncabezado={accionesHeader} ocultarBotonCerrar={modoEdicion || esModoSubHabito}>
+            {esModoSubHabito ? (
+                /* [217A-2c] Modo subhábito: formulario simplificado, sin chat, sin sub-subhábitos */
+                <div className="panelConfiguracionDosColumnas panelConfiguracionDosColumnas--sinChat">
+                    <div className="panelConfiguracionColumnaIzquierda panelConfiguracionColumnaIzquierda--activa">
+                        <div className="panelConfiguracionColumnaScroll">
+                            <FormularioHabitoModerno
+                                nombre={nombre}
+                                onNombreChange={setNombre}
+                                importancia={importancia}
+                                onImportanciaChange={setImportancia}
+                                frecuencia={frecuencia}
+                                onFrecuenciaChange={setFrecuencia}
+                                ventanaOportunidad={ventanaOportunidad}
+                                onVentanaOportunidadChange={setVentanaOportunidad}
+                                estadoHoy={estadoHoy}
+                                onEstadoChange={manejarCambioEstado}
+                                onPausarHabito={manejarPausarHabito}
+                                modoEdicion={true}
+                                errorNombre={errores.nombre}
+                            />
+                        </div>
+                    </div>
+                </div>
+            ) : modoEdicion ? (
                 <>
                     {/* Layout de 2 columnas (en móvil solo se muestra configuración) */}
                     <div className={`panelConfiguracionDosColumnas ${!mostrarChatColumna ? 'panelConfiguracionDosColumnas--sinChat' : ''}`}>

@@ -45,7 +45,6 @@ interface UseDashboardReturn {
     abrirModalEditarHabito: (habito: Habito) => void;
     cerrarModalEditarHabito: () => void;
     subHabitoEditando: import('../types/dashboard').SubHabito | null;
-    habitoPadreDelSubHabito: Habito | null;
     abrirModalEditarSubHabito: (habitoId: number, subHabitoId: number) => void;
     cerrarModalEditarSubHabito: () => void;
     posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => void;
@@ -136,7 +135,7 @@ export function useDashboard(): UseDashboardReturn {
     }, [cargandoDatosLocales, setTareas]);
 
     // 3. Gestión de Hábitos
-    const {habitos, cargandoHabitos, toggleHabito, posponerHabito, posponerHabitoConTiempo, pausarHabito, actualizarHistorialHabito, actualizarOrdenTareasHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, subHabitoEditando, habitoPadreDelSubHabito, abrirModalEditarSubHabito, cerrarModalEditarSubHabito, posponerSubHabitoConTiempo} = useDashboardHabitos({registrarAccion, mostrarMensaje});
+    const {habitos, cargandoHabitos, toggleHabito, posponerHabito, posponerHabitoConTiempo, pausarHabito, actualizarHistorialHabito, actualizarOrdenTareasHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, subHabitoEditando, abrirModalEditarSubHabito, cerrarModalEditarSubHabito, posponerSubHabitoConTiempo} = useDashboardHabitos({registrarAccion, mostrarMensaje});
 
     const cargandoDatos = cargandoHabitos || cargandoDatosLocales;
 
@@ -238,7 +237,6 @@ export function useDashboard(): UseDashboardReturn {
         abrirModalEditarHabito,
         cerrarModalEditarHabito,
         subHabitoEditando,
-        habitoPadreDelSubHabito,
         abrirModalEditarSubHabito,
         cerrarModalEditarSubHabito,
         posponerSubHabitoConTiempo,

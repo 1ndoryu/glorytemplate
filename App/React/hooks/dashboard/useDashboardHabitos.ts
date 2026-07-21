@@ -248,28 +248,27 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
 
     /*
      * Estado del modal de editar subhábito
-     * Guardamos el ID del subhábito Y el ID del hábito padre
+     * [217A-2c] Unificado con ModalHabito: cuando se edita un subhábito,
+     * habitoEditandoId = hábito padre, subHabitoEditandoId = subhábito.
+     * ModalHabito recibe ambos y opera en modo subhábito.
      */
-    const [subHabitoEditandoIds, setSubHabitoEditandoIds] = useState<{habitoId: number; subHabitoId: number} | null>(null);
+    const [subHabitoEditandoId, setSubHabitoEditandoId] = useState<number | null>(null);
 
     const subHabitoEditando = useMemo(() => {
-        if (!subHabitoEditandoIds) return null;
-        const padre = habitos.find(h => h.id === subHabitoEditandoIds.habitoId);
+        if (subHabitoEditandoId === null || habitoEditandoId === null) return null;
+        const padre = habitos.find(h => h.id === habitoEditandoId);
         if (!padre) return null;
-        return padre.subhabitos?.find(sh => sh.id === subHabitoEditandoIds.subHabitoId) ?? null;
-    }, [habitos, subHabitoEditandoIds]);
-
-    const habitoPadreDelSubHabito = useMemo(() => {
-        if (!subHabitoEditandoIds) return null;
-        return habitos.find(h => h.id === subHabitoEditandoIds.habitoId) ?? null;
-    }, [habitos, subHabitoEditandoIds]);
+        return padre.subhabitos?.find(sh => sh.id === subHabitoEditandoId) ?? null;
+    }, [habitos, habitoEditandoId, subHabitoEditandoId]);
 
     const abrirModalEditarSubHabito = useCallback((habitoId: number, subHabitoId: number) => {
-        setSubHabitoEditandoIds({habitoId, subHabitoId});
+        setHabitoEditandoId(habitoId);
+        setSubHabitoEditandoId(subHabitoId);
     }, []);
 
     const cerrarModalEditarSubHabito = useCallback(() => {
-        setSubHabitoEditandoIds(null);
+        setHabitoEditandoId(null);
+        setSubHabitoEditandoId(null);
     }, []);
 
     /* Posponer subhábito por tiempo */
@@ -301,9 +300,8 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
         habitoEditando,
         abrirModalEditarHabito,
         cerrarModalEditarHabito,
-        /* Modal subhábito */
+        /* Modal subhábito [217A-2c: unificado con ModalHabito] */
         subHabitoEditando,
-        habitoPadreDelSubHabito,
         abrirModalEditarSubHabito,
         cerrarModalEditarSubHabito,
         posponerSubHabitoConTiempo,

@@ -6,7 +6,7 @@
  */
 
 import {useState, useCallback, useEffect, useMemo} from 'react';
-import type {NivelImportancia, DatosNuevoHabito, FrecuenciaHabito, Habito, Participante, Tarea, DatosEdicionTarea, DatosNuevoSubHabito, VentanaOportunidad} from '../../types/dashboard';
+import type {NivelImportancia, DatosNuevoHabito, FrecuenciaHabito, Habito, SubHabito, Participante, Tarea, DatosEdicionTarea, DatosNuevoSubHabito, VentanaOportunidad} from '../../types/dashboard';
 import type {ParticipanteChat} from '../usePanelChat';
 import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
 import type {EstadoHabito} from '../../components/shared';
@@ -31,6 +31,9 @@ export interface UseModalHabitoProps {
     onConfigurarTarea?: (tarea: Tarea) => void;
     onActualizarOrdenTareasHabito?: (habitoId: number, tareasIds: number[]) => void;
     onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
+    /** Modo subhábito: cuando presente, el modal opera sobre un subhábito en vez de un hábito */
+    subHabito?: SubHabito | null;
+    habitoPadre?: Habito | null;
 }
 
 export interface UseModalHabitoReturn {
@@ -52,6 +55,7 @@ export interface UseModalHabitoReturn {
     setVentanaOportunidad: (v: VentanaOportunidad | undefined) => void;
     errores: {nombre?: string};
     esHabitoEspecialAyuno: boolean;
+    esModoSubHabito: boolean;
 
     /* Estado del hábito hoy */
     estadoHoy: EstadoHabito;
@@ -88,42 +92,49 @@ export function useModalHabito({
     habito,
     participantes = [],
     tareas = [],
-    onActualizarOrdenTareasHabito
+    onActualizarOrdenTareasHabito,
+    subHabito,
+    habitoPadre
 }: UseModalHabitoProps): UseModalHabitoReturn {
-    const modoEdicion = !!habito;
+    const modoEdicion = !!habito && !subHabito;
+    const esModoSubHabito = Boolean(subHabito);
 
     const habitoAyunoId = usePluginsStore(s => (s.configuracionPlugins['ayuno'] as unknown as {habitoId?: number} | undefined)?.habitoId);
     const esHabitoEspecialAyuno = !!(habito && habitoAyunoId && habito.id === habitoAyunoId);
 
     /* Estado local para edición */
-    const [nombre, setNombre] = useState(habito?.nombre || '');
+    const [nombre, setNombre] = useState((subHabito ? subHabito.nombre : habito?.nombre) || '');
     const [descripcion, setDescripcion] = useState(habito?.descripcion || '');
     const [icono, setIcono] = useState(habito?.icono || 'check-circle');
     const [colorIcono, setColorIcono] = useState(habito?.colorIcono || '#888888');
-    const [importancia, setImportancia] = useState<NivelImportancia>(habito?.importancia || 'Media');
-    const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>(habito?.frecuencia || FRECUENCIA_POR_DEFECTO);
-    const [ventanaOportunidad, setVentanaOportunidad] = useState<VentanaOportunidad | undefined>(habito?.ventanaOportunidad);
+    const [importancia, setImportancia] = useState<NivelImportancia>((subHabito ? subHabito.importancia : habito?.importancia) || 'Media');
+    const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>((subHabito ? subHabito.frecuencia : habito?.frecuencia) || FRECUENCIA_POR_DEFECTO);
+    const [ventanaOportunidad, setVentanaOportunidad] = useState<VentanaOportunidad | undefined>(subHabito ? subHabito.ventanaOportunidad : habito?.ventanaOportunidad);
     const [errores, setErrores] = useState<{nombre?: string}>({});
 
-    /* Hook para panel de chat */
+    /* Hook para panel de chat (solo en modo hábito) */
     const {chatVisible, toggleChat, tieneMensajesSinLeer, participantesChat, mostrarChatColumna} = usePanelChat({
         elementoId: habito?.id,
         elementoTipo: 'habito',
         participantes,
-        habilitado: modoEdicion
+        habilitado: modoEdicion && !esModoSubHabito
     });
 
     /* Estado de cumplimiento de hoy y acciones del store */
     const toggleHabito = useHabitosStore(state => state.toggleHabito);
     const posponerHabito = useHabitosStore(state => state.posponerHabito);
+    const toggleSubHabito = useHabitosStore(state => state.toggleSubHabito);
+    const posponerSubHabito = useHabitosStore(state => state.posponerSubHabitoConTiempo);
     const crearSubHabito = useHabitosStore(state => state.crearSubHabito);
     const editarSubHabito = useHabitosStore(state => state.editarSubHabito);
     const eliminarSubHabito = useHabitosStore(state => state.eliminarSubHabito);
-    const toggleSubHabito = useHabitosStore(state => state.toggleSubHabito);
     const hoy = obtenerFechaHoy();
 
     let estadoHoy: EstadoHabito = 'pendiente';
-    if (habito) {
+    if (subHabito) {
+        if (subHabito.historialCompletados?.includes(hoy)) estadoHoy = 'completado';
+        else if (subHabito.historialPospuestos?.includes(hoy)) estadoHoy = 'pospuesto';
+    } else if (habito) {
         if (habito.historialCompletados?.includes(hoy)) estadoHoy = 'completado';
         else if (habito.historialPospuestos?.includes(hoy)) estadoHoy = 'pospuesto';
     }
@@ -174,9 +185,17 @@ export function useModalHabito({
         return tareasHabito;
     }, [habito, tareas]);
 
-    /* Sincronizar estado cuando cambia el hábito */
+    /* Sincronizar estado cuando cambia el hábito o subhábito */
     useEffect(() => {
-        if (habito) {
+        if (subHabito) {
+            setNombre(subHabito.nombre);
+            setDescripcion('');
+            setIcono('check-circle');
+            setColorIcono('#888888');
+            setImportancia(subHabito.importancia);
+            setFrecuencia(subHabito.frecuencia || FRECUENCIA_POR_DEFECTO);
+            setVentanaOportunidad(subHabito.ventanaOportunidad);
+        } else if (habito) {
             setNombre(habito.nombre);
             setDescripcion(habito.descripcion || '');
             setIcono(habito.icono || 'check-circle');
@@ -194,66 +213,85 @@ export function useModalHabito({
             setVentanaOportunidad(undefined);
         }
         setErrores({});
-    }, [habito?.id, estaAbierto]);
+    }, [habito?.id, subHabito?.id, estaAbierto]);
 
-    /* Manejador de cambio de estado del hábito */
+    /* Manejador de cambio de estado del hábito o subhábito */
     const manejarCambioEstado = useCallback(
         (nuevoEstado: EstadoHabito) => {
-            if (!habito) return;
-
-            if (nuevoEstado === 'completado') {
-                toggleHabito(habito.id);
-            } else if (nuevoEstado === 'pospuesto') {
-                posponerHabito(habito.id);
-            } else if (nuevoEstado === 'pendiente') {
-                if (estadoHoy === 'completado') toggleHabito(habito.id);
-                else if (estadoHoy === 'pospuesto') posponerHabito(habito.id);
+            if (subHabito && habitoPadre) {
+                if (nuevoEstado === 'completado') {
+                    toggleSubHabito(habitoPadre.id, subHabito.id);
+                } else if (nuevoEstado === 'pospuesto') {
+                    posponerSubHabito(habitoPadre.id, subHabito.id, null);
+                } else if (nuevoEstado === 'pendiente') {
+                    if (estadoHoy === 'completado') toggleSubHabito(habitoPadre.id, subHabito.id);
+                    else if (estadoHoy === 'pospuesto') posponerSubHabito(habitoPadre.id, subHabito.id, null);
+                }
+            } else if (habito) {
+                if (nuevoEstado === 'completado') {
+                    toggleHabito(habito.id);
+                } else if (nuevoEstado === 'pospuesto') {
+                    posponerHabito(habito.id);
+                } else if (nuevoEstado === 'pendiente') {
+                    if (estadoHoy === 'completado') toggleHabito(habito.id);
+                    else if (estadoHoy === 'pospuesto') posponerHabito(habito.id);
+                }
             }
         },
-        [habito, estadoHoy, toggleHabito, posponerHabito]
+        [subHabito, habitoPadre, habito, estadoHoy, toggleSubHabito, posponerSubHabito, toggleHabito, posponerHabito]
     );
 
-    /* Validar formulario */
+    /* Validar formulario (mínimo 2 chars para subhábitos, 3 para hábitos) */
     const validarFormulario = useCallback((): boolean => {
         const nuevosErrores: {nombre?: string} = {};
+        const minLength = esModoSubHabito ? 2 : 3;
 
         if (!nombre.trim()) {
             nuevosErrores.nombre = 'El nombre es obligatorio';
-        } else if (nombre.trim().length < 3) {
-            nuevosErrores.nombre = 'El nombre debe tener al menos 3 caracteres';
+        } else if (nombre.trim().length < minLength) {
+            nuevosErrores.nombre = `El nombre debe tener al menos ${minLength} caracteres`;
         }
 
         setErrores(nuevosErrores);
         return Object.keys(nuevosErrores).length === 0;
-    }, [nombre]);
+    }, [nombre, esModoSubHabito]);
 
-    /* Guardar hábito */
+    /* Guardar hábito o subhábito */
     const manejarGuardar = useCallback(() => {
         if (!validarFormulario()) return;
 
-        const nombreSeguro = esHabitoEspecialAyuno ? 'Ayuno' : nombre.trim();
-
-        onGuardar({
-            nombre: nombreSeguro,
-            importancia,
-            tags: [],
-            frecuencia,
-            descripcion: descripcion.trim() || undefined,
-            icono,
-            colorIcono,
-            ventanaOportunidad
-        });
+        if (esModoSubHabito && subHabito && habitoPadre) {
+            editarSubHabito(habitoPadre.id, subHabito.id, {
+                nombre: nombre.trim(),
+                importancia,
+                frecuencia,
+                ventanaOportunidad
+            });
+        } else {
+            const nombreSeguro = esHabitoEspecialAyuno ? 'Ayuno' : nombre.trim();
+            onGuardar({
+                nombre: nombreSeguro,
+                importancia,
+                tags: [],
+                frecuencia,
+                descripcion: descripcion.trim() || undefined,
+                icono,
+                colorIcono,
+                ventanaOportunidad
+            });
+        }
         onCerrar();
-    }, [nombre, importancia, frecuencia, ventanaOportunidad, descripcion, icono, colorIcono, validarFormulario, onGuardar, onCerrar, esHabitoEspecialAyuno]);
+    }, [esModoSubHabito, subHabito, habitoPadre, nombre, importancia, frecuencia, ventanaOportunidad, descripcion, icono, colorIcono, validarFormulario, editarSubHabito, onGuardar, onCerrar, esHabitoEspecialAyuno]);
 
     /* Auto-guardado: al cerrar el modal, guardar si hay nombre válido */
     const manejarCerrarConGuardado = useCallback(() => {
-        if (nombre.trim().length >= 3) {
+        const minLength = esModoSubHabito ? 2 : 3;
+        if (nombre.trim().length >= minLength) {
             manejarGuardar();
         } else {
             onCerrar();
         }
-    }, [nombre, manejarGuardar, onCerrar]);
+    }, [nombre, manejarGuardar, onCerrar, esModoSubHabito]);
 
     /* Callback para reordenar tareas del hábito */
     const manejarReordenarTareas = useCallback(
@@ -265,8 +303,18 @@ export function useModalHabito({
         [habito, onActualizarOrdenTareasHabito]
     );
 
-    /* Callback para pausar hábito */
-    const manejarPausarHabito = habito && onPausarHabito ? () => onPausarHabito(habito.id) : undefined;
+    /* Callback para pausar hábito o subhábito */
+    const manejarPausarHabito = esModoSubHabito && subHabito && habitoPadre
+        ? () => {
+              editarSubHabito(habitoPadre.id, subHabito.id, {
+                  nombre: subHabito.nombre,
+                  importancia: subHabito.importancia,
+                  frecuencia: subHabito.frecuencia
+              });
+          }
+        : habito && onPausarHabito
+          ? () => onPausarHabito(habito.id)
+          : undefined;
 
     return {
         modoEdicion,
@@ -286,6 +334,7 @@ export function useModalHabito({
         setVentanaOportunidad,
         errores,
         esHabitoEspecialAyuno,
+        esModoSubHabito,
         estadoHoy,
         manejarCambioEstado,
         chatVisible,
