@@ -341,6 +341,7 @@ export const useHabitosStore = create<HabitosStore>()(
 
                 /* [2303A-41] Posponer hábito por tiempo (hasta fecha ISO) */
                 posponerHabitoConTiempo: (id, hasta) => {
+                    const hoy = obtenerFechaHoy();
                     const habito = get().habitos.find(h => h.id === id);
                     if (!habito) return;
 
@@ -349,10 +350,18 @@ export const useHabitosStore = create<HabitosStore>()(
                             habitos: state.habitos.map(h => {
                                 if (h.id !== id) return h;
                                 if (hasta === null) {
+                                    /* Quitar posposición temporal y también remover hoy de historialPospuestos */
                                     const {pospuestoHasta: _, ...sinPospuesto} = h;
-                                    return sinPospuesto as Habito;
+                                    return {
+                                        ...sinPospuesto,
+                                        historialPospuestos: (h.historialPospuestos || []).filter(f => f !== hoy)
+                                    } as Habito;
                                 }
-                                return {...h, pospuestoHasta: hasta};
+                                /* Establecer posposición temporal y también marcar hoy en historialPospuestos */
+                                const historialHoy = (h.historialPospuestos || []).includes(hoy)
+                                    ? h.historialPospuestos
+                                    : [...(h.historialPospuestos || []), hoy];
+                                return {...h, pospuestoHasta: hasta, historialPospuestos: historialHoy};
                             })
                         }),
                         false,

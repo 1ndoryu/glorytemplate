@@ -65,13 +65,14 @@ export function calcularPosponerHabito(
     nuevoHabito: Habito;
 } {
     if (estabaPospuestoHoy) {
-        /* Quitar pospuesto */
+        /* Quitar pospuesto — también limpiar pospuestoHasta si existe */
+        const {pospuestoHasta: _, ...resto} = habito;
         return {
             accion: 'despospuesto',
             nuevoHabito: {
-                ...habito,
+                ...resto,
                 historialPospuestos: (habito.historialPospuestos || []).filter(f => f !== hoy)
-            }
+            } as Habito
         };
     } else {
         /* Posponer */
