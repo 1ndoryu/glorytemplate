@@ -684,3 +684,35 @@ button.añadirHabito {
 .tablaFila[data-pausado='true'] .filaNombre {
     color: var(--dashboard-textoApagado);
 }
+
+/* 
+ * [218A-1] DRAG & DROP DE HABITOS (orden manual)
+ * Contenedor Reorder.Group y cada Reorder.Item
+ */
+.listaHabitosReorder {
+    display: contents;
+}
+
+.habitoReorderItem {
+    position: relative;
+    cursor: grab;
+    transition: box-shadow var(--dashboard-transicionNormal), background-color var(--dashboard-transicionNormal);
+}
+
+.habitoReorderItem:active {
+    cursor: grabbing;
+}
+
+/* Sombra y elevación al arrastrar */
+.habitoReorderItem[data-dragging='true'],
+.habitoReorderItem[style*='z-index'] {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--dashboard-fondoPanel);
+    z-index: 10;
+    border-radius: var(--dashboard-radioXs);
+}
+
+/* Cursor normal cuando drag está deshabilitado */
+.tablaFilaEditable:not(.habitoReorderItem .tablaFilaEditable) {
+    cursor: pointer;
+}

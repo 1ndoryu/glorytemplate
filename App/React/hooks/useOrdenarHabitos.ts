@@ -13,7 +13,7 @@ import {estaEnVentanaOportunidad} from '../utils/frecuenciaHabitos';
 /* Clave para persistencia en localStorage */
 const KEY_ORDEN_HABITOS = 'glory_orden_habitos';
 
-export type ModoOrdenHabitos = 'importancia' | 'inactividad' | 'racha' | 'nombre' | 'urgenciaPonderada';
+export type ModoOrdenHabitos = 'manual' | 'importancia' | 'inactividad' | 'racha' | 'nombre' | 'urgenciaPonderada';
 
 interface ModoOrdenInfo {
     id: ModoOrdenHabitos;
@@ -22,6 +22,7 @@ interface ModoOrdenInfo {
 }
 
 export const MODOS_ORDEN: ModoOrdenInfo[] = [
+    {id: 'manual', etiqueta: 'Manual', descripcion: 'Drag & Drop'},
     {id: 'importancia', etiqueta: 'Importancia', descripcion: 'Importancia'},
     {id: 'inactividad', etiqueta: 'Urgentes', descripcion: 'Urgencia'},
     {id: 'racha', etiqueta: 'Racha', descripcion: 'Racha'},
@@ -76,13 +77,30 @@ function calcularInactividadEfectiva(habito: Habito): number {
 /*
  * Funciones de ordenamiento por modo
  */
+/*
+ * Ordenar por posición manual (campo orden).
+ * Los hábitos sin orden van al final manteniendo su posición relativa.
+ */
+function ordenarManual(a: Habito, b: Habito): number {
+    if (a.orden !== undefined && b.orden !== undefined) return a.orden - b.orden;
+    if (a.orden !== undefined) return -1;
+    if (b.orden !== undefined) return 1;
+    return 0;
+}
+
 function ordenarPorImportancia(a: Habito, b: Habito): number {
     const pesoA = PESO_IMPORTANCIA[a.importancia];
     const pesoB = PESO_IMPORTANCIA[b.importancia];
 
     if (pesoA !== pesoB) return pesoB - pesoA;
 
-    /* Si misma importancia, ordenar por inactividad efectiva (más ciclos primero) */
+    /* [218A-1] Desempatar por orden manual si ambos tienen.
+     * Esto permite drag reorder dentro del mismo grupo de importancia. */
+    if (a.orden !== undefined && b.orden !== undefined && a.orden !== b.orden) {
+        return a.orden - b.orden;
+    }
+
+    /* Si misma importancia y sin orden manual, ordenar por inactividad efectiva (más ciclos primero) */
     return calcularInactividadEfectiva(b) - calcularInactividadEfectiva(a);
 }
 
@@ -120,6 +138,8 @@ interface UseOrdenarHabitosReturn {
     modoActual: ModoOrdenHabitos;
     cambiarModo: (modo: ModoOrdenHabitos) => void;
     modosDisponibles: ModoOrdenInfo[];
+    /* [218A-1] Flag para habilitar drag & drop en el panel */
+    esOrdenManual: boolean;
 }
 
 export function useOrdenarHabitos(habitos: Habito[], _modoInicial: ModoOrdenHabitos = 'importancia'): UseOrdenarHabitosReturn {
@@ -132,6 +152,8 @@ export function useOrdenarHabitos(habitos: Habito[], _modoInicial: ModoOrdenHabi
         const copia = [...habitos];
 
         switch (modoActual) {
+            case 'manual':
+                return copia.sort(ordenarManual);
             case 'importancia':
                 return copia.sort(ordenarPorImportancia);
             case 'inactividad':
@@ -158,6 +180,8 @@ export function useOrdenarHabitos(habitos: Habito[], _modoInicial: ModoOrdenHabi
         habitosOrdenados,
         modoActual,
         cambiarModo,
-        modosDisponibles: MODOS_ORDEN
+        modosDisponibles: MODOS_ORDEN,
+        /* [218A-1] Flag para habilitar drag & drop (igual patrón que useOrdenarTareas) */
+        esOrdenManual: modoActual === 'manual' || modoActual === 'importancia'
     };
 }

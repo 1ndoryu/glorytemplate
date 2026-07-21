@@ -29,11 +29,18 @@ interface PanelFocoPrioritarioProps {
     onDesmarcarDiaHabito?: (habitoId: number, fecha: string) => void;
     onActualizarHabito?: (id: number, datos: Partial<Habito>) => void;
     onCambiarModoHabitos: (modo: string) => void;
+    /* [218A-1] Orden manual para hábitos */
+    esOrdenManual?: boolean;
+    onReordenarHabitos?: (habitos: Habito[]) => void;
+    /* [217A-5] Callbacks para subhábitos */
+    onToggleSubHabito?: (habitoId: number, subHabitoId: number) => void;
+    onConfigurarSubHabito?: (habitoId: number, subHabitoId: number) => void;
+    onPosponerSubHabitoConTiempo?: (habitoId: number, subHabitoId: number, hasta: string | null) => void;
     renderHandleArrastre: (titulo?: string) => JSX.Element;
     handleMinimizar: JSX.Element;
 }
 
-export function PanelFocoPrioritario({habitos, modoOrdenHabitos, opcionesOrdenHabitos, configuracion, onAbrirModalCrearHabito, onAbrirModalConfigHabitos, onToggleHabito, onEditarHabito, onEliminarHabito, onPosponerHabito, onPausarHabito, onMarcarDiaHabito, onDesmarcarDiaHabito, onActualizarHabito, onCambiarModoHabitos, renderHandleArrastre, handleMinimizar}: PanelFocoPrioritarioProps): JSX.Element {
+export function PanelFocoPrioritario({habitos, modoOrdenHabitos, opcionesOrdenHabitos, configuracion, onAbrirModalCrearHabito, onAbrirModalConfigHabitos, onToggleHabito, onEditarHabito, onEliminarHabito, onPosponerHabito, onPausarHabito, onMarcarDiaHabito, onDesmarcarDiaHabito, onActualizarHabito, onCambiarModoHabitos, esOrdenManual, onReordenarHabitos, onToggleSubHabito, onConfigurarSubHabito, onPosponerSubHabitoConTiempo, renderHandleArrastre, handleMinimizar}: PanelFocoPrioritarioProps): JSX.Element {
     const [modoEnfoque, setModoEnfoque] = useState(false);
 
     return (
@@ -52,10 +59,10 @@ export function PanelFocoPrioritario({habitos, modoOrdenHabitos, opcionesOrdenHa
                     </>
                 }
             />
-            <TablaHabitos habitos={habitos} onAñadirHabito={onAbrirModalCrearHabito} onToggleHabito={onToggleHabito} onEditarHabito={onEditarHabito} onEliminarHabito={onEliminarHabito} onPosponerHabito={onPosponerHabito} onPausarHabito={onPausarHabito} onMarcarDiaHabito={onMarcarDiaHabito} onDesmarcarDiaHabito={onDesmarcarDiaHabito} onActualizarHabito={onActualizarHabito} configuracion={configuracion} />
+            <TablaHabitos habitos={habitos} onAñadirHabito={onAbrirModalCrearHabito} onToggleHabito={onToggleHabito} onEditarHabito={onEditarHabito} onEliminarHabito={onEliminarHabito} onPosponerHabito={onPosponerHabito} onPausarHabito={onPausarHabito} onMarcarDiaHabito={onMarcarDiaHabito} onDesmarcarDiaHabito={onDesmarcarDiaHabito} onActualizarHabito={onActualizarHabito} onToggleSubHabito={onToggleSubHabito} onConfigurarSubHabito={onConfigurarSubHabito} onPosponerSubHabitoConTiempo={onPosponerSubHabitoConTiempo} configuracion={configuracion} habilitarDrag={esOrdenManual} onReordenarHabitos={esOrdenManual ? onReordenarHabitos : undefined} />
 
             <OverlayEnfoque estaActivo={modoEnfoque} onCerrar={() => setModoEnfoque(false)} titulo="Habitos">
-                <TablaHabitos habitos={habitos} onAñadirHabito={onAbrirModalCrearHabito} onToggleHabito={onToggleHabito} onEditarHabito={onEditarHabito} onEliminarHabito={onEliminarHabito} onPosponerHabito={onPosponerHabito} onPausarHabito={onPausarHabito} onMarcarDiaHabito={onMarcarDiaHabito} onDesmarcarDiaHabito={onDesmarcarDiaHabito} onActualizarHabito={onActualizarHabito} configuracion={configuracion} />
+                <TablaHabitos habitos={habitos} onAñadirHabito={onAbrirModalCrearHabito} onToggleHabito={onToggleHabito} onEditarHabito={onEditarHabito} onEliminarHabito={onEliminarHabito} onPosponerHabito={onPosponerHabito} onPausarHabito={onPausarHabito} onMarcarDiaHabito={onMarcarDiaHabito} onDesmarcarDiaHabito={onDesmarcarDiaHabito} onActualizarHabito={onActualizarHabito} onToggleSubHabito={onToggleSubHabito} onConfigurarSubHabito={onConfigurarSubHabito} onPosponerSubHabitoConTiempo={onPosponerSubHabitoConTiempo} configuracion={configuracion} habilitarDrag={esOrdenManual} onReordenarHabitos={esOrdenManual ? onReordenarHabitos : undefined} />
             </OverlayEnfoque>
         </>
     );

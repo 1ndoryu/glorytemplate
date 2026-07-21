@@ -118,3 +118,6 @@ kamples-scraper/
 AGENTS.md
 .agent/code-sentinel/integrations/zed/target/
 target/
+
+# Freebuff desktop (local DB, no versionar)
+.freebuff/

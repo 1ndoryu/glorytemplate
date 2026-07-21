@@ -177,7 +177,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                     {/* Tareas sin grupo (o todas si secciones desactivadas) */}
                     {habilitarDrag ? (
                         <>
-                            <Reorder.Group axis="y" values={seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes" onContextMenu={manejarClickDerechoLista}>
+                            <Reorder.Group axis="y" values={seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes" onContextMenu={manejarClickDerechoLista} as="div">
                                 {(seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes).map(tareaPadre => {
                                     const subtareasVisibles = obtenerSubtareasVisibles(tareaPadre.id);
 

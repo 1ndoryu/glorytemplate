@@ -13,6 +13,7 @@
 import {useMapaCalorHabito} from '../../hooks/shared/useMapaCalorHabito';
 import {formatearFechaTooltip, DIAS_SEMANA_CORTO, MESES} from '../../utils/mapaCalorUtils';
 import type {FrecuenciaHabito} from '../../types/dashboard';
+import type {EstadoHabito} from '../../types/historialHabitos';
 
 /* Tipos */
 interface MapaCalorHabitoProps {
@@ -25,12 +26,17 @@ interface MapaCalorHabitoProps {
     frecuencia?: FrecuenciaHabito;
     /* Fecha de creación del hábito (para calcular ciclos) */
     fechaCreacion?: string;
+    /* [217A-3] Overrides opcionales para subhábitos */
+    historialCompletados?: string[];
+    historialPospuestos?: string[];
+    onMarcarDia?: (fecha: string, estado: EstadoHabito) => boolean;
+    onDesmarcarDia?: (fecha: string) => boolean;
 }
 
 /**
  * Componente principal del Mapa de Calor para Hábitos
  */
-export function MapaCalorHabito({habitoId, periodo = 'mes', compacto = false, enModal = false, frecuencia, fechaCreacion}: MapaCalorHabitoProps): JSX.Element {
+export function MapaCalorHabito({habitoId, periodo = 'mes', compacto = false, enModal = false, frecuencia, fechaCreacion, historialCompletados, historialPospuestos, onMarcarDia, onDesmarcarDia}: MapaCalorHabitoProps): JSX.Element {
     const {
         contenedorRef, fechas: _fechas, semanas,
         estadoGuardado, errorGuardado,
@@ -38,7 +44,7 @@ export function MapaCalorHabito({habitoId, periodo = 'mes', compacto = false, en
         estadisticasCalculadas, esRelevanteDia,
         mostrarEstadoCargando, mostrarEstadisticas, mostrarLeyenda,
         esHoy, esEditable
-    } = useMapaCalorHabito({habitoId, periodo, compacto, enModal, frecuencia, fechaCreacion});
+    } = useMapaCalorHabito({habitoId, periodo, compacto, enModal, frecuencia, fechaCreacion, historialCompletados, historialPospuestos, onMarcarDia, onDesmarcarDia});
 
     /* Renderizar celda */
     const renderCelda = (fecha: string, index: number) => {

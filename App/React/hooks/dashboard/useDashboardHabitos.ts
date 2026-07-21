@@ -25,6 +25,7 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
     const storeActualizarHistorial = useHabitosStore(state => state.actualizarHistorialHabito);
     const storeActualizarOrdenTareasHabito = useHabitosStore(state => state.actualizarOrdenTareasHabito);
     const storeRestaurarHabito = useHabitosStore(state => state.restaurarHabito);
+    const storeReordenarHabitos = useHabitosStore(state => state.reordenarHabitos);
     const storeInicializado = useHabitosStore(state => state.inicializado);
 
     /* Flag de cargando para hábitos desde store */
@@ -190,14 +191,22 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
         (id: number, hasta: string | null) => {
             const habito = habitos.find(h => h.id === id);
             if (!habito) return;
+
+            /* Guardar snapshot para undo */
+            const habitoAnterior = {...habito, historialPospuestos: [...(habito.historialPospuestos || [])]};
+
             storePosponerHabitoConTiempo(id, hasta);
             if (hasta) {
                 mostrarMensaje(`"${habito.nombre}" pospuesto`, 'exito');
             } else {
                 mostrarMensaje(`"${habito.nombre}" ya no está pospuesto`, 'exito');
             }
+
+            registrarAccion(`"${habito.nombre}" ${hasta ? 'pospuesto' : 'reanudado'}`, () => {
+                storeRestaurarHabito(habitoAnterior);
+            });
         },
-        [habitos, storePosponerHabitoConTiempo, mostrarMensaje]
+        [habitos, storePosponerHabitoConTiempo, storeRestaurarHabito, mostrarMensaje, registrarAccion]
     );
 
     /*
@@ -271,13 +280,31 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
         setSubHabitoEditandoId(null);
     }, []);
 
-    /* Posponer subhábito por tiempo */
+    /* [217A-4] Posponer subhábito por tiempo — con mensaje y undo.
+     * Guardamos el subhábito anterior antes de modificarlo para poder restaurar. */
     const storePosponerSubHabitoConTiempo = useHabitosStore(state => state.posponerSubHabitoConTiempo);
     const posponerSubHabitoConTiempo = useCallback(
         (habitoId: number, subHabitoId: number, hasta: string | null) => {
+            const padre = habitos.find(h => h.id === habitoId);
+            const subAnterior = padre?.subhabitos?.find(sh => sh.id === subHabitoId);
+            if (!subAnterior || !padre) return;
+
+            /* Guardar snapshot completo del padre para undo */
+            const padreAnterior = {...padre};
+
             storePosponerSubHabitoConTiempo(habitoId, subHabitoId, hasta);
+
+            if (hasta) {
+                mostrarMensaje(`"${subAnterior.nombre}" pospuesto`, 'exito');
+            } else {
+                mostrarMensaje(`"${subAnterior.nombre}" ya no está pospuesto`, 'exito');
+            }
+
+            registrarAccion(`"${subAnterior.nombre}" ${hasta ? 'pospuesto' : 'reanudado'}`, () => {
+                storeRestaurarHabito(padreAnterior);
+            });
         },
-        [storePosponerSubHabitoConTiempo]
+        [habitos, storePosponerSubHabitoConTiempo, storeRestaurarHabito, mostrarMensaje, registrarAccion]
     );
 
     return {
@@ -305,6 +332,8 @@ export function useDashboardHabitos({registrarAccion, mostrarMensaje}: UseDashbo
         abrirModalEditarSubHabito,
         cerrarModalEditarSubHabito,
         posponerSubHabitoConTiempo,
+        /* [218A-1] Reordenar hábitos (drag & drop manual) */
+        reordenarHabitos: storeReordenarHabitos,
         /* Utilidades de sistema */
         setHabitos: useHabitosStore.getState().setHabitos
     };

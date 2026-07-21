@@ -61,6 +61,7 @@ interface UseDashboardReturn {
     ejecutarDeshacer: () => void;
     descartarDeshacer: () => void;
     reordenarTareas: (tareas: Tarea[]) => void;
+    reordenarHabitos: (habitos: Habito[]) => void;
     proyectos?: Proyecto[];
     crearProyecto: (datos: DatosNuevoProyecto) => void;
     editarProyecto: (id: number, datos: Partial<Proyecto>) => void;
@@ -135,7 +136,7 @@ export function useDashboard(): UseDashboardReturn {
     }, [cargandoDatosLocales, setTareas]);
 
     // 3. Gestión de Hábitos
-    const {habitos, cargandoHabitos, toggleHabito, posponerHabito, posponerHabitoConTiempo, pausarHabito, actualizarHistorialHabito, actualizarOrdenTareasHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, subHabitoEditando, abrirModalEditarSubHabito, cerrarModalEditarSubHabito, posponerSubHabitoConTiempo} = useDashboardHabitos({registrarAccion, mostrarMensaje});
+    const {habitos, cargandoHabitos, toggleHabito, posponerHabito, posponerHabitoConTiempo, pausarHabito, actualizarHistorialHabito, actualizarOrdenTareasHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, subHabitoEditando, abrirModalEditarSubHabito, cerrarModalEditarSubHabito, posponerSubHabitoConTiempo, reordenarHabitos} = useDashboardHabitos({registrarAccion, mostrarMensaje});
 
     const cargandoDatos = cargandoHabitos || cargandoDatosLocales;
 
@@ -255,6 +256,7 @@ export function useDashboard(): UseDashboardReturn {
         ejecutarDeshacer,
         descartarDeshacer,
         reordenarTareas,
+        reordenarHabitos,
         sincronizacion,
         tiempoReal
     };

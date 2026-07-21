@@ -19,6 +19,12 @@ interface UseMapaCalorHabitoParams {
     enModal?: boolean;
     frecuencia?: FrecuenciaHabito;
     fechaCreacion?: string;
+    /* [217A-3] Overrides opcionales para subhábitos: permiten usar el heatmap
+     * sin lookup en el store de hábitos (subhábitos están anidados, no top-level) */
+    historialCompletados?: string[];
+    historialPospuestos?: string[];
+    onMarcarDia?: (fecha: string, estado: EstadoHabito) => boolean;
+    onDesmarcarDia?: (fecha: string) => boolean;
 }
 
 /* Constantes para el cálculo del número de semanas */
@@ -27,7 +33,7 @@ const GAP_CELDAS = 3;
 const ANCHO_POR_SEMANA = ANCHO_CELDA_MODAL + GAP_CELDAS;
 const MARGEN_LABEL = 18;
 
-export function useMapaCalorHabito({habitoId, periodo = 'mes', compacto = false, enModal = false, frecuencia}: UseMapaCalorHabitoParams) {
+export function useMapaCalorHabito({habitoId, periodo = 'mes', compacto = false, enModal = false, frecuencia, historialCompletados: historialCompletadosOverride, historialPospuestos: historialPospuestosOverride, onMarcarDia, onDesmarcarDia}: UseMapaCalorHabitoParams) {
     const habito = useHabito(habitoId);
     const estadoGuardado = useHabitosStore(state => state.estadoGuardado);
     const marcarDia = useHabitosStore(state => state.marcarDia);
@@ -40,9 +46,23 @@ export function useMapaCalorHabito({habitoId, periodo = 'mes', compacto = false,
     const contenedorRef = useRef<HTMLDivElement>(null);
     const [semanasCalculadas, setSemanasCalculadas] = useState<number | null>(null);
 
+    /* [217A-3] ¿Usar overrides de subhábito o lookup del store? */
+    const esSubHabito = historialCompletadosOverride !== undefined;
+
     /* Construir historial local */
     const historialLocal = useMemo(() => {
         const historial: Record<string, {estado: EstadoHabito; notas: string | null; fechaRegistro: string}> = {};
+
+        /* Para subhábitos: usar arrays directos (sin historial detallado del servidor) */
+        if (esSubHabito) {
+            for (const fecha of historialCompletadosOverride || []) {
+                historial[fecha] = {estado: 'completado', notas: null, fechaRegistro: ''};
+            }
+            for (const fecha of historialPospuestosOverride || []) {
+                historial[fecha] = {estado: 'pospuesto', notas: null, fechaRegistro: ''};
+            }
+            return historial;
+        }
 
         if (historialDetallado?.historial) {
             return historialDetallado.historial;
@@ -58,7 +78,7 @@ export function useMapaCalorHabito({habitoId, periodo = 'mes', compacto = false,
         }
 
         return historial;
-    }, [habito, historialDetallado]);
+    }, [habito, historialDetallado, esSubHabito, historialCompletadosOverride, historialPospuestosOverride]);
 
     /* Calcular semanas basado en el ancho del contenedor (modo modal) */
     useEffect(() => {
@@ -87,12 +107,12 @@ export function useMapaCalorHabito({habitoId, periodo = 'mes', compacto = false,
         return periodo === 'semana' ? 7 : 30;
     }, [periodo, enModal, semanasCalculadas]);
 
-    /* Cargar historial detallado al montar (modo modal con más días) */
+    /* Cargar historial detallado al montar (modo modal con más días) — solo para hábitos top-level */
     useEffect(() => {
-        if (habitoId > 0 && diasPeriodo > 30 && enModal) {
+        if (!esSubHabito && habitoId > 0 && diasPeriodo > 30 && enModal) {
             cargarHistorialDetallado(habitoId, diasPeriodo);
         }
-    }, [habitoId, diasPeriodo, enModal, cargarHistorialDetallado]);
+    }, [habitoId, diasPeriodo, enModal, cargarHistorialDetallado, esSubHabito]);
 
     /* Generar fechas y agruparlas */
     const {fechas, semanas} = useMemo(() => {
@@ -134,12 +154,23 @@ export function useMapaCalorHabito({habitoId, periodo = 'mes', compacto = false,
                 nuevoEstado = null;
             }
 
+            /* [217A-3] Usar callbacks de subhábito si están disponibles */
+            if (esSubHabito && onMarcarDia && onDesmarcarDia) {
+                if (nuevoEstado) {
+                    onMarcarDia(fecha, nuevoEstado);
+                } else {
+                    onDesmarcarDia(fecha);
+                }
+                fechasEnProcesoRef.current.delete(fecha);
+                return;
+            }
+
             const operacion = nuevoEstado ? marcarDia(habitoId, fecha, nuevoEstado) : desmarcarDia(habitoId, fecha);
             operacion.finally(() => {
                 fechasEnProcesoRef.current.delete(fecha);
             });
         },
-        [habitoId, marcarDia, desmarcarDia, historialLocal]
+        [habitoId, marcarDia, desmarcarDia, historialLocal, esSubHabito, onMarcarDia, onDesmarcarDia]
     );
 
     /* Clase CSS según estado */

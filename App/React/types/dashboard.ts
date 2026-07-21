@@ -122,6 +122,8 @@ export interface Habito {
     /* [014A-19] Timestamp de última modificación local (ms). Usado para resolución de
      * conflictos per-entity: el backend rechaza writes con updatedAt menor al existente. */
     updatedAt?: number;
+    /* Orden manual para drag & drop (menor = primero). Igual patrón que Tarea.orden */
+    orden?: number;
 }
 
 /*

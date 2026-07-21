@@ -46,6 +46,21 @@ export function obtenerVariantePrioridad(importancia: Habito['importancia']): Va
  * Maneja filtrado de hábitos y cálculo del grid template
  */
 export function useTablaHabitos(habitos: Habito[], configuracion: ConfiguracionHabitos = CONFIG_HABITOS_POR_DEFECTO) {
+    /* [217A-5] Estado de expansión para subhábitos en panel de hábitos */
+    const [habitosExpandidos, setHabitosExpandidos] = useState<Set<number>>(new Set());
+
+    const toggleExpansion = useCallback((habitoId: number) => {
+        setHabitosExpandidos(prev => {
+            const nuevo = new Set(prev);
+            if (nuevo.has(habitoId)) {
+                nuevo.delete(habitoId);
+            } else {
+                nuevo.add(habitoId);
+            }
+            return nuevo;
+        });
+    }, []);
+
     const habitosVisibles = useMemo(() => habitos.filter(habito => {
         if (habito.pausado) return false;
         if (configuracion.ocultarCompletadosHoy && fueCompletadoHoy(habito.ultimoCompletado, habito.historialCompletados)) return false;
@@ -67,7 +82,7 @@ export function useTablaHabitos(habitos: Habito[], configuracion: ConfiguracionH
         return {gridTemplateColumns: widths.join(' ')};
     }, [configuracion.columnasVisibles]);
 
-    return {habitosVisibles, habitosPausados, estiloGrid};
+    return {habitosVisibles, habitosPausados, estiloGrid, habitosExpandidos, toggleExpansion};
 }
 
 /*

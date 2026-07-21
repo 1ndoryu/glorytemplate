@@ -205,13 +205,13 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
 
                     /* [207A-3] Crear tarea virtual para el subhábito con tipo TareaSubHabito.
                      * Esto permite routing correcto en menú contextual y registro de actividad.
-                     * Prioridad hereda siempre del padre para consistencia visual en ejecución. */
+                     * [217A-5] Prioridad refleja la importancia propia del subhábito, no la del padre. */
                     const tareaSubhabito: TareaSubHabito = {
                         id: generarIdSubHabitoTarea(habito.id, subhabito.id),
                         texto: subhabito.nombre,
                         completado: false,
                         fechaCreacion: subhabito.fechaCreacion,
-                        prioridad: mapearImportanciaAPrioridad(habito.importancia),
+                        prioridad: mapearImportanciaAPrioridad(subhabito.importancia),
                         parentId: tareaHabito.id,
                         /* Sin urgencia propia (heredada del hábito visual) */
                         urgencia: undefined,

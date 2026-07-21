@@ -54,6 +54,7 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, h
         chatVisible, toggleChat, tieneMensajesSinLeer, participantesChat, mostrarChatColumna,
         tareasDelHabito, manejarReordenarTareas,
         manejarCrearSubHabito, manejarEditarSubHabito, manejarEliminarSubHabito, manejarToggleSubHabito,
+        manejarMarcarDiaSubHabito, manejarDesmarcarDiaSubHabito,
         manejarGuardar, manejarCerrarConGuardado, manejarPausarHabito
     } = useModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes, tareas, onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea, subHabito, habitoPadre});
 
@@ -106,6 +107,10 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, h
                                 onPausarHabito={manejarPausarHabito}
                                 modoEdicion={true}
                                 errorNombre={errores.nombre}
+                                /* [217A-3] Historial retroactivo de subhábitos */
+                                subHabito={subHabito}
+                                onMarcarDiaSubHabito={manejarMarcarDiaSubHabito}
+                                onDesmarcarDiaSubHabito={manejarDesmarcarDiaSubHabito}
                             />
                         </div>
                     </div>

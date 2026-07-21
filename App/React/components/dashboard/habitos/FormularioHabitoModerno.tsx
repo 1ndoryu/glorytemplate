@@ -15,8 +15,8 @@
 import {Pause, Play} from 'lucide-react';
 import type {NivelImportancia, FrecuenciaHabito, Habito, SubHabito, DatosNuevoSubHabito, VentanaOportunidad, Tarea, DatosEdicionTarea} from '../../../types/dashboard';
 import {CampoTituloLimpio, CampoSubtituloLimpio, SelectorIconoProyecto, SelectorEstadoHabitoPill, SelectorImportanciaPill, SelectorFrecuenciaPill, FilaPropiedades, SelectorVentanaOportunidad} from '../../shared';
-import {Boton} from '../../ui';
 import type {EstadoHabito} from '../../shared';
+import {Boton} from '../../ui';
 import {MapaCalorHabito} from '../../shared/MapaCalorHabito';
 import {ListaSubHabitos} from './ListaSubHabitos';
 
@@ -57,6 +57,10 @@ interface FormularioHabitoModernoProps {
     onEliminarSubHabito?: (subHabitoId: number) => void;
     onToggleSubHabito?: (subHabitoId: number) => void;
     onConfigurarSubHabito?: (subhabito: SubHabito) => void;
+    /* [217A-3] Subhábito actual (para mostrar mapa de calor en configuración de subhábito) */
+    subHabito?: SubHabito | null;
+    onMarcarDiaSubHabito?: (fecha: string, estado: EstadoHabito) => boolean;
+    onDesmarcarDiaSubHabito?: (fecha: string) => boolean;
     /* Tareas del hábito - Fase 14.8 (props requeridas por ModalHabito pero no usadas aquí) */
     tareasHabito?: Tarea[];
     onToggleTareaHabito?: (id: number) => void;
@@ -67,7 +71,7 @@ interface FormularioHabitoModernoProps {
     onEditarTareaHabito?: (id: number, datos: DatosEdicionTarea) => void;
 }
 
-export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, onDescripcionChange, icono, colorIcono, onIconoChange, importancia, onImportanciaChange, frecuencia, onFrecuenciaChange, ventanaOportunidad, onVentanaOportunidadChange, estadoHoy, onEstadoChange, onPausarHabito, habito, modoEdicion = false, errorNombre, nombreBloqueado = false, onCrearSubHabito, onEditarSubHabito, onEliminarSubHabito, onToggleSubHabito, onConfigurarSubHabito}: FormularioHabitoModernoProps): JSX.Element {
+export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, onDescripcionChange, icono, colorIcono, onIconoChange, importancia, onImportanciaChange, frecuencia, onFrecuenciaChange, ventanaOportunidad, onVentanaOportunidadChange, estadoHoy, onEstadoChange, onPausarHabito, habito, modoEdicion = false, errorNombre, nombreBloqueado = false, onCrearSubHabito, onEditarSubHabito, onEliminarSubHabito, onToggleSubHabito, onConfigurarSubHabito, subHabito, onMarcarDiaSubHabito, onDesmarcarDiaSubHabito}: FormularioHabitoModernoProps): JSX.Element {
     const estaPausado = habito?.pausado ?? false;
 
     /* Determinar si mostrar la sección de subhábitos */
@@ -136,14 +140,31 @@ export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, on
             {mostrarSubHabitos && habito && <ListaSubHabitos subhabitos={habito.subhabitos || []} onCrear={onCrearSubHabito!} onEditar={onEditarSubHabito} onEliminar={onEliminarSubHabito!} onToggle={onToggleSubHabito!} onConfigurarSubHabito={onConfigurarSubHabito} importanciaPadre={importancia} frecuenciaPadre={frecuencia} />}
 
             {/* Mapa de calor - solo en modo edicion */}
-            {modoEdicion && habito && habito.id > 0 && (
+            {/* [217A-3] Mostrar heatmap tanto para hábitos como para subhábitos */}
+            {modoEdicion && (
+                (habito && habito.id > 0) || (subHabito && subHabito.id > 0)
+            ) && (
                 <>
                     {/* Separador visual antes del historial */}
                     <div className="formularioHabitoModerno__separador" />
 
                     <div className="formularioHabitoModerno__historial">
                         <label className="formularioHabitoModerno__historialEtiqueta">Historial de cumplimiento</label>
-                        <MapaCalorHabito habitoId={habito.id} periodo="mes" enModal={true} frecuencia={habito.frecuencia} fechaCreacion={habito.fechaCreacion} />
+                        {subHabito ? (
+                            <MapaCalorHabito
+                                habitoId={0}
+                                periodo="mes"
+                                enModal={true}
+                                frecuencia={subHabito.frecuencia || frecuencia}
+                                fechaCreacion={subHabito.fechaCreacion}
+                                historialCompletados={subHabito.historialCompletados || []}
+                                historialPospuestos={subHabito.historialPospuestos || []}
+                                onMarcarDia={onMarcarDiaSubHabito}
+                                onDesmarcarDia={onDesmarcarDiaSubHabito}
+                            />
+                        ) : habito ? (
+                            <MapaCalorHabito habitoId={habito.id} periodo="mes" enModal={true} frecuencia={habito.frecuencia} fechaCreacion={habito.fechaCreacion} />
+                        ) : null}
                     </div>
                 </>
             )}

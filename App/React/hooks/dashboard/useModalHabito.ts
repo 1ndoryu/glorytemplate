@@ -78,6 +78,10 @@ export interface UseModalHabitoReturn {
     manejarEliminarSubHabito: (subHabitoId: number) => void;
     manejarToggleSubHabito: (subHabitoId: number) => void;
 
+    /* [217A-3] Historial retroactivo subhábitos */
+    manejarMarcarDiaSubHabito: (fecha: string, estado: EstadoHabito) => boolean;
+    manejarDesmarcarDiaSubHabito: (fecha: string) => boolean;
+
     /* Acciones */
     manejarGuardar: () => void;
     manejarCerrarConGuardado: () => void;
@@ -128,6 +132,9 @@ export function useModalHabito({
     const crearSubHabito = useHabitosStore(state => state.crearSubHabito);
     const editarSubHabito = useHabitosStore(state => state.editarSubHabito);
     const eliminarSubHabito = useHabitosStore(state => state.eliminarSubHabito);
+    /* [217A-3] Acciones de historial retroactivo para subhábitos */
+    const marcarDiaSubHabito = useHabitosStore(state => state.marcarDiaSubHabito);
+    const desmarcarDiaSubHabito = useHabitosStore(state => state.desmarcarDiaSubHabito);
     const hoy = obtenerFechaHoy();
 
     let estadoHoy: EstadoHabito = 'pendiente';
@@ -303,6 +310,26 @@ export function useModalHabito({
         [habito, onActualizarOrdenTareasHabito]
     );
 
+    /* [217A-3] Callbacks de historial retroactivo para subhábitos (mapa de calor).
+     * Usa EstadoHabito de historialHabitos (sin 'pendiente') porque el mapa de calor
+     * solo genera completado/pospuesto/null. 'pendiente' se maneja como null (desmarcar). */
+    const manejarMarcarDiaSubHabito = useCallback(
+        (fecha: string, estado: EstadoHabito) => {
+            if (!habitoPadre || !subHabito) return false;
+            /* 'pendiente' no es un estado del historial — tratar como desmarcar */
+            if (estado === 'pendiente') return desmarcarDiaSubHabito(habitoPadre.id, subHabito.id, fecha);
+            return marcarDiaSubHabito(habitoPadre.id, subHabito.id, fecha, estado);
+        },
+        [habitoPadre, subHabito, marcarDiaSubHabito, desmarcarDiaSubHabito]
+    );
+    const manejarDesmarcarDiaSubHabito = useCallback(
+        (fecha: string) => {
+            if (habitoPadre && subHabito) return desmarcarDiaSubHabito(habitoPadre.id, subHabito.id, fecha);
+            return false;
+        },
+        [habitoPadre, subHabito, desmarcarDiaSubHabito]
+    );
+
     /* Callback para pausar hábito o subhábito */
     const manejarPausarHabito = esModoSubHabito && subHabito && habitoPadre
         ? () => {
@@ -348,6 +375,8 @@ export function useModalHabito({
         manejarEditarSubHabito,
         manejarEliminarSubHabito,
         manejarToggleSubHabito,
+        manejarMarcarDiaSubHabito,
+        manejarDesmarcarDiaSubHabito,
         manejarGuardar,
         manejarCerrarConGuardado,
         manejarPausarHabito

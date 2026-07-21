@@ -72,13 +72,21 @@ interface HabitosActions {
     /* Actualizar orden de tareas del hábito - Fase 14.8 */
     actualizarOrdenTareasHabito: (habitoId: number, tareasIds: number[]) => void;
 
+    /* [218A-1] Reordenar hábitos (drag & drop manual). Actualiza campo orden de cada hábito. */
+    reordenarHabitos: (habitosReordenados: Habito[]) => void;
+
     /* SubHabitos: CRUD y toggle para hábitos anidados */
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => SubHabito | null;
-    editarSubHabito: (habitoId: number, subHabitoId: number, datos: DatosNuevoSubHabito) => void;
+    /* [217A-4] Partial: permite actualizar solo importancia, frecuencia, etc. sin requerir nombre */
+    editarSubHabito: (habitoId: number, subHabitoId: number, datos: Partial<DatosNuevoSubHabito>) => void;
     eliminarSubHabito: (habitoId: number, subHabitoId: number) => SubHabito | null;
     toggleSubHabito: (habitoId: number, subHabitoId: number) => {accion: 'completado' | 'desmarcado'} | null;
     /* Posponer subhábito por tiempo (independiente del padre). null = quitar */
     posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => void;
+
+    /* [217A-3] Historial retroactivo de subhábitos (para mapa de calor) */
+    marcarDiaSubHabito: (habitoId: number, subHabitoId: number, fecha: string, estado: EstadoHabito) => boolean;
+    desmarcarDiaSubHabito: (habitoId: number, subHabitoId: number, fecha: string) => boolean;
 }
 
 export type HabitosStore = HabitosState & HabitosActions;
@@ -602,6 +610,27 @@ export const useHabitosStore = create<HabitosStore>()(
                     );
                 },
 
+                /* [218A-1] Reordenar hábitos: asigna campo orden según posición en el array recibido */
+                reordenarHabitos: (habitosReordenados) => {
+                    set(
+                        state => {
+                            /* Crear mapa de orden por ID */
+                            const ordenMap = new Map(habitosReordenados.map((h, index) => [h.id, index]));
+
+                            return {
+                                habitos: state.habitos.map(h => {
+                                    const nuevoOrden = ordenMap.get(h.id);
+                                    if (nuevoOrden === undefined) return h;
+                                    if (h.orden === nuevoOrden) return h;
+                                    return {...h, orden: nuevoOrden};
+                                })
+                            };
+                        },
+                        false,
+                        'reordenarHabitos'
+                    );
+                },
+
                 /* SubHabitos: Crear subhábito heredando propiedades del padre */
                 crearSubHabito: (habitoId, datos) => {
                     /* [253A-1] Validar nombre no vacío para evitar subhábitos fantasma */
@@ -649,7 +678,9 @@ export const useHabitosStore = create<HabitosStore>()(
                     return nuevoSubHabito;
                 },
 
-                /* SubHabitos: Editar subhábito */
+                /* SubHabitos: Editar subhábito.
+                 * Los campos opcionales usan fallback al valor existente para que
+                 * llamadas parciales (ej: solo importancia) no borren nombre/frecuencia. */
                 editarSubHabito: (habitoId, subHabitoId, datos) => {
                     set(
                         state => ({
@@ -661,9 +692,10 @@ export const useHabitosStore = create<HabitosStore>()(
                                         if (sh.id !== subHabitoId) return sh;
                                         return {
                                             ...sh,
-                                            nombre: datos.nombre,
-                                            importancia: datos.importancia,
-                                            frecuencia: datos.frecuencia
+                                            nombre: datos.nombre ?? sh.nombre,
+                                            importancia: datos.importancia ?? sh.importancia,
+                                            frecuencia: datos.frecuencia ?? sh.frecuencia,
+                                            ventanaOportunidad: datos.ventanaOportunidad ?? sh.ventanaOportunidad
                                         };
                                     })
                                 };
@@ -774,6 +806,7 @@ export const useHabitosStore = create<HabitosStore>()(
                  * Similar a posponerHabitoConTiempo pero para subhábitos individuales.
                  * null = quitar posposición temporal. */
                 posponerSubHabitoConTiempo: (habitoId, subHabitoId, hasta) => {
+                    const hoy = obtenerFechaHoy();
                     set(
                         state => ({
                             habitos: state.habitos.map(h => {
@@ -783,10 +816,18 @@ export const useHabitosStore = create<HabitosStore>()(
                                     subhabitos: (h.subhabitos || []).map(sh => {
                                         if (sh.id !== subHabitoId) return sh;
                                         if (hasta === null) {
+                                            /* Quitar posposición temporal y remover hoy de historialPospuestos */
                                             const {pospuestoHasta: _, ...sinPospuesto} = sh;
-                                            return sinPospuesto as SubHabito;
+                                            return {
+                                                ...sinPospuesto,
+                                                historialPospuestos: (sh.historialPospuestos || []).filter(f => f !== hoy)
+                                            } as SubHabito;
                                         }
-                                        return {...sh, pospuestoHasta: hasta};
+                                        /* Establecer posposición temporal y marcar hoy en historialPospuestos */
+                                        const historialHoy = (sh.historialPospuestos || []).includes(hoy)
+                                            ? sh.historialPospuestos
+                                            : [...(sh.historialPospuestos || []), hoy];
+                                        return {...sh, pospuestoHasta: hasta, historialPospuestos: historialHoy};
                                     })
                                 };
                             })
@@ -794,6 +835,110 @@ export const useHabitosStore = create<HabitosStore>()(
                         false,
                         `posponerSubHabitoConTiempo/${hasta ? 'establecer' : 'quitar'}`
                     );
+                },
+
+                /* [217A-3] Historial retroactivo de subhábitos.
+                 * Permite marcar/desmarcar días individuales en el mapa de calor.
+                 * Opera directamente sobre el historialCompletados/historialPospuestos
+                 * del subhábito dentro del hábito padre. Sincrónico — el backend
+                 * persiste via la sincronización normal del store. */
+                marcarDiaSubHabito: (habitoId, subHabitoId, fecha, estado) => {
+                    const habito = get().habitos.find(h => h.id === habitoId);
+                    if (!habito) return false;
+                    const subHabito = habito.subhabitos?.find(sh => sh.id === subHabitoId);
+                    if (!subHabito) return false;
+
+                    const estadoNormalizado = estado === 'omitido' ? null : estado;
+
+                    set(
+                        state => ({
+                            habitos: state.habitos.map(h => {
+                                if (h.id !== habitoId) return h;
+                                return {
+                                    ...h,
+                                    subhabitos: (h.subhabitos || []).map(sh => {
+                                        if (sh.id !== subHabitoId) return sh;
+
+                                        let completados = [...(sh.historialCompletados || [])];
+                                        let pospuestos = [...(sh.historialPospuestos || [])];
+
+                                        if (estadoNormalizado === null) {
+                                            completados = completados.filter(f => f !== fecha);
+                                            pospuestos = pospuestos.filter(f => f !== fecha);
+                                        } else if (estadoNormalizado === 'completado') {
+                                            if (!completados.includes(fecha)) {
+                                                completados = [...completados, fecha].slice(-365);
+                                            }
+                                            pospuestos = pospuestos.filter(f => f !== fecha);
+                                        } else if (estadoNormalizado === 'pospuesto') {
+                                            if (!pospuestos.includes(fecha)) {
+                                                pospuestos = [...pospuestos, fecha].slice(-90);
+                                            }
+                                            completados = completados.filter(f => f !== fecha);
+                                        }
+
+                                        /* Recalcular ultimoCompletado */
+                                        const ordenados = [...completados].sort();
+                                        const hoyLocal = obtenerFechaHoy();
+                                        const ultimoCompletado = completados.includes(hoyLocal)
+                                            ? hoyLocal
+                                            : (ordenados.length > 0 ? ordenados[ordenados.length - 1] : undefined);
+
+                                        return {
+                                            ...sh,
+                                            historialCompletados: completados,
+                                            historialPospuestos: pospuestos,
+                                            ultimoCompletado
+                                        };
+                                    })
+                                };
+                            })
+                        }),
+                        false,
+                        'marcarDiaSubHabito'
+                    );
+
+                    /* Registrar actividad */
+                    const idVirtual = -(habitoId * 1000 + subHabitoId) - 100000;
+                    if (estadoNormalizado === 'completado') {
+                        registrarTareaCompletada(idVirtual, undefined, subHabito.nombre);
+                    } else if (estadoNormalizado === null || estadoNormalizado === 'pospuesto') {
+                        registrarTareaDesmarcada(idVirtual, undefined, subHabito.nombre);
+                    }
+
+                    invalidarCache();
+                    return true;
+                },
+
+                desmarcarDiaSubHabito: (habitoId, subHabitoId, fecha) => {
+                    const habito = get().habitos.find(h => h.id === habitoId);
+                    if (!habito) return false;
+                    const subHabito = habito.subhabitos?.find(sh => sh.id === subHabitoId);
+                    if (!subHabito) return false;
+
+                    set(
+                        state => ({
+                            habitos: state.habitos.map(h => {
+                                if (h.id !== habitoId) return h;
+                                return {
+                                    ...h,
+                                    subhabitos: (h.subhabitos || []).map(sh => {
+                                        if (sh.id !== subHabitoId) return sh;
+                                        return {
+                                            ...sh,
+                                            historialCompletados: (sh.historialCompletados || []).filter(f => f !== fecha),
+                                            historialPospuestos: (sh.historialPospuestos || []).filter(f => f !== fecha)
+                                        };
+                                    })
+                                };
+                            })
+                        }),
+                        false,
+                        'desmarcarDiaSubHabito'
+                    );
+
+                    invalidarCache();
+                    return true;
                 }
             }),
             {
@@ -968,13 +1113,19 @@ export const habitosActions = {
     getHabitos: () => useHabitosStore.getState().habitos,
     getHabito: (id: number) => useHabitosStore.getState().habitos.find(h => h.id === id),
     actualizarOrdenTareasHabito: (habitoId: number, tareasIds: number[]) => useHabitosStore.getState().actualizarOrdenTareasHabito(habitoId, tareasIds),
+    /* [218A-1] Reordenar hábitos (drag & drop manual) */
+    reordenarHabitos: (habitosReordenados: Habito[]) => useHabitosStore.getState().reordenarHabitos(habitosReordenados),
 
     /* SubHabitos */
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => useHabitosStore.getState().crearSubHabito(habitoId, datos),
-    editarSubHabito: (habitoId: number, subHabitoId: number, datos: DatosNuevoSubHabito) => useHabitosStore.getState().editarSubHabito(habitoId, subHabitoId, datos),
+    editarSubHabito: (habitoId: number, subHabitoId: number, datos: Partial<DatosNuevoSubHabito>) => useHabitosStore.getState().editarSubHabito(habitoId, subHabitoId, datos),
     eliminarSubHabito: (habitoId: number, subHabitoId: number) => useHabitosStore.getState().eliminarSubHabito(habitoId, subHabitoId),
     toggleSubHabito: (habitoId: number, subHabitoId: number) => useHabitosStore.getState().toggleSubHabito(habitoId, subHabitoId),
-    posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => useHabitosStore.getState().posponerSubHabitoConTiempo(habitoId, subHabitoId, hasta)
+    posponerSubHabitoConTiempo: (habitoId: number, subHabitoId: number, hasta: string | null) => useHabitosStore.getState().posponerSubHabitoConTiempo(habitoId, subHabitoId, hasta),
+
+    /* [217A-3] Historial retroactivo de subhábitos */
+    marcarDiaSubHabito: (habitoId: number, subHabitoId: number, fecha: string, estado: EstadoHabito) => useHabitosStore.getState().marcarDiaSubHabito(habitoId, subHabitoId, fecha, estado),
+    desmarcarDiaSubHabito: (habitoId: number, subHabitoId: number, fecha: string) => useHabitosStore.getState().desmarcarDiaSubHabito(habitoId, subHabitoId, fecha)
 };
 
 /* Exponer store globalmente para debugging/migración */

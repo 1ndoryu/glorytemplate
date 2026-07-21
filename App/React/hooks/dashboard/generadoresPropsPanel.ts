@@ -126,8 +126,8 @@ export function generarPropsPanelEjecucion(
         /* [207A-3] Subhábitos: store directo para toggle y eliminar */
         onToggleSubHabito: useHabitosStore.getState().toggleSubHabito,
         onEliminarSubHabito: useHabitosStore.getState().eliminarSubHabito,
-        /* [217A-2] Subhábitos: acciones independientes */
-        onPosponerSubHabitoConTiempo: useHabitosStore.getState().posponerSubHabitoConTiempo,
+        /* [217A-4] Subhábitos: posponer via dashboard wrapper (con mensaje + undo) */
+        onPosponerSubHabitoConTiempo: dashboard.posponerSubHabitoConTiempo,
         onActualizarSubHabito: useHabitosStore.getState().editarSubHabito,
         onConfigurarSubHabito: dashboard.abrirModalEditarSubHabito,
         modoCompacto: configTareas.configuracion.modoCompacto,
@@ -155,6 +155,9 @@ export function generarPropsPanelFocoPrioritario(
         habitos: ordenHabitos.habitosOrdenados,
         modoOrdenHabitos: ordenHabitos.modoActual,
         opcionesOrdenHabitos: opciones.opcionesOrdenHabitos,
+        /* [218A-1] Orden manual para hábitos */
+        esOrdenManual: ordenHabitos.esOrdenManual,
+        onReordenarHabitos: dashboard.reordenarHabitos,
         configuracion: configHabitos.configuracion,
         onAbrirModalCrearHabito: () => modales.abrirCreacionRapida('habito'),
         onAbrirModalConfigHabitos: () => modales.abrirModalConfigGlobal('habitos'),
@@ -168,6 +171,10 @@ export function generarPropsPanelFocoPrioritario(
         onDesmarcarDiaHabito: ctx.desmarcarDiaHabitoConSync,
         onActualizarHabito: dashboard.editarHabito,
         onCambiarModoHabitos: ordenHabitos.cambiarModo,
+        /* [217A-5] Subhábitos en panel de hábitos */
+        onToggleSubHabito: useHabitosStore.getState().toggleSubHabito,
+        onConfigurarSubHabito: dashboard.abrirModalEditarSubHabito,
+        onPosponerSubHabitoConTiempo: dashboard.posponerSubHabitoConTiempo,
         renderHandleArrastre,
         handleMinimizar
     };
