@@ -74,6 +74,8 @@ interface HabitosActions {
 
     /* [218A-1] Reordenar hábitos (drag & drop manual). Actualiza campo orden de cada hábito. */
     reordenarHabitos: (habitosReordenados: Habito[]) => void;
+    /* [218A-2] Actualizar orden de hábitos desde drag en panel de ejecución. Recibe Map<habitoId, orden>. */
+    actualizarOrdenHabitos: (ordenes: Map<number, number>) => void;
 
     /* SubHabitos: CRUD y toggle para hábitos anidados */
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => SubHabito | null;
@@ -631,6 +633,23 @@ export const useHabitosStore = create<HabitosStore>()(
                     );
                 },
 
+                /* [218A-2] Actualizar orden de hábitos desde drag en panel de ejecución.
+                 * Recibe un Map<habitoId, orden> con la nueva posición de cada hábito. */
+                actualizarOrdenHabitos: (ordenes) => {
+                    set(
+                        state => ({
+                            habitos: state.habitos.map(h => {
+                                const nuevoOrden = ordenes.get(h.id);
+                                if (nuevoOrden === undefined) return h;
+                                if (h.orden === nuevoOrden) return h;
+                                return {...h, orden: nuevoOrden};
+                            })
+                        }),
+                        false,
+                        'actualizarOrdenHabitos'
+                    );
+                },
+
                 /* SubHabitos: Crear subhábito heredando propiedades del padre */
                 crearSubHabito: (habitoId, datos) => {
                     /* [253A-1] Validar nombre no vacío para evitar subhábitos fantasma */
@@ -1115,6 +1134,8 @@ export const habitosActions = {
     actualizarOrdenTareasHabito: (habitoId: number, tareasIds: number[]) => useHabitosStore.getState().actualizarOrdenTareasHabito(habitoId, tareasIds),
     /* [218A-1] Reordenar hábitos (drag & drop manual) */
     reordenarHabitos: (habitosReordenados: Habito[]) => useHabitosStore.getState().reordenarHabitos(habitosReordenados),
+    /* [218A-2] Actualizar orden de hábitos desde drag en panel de ejecución */
+    actualizarOrdenHabitos: (ordenes: Map<number, number>) => useHabitosStore.getState().actualizarOrdenHabitos(ordenes),
 
     /* SubHabitos */
     crearSubHabito: (habitoId: number, datos: DatosNuevoSubHabito) => useHabitosStore.getState().crearSubHabito(habitoId, datos),

@@ -716,3 +716,18 @@ button.añadirHabito {
 .tablaFilaEditable:not(.habitoReorderItem .tablaFilaEditable) {
     cursor: pointer;
 }
+
+/* 
+ * [218A-2] DRAG DE HABITOS EN PANEL DE EJECUCION
+ * Los hábitos virtuales (TareaHabito) dentro de ListaTareas
+ * ahora son arrastrables. Estilos para feedback visual.
+ */
+.tareaPadreReorder .tablaFila,
+.tareaPadreReorder {
+    cursor: grab;
+}
+
+.tareaPadreReorder:active,
+.tareaPadreReorder .tablaFila:active {
+    cursor: grabbing;
+}

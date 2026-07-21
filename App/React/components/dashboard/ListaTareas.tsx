@@ -60,9 +60,11 @@ interface ListaTareasProps {
     onAbrirModalCrearHabito?: () => void;
     /* Ocultar placeholder vacío completo (útil dentro de proyectos expandidos) */
     ocultarPlaceholderVacio?: boolean;
+    /* [218A-2] Callback para actualizar orden de hábitos desde drag */
+    onReordenarHabitos?: (ordenes: Map<number, number>) => void;
 }
 
-export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, modoCompacto = false, onConfigurarTarea, onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, modoCompacto = false, onConfigurarTarea,    onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false, onReordenarHabitos}: ListaTareasProps): JSX.Element {
     const {
         pendientes, completadas,
         estaSeleccionada, manejarSeleccionMultiple, manejarClickDerechoLista,
@@ -84,7 +86,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
     } = useListaTareas({
         tareas, proyectoId, onEditarTarea, onCrearTarea, onEliminarTarea,
         onReordenarTareas, onConfigurarTarea, onToggleTarea,
-        ocultarSubtareasAutomaticamente
+        ocultarSubtareasAutomaticamente, onReordenarHabitos
     });
 
     /* Renderizado de Tarea Individual (Wrapper común) */
@@ -187,10 +189,9 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                                             value={tareaPadre}
                                             as="div"
                                             className={`posicionRelativa tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
-                                            /* [044A-12] Hábitos no son arrastrables: su orden lo define la urgencia,
-                                             * no el usuario. Arrastrarlos causaba persistir tareas virtuales
-                                             * (IDs negativos) en localStorage y abrir el modal de config. */
-                                            dragListener={!esTareaHabito(tareaPadre)}
+                                            /* [218A-2] dragListener eliminado: hábitos ahora SÍ son arrastrables.
+                                             * El handleReorder extrae la posición de los hábitos virtuales
+                                             * antes de filtrarlos, actualizando habito.orden en el store. */
                                             onPointerDown={(e: React.PointerEvent) => handleDragStart(tareaPadre.id, e)}
                                             onDragEnd={handleDragEnd}
                                             onDrag={(_: unknown, info: {offset: {x: number; y: number}}) => {

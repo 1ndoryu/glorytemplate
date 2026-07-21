@@ -1,5 +1,5 @@
 import {useState, useRef, useCallback} from 'react';
-import {Tarea, DatosEdicionTarea} from '../../types/dashboard';
+import {Tarea, DatosEdicionTarea, esTareaHabito} from '../../types/dashboard';
 import {obtenerSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
 
 interface UseTareaOrdenamientoProps {
@@ -9,9 +9,11 @@ interface UseTareaOrdenamientoProps {
     onReordenarTareas?: (tareas: Tarea[]) => void;
     onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
     setTareasExpandidas: React.Dispatch<React.SetStateAction<Set<number>>>;
+    /* [218A-2] Callback para actualizar orden de hábitos cuando se arrastran */
+    onReordenarHabitos?: (ordenes: Map<number, number>) => void;
 }
 
-export function useTareaOrdenamiento({tareas, pendientes, completadas, onReordenarTareas, onEditarTarea, setTareasExpandidas}: UseTareaOrdenamientoProps) {
+export function useTareaOrdenamiento({tareas, pendientes, completadas, onReordenarTareas, onEditarTarea, setTareasExpandidas, onReordenarHabitos}: UseTareaOrdenamientoProps) {
     const [tareaArrastrandoId, setTareaArrastrandoId] = useState<number | null>(null);
     const [esGestoSubtarea, setEsGestoSubtarea] = useState(false);
     const dragStartXRef = useRef<number>(0);
@@ -32,6 +34,22 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
     const handleReorder = useCallback(
         (nuevoOrdenPrincipales: Tarea[]) => {
             if (!onReordenarTareas || !onEditarTarea) return;
+
+            /* [218A-2] Extraer posición de hábitos virtuales ANTES de filtrarlos.
+             * Esto permite que el drag de hábitos en el panel de ejecución
+             * actualice el campo orden del hábito en el store. */
+            if (onReordenarHabitos) {
+                const ordenesHabitos = new Map<number, number>();
+                for (let i = 0; i < nuevoOrdenPrincipales.length; i++) {
+                    const item = nuevoOrdenPrincipales[i];
+                    if (esTareaHabito(item)) {
+                        ordenesHabitos.set(item.habitoId, i);
+                    }
+                }
+                if (ordenesHabitos.size > 0) {
+                    onReordenarHabitos(ordenesHabitos);
+                }
+            }
 
             /* [044A-25] Filtrar virtual tasks de hábitos (IDs negativos) al inicio.
              * Sin esto, el loop de reconstrucción incluye hábitos virtuales y sus

@@ -131,7 +131,11 @@ export function generarPropsPanelEjecucion(
         onActualizarSubHabito: useHabitosStore.getState().editarSubHabito,
         onConfigurarSubHabito: dashboard.abrirModalEditarSubHabito,
         modoCompacto: configTareas.configuracion.modoCompacto,
-        onConfigurarTarea: manejarConfigurarTarea
+        onConfigurarTarea: manejarConfigurarTarea,
+        /* [218A-2] Actualizar orden de hábitos desde drag en panel de ejecución */
+        onReordenarHabitos: (ordenes: Map<number, number>) => {
+            useHabitosStore.getState().actualizarOrdenHabitos(ordenes);
+        }
     };
 }
 

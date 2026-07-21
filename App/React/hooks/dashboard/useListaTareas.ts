@@ -25,6 +25,8 @@ export interface UseListaTareasParams {
     onConfigurarTarea?: (tarea: Tarea) => void;
     onToggleTarea?: (id: number) => void;
     ocultarSubtareasAutomaticamente?: boolean;
+    /* [218A-2] Callback para actualizar orden de hábitos desde drag en panel de ejecución */
+    onReordenarHabitos?: (ordenes: Map<number, number>) => void;
 }
 
 export function useListaTareas({
@@ -36,7 +38,8 @@ export function useListaTareas({
     onReordenarTareas,
     onConfigurarTarea,
     onToggleTarea: _onToggleTarea,
-    ocultarSubtareasAutomaticamente = false
+    ocultarSubtareasAutomaticamente = false,
+    onReordenarHabitos
 }: UseListaTareasParams) {
     /* Filtros básicos */
     /* [2303A-41] Excluir tareas pospuestas cuyo pospuestoHasta aún no llegó */
@@ -178,7 +181,8 @@ export function useListaTareas({
         completadas,
         onReordenarTareas,
         onEditarTarea,
-        setTareasExpandidas
+        setTareasExpandidas,
+        onReordenarHabitos
     });
 
     /* Datos calculados */
