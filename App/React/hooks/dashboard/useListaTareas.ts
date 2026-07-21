@@ -174,7 +174,7 @@ export function useListaTareas({
         tareaArrastrandoId, esGestoSubtarea, setEsGestoSubtarea,
         dragStartXRef, dragCurrentXRef,
         handleDragStart, handleDragEnd, handleReorder,
-        UMBRAL_INDENT
+        UMBRAL_INDENT, seArrastroRef
     } = useTareaOrdenamiento({
         tareas,
         pendientes,
@@ -253,7 +253,7 @@ export function useListaTareas({
         tareaArrastrandoId, esGestoSubtarea, setEsGestoSubtarea,
         dragStartXRef, dragCurrentXRef,
         handleDragStart, handleDragEnd, handleReorder,
-        UMBRAL_INDENT,
+        UMBRAL_INDENT, seArrastroRef,
         /* Datos calculados */
         tareasPrincipalesPendientes, tareasHabitoPendientes,
         tareasSinGrupo, tareasPorGrupo,

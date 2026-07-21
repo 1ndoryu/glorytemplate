@@ -703,19 +703,7 @@ button.añadirHabito {
     cursor: grabbing;
 }
 
-/* Sombra y elevación al arrastrar */
-.habitoReorderItem[data-dragging='true'],
-.habitoReorderItem[style*='z-index'] {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background-color: var(--dashboard-fondoPanel);
-    z-index: 10;
-    border-radius: var(--dashboard-radioXs);
-}
 
-/* Cursor normal cuando drag está deshabilitado */
-.tablaFilaEditable:not(.habitoReorderItem .tablaFilaEditable) {
-    cursor: pointer;
-}
 
 /* 
  * [218A-2] DRAG DE HABITOS EN PANEL DE EJECUCION

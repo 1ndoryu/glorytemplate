@@ -78,7 +78,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
         tareaArrastrandoId, esGestoSubtarea, setEsGestoSubtarea,
         dragStartXRef, dragCurrentXRef,
         handleDragStart, handleDragEnd, handleReorder,
-        UMBRAL_INDENT,
+        UMBRAL_INDENT, seArrastroRef,
         tareasPrincipalesPendientes,
         tareasSinGrupo, tareasPorGrupo,
         mensajesNoLeidosPorTarea,
@@ -194,6 +194,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                                              * antes de filtrarlos, actualizando habito.orden en el store. */
                                             onPointerDown={(e: React.PointerEvent) => handleDragStart(tareaPadre.id, e)}
                                             onDragEnd={handleDragEnd}
+                                            onClickCapture={(e: React.MouseEvent) => { if (seArrastroRef.current) { e.stopPropagation(); e.preventDefault(); } }}
                                             onDrag={(_: unknown, info: {offset: {x: number; y: number}}) => {
                                                 dragCurrentXRef.current = dragStartXRef.current + info.offset.x;
                                                 const nuevoEsGesto = info.offset.x > UMBRAL_INDENT;

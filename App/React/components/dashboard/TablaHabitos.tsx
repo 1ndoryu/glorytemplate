@@ -7,7 +7,7 @@
 
 import React, {useMemo, useCallback} from 'react';
 import {Reorder} from 'framer-motion';
-import {Clock, Flame, Target, Check, Pause, AlertTriangle, Play, Square, ChevronRight, ChevronDown} from 'lucide-react';
+import {Clock, Flame, Target, Check, Pause, AlertTriangle, Play, Square} from 'lucide-react';
 import type {Habito, SubHabito} from '../../types/dashboard';
 import {obtenerFechaHoy} from '../../utils/fecha';
 import {obtenerVariantePrioridad} from '../../hooks/dashboard/useTablaHabitos';
@@ -56,10 +56,6 @@ interface FilaHabitoProps {
     onActualizar?: (id: number, datos: Partial<Habito>) => void;
     configuracion: ConfiguracionHabitos;
     estiloGrid: React.CSSProperties;
-    /* [217A-5] Expansión de subhábitos */
-    tieneSubHabitos?: boolean;
-    estaExpandido?: boolean;
-    onToggleExpansion?: () => void;
 }
 
 /* [217A-5] Fila de subhábito — layout simplificado dentro de la tabla de hábitos */
@@ -140,7 +136,7 @@ function FilaSubHabito({subHabito, habitoPadreId, frecuenciaPadre, onToggle, onC
     );
 }
 
-function FilaHabito({habito, indice: _indice, onToggle, onEditar, onEliminar, onPosponer, onPausar, onMarcarDia, onDesmarcarDia, onActualizar, configuracion, estiloGrid, tieneSubHabitos, estaExpandido, onToggleExpansion}: FilaHabitoProps): JSX.Element {
+function FilaHabito({habito, indice: _indice, onToggle, onEditar, onEliminar, onPosponer, onPausar, onMarcarDia, onDesmarcarDia, onActualizar, configuracion, estiloGrid}: FilaHabitoProps): JSX.Element {
     const {
         mostrarAcciones, setMostrarAcciones,
         menuContextual,
@@ -178,14 +174,9 @@ function FilaHabito({habito, indice: _indice, onToggle, onEditar, onEliminar, on
     return (
         <>
             <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${configuracion.modoCompacto ? 'tablaFilaCompacta' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''} ${estaPausado ? 'tablaFilaPausada' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)} style={estiloGrid}>
-                {/* [217A-5] Chevron de expansión + Checkbox */}
+                {/* Checkbox */}
                 {configuracion.columnasVisibles.indice && (
                     <div className="tablaColumnaCheckbox" onClick={manejarToggle}>
-                        {tieneSubHabitos && (
-                            <span className="filaHabitoExpansion" onClick={e => { e.stopPropagation(); onToggleExpansion?.(); }} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter') onToggleExpansion?.(); }}>
-                                {estaExpandido ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                            </span>
-                        )}
                         <div className={`habitoCheckbox ${completadoHoy ? 'habitoCheckboxCompletado' : ''}`}>{completadoHoy && <Check size={10} />}</div>
                     </div>
                 )}
@@ -272,7 +263,7 @@ function FilaHabito({habito, indice: _indice, onToggle, onEditar, onEliminar, on
 }
 
 export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito, onPosponerHabito, onPausarHabito, onMarcarDiaHabito, onDesmarcarDiaHabito, onActualizarHabito, onToggleSubHabito, onConfigurarSubHabito, onPosponerSubHabitoConTiempo, habilitarDrag = false, onReordenarHabitos, configuracion = CONFIG_HABITOS_POR_DEFECTO}: TablaHabitosProps): JSX.Element {
-    const {habitosVisibles, habitosPausados, estiloGrid, habitosExpandidos, toggleExpansion} = useTablaHabitos(habitos, configuracion);
+    const {habitosVisibles, habitosPausados, estiloGrid} = useTablaHabitos(habitos, configuracion);
 
     return (
         <DashboardPanel id="tabla-habitos">
@@ -295,36 +286,24 @@ export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditar
                     {/* [218A-1] Filas de hábitos activos — con o sin drag & drop */}
                     {habilitarDrag && onReordenarHabitos ? (
                         <Reorder.Group axis="y" values={habitosVisibles} onReorder={onReordenarHabitos} className="listaHabitosReorder" as="div">
-                            {habitosVisibles.map((habito, index) => {
-                                const tieneSubHabitos = habito.subhabitos && habito.subhabitos.length > 0;
-                                const estaExpandido = habitosExpandidos.has(habito.id);
-
-                                return (
-                                    <Reorder.Item key={habito.id} value={habito} as="div" className="habitoReorderItem">
-                                        <FilaHabito habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} onPosponer={onPosponerHabito} onPausar={onPausarHabito} onMarcarDia={onMarcarDiaHabito} onDesmarcarDia={onDesmarcarDiaHabito} onActualizar={onActualizarHabito} configuracion={configuracion} estiloGrid={estiloGrid} tieneSubHabitos={tieneSubHabitos} estaExpandido={estaExpandido} onToggleExpansion={() => toggleExpansion(habito.id)} />
-
-                                        {tieneSubHabitos && estaExpandido && habito.subhabitos!.map(sub => (
-                                            <FilaSubHabito key={`sub-${sub.id}`} subHabito={sub} habitoPadreId={habito.id} frecuenciaPadre={habito.frecuencia} onToggle={onToggleSubHabito} onConfigurar={onConfigurarSubHabito} onPosponerConTiempo={onPosponerSubHabitoConTiempo} estiloGrid={estiloGrid} />
-                                        ))}
-                                    </Reorder.Item>
-                                );
-                            })}
-                        </Reorder.Group>
-                    ) : (
-                        habitosVisibles.map((habito, index) => {
-                            const tieneSubHabitos = habito.subhabitos && habito.subhabitos.length > 0;
-                            const estaExpandido = habitosExpandidos.has(habito.id);
-
-                            return (
-                                <React.Fragment key={habito.id}>
-                                    <FilaHabito habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} onPosponer={onPosponerHabito} onPausar={onPausarHabito} onMarcarDia={onMarcarDiaHabito} onDesmarcarDia={onDesmarcarDiaHabito} onActualizar={onActualizarHabito} configuracion={configuracion} estiloGrid={estiloGrid} tieneSubHabitos={tieneSubHabitos} estaExpandido={estaExpandido} onToggleExpansion={() => toggleExpansion(habito.id)} />
-
-                                    {tieneSubHabitos && estaExpandido && habito.subhabitos!.map(sub => (
+                            {habitosVisibles.map((habito, index) => (
+                                <Reorder.Item key={habito.id} value={habito} as="div" className="habitoReorderItem">
+                                    <FilaHabito habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} onPosponer={onPosponerHabito} onPausar={onPausarHabito} onMarcarDia={onMarcarDiaHabito} onDesmarcarDia={onDesmarcarDiaHabito} onActualizar={onActualizarHabito} configuracion={configuracion} estiloGrid={estiloGrid} />
+                                    {habito.subhabitos && habito.subhabitos.length > 0 && habito.subhabitos.map(sub => (
                                         <FilaSubHabito key={`sub-${sub.id}`} subHabito={sub} habitoPadreId={habito.id} frecuenciaPadre={habito.frecuencia} onToggle={onToggleSubHabito} onConfigurar={onConfigurarSubHabito} onPosponerConTiempo={onPosponerSubHabitoConTiempo} estiloGrid={estiloGrid} />
                                     ))}
-                                </React.Fragment>
-                            );
-                        })
+                                </Reorder.Item>
+                            ))}
+                        </Reorder.Group>
+                    ) : (
+                        habitosVisibles.map((habito, index) => (
+                            <React.Fragment key={habito.id}>
+                                <FilaHabito habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} onPosponer={onPosponerHabito} onPausar={onPausarHabito} onMarcarDia={onMarcarDiaHabito} onDesmarcarDia={onDesmarcarDiaHabito} onActualizar={onActualizarHabito} configuracion={configuracion} estiloGrid={estiloGrid} />
+                                {habito.subhabitos && habito.subhabitos.length > 0 && habito.subhabitos.map(sub => (
+                                    <FilaSubHabito key={`sub-${sub.id}`} subHabito={sub} habitoPadreId={habito.id} frecuenciaPadre={habito.frecuencia} onToggle={onToggleSubHabito} onConfigurar={onConfigurarSubHabito} onPosponerConTiempo={onPosponerSubHabitoConTiempo} estiloGrid={estiloGrid} />
+                                ))}
+                            </React.Fragment>
+                        ))
                     )}
 
                     {/* Seccion de habitos pausados */}

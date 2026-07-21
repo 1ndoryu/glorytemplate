@@ -18,6 +18,10 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
     const [esGestoSubtarea, setEsGestoSubtarea] = useState(false);
     const dragStartXRef = useRef<number>(0);
     const dragCurrentXRef = useRef<number>(0);
+    /* [218A-2] Ref para prevenir click después de drag.
+     * Cuando el usuario arrastra y suelta, el evento click se dispara
+     * en el TareaItem. Este flag lo suprime durante ~100ms. */
+    const seArrastroRef = useRef(false);
     const UMBRAL_INDENT = 40;
 
     const handleDragStart = useCallback((tareaId: number, evento: React.PointerEvent) => {
@@ -27,9 +31,13 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
     }, []);
 
     const handleDragEnd = useCallback(() => {
+        if (tareaArrastrandoId !== null) {
+            seArrastroRef.current = true;
+            setTimeout(() => { seArrastroRef.current = false; }, 100);
+        }
         setTareaArrastrandoId(null);
         setEsGestoSubtarea(false);
-    }, []);
+    }, [tareaArrastrandoId]);
 
     const handleReorder = useCallback(
         (nuevoOrdenPrincipales: Tarea[]) => {
@@ -123,6 +131,7 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
         handleDragStart,
         handleDragEnd,
         handleReorder,
-        UMBRAL_INDENT
+        UMBRAL_INDENT,
+        seArrastroRef
     };
 }
