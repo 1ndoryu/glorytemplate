@@ -9,7 +9,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect} from 'react';
-import {Check, Plus, Trash2, Pencil, Flame, Settings} from 'lucide-react';
+import {Check, Plus, Trash2, Flame, Settings} from 'lucide-react';
 import type {SubHabito, NivelImportancia, FrecuenciaHabito, DatosNuevoSubHabito} from '../../../types/dashboard';
 import {FRECUENCIA_POR_DEFECTO} from '../../../types/dashboard';
 import {obtenerFechaHoy} from '../../../utils/fecha';
@@ -128,22 +128,6 @@ function FilaSubHabito({subhabito, onToggle, onEliminar, onEditar, onConfigurar}
                     onPointerDown={e => e.stopPropagation()}
                     title="Configurar hábito">
                     <Settings size={14} />
-                </Boton>
-            )}
-
-            {/* Botón editar (solo si hay callback) */}
-            {onEditar && !editando && (
-                <Boton
-                    variante="icono"
-                    claseAdicional="listaTareasHabito__eliminar"
-                    onClick={e => {
-                        e.stopPropagation();
-                        setTextoEdicion(subhabito.nombre);
-                        setEditando(true);
-                    }}
-                    onPointerDown={e => e.stopPropagation()}
-                    title="Editar nombre">
-                    <Pencil size={14} />
                 </Boton>
             )}
 

@@ -108,17 +108,17 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
                 return;
             }
 
-            /* [207A-3] Subhábitos: click abre la configuración del hábito padre */
-            if (esTareaSubHabito(tarea) && onEditarHabito) {
+            /* [217A-2] Subhábitos: click abre la configuración del subhábito (no del padre) */
+            if (esTareaSubHabito(tarea) && onConfigurarSubHabito) {
                 evento.stopPropagation();
-                onEditarHabito(tarea.habitoPadreId);
+                onConfigurarSubHabito(tarea.habitoPadreId, tarea.subHabitoId);
                 return;
             }
 
             /* 3. Click normal en tarea = editar/configurar */
             iniciarEdicion();
         },
-        [iniciarEdicion, onSeleccionMultiple, tarea, modoSeleccionActivo, esHabito, onEditarHabito]
+        [iniciarEdicion, onSeleccionMultiple, tarea, modoSeleccionActivo, esHabito, onEditarHabito, onConfigurarSubHabito]
     );
 
     if (editando) {
@@ -166,13 +166,13 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
                             onEliminar={onEliminarHabito ? () => onEliminarHabito((tarea as TareaHabito).habitoId) : onEliminar}
                         />
                     )}
-                    {/* [207A-3] Subhábitos: acciones con configurar=hábito padre, eliminar=subhábito */}
+                    {/* [217A-2] Subhábitos: acciones independientes (configurar=subhábito, eliminar=subhábito) */}
                     {esTareaSubHabito(tarea) && (
                         <AccionesItem
                             acciones={[{id: estaEnTracking ? 'detener-tracking' : 'iniciar-tracking', icono: estaEnTracking ? <Square size={12} /> : <Play size={12} />, titulo: estaEnTracking ? 'Detener tracking' : 'Iniciar tracking', onClick: manejarTracking}]}
-                            mostrarConfigurar={!!onEditarHabito}
+                            mostrarConfigurar={!!onConfigurarSubHabito}
                             mostrarEliminar={!!onEliminarSubHabito}
-                            onConfigurar={onEditarHabito ? () => onEditarHabito(tarea.habitoPadreId) : undefined}
+                            onConfigurar={onConfigurarSubHabito ? () => onConfigurarSubHabito(tarea.habitoPadreId, tarea.subHabitoId) : undefined}
                             onEliminar={onEliminarSubHabito ? () => onEliminarSubHabito(tarea.habitoPadreId, tarea.subHabitoId) : undefined}
                         />
                     )}

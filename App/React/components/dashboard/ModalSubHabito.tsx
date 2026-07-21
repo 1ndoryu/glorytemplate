@@ -1,14 +1,16 @@
 /*
  * ModalSubHabito
  * Modal para configurar un subhábito individual.
+ * Reutiliza FormularioHabitoModerno para consistencia visual con ModalHabito.
  * Abre desde ListaSubHabitos o desde el menú contextual de subhábitos en Ejecución.
  *
  * [217A-2] Configuración independiente de subhábitos.
+ * [217A-2b] Reutiliza FormularioHabitoModerno en vez de formulario propio.
  */
 
 import type {SubHabito, Habito} from '../../types/dashboard';
 import {AccionesFormulario, Modal} from '../shared';
-import {FormularioSubHabito} from './habitos/FormularioSubHabito';
+import {FormularioHabitoModerno} from './habitos/FormularioHabitoModerno';
 import {useModalSubHabito} from '../../hooks/dashboard/useModalSubHabito';
 
 interface ModalSubHabitoProps {
@@ -41,7 +43,7 @@ export function ModalSubHabito({estaAbierto, onCerrar, subhabito, habitoPadre}: 
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo="Configurar subhábito" claseExtra="modalContenedor--moderno">
             <div className="formularioHabito">
-                <FormularioSubHabito
+                <FormularioHabitoModerno
                     nombre={nombre}
                     onNombreChange={setNombre}
                     importancia={importancia}
@@ -52,8 +54,9 @@ export function ModalSubHabito({estaAbierto, onCerrar, subhabito, habitoPadre}: 
                     onVentanaOportunidadChange={setVentanaOportunidad}
                     estadoHoy={estadoHoy}
                     onEstadoChange={manejarCambioEstado}
-                    onPausarSubHabito={manejarPausarHabito}
-                    subhabito={subhabito}
+                    onPausarHabito={manejarPausarHabito}
+                    habito={habitoPadre}
+                    modoEdicion={true}
                     errorNombre={errores.nombre}
                 />
             </div>
