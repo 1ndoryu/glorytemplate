@@ -1,8 +1,9 @@
 /*
  * TareaReorderItem
- * Componente interno que envuelve un Reorder.Item con un handle de arrastre dedicado.
- * Framer Motion requiere que useDragControls se use dentro de un componente renderizado
- * en cada ítem, no dentro del map, por eso se extrae a este componente.
+ * Componente interno que envuelve un Reorder.Item para el arrastre de tareas.
+ * Framer Motion permite arrastrar desde cualquier punto del item.
+ *
+ * [218A-fix] Se usa ID primitivo (number) como value para estabilidad de referencias.
  */
 
 import {Reorder} from 'framer-motion';
@@ -39,16 +40,17 @@ export function TareaReorderItem({
 }: TareaReorderItemProps): JSX.Element {
     return (
         <Reorder.Item
-            value={tareaPadre}
+            /* [218A-fix] Usar ID primitivo (number) como value en vez del objeto Tarea.
+             * Framer Motion usa Object.is (===) para emparejar items entre renders.
+             * Los números son inmutables: 1 === 1 siempre, sin importar re-renders. */
+            value={tareaPadre.id}
             as="div"
             className={`posicionRelativa tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
             onPointerDown={(e: React.PointerEvent) => handleDragStart(tareaPadre.id, e)}
             onDragEnd={handleDragEnd}
             onClickCapture={(e: React.MouseEvent) => { if (seArrastroRef.current) { e.stopPropagation(); e.preventDefault(); } }}
             onDrag={(_: unknown, info: {offset: {x: number; y: number}}) => {
-                /* [218A-2] Marcar que realmente se movió el ítem para que,
-                 * si Framer Motion dispara un click posterior, el capture lo suprima.
-                 * Se usa un pequeño umbral para no suprimir clicks por temblores. */
+                /* Marcar que realmente se movió el ítem para suprimir clicks posteriores */
                 if (Math.abs(info.offset.x) > 3 || Math.abs(info.offset.y) > 3) {
                     seArrastroRef.current = true;
                 }

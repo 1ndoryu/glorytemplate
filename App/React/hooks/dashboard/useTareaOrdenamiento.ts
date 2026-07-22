@@ -11,9 +11,13 @@ interface UseTareaOrdenamientoProps {
     setTareasExpandidas: React.Dispatch<React.SetStateAction<Set<number>>>;
     /* [218A-2] Callback para actualizar orden de hábitos cuando se arrastran */
     onReordenarHabitos?: (ordenes: Map<number, number>) => void;
+    /* [218A-fix] Tareas principales pendientes para lookup por ID en handleReorder.
+     * Necesario porque Reorder.Group ahora rastrea IDs primitivos en vez de objetos,
+     * y handleReorder necesita convertir IDs de vuelta a objetos Tarea. */
+    tareasPrincipalesPendientes: Tarea[];
 }
 
-export function useTareaOrdenamiento({tareas, pendientes, completadas, onReordenarTareas, onEditarTarea, setTareasExpandidas, onReordenarHabitos}: UseTareaOrdenamientoProps) {
+export function useTareaOrdenamiento({tareas, pendientes, completadas, onReordenarTareas, onEditarTarea, setTareasExpandidas, onReordenarHabitos, tareasPrincipalesPendientes}: UseTareaOrdenamientoProps) {
     const [tareaArrastrandoId, setTareaArrastrandoId] = useState<number | null>(null);
     const [esGestoSubtarea, setEsGestoSubtarea] = useState(false);
     const dragStartXRef = useRef<number>(0);
@@ -42,8 +46,26 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
     }, []);
 
     const handleReorder = useCallback(
-        (nuevoOrdenPrincipales: Tarea[]) => {
+        /* [218A-fix] Ahora recibe number[] (IDs primitivos) en vez de Tarea[].
+         * Framer Motion rastrea items por igualdad de referencia (===).
+         * Cuando setTareas recrea los objetos con .map(), todas las referencias
+         * cambian y FM pierde el tracking → items se "snapean" a su posición original.
+         * Usar IDs primitivos (number) inmuniza el drag contra re-renders,
+         * porque 1 === 1 es siempre true sin importar cuántos re-renders ocurran. */
+        (nuevoOrdenIds: number[]) => {
             if (!onReordenarTareas || !onEditarTarea) return;
+
+            /* Mapa de lookup: ID → objeto Tarea actual.
+             * Se construye con tareasPrincipalesPendientes para cubrir tanto
+             * tareas reales (IDs positivos) como virtuales de hábitos (IDs negativos). */
+            const principalesMap = new Map(tareasPrincipalesPendientes.map(t => [t.id, t]));
+
+            /* Convertir IDs de vuelta a objetos Tarea, preservando el orden nuevo */
+            const nuevoOrdenPrincipales: Tarea[] = [];
+            for (const id of nuevoOrdenIds) {
+                const tarea = principalesMap.get(id);
+                if (tarea) nuevoOrdenPrincipales.push(tarea);
+            }
 
             /* [218A-2] Extraer posición de hábitos virtuales ANTES de filtrarlos.
              * Esto permite que el drag de hábitos en el panel de ejecución
@@ -121,7 +143,7 @@ export function useTareaOrdenamiento({tareas, pendientes, completadas, onReorden
             /* Combinar con completadas al final */
             onReordenarTareas([...nuevaListaPendientes, ...completadas]);
         },
-        [pendientes, completadas, onReordenarTareas, onEditarTarea, tareaArrastrandoId, tareas, setTareasExpandidas]
+        [pendientes, completadas, onReordenarTareas, onEditarTarea, tareaArrastrandoId, tareas, setTareasExpandidas, tareasPrincipalesPendientes]
     );
 
     return {

@@ -182,6 +182,9 @@
 /* WhatsApp multi-usuario */
 @import './componentes/whatsapp/whatsapp.css';
 
+/* Plugin Recordatorios */
+@import './componentes/recordatorios.css';
+
 /* Estilos Movil (PWA) - Siempre al final para mayor especificidad */
 /* Modularizado en archivos específicos por funcionalidad */
 @import './movilBase.css';

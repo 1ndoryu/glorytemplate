@@ -164,7 +164,12 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
                 };
 
                 return tareaHabito;
-            });
+            })
+            /* [218A-3] Ordenar por campo 'orden' para que el drag en panel de Ejecución
+             * persista visualmente. Sin este sort, el array itera en orden del store de hábitos
+             * y actualizarOrdenEjecucionHabitos no tiene efecto visual en modo manual.
+             * ordenEjecucion ?? orden ya se asigna arriba; aquí solo reordenamos el array. */
+            .sort((a, b) => (a.orden ?? Infinity) - (b.orden ?? Infinity));
     }, [habitos, mostrarHabitos, umbrales]);
 
     /*

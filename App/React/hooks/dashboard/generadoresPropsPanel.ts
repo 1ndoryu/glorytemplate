@@ -313,6 +313,14 @@ export function generarPropsPanelIA(
 
 /* [253A-11] Props para PanelGruposFb
  * [263A-5] Agrega callback para abrir config (token, API URL) */
+export function generarPropsPanelRecordatorios(
+    _ctx: PropsContextoPaneles,
+    renderHandleArrastre: (titulo?: string) => JSX.Element,
+    handleMinimizar: JSX.Element
+) {
+    return {renderHandleArrastre, handleMinimizar};
+}
+
 export function generarPropsPanelGruposFb(
     ctx: PropsContextoPaneles,
     renderHandleArrastre: (titulo?: string) => JSX.Element,
@@ -339,7 +347,8 @@ export const GENERADORES_PROPS: Record<string, Function> = {
     'deficit-calorico': generarPropsPanelDeficitCalorico,
     ia: generarPropsPanelIA,
     /* [253A-11] Panel Grupos FB — solo necesita props base */
-    gruposFb: generarPropsPanelGruposFb
+    gruposFb: generarPropsPanelGruposFb,
+    recordatorios: generarPropsPanelRecordatorios
 };
 
 export function obtenerGeneradorPropsPanel(panelId: string, baseId: string): Function {

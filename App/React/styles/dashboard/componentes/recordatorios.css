@@ -1,0 +1,329 @@
+/*
+ * Estilos para el plugin de Recordatorios
+ */
+
+/* Contenido principal del panel */
+.recordatoriosContenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    padding: var(--dashboard-espacioMd);
+    gap: var(--dashboard-espacioMd);
+}
+
+/* Estado vacío */
+.recordatoriosVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    color: var(--dashboard-textoApagado);
+    text-align: center;
+    padding: var(--dashboard-espacioLg) 0;
+}
+
+.recordatoriosVacio span {
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoIndice);
+}
+
+.recordatoriosVacio p {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+    margin: 0;
+}
+
+/* Imágenes del recordatorio */
+.recordatoriosImagenes {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
+}
+
+.recordatoriosImagenItem {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--dashboard-radioSm);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    transition: transform var(--dashboard-transicionRapida), box-shadow var(--dashboard-transicionRapida);
+}
+
+.recordatoriosImagenItem:hover {
+    transform: scale(1.05);
+    box-shadow: var(--dashboard-sombraMediana);
+}
+
+.recordatoriosImagenItem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Texto del recordatorio */
+.recordatoriosTexto {
+    text-align: center;
+    max-width: 100%;
+}
+
+.recordatoriosTexto p {
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    line-height: 1.6;
+    margin: 0;
+    word-break: break-word;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+/* Variantes de tamaño de fuente */
+.recordatoriosTexto--pequeno p {
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.recordatoriosTexto--grande p {
+    font-size: var(--dashboard-tamanoGrande);
+    line-height: 1.8;
+}
+
+/* Indicador de total de recordatorios */
+.recordatoriosIndicador {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXxs);
+    color: var(--dashboard-textoMuyApagado);
+    font-size: var(--dashboard-tamanoMuyPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+/* Overlay enfoque: imágenes grandes */
+.recordatoriosEnfoqueImagenes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.recordatoriosEnfoqueImagenes img {
+    max-width: 100%;
+    max-height: 60vh;
+    border-radius: var(--dashboard-radioMd);
+    object-fit: contain;
+}
+
+.recordatoriosEnfoqueTexto {
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoGrande);
+    line-height: 1.6;
+    text-align: center;
+    margin: 0;
+    padding: var(--dashboard-espacioMd);
+}
+
+/* === Modal Recordatorios Guardados === */
+
+.recordatoriosLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) 0;
+}
+
+.recordatorioCard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: var(--dashboard-radioSm);
+    transition: background-color var(--dashboard-transicionRapida);
+    position: relative;
+}
+
+.recordatorioCard:hover {
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* Imágenes en la card */
+.recordatorioCardImagenes {
+    display: flex;
+    gap: var(--dashboard-espacioXxs);
+    flex-wrap: wrap;
+}
+
+.recordatorioCardImagen {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--dashboard-radioXs);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.recordatorioCardImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recordatorioCardImagenMas {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--dashboard-radioXs);
+    background: var(--dashboard-fondoHover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--dashboard-tamanoMuyPequeno);
+    color: var(--dashboard-textoApagado);
+    flex-shrink: 0;
+}
+
+/* Texto de la card */
+.recordatorioCardTexto {
+    margin: 0;
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoPequeno);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.recordatorioCardTexto--imagen {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXxs);
+    color: var(--dashboard-textoApagado);
+    font-style: italic;
+}
+
+/* Edición inline en la card */
+.recordatorioCardEdicion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+}
+
+.recordatorioCardEdicionInput {
+    flex: 1;
+    font-size: var(--dashboard-tamanoPequeno) !important;
+}
+
+.recordatorioCardEdicionAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioXxs);
+    flex-shrink: 0;
+}
+
+/* Acciones de la card (visibles en hover) */
+.recordatorioCardAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioXxs);
+    opacity: 0;
+    transition: opacity var(--dashboard-transicionRapida);
+    position: absolute;
+    right: var(--dashboard-espacioSm);
+    top: var(--dashboard-espacioSm);
+}
+
+.recordatorioCard:hover .recordatorioCardAcciones {
+    opacity: 1;
+}
+
+/* === Modal Crear Recordatorio === */
+
+/* Zona de drop activa */
+.recordatorioDropActivo {
+    border-color: var(--dashboard-estadoExito) !important;
+    box-shadow: 0 0 20px rgba(var(--dashboard-exitoRgb, 0, 200, 80), 0.3);
+}
+
+/* Indicador visual de drop */
+.recordatorioDropIndicador {
+    padding: 2rem;
+    text-align: center;
+    color: var(--dashboard-estadoExito);
+    font-size: var(--dashboard-tamanoPequeno);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+/* Confirmación de imágenes múltiples */
+.recordatorioConfirmacion {
+    padding: var(--dashboard-espacioLg);
+    text-align: center;
+}
+
+.recordatorioConfirmacionPregunta {
+    margin-bottom: var(--dashboard-espacioMd);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.recordatorioConfirmacionSub {
+    margin-bottom: var(--dashboard-espacioLg);
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.recordatorioConfirmacionAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    justify-content: center;
+}
+
+/* Thumbnails de adjuntos en creación */
+.recordatorioAdjuntosPreview {
+    padding: 0 var(--dashboard-espacioLg) var(--dashboard-espacioSm);
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+    flex-wrap: wrap;
+}
+
+.recordatorioAdjuntoThumb {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--dashboard-radioSm);
+    overflow: hidden;
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.recordatorioAdjuntoThumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recordatorioAdjuntoEliminar {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--dashboard-estadoAlta);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Error de subida */
+.recordatorioErrorSubida {
+    color: var(--dashboard-estadoAlta) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXxs);
+    font-size: var(--dashboard-tamanoMuyPequeno);
+}

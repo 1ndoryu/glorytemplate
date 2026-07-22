@@ -9,7 +9,7 @@
  * La activación real se hace desde el ModalPlugins cuando el usuario lo activa.
  */
 
-import {Timer, Utensils, Users, Bot, ImageUp} from 'lucide-react';
+import {Timer, Utensils, Users, Bot, ImageUp, Bell} from 'lucide-react';
 import {createElement} from 'react';
 import type {ComponentType} from 'react';
 import {registrarPlugin} from './registroPlugins';
@@ -22,6 +22,7 @@ import {PanelDeficitCalorico} from '../components/paneles/PanelDeficitCalorico';
 import {PanelGruposFb} from '../components/paneles/PanelGruposFb';
 import {PanelIA} from '../components/paneles/PanelIA';
 import {PanelEscaladorImagen} from '../components/paneles/PanelEscaladorImagen';
+import {PanelRecordatorios} from '../components/paneles/PanelRecordatorios';
 
 /* Helper para posiciones (reutilizado de inicializarPaneles) */
 function crearPosicionDefecto(
@@ -204,6 +205,36 @@ registrarPanel({
     enNavegacionMovil: false,
     idPaginaMovil: 'ia',
     /* [105E] El chat IA usa el resize estándar del dashboard; antes quedaba sin handle de altura. */
+    manejaAlturaPropia: false
+});
+
+/*
+ * Plugin de Recordatorios
+ * Muestra recordatorios aleatorios (texto e imágenes) en intervalos configurables
+ * Desactivado por defecto — se activa desde la sección Plugins
+ */
+registrarPlugin({
+    id: 'recordatorios',
+    nombre: 'Recordatorios',
+    descripcion: 'Muestra recordatorios aleatorios (texto e imágenes) en intervalos configurables',
+    icono: createElement(Bell, {size: 18}),
+    version: '1.0.0',
+    panelesIds: ['recordatorios'],
+    requiereConfiguracion: false
+});
+
+/* Registrar panel del plugin de Recordatorios */
+registrarPanel({
+    id: 'recordatorios',
+    titulo: 'Recordatorios',
+    tituloMovil: 'Recuerdos',
+    icono: createElement(Bell, {size: 14}),
+    visiblePorDefecto: false,
+    alturaDefecto: '300px',
+    posicionDefecto: crearPosicionDefecto([1, 9], [2, 7], [3, 7]),
+    componente: PanelRecordatorios as ComponentType<PanelBaseProps>,
+    enNavegacionMovil: false,
+    idPaginaMovil: 'recordatorios',
     manejaAlturaPropia: false
 });
 

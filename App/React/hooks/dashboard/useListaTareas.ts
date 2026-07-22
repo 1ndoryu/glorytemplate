@@ -169,6 +169,20 @@ export function useListaTareas({
         ocultarSubtareasAutomaticamente
     });
 
+    /* Datos calculados (declarados antes de useTareaOrdenamiento porque se pasan como prop) */
+    /* [044A-1] tareasPrincipalesPendientes incluye hábitos en el Reorder.Group
+     * para que aparezcan en la lista, pero dragListener=false los hacen
+     * no arrastrables (044A-12). Así se ven pero no contaminan el reorder.
+     * [218A-fix] Se necesita aquí (no después) para pasar a useTareaOrdenamiento. */
+    const tareasPrincipalesPendientes = useMemo(
+        () => pendientes.filter(t => !t.parentId),
+        [pendientes]
+    );
+    const tareasHabitoPendientes = useMemo(
+        () => pendientes.filter(t => esTareaHabito(t)),
+        [pendientes]
+    );
+
     /* Lógica de Ordenamiento (Drag & Drop) */
     const {
         tareaArrastrandoId, esGestoSubtarea, setEsGestoSubtarea,
@@ -182,21 +196,9 @@ export function useListaTareas({
         onReordenarTareas,
         onEditarTarea,
         setTareasExpandidas,
-        onReordenarHabitos
+        onReordenarHabitos,
+        tareasPrincipalesPendientes
     });
-
-    /* Datos calculados */
-    /* [044A-1] tareasPrincipalesPendientes incluye hábitos en el Reorder.Group
-     * para que aparezcan en la lista, pero dragListener=false los hace
-     * no arrastrables (044A-12). Así se ven pero no contaminan el reorder. */
-    const tareasPrincipalesPendientes = useMemo(
-        () => pendientes.filter(t => !t.parentId),
-        [pendientes]
-    );
-    const tareasHabitoPendientes = useMemo(
-        () => pendientes.filter(t => esTareaHabito(t)),
-        [pendientes]
-    );
 
     /* Separar tareas en grupos y sin grupo (cuando secciones está activo) */
     const {tareasSinGrupo, tareasPorGrupo} = useMemo(() => {

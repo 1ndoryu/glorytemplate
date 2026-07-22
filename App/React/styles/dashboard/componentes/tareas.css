@@ -477,7 +477,7 @@
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
-    background: var(--dashboard-fondoPanel);
+    background: var(--dashboard-fondoSecundario);
     border: 1px solid var(--dashboard-bordePrincipal);
     border-radius: var(--dashboard-radioMd);
     box-shadow: var(--dashboard-sombraMediana);
@@ -517,7 +517,7 @@
  * ARRASTRAR Y REORDENAR
  */
 
-/* [218A-3] Handle de arrastre dedicado para Reorder.Item */
+/* [218A-3] Handle de arrastre dedicado para Reorder.Item (clase legacy) */
 .tareaArrastreHandle {
     display: flex;
     align-items: center;
@@ -545,7 +545,8 @@
 }
 
 
-/* 
+
+/*
  * Contenedor del item padre en el reorder
  * Contiene la tarea padre y todas sus subtareas
  */

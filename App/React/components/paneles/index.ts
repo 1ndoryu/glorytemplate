@@ -9,3 +9,4 @@ export {PanelEjecucion} from './PanelEjecucion';
 export {PanelScratchpad} from './PanelScratchpad';
 export {PanelActividad} from './PanelActividad';
 export {PanelIA} from './PanelIA';
+export {PanelRecordatorios} from './PanelRecordatorios';

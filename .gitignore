@@ -121,3 +121,4 @@ target/
 
 # Freebuff desktop (local DB, no versionar)
 .freebuff/
+App/React/nul

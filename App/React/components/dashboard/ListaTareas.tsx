@@ -180,7 +180,19 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
                     {/* Tareas sin grupo (o todas si secciones desactivadas) */}
                     {habilitarDrag ? (
-                        <>                            <Reorder.Group axis="y" values={seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes" onContextMenu={manejarClickDerechoLista} as="div">
+                        <>                            <Reorder.Group
+                                axis="y"
+                                /* [218A-fix] Rastrear IDs primitivos (number) en vez de objetos Tarea.
+                                 * Framer Motion usa Object.is (===) para emparejar items entre renders.
+                                 * Cuando setTareas recrea los objetos con .map(), todas las referencias
+                                 * cambian → FM pierde el tracking → drag se cancela (snapping back).
+                                 * Los IDs primitivos son inmutables: 1 === 1 siempre, inmune a re-renders. */
+                                values={(seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes).map(t => t.id)}
+                                onReorder={handleReorder}
+                                className="listaTareasPendientes"
+                                onContextMenu={manejarClickDerechoLista}
+                                as="div"
+                            >
                                 {(seccionesActivas ? tareasSinGrupo : tareasPrincipalesPendientes).map(tareaPadre => (
                                     <TareaReorderItem
                                         key={tareaPadre.id}
@@ -201,7 +213,8 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                             </Reorder.Group>
 
                             {/* [044A-1] Hábitos ahora se incluyen dentro del Reorder.Group
-                             * via tareasPrincipalesPendientes. Ya no se renderizan por separado. */}
+                             * via tareasPrincipalesPendientes. Ya no se renderizan por separado.
+                             * [218A-fix] IDs primitivos corrigen drag intermitente. */}
                         </>
                     ) : (
                         <div className="listaTareasPendientes">
