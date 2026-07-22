@@ -220,20 +220,19 @@ class AdjuntosService
     }
 
     /**
-     * Genera URL para descargar archivo
-     * Todos los archivos pasan por la API para garantizar autenticación
+     * Genera URL para descargar archivo con token HMAC firmado.
+     * Todos los archivos (cifrados y no cifrados) llevan token para que
+     * funcionen desde <img> tags y otros contextos sin headers de auth.
+     * Sin token, un <img src="..."> no puede enviar X-WP-Nonce y la cookie
+     * de sesión WordPress puede no acompañar la request → 401.
      */
     private function generarUrlDescarga(int $adjuntoId, string $nombreArchivo, bool $cifrado): string
     {
-        if ($cifrado) {
-            return AdjuntosTokenService::generarUrlConToken(
-                $adjuntoId,
-                $this->userId,
-                $nombreArchivo
-            );
-        }
-
-        return rest_url("glory/v1/adjuntos/{$adjuntoId}") . '?file=' . urlencode($nombreArchivo);
+        return AdjuntosTokenService::generarUrlConToken(
+            $adjuntoId,
+            $this->userId,
+            $nombreArchivo
+        );
     }
 
     /** Genera URL para thumbnail */
