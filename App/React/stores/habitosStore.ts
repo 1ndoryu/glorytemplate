@@ -155,7 +155,19 @@ export const useHabitosStore = create<HabitosStore>()(
                         if (final.length === h.subhabitos.length) return h;
                         return {...h, subhabitos: final};
                     });
-                    set({habitos: sanitizados, inicializado: true}, false, 'setHabitos');
+                    /* [247A-2] Preservar ordenEjecucion local si el servidor no lo envía.
+                     * Esto previene pérdida del orden manual del panel de Ejecución
+                     * cuando el sync descarga datos que no incluyen este campo. */
+                    const actuales = get().habitos;
+                    const conOrdenPreservado = sanitizados.map(h => {
+                        if (h.ordenEjecucion !== undefined) return h;
+                        const existente = actuales.find(a => a.id === h.id);
+                        if (existente?.ordenEjecucion !== undefined) {
+                            return {...h, ordenEjecucion: existente.ordenEjecucion};
+                        }
+                        return h;
+                    });
+                    set({habitos: conOrdenPreservado, inicializado: true}, false, 'setHabitos');
                 },
 
                 marcarInicializado: () => {

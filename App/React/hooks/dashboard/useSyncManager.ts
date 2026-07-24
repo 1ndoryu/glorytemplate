@@ -315,6 +315,13 @@ export function useSyncManager({currentData, onDataReceived, debounceMs = 2000, 
                 return;
             }
 
+            /* [247A-2] Actualizar lastModified INMEDIATAMENTE al detectar cambio,
+             * no dentro del debounce. Si el usuario recarga antes de que el debounce
+             * de 2s se ejecute, lastModified > lastSync será true y performInitialSync
+             * subirá los cambios locales en vez de descargar datos obsoletos del servidor.
+             * Esto previene pérdida de ordenEjecucion y otros cambios de store. */
+            setSyncMeta(prev => ({...prev, lastModified: Date.now()}));
+
             // 2. Debounce Save
             if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
