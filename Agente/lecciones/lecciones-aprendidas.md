@@ -22,3 +22,13 @@
 - El campo `orden` se actualiza correctamente en `reordenarTareas`, pero el sort lo sobreescribe antes de que el DOM lo refleje
 - **Patrón de fix:** usar un `useRef` como flag (`skipNextSortRef`) que se activa antes del `setState` y se lee en el `useMemo` del sort. Un solo render sin sort basta para que el orden manual se estabilice.
 - **Regla:** cuando combines drag & drop con sort reactivo, siempre necesitas un mecanismo para "proteger" el render post-drag del sort automático.
+
+## 2026-07-24 — lastModified dentro del debounce = pérdida de datos al recargar
+
+### El sync manager actualizaba `lastModified` tarde
+- `useSyncManager` tenía `setSyncMeta({lastModified: Date.now()})` DENTRO del `setTimeout` de 2s
+- Si el usuario recargaba antes de que el debounce se ejecutara, `lastModified` seguía siendo el valor de la sync anterior
+- `performInitialSync` comparaba `lastModified <= lastSync` → false → descargaba datos del servidor → pisaba cambios locales no sincronizados
+- **Patrón de fix:** actualizar `lastModified` INMEDIATAMENTE al detectar `hasChanges`, antes del debounce. El debounce solo controla el HTTP request, no la metadata de estado.
+- **Regla general:** cualquier metadata que determine si hay cambios pendientes debe actualizarse en el momento del cambio, no en el momento del flush/sync. El debounce es para el envío, no para el registro del estado.
+- **Segundo patrón defensivo:** al recibir datos del servidor en `setHabitos`, preservar campos locales (como `ordenEjecucion`) que el servidor no incluya. Esto protege contra race conditions y datos parciales.
