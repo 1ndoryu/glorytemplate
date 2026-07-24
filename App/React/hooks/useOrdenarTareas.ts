@@ -12,7 +12,7 @@
  * - Tarea media (prio 2) con 3 días de retraso > tarea media con 1 día de retraso
  */
 
-import {useMemo} from 'react';
+import {useMemo, useRef, useCallback} from 'react';
 import {type Tarea, type NivelPrioridad, type NivelUrgencia, esTareaHabito} from '../types/dashboard';
 import {useLocalStorage} from './useLocalStorage';
 import {obtenerFechaHoy, sumarDias} from '../utils/fecha';
@@ -195,11 +195,30 @@ export function useOrdenarTareas(tareas: Tarea[], opciones: {ignorarUrgencia?: b
         return compararPorFecha(a, b);
     };
 
+    /* [247A-1] Ref para saltar el sort en el render posterior a un drag manual.
+     * Cuando el usuario reordena por drag en modo 'prioridad', el sort por prioridad
+     * se ejecuta en el siguiente render y sobreescribe el orden manual.
+     * skipNextSort() se llama ANTES de setTareas en reordenarTareas.
+     * El useMemo lee el ref, devuelve tareas sin sortear, y resetea el flag. */
+    const skipNextSortRef = useRef(false);
+
+    const skipNextSort = useCallback(() => {
+        skipNextSortRef.current = true;
+    }, []);
+
     /*
      * Ordenar tareas manteniendo grupos de hermanos
      * ListaTareas construye el árbol basado en parentId
      */
     const tareasOrdenadas = useMemo(() => {
+        /* [247A-1] Si se acaba de hacer un drag manual, devolver tareas en su orden
+         * actual (que ya refleja el orden del usuario via reordenarTareas).
+         * El compararPorPrioridad se reactivará en el siguiente render normal. */
+        if (skipNextSortRef.current) {
+            skipNextSortRef.current = false;
+            return tareas;
+        }
+
         if (modoActual === 'manual') return tareas;
 
         const tareasCopy = [...tareas];
@@ -221,6 +240,8 @@ export function useOrdenarTareas(tareas: Tarea[], opciones: {ignorarUrgencia?: b
         cambiarModo: setModoActual,
         tareasOrdenadas,
         esOrdenManual: modoActual === 'manual' || modoActual === 'prioridad',
-        modosDisponibles: MODOS_ORDEN_TAREAS
+        modosDisponibles: MODOS_ORDEN_TAREAS,
+        /* [247A-1] Llamar antes de setTareas tras drag manual para preservar orden */
+        skipNextSort
     };
 }

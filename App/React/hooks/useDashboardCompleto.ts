@@ -115,6 +115,24 @@ export function useDashboardCompleto() {
         ignorarUrgencia: configTareas.configuracion.ignorarUrgenciaEnPrioridad
     });
 
+    /* [247A-1] Wrapper de reordenarTareas que indica a useOrdenarTareas que
+     * saltee el sort en el render inmediatamente posterior al drag.
+     * Sin esto, el compararPorPrioridad reordena todo en el siguiente render
+     * y el orden manual del usuario se pierde. */
+    const reordenarTareasConSkip = useCallback(
+        (tareasReordenadas: Tarea[]) => {
+            ordenTareas.skipNextSort();
+            dashboard.reordenarTareas(tareasReordenadas);
+        },
+        [ordenTareas.skipNextSort, dashboard.reordenarTareas]
+    );
+
+    /* Dashboard con reordenarTareas envuelto para skipNextSort */
+    const dashboardConOrden = useMemo(
+        () => ({...dashboard, reordenarTareas: reordenarTareasConSkip}),
+        [dashboard, reordenarTareasConSkip]
+    );
+
     const layout = useConfiguracionLayout();
     const arrastre = useArrastrePaneles(layout.ordenPaneles, layout.reordenarPanel);
 
@@ -149,7 +167,7 @@ export function useDashboardCompleto() {
     const valorFiltroActual = filtroTareas.filtroActual.tipo === 'proyecto' ? `proyecto-${filtroTareas.filtroActual.proyectoId}` : filtroTareas.filtroActual.tipo;
 
     return {
-        dashboard,
+        dashboard: dashboardConOrden,
         auth,
         suscripcion,
         esAdmin,
