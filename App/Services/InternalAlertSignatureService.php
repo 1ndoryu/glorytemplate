@@ -13,9 +13,11 @@ final class InternalAlertSignatureService
         if (strlen($secret) < 32) {
             throw new \RuntimeException('Gateway no configurado');
         }
-        $timestamp = (string)($headers['x-glory-timestamp'][0] ?? '');
-        $nonce = (string)($headers['x-glory-nonce'][0] ?? '');
-        $signature = strtolower((string)($headers['x-glory-signature'][0] ?? ''));
+        /* [267A-9] WP_REST_Request canonicaliza nombres a snake_case en
+         * get_headers(); aceptar ambas formas evita rechazar firmas validas. */
+        $timestamp = self::headerValue($headers, 'x-glory-timestamp');
+        $nonce = self::headerValue($headers, 'x-glory-nonce');
+        $signature = strtolower(self::headerValue($headers, 'x-glory-signature'));
         if (!ctype_digit($timestamp) || abs(time() - (int)$timestamp) > 300) {
             throw new \UnexpectedValueException('Timestamp inválido');
         }
@@ -27,6 +29,16 @@ final class InternalAlertSignatureService
             throw new \UnexpectedValueException('Firma inválida');
         }
         self::claimNonce($nonce);
+    }
+
+    private static function headerValue(array $headers, string $name): string
+    {
+        $normalized = strtolower(str_replace('-', '_', $name));
+        $value = $headers[$normalized] ?? $headers[strtolower($name)] ?? '';
+        if (is_array($value)) {
+            $value = $value[0] ?? '';
+        }
+        return is_scalar($value) ? (string)$value : '';
     }
 
     private static function claimNonce(string $nonce): void
