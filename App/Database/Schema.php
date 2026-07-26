@@ -8,8 +8,9 @@ class Schema
      * Versión actual de la base de datos
      * v1.0.15: Chat persistente, acciones programadas y observabilidad del agente
      * v1.0.16: Multi-usuario WhatsApp — glory_whatsapp_accounts + glory_whatsapp_event_queue
+     * v1.0.17: Gateway interno y outbox saliente de alertas WhatsApp
      */
-    public const DB_VERSION = '1.0.16';
+    public const DB_VERSION = '1.0.17';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -673,8 +674,41 @@ class Schema
             KEY idx_created (created_at)
         ) $charset_collate;";
 
+        /* [267A-5] Gateway Nakomi: nonces anti-replay y outbox saliente aislada
+         * de la cola entrante multiusuario. */
+        $table_internal_nonces = $wpdb->prefix . 'glory_internal_alert_nonces';
+        $sql_internal_nonces = "CREATE TABLE $table_internal_nonces (
+            nonce varchar(128) NOT NULL,
+            expires_at datetime NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (nonce),
+            KEY idx_expires_at (expires_at)
+        ) $charset_collate;";
+
+        $table_outbound_alerts = $wpdb->prefix . 'glory_whatsapp_outbound_alerts';
+        $sql_outbound_alerts = "CREATE TABLE $table_outbound_alerts (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            idempotency_key varchar(191) NOT NULL,
+            event_type varchar(64) NOT NULL,
+            payload longtext NOT NULL,
+            rendered_message text NOT NULL,
+            status varchar(20) NOT NULL DEFAULT 'pending',
+            attempts int(11) NOT NULL DEFAULT 0,
+            available_at datetime NOT NULL,
+            locked_until datetime DEFAULT NULL,
+            last_error varchar(500) DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            sent_at datetime DEFAULT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY uq_idempotency_key (idempotency_key),
+            KEY idx_claim (status, available_at, created_at)
+        ) $charset_collate;";
+
         dbDelta($sql_wa_accounts);
         dbDelta($sql_wa_events);
+        dbDelta($sql_internal_nonces);
+        dbDelta($sql_outbound_alerts);
     }
 
     /**

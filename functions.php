@@ -219,6 +219,7 @@ add_action('admin_init', function () {
  * WP cron ejecutará el worker cada minuto como alternativa.
  */
 add_action('glory_whatsapp_event_worker', ['\App\Services\WhatsAppEventWorker', 'runCron']);
+add_action('glory_whatsapp_outbound_worker', ['\App\Services\WhatsAppOutboundWorker', 'runCron']);
 
 /* Agregar intervalo personalizado para WP cron */
 add_filter('cron_schedules', function (array $schedules): array {
@@ -260,5 +261,13 @@ add_action('admin_init', function () {
 add_action('admin_init', function () {
     if (!wp_next_scheduled('glory_whatsapp_event_worker')) {
         wp_schedule_event(time(), 'every_minute', 'glory_whatsapp_event_worker');
+    }
+}, 30);
+
+/* [267A-5] Fallback de la outbox saliente. El runner systemd de 5s es el camino
+ * primario; este cron evita pérdida durable si el runner no está disponible. */
+add_action('init', function () {
+    if (!wp_next_scheduled('glory_whatsapp_outbound_worker')) {
+        wp_schedule_event(time(), 'every_minute', 'glory_whatsapp_outbound_worker');
     }
 }, 30);
