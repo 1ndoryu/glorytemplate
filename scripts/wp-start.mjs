@@ -1,6 +1,16 @@
 import {mkdir} from 'node:fs/promises';
-import {spawn} from 'node:child_process';
+import {spawn, spawnSync} from 'node:child_process';
 import {resolve} from 'node:path';
+
+const dockerCheck = spawnSync('docker', ['info'], {
+    stdio: 'ignore',
+    shell: process.platform === 'win32',
+});
+
+if (dockerCheck.status !== 0) {
+    console.error('Docker Desktop no está iniciado. Ábrelo y vuelve a ejecutar npm run dev.');
+    process.exit(1);
+}
 
 await mkdir(resolve('.wp-env/uploads'), {recursive: true});
 await mkdir(resolve('.wp-env/backups'), {recursive: true});
