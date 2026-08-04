@@ -15,7 +15,7 @@ import type {EstadoFiltro} from './useFiltroTareas';
 interface UseAccionesDashboardProps {
     filtroActual: EstadoFiltro;
     notas: string;
-    crearTarea: (datos: {texto: string; prioridad: NivelPrioridad | null; urgencia?: NivelUrgencia | null; configuracion: TareaConfiguracion; proyectoId?: number; completado: boolean; tags?: string[]}) => void;
+    crearTarea: (datos: {texto: string; prioridad: NivelPrioridad | null; urgencia?: NivelUrgencia | null; configuracion: TareaConfiguracion; proyectoId?: number; completado: boolean; tags?: string[]; dependencias?: import('../types/dashboard').ReferenciaDependencia[]; grupoEjecucion?: string | null}) => void;
     editarTarea: (id: number, datos: DatosEdicionTarea) => void;
     actualizarNotas: (notas: string) => void;
     crearProyecto: (datos: DatosNuevoProyecto) => void;
@@ -37,10 +37,10 @@ interface UseAccionesDashboardProps {
 interface UseAccionesDashboardReturn {
     manejarCambioFiltro: (valor: string) => void;
     manejarLimpiarScratchpad: () => Promise<void>;
-    manejarCrearNuevaTareaGlobal: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], proyectoIdOverride?: number) => void;
+    manejarCrearNuevaTareaGlobal: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], proyectoIdOverride?: number, dependencias?: import('../types/dashboard').ReferenciaDependencia[], grupoEjecucion?: string | null) => void;
     manejarGuardarNuevoProyecto: (datos: DatosNuevoProyecto) => void;
     manejarGuardarEdicionProyecto: (datos: Partial<Proyecto>) => void;
-    manejarGuardarEdicionTareaGlobal: (tareaId: number, configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[]) => void;
+    manejarGuardarEdicionTareaGlobal: (tareaId: number, configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], dependencias?: import('../types/dashboard').ReferenciaDependencia[], grupoEjecucion?: string | null) => void;
     manejarClickNotificaciones: (evento: React.MouseEvent) => void;
     manejarClickNotificacionIndividual: (notificacion: Notificacion) => void;
     crearNotificacionPrueba: () => Promise<boolean>;
@@ -78,17 +78,17 @@ export function useAccionesDashboard(props: UseAccionesDashboardProps): UseAccio
     }, [notas, confirmar, actualizarNotas]);
 
     const manejarCrearNuevaTareaGlobal = useCallback(
-        (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, _asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], proyectoIdOverride?: number) => {
+        (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, _asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], proyectoIdOverride?: number, dependencias?: import('../types/dashboard').ReferenciaDependencia[], grupoEjecucion?: string | null) => {
             if (!texto) return;
             const proyectoId = proyectoIdOverride !== undefined ? proyectoIdOverride : filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined;
-            crearTarea({texto, prioridad, urgencia, configuracion, proyectoId, completado: false, tags});
+            crearTarea({texto, prioridad, urgencia, configuracion, proyectoId, completado: false, tags, dependencias, grupoEjecucion});
             cerrarModalNuevaTarea();
         },
         [filtroActual, crearTarea, cerrarModalNuevaTarea]
     );
 
     const manejarGuardarEdicionTareaGlobal = useCallback(
-        (tareaId: number, configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[]) => {
+        (tareaId: number, configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], dependencias?: import('../types/dashboard').ReferenciaDependencia[], grupoEjecucion?: string | null) => {
             if (texto !== undefined && !texto) return; /* Si se pasa texto vacio */
 
             const datosEdicion: DatosEdicionTarea = {
@@ -104,6 +104,8 @@ export function useAccionesDashboard(props: UseAccionesDashboardProps): UseAccio
                 datosEdicion.asignadoANombre = asignacion.asignadoANombre;
                 datosEdicion.asignadoAAvatar = asignacion.asignadoAAvatar;
             }
+            if (dependencias !== undefined) datosEdicion.dependencias = dependencias;
+            if (grupoEjecucion !== undefined) datosEdicion.grupoEjecucion = grupoEjecucion;
 
             editarTarea(tareaId, datosEdicion);
             cerrarModalEditarTarea();

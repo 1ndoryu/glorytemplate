@@ -23,6 +23,7 @@ interface ModalCreacionRapidaProps {
         proyectoId?: number;
         prioridad?: string;
         urgencia?: string;
+        grupoEjecucion?: string | null;
     };
     onCerrar: () => void;
     onGuardar: (datos: DatosCreacion) => Promise<void>;

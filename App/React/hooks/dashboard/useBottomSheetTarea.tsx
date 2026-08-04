@@ -31,6 +31,7 @@ export interface UseBottomSheetTareaParams {
         proyectoId?: number;
         prioridad?: string;
         urgencia?: string;
+        grupoEjecucion?: string | null;
     };
     tareaExistente?: Tarea;
 }
@@ -66,6 +67,7 @@ export function useBottomSheetTarea({estaAbierto, onCerrar, onGuardar, proyectos
     const [prioridad, setPrioridad] = useState<string | undefined>(tareaExistente?.prioridad || valoresIniciales.prioridad);
     const [urgencia, setUrgencia] = useState<string | undefined>(tareaExistente?.urgencia || valoresIniciales.urgencia);
     const [fecha, setFecha] = useState<string | undefined>(tareaExistente?.configuracion?.fechaMaxima);
+    const [grupoEjecucion, setGrupoEjecucion] = useState<string | undefined | null>(tareaExistente ? tareaExistente.grupoEjecucion : valoresIniciales.grupoEjecucion);
     const [cargando, setCargando] = useState(false);
     const [modalActivo, setModalActivo] = useState<ModalActivoTarea>(null);
 
@@ -94,6 +96,7 @@ export function useBottomSheetTarea({estaAbierto, onCerrar, onGuardar, proyectos
             setPrioridad(undefined);
             setUrgencia(undefined);
             setFecha(undefined);
+            setGrupoEjecucion(undefined);
             setModalActivo(null);
             tareaIdCargadaRef.current = undefined;
         } else if (tareaExistente && tareaExistente.id !== tareaIdCargadaRef.current) {
@@ -103,12 +106,14 @@ export function useBottomSheetTarea({estaAbierto, onCerrar, onGuardar, proyectos
             setPrioridad(tareaExistente.prioridad);
             setUrgencia(tareaExistente.urgencia);
             setFecha(tareaExistente.configuracion?.fechaMaxima);
+            setGrupoEjecucion(tareaExistente.grupoEjecucion);
             tareaIdCargadaRef.current = tareaExistente.id;
         } else if (!tareaExistente && estaAbierto && tareaIdCargadaRef.current === undefined) {
             /* Modo creación: aplicar valores iniciales solo la primera vez */
             setProyectoId(valoresIniciales.proyectoId);
             setPrioridad(valoresIniciales.prioridad);
             setUrgencia(valoresIniciales.urgencia);
+            setGrupoEjecucion(valoresIniciales.grupoEjecucion);
             tareaIdCargadaRef.current = -1; /* Marcador para modo creación */
         }
     }, [estaAbierto, tareaExistente?.id]);
@@ -124,6 +129,7 @@ export function useBottomSheetTarea({estaAbierto, onCerrar, onGuardar, proyectos
                 prioridad,
                 urgencia,
                 fecha,
+                grupoEjecucion,
                 id: tareaExistente?.id
             });
             onCerrar();

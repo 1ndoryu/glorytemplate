@@ -13,12 +13,15 @@
  */
 
 import {Pause, Play} from 'lucide-react';
-import type {NivelImportancia, FrecuenciaHabito, Habito, SubHabito, DatosNuevoSubHabito, VentanaOportunidad, Tarea, DatosEdicionTarea} from '../../../types/dashboard';
-import {CampoTituloLimpio, CampoSubtituloLimpio, SelectorIconoProyecto, SelectorEstadoHabitoPill, SelectorImportanciaPill, SelectorFrecuenciaPill, FilaPropiedades, SelectorVentanaOportunidad} from '../../shared';
+import {useState, useMemo} from 'react';
+import type {NivelImportancia, FrecuenciaHabito, Habito, SubHabito, DatosNuevoSubHabito, VentanaOportunidad, Tarea, DatosEdicionTarea, ReferenciaDependencia} from '../../../types/dashboard';
+import {useGruposEjecucion} from '../../../hooks/useGruposEjecucion';
+import {CampoTituloLimpio, CampoSubtituloLimpio, SelectorIconoProyecto, SelectorEstadoHabitoPill, SelectorImportanciaPill, SelectorFrecuenciaPill, FilaPropiedades, SelectorVentanaOportunidad, SelectorGrupo} from '../../shared';
 import type {EstadoHabito} from '../../shared';
 import {Boton} from '../../ui';
 import {MapaCalorHabito} from '../../shared/MapaCalorHabito';
 import {ListaSubHabitos} from './ListaSubHabitos';
+import {ModalDependencias} from '../ModalDependencias';
 
 interface FormularioHabitoModernoProps {
     /* Campos principales */
@@ -57,6 +60,17 @@ interface FormularioHabitoModernoProps {
     onEliminarSubHabito?: (subHabitoId: number) => void;
     onToggleSubHabito?: (subHabitoId: number) => void;
     onConfigurarSubHabito?: (subhabito: SubHabito) => void;
+    /* Dependencias condicionales */
+    dependencias?: ReferenciaDependencia[];
+    onDependenciasChange?: (dependencias: ReferenciaDependencia[]) => void;
+    tareasParaDependencias?: Tarea[];
+    habitosParaDependencias?: Habito[];
+    elementoId?: number;
+    padreId?: number;
+    tipoElemento?: 'habito' | 'subhabito';
+    /* Grupo de ejecución (solo hábitos) */
+    grupoEjecucion?: string | null;
+    onGrupoEjecucionChange?: (grupo: string | null) => void;
     /* [217A-3] Subhábito actual (para mostrar mapa de calor en configuración de subhábito) */
     subHabito?: SubHabito | null;
     onMarcarDiaSubHabito?: (fecha: string, estado: EstadoHabito) => boolean;
@@ -71,8 +85,15 @@ interface FormularioHabitoModernoProps {
     onEditarTareaHabito?: (id: number, datos: DatosEdicionTarea) => void;
 }
 
-export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, onDescripcionChange, icono, colorIcono, onIconoChange, importancia, onImportanciaChange, frecuencia, onFrecuenciaChange, ventanaOportunidad, onVentanaOportunidadChange, estadoHoy, onEstadoChange, onPausarHabito, habito, modoEdicion = false, errorNombre, nombreBloqueado = false, onCrearSubHabito, onEditarSubHabito, onEliminarSubHabito, onToggleSubHabito, onConfigurarSubHabito, subHabito, onMarcarDiaSubHabito, onDesmarcarDiaSubHabito}: FormularioHabitoModernoProps): JSX.Element {
+export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, onDescripcionChange, icono, colorIcono, onIconoChange, importancia, onImportanciaChange, frecuencia, onFrecuenciaChange, ventanaOportunidad, onVentanaOportunidadChange, estadoHoy, onEstadoChange, onPausarHabito, habito, modoEdicion = false, errorNombre, nombreBloqueado = false, onCrearSubHabito, onEditarSubHabito, onEliminarSubHabito, onToggleSubHabito, onConfigurarSubHabito, subHabito, onMarcarDiaSubHabito, onDesmarcarDiaSubHabito, dependencias = [], onDependenciasChange, tareasParaDependencias = [], habitosParaDependencias = [], elementoId, padreId, tipoElemento = 'habito', grupoEjecucion, onGrupoEjecucionChange}: FormularioHabitoModernoProps): JSX.Element {
     const estaPausado = habito?.pausado ?? false;
+    const [modalDependenciasAbierto, setModalDependenciasAbierto] = useState(false);
+
+    /* Grupos de ejecución existentes para el selector */
+    const gruposDisponibles = useGruposEjecucion(tareasParaDependencias, habitosParaDependencias);
+
+    const nombreElemento = subHabito ? subHabito.nombre : nombre || 'Hábito';
+    const idElemento = subHabito ? subHabito.id : habito?.id;
 
     /* Determinar si mostrar la sección de subhábitos */
     const mostrarSubHabitos = modoEdicion && habito && habito.id > 0 && onCrearSubHabito && onToggleSubHabito;
@@ -113,6 +134,50 @@ export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, on
             {onVentanaOportunidadChange && (
                 <FilaPropiedades etiqueta="Ventana">
                     <SelectorVentanaOportunidad ventana={ventanaOportunidad} onChange={onVentanaOportunidadChange} />
+                </FilaPropiedades>
+            )}
+
+            {/* Dependencias (solo modo edición) */}
+            {modoEdicion && onDependenciasChange && (
+                <FilaPropiedades etiqueta="Dependencias">
+                    <Boton
+                        type="button"
+                        variante="ghost"
+                        claseAdicional={`pillOpcion ${dependencias.length === 0 ? 'pillOpcion--vacio' : ''}`}
+                        onClick={() => setModalDependenciasAbierto(true)}
+                        title="Configurar dependencias">
+                        <span>{dependencias.length > 0 ? `${dependencias.length} dependencia(s)` : 'Sin dependencias'}</span>
+                    </Boton>
+                </FilaPropiedades>
+            )}
+
+            {modalDependenciasAbierto && onDependenciasChange && typeof idElemento === 'number' && (
+                <ModalDependencias
+                    estaAbierto={modalDependenciasAbierto}
+                    onCerrar={() => setModalDependenciasAbierto(false)}
+                    tipoActual={tipoElemento}
+                    idActual={idElemento}
+                    padreIdActual={padreId}
+                    nombreActual={nombreElemento}
+                    dependencias={dependencias}
+                    onGuardar={deps => {
+                        onDependenciasChange(deps);
+                    }}
+                    tareas={tareasParaDependencias}
+                    habitos={habitosParaDependencias}
+                />
+            )}
+
+            {/* Grupo de ejecución (solo hábitos en modo edición) */}
+            {modoEdicion && tipoElemento === 'habito' && onGrupoEjecucionChange && (
+                <FilaPropiedades etiqueta="Grupo">
+                    <SelectorGrupo
+                        grupos={gruposDisponibles}
+                        grupoActual={grupoEjecucion || null}
+                        onChange={onGrupoEjecucionChange}
+                        placeholder="Sin grupo"
+                        titulo="Grupo de ejecución"
+                    />
                 </FilaPropiedades>
             )}
 

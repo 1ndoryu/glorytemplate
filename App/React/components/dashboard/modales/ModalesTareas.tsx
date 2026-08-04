@@ -42,7 +42,7 @@ export function ModalesTareas({dashboard, modales, acciones, esMovil, manejarGua
     return (
         <>
             {/* Modal Nueva Tarea */}
-            {modales.modalNuevaTareaAbierto && <PanelConfiguracionTarea estaAbierto={modales.modalNuevaTareaAbierto} onCerrar={modales.cerrarModalNuevaTarea} onGuardar={acciones.manejarCrearNuevaTareaGlobal} />}
+            {modales.modalNuevaTareaAbierto && <PanelConfiguracionTarea estaAbierto={modales.modalNuevaTareaAbierto} onCerrar={modales.cerrarModalNuevaTarea} onGuardar={(config, priority, text, assignment, urgency, tags, dependencias, grupoEjecucion) => acciones.manejarCrearNuevaTareaGlobal(config, priority, text, assignment, urgency, tags, undefined, dependencias, grupoEjecucion)} />}
 
             {/* Modal Editar Tarea */}
             {modales.tareaEditando && (
@@ -50,7 +50,7 @@ export function ModalesTareas({dashboard, modales, acciones, esMovil, manejarGua
                     key={modales.tareaEditando.id}
                     estaAbierto={true}
                     onCerrar={modales.cerrarModalEditarTarea}
-                    onGuardar={(config, priority, text, assignment, urgency, tags) => acciones.manejarGuardarEdicionTareaGlobal(modales.tareaEditando!.id, config, priority, text, assignment, urgency, tags)}
+                    onGuardar={(config, priority, text, assignment, urgency, tags, dependencias, grupoEjecucion) => acciones.manejarGuardarEdicionTareaGlobal(modales.tareaEditando!.id, config, priority, text, assignment, urgency, tags, dependencias, grupoEjecucion)}
                     tarea={obtenerTareaConHerencia(modales.tareaEditando, dashboard.tareas, dashboard.habitos)}
                     participantes={[]}
                     companeros={[]}

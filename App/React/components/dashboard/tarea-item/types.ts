@@ -1,4 +1,4 @@
-import type {Tarea, DatosEdicionTarea, DatosNuevoHabito} from '../../../types/dashboard';
+import type {Tarea, DatosEdicionTarea, DatosNuevoHabito, Habito} from '../../../types/dashboard';
 
 export interface TareaItemProps {
     tarea: Tarea;
@@ -53,6 +53,9 @@ export interface TareaItemProps {
     onSeleccionMultiple?: (tarea: Tarea, evento: React.MouseEvent) => void;
     modoSeleccionActivo?: boolean;    /* [218A-2] Ref para suprimir clicks posteriores a un drag */
     suprimirClickRef?: React.RefObject<boolean>;
+    /* Listado de tareas y habitos para evaluar dependencias */
+    tareas?: Tarea[];
+    habitos?: Habito[];
 }
 
 export interface MenuContextualEstado {

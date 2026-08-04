@@ -38,6 +38,7 @@ export * from './MapaCalorHabito';
 export * from './MapaCalorProyecto';
 export * from './SelectorProyecto';
 export * from './SelectorBadge';
+export * from './SelectorGrupo';
 export * from './SelectorEstadoTarea';
 export * from './SelectorEstadoHabito';
 export * from './CampoTituloLimpio';

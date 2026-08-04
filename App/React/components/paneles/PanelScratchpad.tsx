@@ -12,7 +12,7 @@
  */
 
 import {useState, useRef} from 'react';
-import {Eraser, Settings, FolderOpen, Plus, Maximize2, X, Copy, FileText} from 'lucide-react';
+import {Eraser, Settings, FolderOpen, Plus, Maximize2, X, Copy, FileText, Columns} from 'lucide-react';
 import {SeccionEncabezado, Scratchpad, ModalNotasExpandido} from '../dashboard';
 import {OverlayEnfoque, MenuContextual} from '../shared';
 import {Boton} from '../ui';
@@ -29,9 +29,10 @@ interface PanelScratchpadProps {
     panelId?: string;
     onDuplicarPanel?: () => void;
     onCerrarPanel?: () => void;
+    onDividirPanel?: () => void;
 }
 
-export function PanelScratchpad({configuracion, onAbrirModalConfigScratchpad, onCambiarAltura, renderHandleArrastre, handleMinimizar, onDuplicarPanel, onCerrarPanel, panelId}: PanelScratchpadProps): JSX.Element {
+export function PanelScratchpad({configuracion, onAbrirModalConfigScratchpad, onCambiarAltura, renderHandleArrastre, handleMinimizar, onDuplicarPanel, onCerrarPanel, onDividirPanel, panelId}: PanelScratchpadProps): JSX.Element {
     /* [263A-12] Cada panel usa su propio panelId para notas independientes */
     const panelIdResuelto = panelId ?? 'scratchpad';
     const {modalNotasExpandidoAbierto, setModalNotasExpandidoAbierto, modoEnfoque, setModoEnfoque, notaActiva, actualizarContenido, tituloActivo, esNotaNueva, manejarNuevaNota, manejarLimpiar, manejarAbrirCarpeta} = usePanelScratchpad(panelIdResuelto);
@@ -100,6 +101,16 @@ export function PanelScratchpad({configuracion, onAbrirModalConfigScratchpad, on
                             icono={<Maximize2 size={12} />}
                             title="Modo enfoque"
                         />
+                        {/* Botón dividir panel */}
+                        {onDividirPanel && (
+                            <Boton
+                                variante="badge"
+                                soloIcono
+                                onClick={onDividirPanel}
+                                icono={<Columns size={12} />}
+                                title="Dividir panel"
+                            />
+                        )}
                         {/* [263A-3] Botón cerrar para paneles duplicados */}
                         {esDuplicado ? (
                             <Boton

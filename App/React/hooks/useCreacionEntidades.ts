@@ -53,7 +53,7 @@ export function useCreacionEntidades({dashboard, limites, acciones}: UseCreacion
                 fechaMaxima: calcularFechaDesdeKey(opciones.fecha),
                 adjuntos: opciones.adjuntos || []
             };
-            acciones.manejarCrearNuevaTareaGlobal(configTarea, opciones.prioridad || null, texto, undefined, opciones.urgencia || null, [], opciones.proyectoId);
+            acciones.manejarCrearNuevaTareaGlobal(configTarea, opciones.prioridad || null, texto, undefined, opciones.urgencia || null, [], opciones.proyectoId, undefined, opciones.grupoEjecucion);
         } else if (tipo === 'habito') {
             if (!limites.verificarYMostrar('habitos', dashboard.habitos.length)) return;
 
@@ -127,7 +127,7 @@ export function useCreacionEntidades({dashboard, limites, acciones}: UseCreacion
             fechaMaxima: datos.fecha,
             adjuntos: [] as Adjunto[]
         };
-        acciones.manejarCrearNuevaTareaGlobal(configTarea, (datos.prioridad as NivelPrioridad) || null, datos.texto, undefined, (datos.urgencia as NivelUrgencia) || null, [], datos.proyectoId);
+        acciones.manejarCrearNuevaTareaGlobal(configTarea, (datos.prioridad as NivelPrioridad) || null, datos.texto, undefined, (datos.urgencia as NivelUrgencia) || null, [], datos.proyectoId, undefined, datos.grupoEjecucion);
     };
 
     /*

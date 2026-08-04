@@ -1,0 +1,16 @@
+/*
+ * DASHBOARD PANEL DIVISION
+ * Estilos para paneles divididos lado a lado dentro de una misma columna.
+ */
+
+.dashboardPanelDivision {
+    display: flex;
+    flex-direction: row;
+    gap: var(--dashboard-espacioSm);
+    width: 100%;
+}
+
+.dashboardPanelDivision > .panelArrastrable {
+    flex: 1;
+    min-width: 0;
+}

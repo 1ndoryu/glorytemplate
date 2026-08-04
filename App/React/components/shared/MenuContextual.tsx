@@ -25,9 +25,10 @@ interface MenuContextualProps {
     onSeleccionar: (opcionId: string) => void;
     onCerrar: () => void;
     esSubmenu?: boolean;
+    footer?: React.ReactNode;
 }
 
-export function MenuContextual({opciones, posicionX, posicionY, onSeleccionar, onCerrar, esSubmenu = false}: MenuContextualProps): JSX.Element {
+export function MenuContextual({opciones, posicionX, posicionY, onSeleccionar, onCerrar, esSubmenu = false, footer}: MenuContextualProps): JSX.Element {
     const {menuRef, opcionActivaId, estiloSubmenu, manejarClick, manejarMouseEnterOpcion} = useMenuContextual({posicionX, posicionY, onSeleccionar, onCerrar, esSubmenu});
 
     return (
@@ -50,6 +51,13 @@ export function MenuContextual({opciones, posicionX, posicionY, onSeleccionar, o
                     {opcion.separadorDespues && <div className="menuContextualSeparador" />}
                 </div>
             ))}
+
+            {footer && (
+                <>
+                    <div className="menuContextualSeparador" />
+                    <div className="menuContextualFooter" role="none">{footer}</div>
+                </>
+            )}
         </div>
     );
 }

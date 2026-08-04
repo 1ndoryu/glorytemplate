@@ -1,0 +1,36 @@
+name: dev-infra
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install root tooling
+        run: npm ci --ignore-scripts
+
+      - name: Validate wp-env infrastructure
+        run: npm run infra:check
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check scripts/dev.mjs
+          node --check scripts/wp-start.mjs
+          node --check scripts/wp-export.mjs
+          node --check scripts/wp-import.mjs
+          node --check scripts/wp-replace-url.mjs
+          node --check scripts/check-dev-infra.mjs
+
+      - name: Validate wp-env CLI availability
+        run: npm exec -- wp-env --version

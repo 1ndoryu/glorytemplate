@@ -19,6 +19,7 @@ import {Boton} from '../ui';
 import {FormularioHabitoModerno} from './habitos/FormularioHabitoModerno';
 import {PanelChatHistorial} from './PanelChatHistorial';
 import {useModalHabito} from '../../hooks/dashboard/useModalHabito';
+import {useHabitosStore} from '../../stores/habitosStore';
 
 type DatosFormulario = DatosNuevoHabito;
 
@@ -45,11 +46,12 @@ interface ModalHabitoProps {
 }
 
 export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, habito, participantes = [], tareas = [], onToggleTarea, onCrearTarea, onEliminarTarea, onConfigurarTarea, onActualizarOrdenTareasHabito, onEditarTarea, subHabito, habitoPadre, onConfigurarSubHabito}: ModalHabitoProps): JSX.Element | null {
+    const habitos = useHabitosStore(state => state.habitos);
     const {
         modoEdicion, nombre, setNombre, descripcion, setDescripcion,
         icono, setIcono, colorIcono, setColorIcono,
         importancia, setImportancia, frecuencia, setFrecuencia,
-        ventanaOportunidad, setVentanaOportunidad, errores, esHabitoEspecialAyuno, esModoSubHabito,
+        ventanaOportunidad, setVentanaOportunidad, dependencias, setDependencias, grupoEjecucion, setGrupoEjecucion, errores, esHabitoEspecialAyuno, esModoSubHabito,
         estadoHoy, manejarCambioEstado,
         chatVisible, toggleChat, tieneMensajesSinLeer, participantesChat, mostrarChatColumna,
         tareasDelHabito, manejarReordenarTareas,
@@ -111,6 +113,13 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, h
                                 subHabito={subHabito}
                                 onMarcarDiaSubHabito={manejarMarcarDiaSubHabito}
                                 onDesmarcarDiaSubHabito={manejarDesmarcarDiaSubHabito}
+                                dependencias={dependencias}
+                                onDependenciasChange={setDependencias}
+                                tareasParaDependencias={tareas}
+                                habitosParaDependencias={habitos}
+                                tipoElemento="subhabito"
+                                elementoId={subHabito?.id}
+                                padreId={habitoPadre?.id}
                             />
                         </div>
                     </div>
@@ -157,10 +166,18 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onPausarHabito, h
                                     /* Props para subhábitos */
                                     onCrearSubHabito={esHabitoEspecialAyuno ? undefined : manejarCrearSubHabito}
                                     onEditarSubHabito={esHabitoEspecialAyuno ? undefined : manejarEditarSubHabito}
-                                    onEliminarSubHabito={esHabitoEspecialAyuno ? undefined : manejarEliminarSubHabito}
-                                    onToggleSubHabito={esHabitoEspecialAyuno ? undefined : manejarToggleSubHabito}
-                                    onConfigurarSubHabito={onConfigurarSubHabito}
-                                />
+                                onEliminarSubHabito={esHabitoEspecialAyuno ? undefined : manejarEliminarSubHabito}
+                                onToggleSubHabito={esHabitoEspecialAyuno ? undefined : manejarToggleSubHabito}
+                                onConfigurarSubHabito={onConfigurarSubHabito}
+                                dependencias={dependencias}
+                                onDependenciasChange={setDependencias}
+                                tareasParaDependencias={tareas}
+                                habitosParaDependencias={habitos}
+                                tipoElemento="habito"
+                                elementoId={habito?.id}
+                                grupoEjecucion={grupoEjecucion}
+                                onGrupoEjecucionChange={setGrupoEjecucion}
+                            />
                             </div>
                             {/* Input de comentario cuando el chat esta oculto */}
                             {!mostrarChatColumna && habito && <PanelChatHistorial elementoId={habito.id} elementoTipo="habito" participantes={participantesChat} soloInput />}

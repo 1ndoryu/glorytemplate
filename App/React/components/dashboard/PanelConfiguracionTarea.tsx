@@ -8,7 +8,7 @@
  * - Fase 10.8.6: Removido PestanasModal (código muerto)
  */
 
-import type {Tarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Participante, Proyecto, CompaneroEquipo, RolCompartido, DatosEdicionTarea} from '../../types/dashboard';
+import type {Tarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Participante, Proyecto, CompaneroEquipo, RolCompartido, DatosEdicionTarea, ReferenciaDependencia} from '../../types/dashboard';
 import {AccionesFormulario, Modal} from '../shared';
 import {Boton} from '../ui';
 import {FormularioTareaModerno} from './tareas/FormularioTareaModerno';
@@ -20,7 +20,9 @@ export interface PanelConfiguracionTareaProps {
     tarea?: Tarea;
     estaAbierto: boolean;
     onCerrar: () => void;
-    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[]) => void;
+    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], dependencias?: ReferenciaDependencia[], grupoEjecucion?: string | null) => void;
+    tareas?: Tarea[];
+    habitos?: import('../../types/dashboard').Habito[];
     participantes?: Participante[];
     /* Gestión de participantes (Compartir) */
     companeros?: CompaneroEquipo[];
@@ -37,24 +39,21 @@ export interface PanelConfiguracionTareaProps {
     onEliminarSubtarea?: (id: number) => void;
     onConfigurarSubtarea?: (tarea: Tarea) => void;
     onEditarSubtarea?: (id: number, datos: DatosEdicionTarea) => void;
-}
-
-export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar, participantes = [], companeros = [], onAgregarParticipante, onRemoverParticipante, onCambiarRolParticipante, proyectos = [], onCambiarProyecto, onToggleCompletado, subtareas, onCrearSubtarea, onToggleSubtarea, onEliminarSubtarea, onConfigurarSubtarea, onEditarSubtarea}: PanelConfiguracionTareaProps): JSX.Element | null {
+}export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar, tareas = [], habitos = [], participantes = [], companeros = [], onAgregarParticipante, onRemoverParticipante, onCambiarRolParticipante, proyectos = [], onCambiarProyecto, onToggleCompletado, subtareas, onCrearSubtarea, onToggleSubtarea, onEliminarSubtarea, onConfigurarSubtarea, onEditarSubtarea}: PanelConfiguracionTareaProps): JSX.Element | null {
     /* Toda la lógica delegada al hook dedicado */
     const {
         texto, setTexto, descripcion, setDescripcion,
         prioridad, setPrioridad, urgencia, setUrgencia,
         fechaMaxima, setFechaMaxima, tieneRepeticion, setTieneRepeticion,
         frecuencia, setFrecuencia, adjuntos, setAdjuntos, tags, setTags,
+        dependencias, setDependencias, grupoEjecucion, setGrupoEjecucion,
         asignadoA, asignadoANombre, asignadoAAvatar,
         proyectoIdLocal, completadoLocal,
         modoEdicion, esMovil, claseModal,
         panelChat,
         manejarGuardar, manejarCerrarConGuardado,
         manejarAsignacion, manejarCambioProyecto, manejarCambioCompletado
-    } = usePanelConfiguracionTarea({
-        tarea, onCerrar, onGuardar, participantes, onCambiarProyecto, onToggleCompletado
-    });
+    } = usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, participantes, onCambiarProyecto, onToggleCompletado});
 
     const {chatVisible, toggleChat, tieneMensajesSinLeer, participantesChat, mostrarChatColumna} = panelChat;
 
@@ -127,6 +126,12 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
                                     onAdjuntosChange={setAdjuntos}
                                     tags={tags}
                                     onTagsChange={setTags}
+                                    dependencias={dependencias}
+                                    onDependenciasChange={setDependencias}
+                                    tareasParaDependencias={tareas}
+                                    habitosParaDependencias={habitos}
+                                    grupoEjecucion={grupoEjecucion}
+                                    onGrupoEjecucionChange={setGrupoEjecucion}
                                     modoEdicion={true}
                                     /* Subtareas */
                                     tareaId={tarea?.id}

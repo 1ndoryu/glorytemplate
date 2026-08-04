@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {Nota, NotaActiva} from '../types/notas';
 import {notasService} from '../services/notasService';
-import {persistirNotaActivaId, extraerTitulo, emitirCambioNotaActiva, CONTENIDO_NOTA_NUEVA, obtenerNotaActivaIdGuardado} from '../utils/notasUtils';
+import {extraerTitulo, emitirCambioNotaActiva, CONTENIDO_NOTA_NUEVA, obtenerNotaActivaPanelGuardada, persistirNotaActivaPanel} from '../utils/notasUtils';
 import {notasIniciales} from '../data/datosIniciales';
 
 /* [263A-12] ID del panel scratchpad base. Solo este panel persiste su nota en localStorage y emite eventos de tab sync. */
@@ -100,10 +100,10 @@ export const useNotasStore = create<NotasState & NotasActions>((set, get) => ({
         return await notasService.buscarNotas(termino);
     },
 
-    /* [263A-12] Cada acción recibe panelId. Solo el panel base persiste en localStorage y emite eventos. */
+    /* [263A-12] Cada acción recibe panelId. Todos los paneles persisten su nota activa. */
     seleccionarNota: (panelId, nota) => {
+        persistirNotaActivaPanel(panelId, nota.id);
         if (panelId === PANEL_SCRATCHPAD) {
-            persistirNotaActivaId(nota.id);
             emitirCambioNotaActiva(nota.id);
         }
         set(state => ({
@@ -119,9 +119,7 @@ export const useNotasStore = create<NotasState & NotasActions>((set, get) => ({
     },
 
     crearNuevaNota: (panelId, carpetaId?) => {
-        if (panelId === PANEL_SCRATCHPAD) {
-            persistirNotaActivaId(null);
-        }
+        persistirNotaActivaPanel(panelId, null);
         set(state => ({
             notasActivaPorPanel: {
                 ...state.notasActivaPorPanel,
@@ -181,7 +179,7 @@ export const useNotasStore = create<NotasState & NotasActions>((set, get) => ({
     restaurarNotaActivaGuardada: (panelId) => {
         const {notas, notasActivaPorPanel} = get();
         const notaActual = notasActivaPorPanel[panelId] ?? NOTA_VACIA;
-        const idGuardado = obtenerNotaActivaIdGuardado();
+        const idGuardado = obtenerNotaActivaPanelGuardada(panelId);
 
         if (idGuardado !== null) {
             const nota = notas.find(n => n.id === idGuardado);
@@ -261,9 +259,7 @@ export const useNotasStore = create<NotasState & NotasActions>((set, get) => ({
                     }
                 }
 
-                if (panelId === PANEL_SCRATCHPAD) {
-                    persistirNotaActivaId(notaGuardada.id);
-                }
+                persistirNotaActivaPanel(panelId, notaGuardada.id);
                 set(state => ({
                     guardando: false,
                     notas: [notaGuardada, ...state.notas],

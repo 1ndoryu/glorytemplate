@@ -20,6 +20,7 @@ interface UseSelectorBadgeReturn<T extends string = string> {
     opcionActual: OpcionBadge<T> | undefined;
     toggleMenu: () => void;
     seleccionarOpcion: (opcion: OpcionBadge<T>) => void;
+    cerrarMenu: () => void;
 }
 
 export function useSelectorBadge<T extends string = string>({opciones, valorActual, onChange}: UseSelectorBadgeParams<T>): UseSelectorBadgeReturn<T> {
@@ -116,6 +117,7 @@ export function useSelectorBadge<T extends string = string>({opciones, valorActu
         menuRef,
         opcionActual,
         toggleMenu,
-        seleccionarOpcion
+        seleccionarOpcion,
+        cerrarMenu
     };
 }

@@ -11,7 +11,7 @@ import {useCallback, useMemo} from 'react';
 import {obtenerIdsPaneles} from '../config/registroPaneles';
 import type {ModoColumnas, OrdenPanel, AnchoColumnas, ConfiguracionLayout, TipoLayout} from '../types/paneles';
 import {generarConfigLayoutDefecto, generarOrdenPanelesDefecto, PRESETS_ANCHOS, ANCHO_MINIMO_COLUMNA, ANCHO_MAXIMO_COLUMNA} from '../utils/layoutFactory';
-import {migrarConfiguracion, normalizarPosiciones, crearDuplicadoPanel, eliminarPanelDuplicado} from '../utils/layoutLogica';
+import {migrarConfiguracion, normalizarPosiciones, crearDuplicadoPanel, eliminarPanelDuplicado, crearDivisionPanel} from '../utils/layoutLogica';
 
 /* Re-exportar tipos para compatibilidad hacia atrás */
 export type {ModoColumnas, OrdenPanel, AnchoColumnas, ConfiguracionLayout, TipoLayout} from '../types/paneles';
@@ -341,6 +341,14 @@ export function useConfiguracionLayout() {
         [setValor, ordenDefecto]
     );
 
+    /* Dividir un panel lado a lado dentro de la misma columna */
+    const dividirPanel = useCallback(
+        (baseId: string) => {
+            setValor(prev => crearDivisionPanel(prev, baseId));
+        },
+        [setValor]
+    );
+
     /* [263A-3] Cerrar (eliminar) un panel duplicado del layout */
     const cerrarPanelDuplicado = useCallback(
         (instanceId: string) => {
@@ -429,6 +437,7 @@ export function useConfiguracionLayout() {
         resetearOrdenPaneles,
         resetearLayout,
         duplicarPanel,
+        dividirPanel,
         cerrarPanelDuplicado,
         cambiarAlturaPanel,
         obtenerAlturaPanel,

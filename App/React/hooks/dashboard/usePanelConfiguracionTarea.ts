@@ -6,7 +6,7 @@
  */
 
 import {useState, useEffect, useCallback, useRef} from 'react';
-import type {Tarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Participante, FrecuenciaHabito, Adjunto} from '../../types/dashboard';
+import type {Tarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Participante, FrecuenciaHabito, Adjunto, ReferenciaDependencia} from '../../types/dashboard';
 import {usePanelChat} from '../usePanelChat';
 import {useAutoguardado} from '../useAutoguardado';
 import {useEsDispositivoMovil} from '../useEsMovil';
@@ -14,7 +14,7 @@ import {useEsDispositivoMovil} from '../useEsMovil';
 interface UsePanelConfiguracionTareaParams {
     tarea?: Tarea;
     onCerrar: () => void;
-    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[]) => void;
+    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], dependencias?: ReferenciaDependencia[], grupoEjecucion?: string | null) => void;
     participantes?: Participante[];
     onCambiarProyecto?: (proyectoId: number | undefined) => void;
     onToggleCompletado?: (completado: boolean) => void;
@@ -34,6 +34,8 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>({tipo: 'diario'});
     const [adjuntos, setAdjuntos] = useState<Adjunto[]>(tarea?.configuracion?.adjuntos || []);
     const [tags, setTags] = useState<string[]>(tarea?.tags || []);
+    const [dependencias, setDependencias] = useState<ReferenciaDependencia[]>(tarea?.dependencias || []);
+    const [grupoEjecucion, setGrupoEjecucion] = useState<string | null>(tarea?.grupoEjecucion || null);
 
     /* Estado de asignación */
     const [asignadoA, setAsignadoA] = useState<number | null>(tarea?.asignadoA || null);
@@ -55,7 +57,7 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
     /* Campos actuales para detección de cambios */
     const camposActuales = {
         texto, descripcion, prioridad, urgencia, fechaMaxima,
-        tieneRepeticion, frecuencia, adjuntos, asignadoA, tags
+        tieneRepeticion, frecuencia, adjuntos, asignadoA, tags, dependencias
     };
 
     /* Guardar tarea */
@@ -103,9 +105,9 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
 
         configuracion.adjuntos = adjuntos;
         const asignacion = {asignadoA, asignadoANombre, asignadoAAvatar};
-        onGuardar(configuracion, prioridad, texto.trim(), asignacion, urgencia, tags);
+        onGuardar(configuracion, prioridad, texto.trim(), asignacion, urgencia, tags, dependencias, grupoEjecucion);
         onCerrar();
-    }, [fechaMaxima, descripcion, tieneRepeticion, frecuencia, adjuntos, asignadoA, asignadoANombre, asignadoAAvatar, prioridad, texto, urgencia, tags, onGuardar, onCerrar]);
+    }, [fechaMaxima, descripcion, tieneRepeticion, frecuencia, adjuntos, asignadoA, asignadoANombre, asignadoAAvatar, prioridad, texto, urgencia, tags, dependencias, grupoEjecucion, onGuardar, onCerrar]);
 
     /* Hook de autoguardado */
     const {guardarEstadoInicial, manejarCerrarConGuardado} = useAutoguardado({
@@ -152,6 +154,8 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
             setProyectoIdLocal(tarea.proyectoId);
             setCompletadoLocal(tarea.completado);
             setTags(tarea.tags || []);
+            setDependencias(tarea.dependencias || []);
+            setGrupoEjecucion(tarea.grupoEjecucion || null);
 
             guardarEstadoInicial({
                 texto: tarea.texto,
@@ -163,7 +167,8 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
                 frecuencia: nuevaFrecuencia,
                 adjuntos: tarea.configuracion?.adjuntos || [],
                 asignadoA: tarea.asignadoA || null,
-                tags: tarea.tags || []
+                tags: tarea.tags || [],
+                dependencias: tarea.dependencias || []
             });
         } else {
             setTexto('');
@@ -178,6 +183,7 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
             setAsignadoANombre('');
             setAsignadoAAvatar('');
             setTags([]);
+            setDependencias([]);
         }
     }, [tarea?.id]);
 
@@ -210,6 +216,7 @@ export function usePanelConfiguracionTarea({tarea, onCerrar, onGuardar, particip
         prioridad, setPrioridad, urgencia, setUrgencia,
         fechaMaxima, setFechaMaxima, tieneRepeticion, setTieneRepeticion,
         frecuencia, setFrecuencia, adjuntos, setAdjuntos, tags, setTags,
+        dependencias, setDependencias, grupoEjecucion, setGrupoEjecucion,
         asignadoA, asignadoANombre, asignadoAAvatar,
         proyectoIdLocal, completadoLocal,
         modoEdicion, esMovil, claseModal,

@@ -65,6 +65,10 @@ export interface OrdenPanel {
     id: string;
     columna: 1 | 2 | 3;
     posicion: number;
+    /* Indica si este panel está dividido lado a lado con otro en la misma columna */
+    dividido?: boolean;
+    /* ID del panel con el que está dividido (opcional) */
+    panelDivisionId?: string;
 }
 
 /* Configuración de ancho de columnas (en porcentaje 0-100) */

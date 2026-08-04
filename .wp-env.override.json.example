@@ -1,0 +1,6 @@
+{
+    "config": {
+        "GLORY_VITE_DEV_SERVER_PROBE_URL": "http://host.docker.internal:5174",
+        "GLORY_VITE_DEV_SERVER_PUBLIC_URL": "http://localhost:5174"
+    }
+}

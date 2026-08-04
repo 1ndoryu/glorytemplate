@@ -15,6 +15,7 @@ interface EstadoOpciones {
     frecuencia?: string;
     fecha?: string;
     importancia?: string;
+    grupoEjecucion?: string | null;
 }
 
 interface EstadoMenu {
@@ -33,6 +34,7 @@ interface DatosCreacion {
     frecuencia?: string;
     fecha?: string;
     importancia?: string;
+    grupoEjecucion?: string | null;
 }
 
 interface UseModalCreacionRapidaProps {
@@ -41,6 +43,7 @@ interface UseModalCreacionRapidaProps {
         proyectoId?: number;
         prioridad?: string;
         urgencia?: string;
+        grupoEjecucion?: string | null;
     };
     onCerrar: () => void;
     onGuardar: (datos: DatosCreacion) => Promise<void>;
@@ -54,7 +57,8 @@ export function useModalCreacionRapida({tipo, valoresIniciales = {}, onCerrar, o
     const [opciones, setOpciones] = useState<EstadoOpciones>({
         proyectoId: valoresIniciales.proyectoId,
         prioridad: valoresIniciales.prioridad,
-        urgencia: valoresIniciales.urgencia
+        urgencia: valoresIniciales.urgencia,
+        grupoEjecucion: valoresIniciales.grupoEjecucion
     });
     const [cargando, setCargando] = useState(false);
     const [adjuntos, setAdjuntos] = useState<Adjunto[]>([]);
@@ -104,6 +108,7 @@ export function useModalCreacionRapida({tipo, valoresIniciales = {}, onCerrar, o
                 ...opciones,
                 adjuntos
             });
+            setOpciones({});
             setTexto('');
             setOpciones({});
             setAdjuntos([]);

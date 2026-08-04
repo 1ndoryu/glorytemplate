@@ -19,6 +19,7 @@ import {GrupoTareasHeader} from './lista-tareas/GrupoTareasHeader';
 import {TareaConColapsador} from './lista-tareas/TareaConColapsador';
 import {TareaReorderItem} from './lista-tareas/TareaReorderItem';
 import {useListaTareas} from '../../hooks/dashboard/useListaTareas';
+import {useHabitosStore} from '../../stores/habitosStore';
 
 interface ListaTareasProps {
     tareas: Tarea[];
@@ -65,6 +66,7 @@ interface ListaTareasProps {
 }
 
 export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, ocultarSubtareasAutomaticamente = false, onCompartirTarea, estaCompartida, obtenerParticipantes, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, modoCompacto = false, onConfigurarTarea,    onAbrirModalCrear, onAbrirModalCrearHabito, ocultarPlaceholderVacio = false, onReordenarHabitos}: ListaTareasProps): JSX.Element {
+    const habitos = useHabitosStore(state => state.habitos);
     const {
         pendientes, completadas,
         estaSeleccionada, manejarSeleccionMultiple, manejarClickDerechoLista,
@@ -134,6 +136,9 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
             estaSeleccionada={estaSeleccionada(tarea.id)}
             onSeleccionMultiple={manejarSeleccionMultiple}
             modoSeleccionActivo={modoSeleccionActivo}
+            // Dependencias
+            todasTareas={tareas}
+            todosHabitos={habitos}
         />
     );
 
@@ -238,7 +243,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
                     {pendientes.length > 0 && completadas.length > 0 && !ocultarCompletadas && <div className="listaTareasSeparador" />}
 
-                    {!ocultarCompletadas && completadas.map(tarea => <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={tarea.proyectoId ? proyectos?.find(p => p.id === tarea.proyectoId)?.nombre : undefined} soloIconoProyecto={ocultarBadgeProyecto} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} mensajesNoLeidos={mensajesNoLeidosPorTarea[tarea.id] || 0} modoCompacto={modoCompacto} />)}
+                    {!ocultarCompletadas && completadas.map(tarea => <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={tarea.proyectoId ? proyectos?.find(p => p.id === tarea.proyectoId)?.nombre : undefined} soloIconoProyecto={ocultarBadgeProyecto} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} mensajesNoLeidos={mensajesNoLeidosPorTarea[tarea.id] || 0} modoCompacto={modoCompacto} tareas={tareas} habitos={habitos} />)}
 
                     {onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} onAbrirModalCrear={onAbrirModalCrear} onAbrirModalCrearHabito={onAbrirModalCrearHabito} />}
                 </>
@@ -253,6 +258,8 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                     estaAbierto={true}
                     onCerrar={() => setTareaConfigurando(null)}
                     onGuardar={guardarConfiguracion}
+                    tareas={tareas}
+                    habitos={habitos}
                     participantes={obtenerParticipantes ? obtenerParticipantes(tareaConfigurando) : []}
                     proyectos={proyectos}
                     onCambiarProyecto={nuevoProyectoId => {

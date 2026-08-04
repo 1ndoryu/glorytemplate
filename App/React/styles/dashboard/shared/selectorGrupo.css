@@ -1,0 +1,66 @@
+/*
+ * SELECTOR GRUPO
+ * Estilos adicionales para el selector de grupos.
+ * El menú y las opciones reutilizan las clases de selectorBadge.css.
+ */
+
+/* Input para crear un nuevo grupo dentro del menú */
+.selectorGrupoCrear {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMini);
+    padding: var(--dashboard-espacioMini) var(--dashboard-espacioSm) 0;
+    border-top: 1px solid var(--dashboard-bordeSutil);
+    margin-top: var(--dashboard-espacioMini);
+}
+
+.selectorGrupoInput {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    color: var(--dashboard-textoNormal);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioSm);
+    outline: none;
+}
+
+.selectorGrupoInput:focus {
+    border-color: var(--dashboard-acento);
+    box-shadow: 0 0 0 1px var(--dashboard-acento);
+}
+
+.selectorGrupoInput::placeholder {
+    color: var(--dashboard-textoApagado);
+}
+
+/* Variante PILL: input dentro del footer de MenuContextual */
+.menuContextualFooter .selectorGrupoCrearPill {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMini);
+    padding: var(--dashboard-espacioSm);
+}
+
+.menuContextualFooter .selectorGrupoInputPill {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 6px;
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    color: var(--dashboard-textoNormal);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioSm);
+    outline: none;
+}
+
+.menuContextualFooter .selectorGrupoInputPill:focus {
+    border-color: var(--dashboard-acento);
+}
+
+.menuContextualFooter .selectorGrupoInputPill::placeholder {
+    color: var(--dashboard-textoApagado);
+}

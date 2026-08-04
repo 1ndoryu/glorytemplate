@@ -53,6 +53,10 @@ export interface UseModalHabitoReturn {
     setFrecuencia: (v: FrecuenciaHabito) => void;
     ventanaOportunidad: VentanaOportunidad | undefined;
     setVentanaOportunidad: (v: VentanaOportunidad | undefined) => void;
+    dependencias: import('../../types/dashboard').ReferenciaDependencia[];
+    setDependencias: (v: import('../../types/dashboard').ReferenciaDependencia[]) => void;
+    grupoEjecucion: string | null;
+    setGrupoEjecucion: (v: string | null) => void;
     errores: {nombre?: string};
     esHabitoEspecialAyuno: boolean;
     esModoSubHabito: boolean;
@@ -114,6 +118,8 @@ export function useModalHabito({
     const [importancia, setImportancia] = useState<NivelImportancia>((subHabito ? subHabito.importancia : habito?.importancia) || 'Media');
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>((subHabito ? subHabito.frecuencia : habito?.frecuencia) || FRECUENCIA_POR_DEFECTO);
     const [ventanaOportunidad, setVentanaOportunidad] = useState<VentanaOportunidad | undefined>(subHabito ? subHabito.ventanaOportunidad : habito?.ventanaOportunidad);
+    const [dependencias, setDependencias] = useState<import('../../types/dashboard').ReferenciaDependencia[]>((subHabito ? subHabito.dependencias : habito?.dependencias) || []);
+    const [grupoEjecucion, setGrupoEjecucion] = useState<string | null>((subHabito ? undefined : habito?.grupoEjecucion) || null);
     const [errores, setErrores] = useState<{nombre?: string}>({});
 
     /* Hook para panel de chat (solo en modo hábito) */
@@ -202,6 +208,8 @@ export function useModalHabito({
             setImportancia(subHabito.importancia);
             setFrecuencia(subHabito.frecuencia || FRECUENCIA_POR_DEFECTO);
             setVentanaOportunidad(subHabito.ventanaOportunidad);
+            setDependencias(subHabito.dependencias || []);
+            setGrupoEjecucion(null);
         } else if (habito) {
             setNombre(habito.nombre);
             setDescripcion(habito.descripcion || '');
@@ -210,6 +218,8 @@ export function useModalHabito({
             setImportancia(habito.importancia);
             setFrecuencia(habito.frecuencia || FRECUENCIA_POR_DEFECTO);
             setVentanaOportunidad(habito.ventanaOportunidad);
+            setDependencias(habito.dependencias || []);
+            setGrupoEjecucion(habito.grupoEjecucion || null);
         } else {
             setNombre('');
             setDescripcion('');
@@ -218,6 +228,8 @@ export function useModalHabito({
             setImportancia('Media');
             setFrecuencia(FRECUENCIA_POR_DEFECTO);
             setVentanaOportunidad(undefined);
+            setDependencias([]);
+            setGrupoEjecucion(null);
         }
         setErrores({});
     }, [habito?.id, subHabito?.id, estaAbierto]);
@@ -272,7 +284,8 @@ export function useModalHabito({
                 nombre: nombre.trim(),
                 importancia,
                 frecuencia,
-                ventanaOportunidad
+                ventanaOportunidad,
+                dependencias
             });
         } else {
             const nombreSeguro = esHabitoEspecialAyuno ? 'Ayuno' : nombre.trim();
@@ -284,11 +297,13 @@ export function useModalHabito({
                 descripcion: descripcion.trim() || undefined,
                 icono,
                 colorIcono,
-                ventanaOportunidad
+                ventanaOportunidad,
+                dependencias,
+                grupoEjecucion
             });
         }
         onCerrar();
-    }, [esModoSubHabito, subHabito, habitoPadre, nombre, importancia, frecuencia, ventanaOportunidad, descripcion, icono, colorIcono, validarFormulario, editarSubHabito, onGuardar, onCerrar, esHabitoEspecialAyuno]);
+    }, [esModoSubHabito, subHabito, habitoPadre, nombre, importancia, frecuencia, ventanaOportunidad, descripcion, icono, colorIcono, grupoEjecucion, dependencias, validarFormulario, editarSubHabito, onGuardar, onCerrar, esHabitoEspecialAyuno]);
 
     /* Auto-guardado: al cerrar el modal, guardar si hay nombre válido */
     const manejarCerrarConGuardado = useCallback(() => {
@@ -354,14 +369,11 @@ export function useModalHabito({
         colorIcono,
         setColorIcono,
         importancia,
-        setImportancia,
-        frecuencia,
-        setFrecuencia,
-        ventanaOportunidad,
-        setVentanaOportunidad,
-        errores,
-        esHabitoEspecialAyuno,
-        esModoSubHabito,
+        setImportancia,        frecuencia, setFrecuencia,
+        ventanaOportunidad, setVentanaOportunidad,
+        dependencias, setDependencias,
+        grupoEjecucion, setGrupoEjecucion,
+        errores, esHabitoEspecialAyuno, esModoSubHabito,
         estadoHoy,
         manejarCambioEstado,
         chatVisible,

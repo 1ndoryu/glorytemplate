@@ -41,6 +41,7 @@
 @import './shared/suscripcion.css';
 @import './shared/panelSeguridad.css';
 @import './shared/selectorBadge.css';
+@import './shared/selectorGrupo.css';
 @import './shared/tooltip.css';
 @import './shared/layoutManager.css';
 @import './shared/panelArrastrable.css';
@@ -103,8 +104,14 @@
 @import './admin/detalleUsuario.css';
 @import './componentes/perfil.css';
 
+/* Dependencias condicionales */
+@import './componentes/dependencias.css';
+
 /* Sistema de Equipos */
 @import './componentes/equipos.css';
+
+/* Division de paneles */
+@import './componentes/dashboardPanelDivision.css';
 
 /* Sistema de Notificaciones */
 @import './componentes/notificaciones.css';

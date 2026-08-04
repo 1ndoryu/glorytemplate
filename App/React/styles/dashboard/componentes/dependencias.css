@@ -1,0 +1,177 @@
+/*
+ * DEPENDENCIAS
+ * Modal de configuración de dependencias condicionales y
+ * clases visuales para elementos bloqueados (badge, destello, opacidad)
+ *
+ * Usa variables --dashboard-* para coherencia con el sistema de diseño.
+ * El padding del contenido lo hereda de .modalContenido (20px).
+ */
+
+
+.modalDependencias {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+    padding: var(--dashboard-espacioMd);
+}
+
+/* Buscador */
+.modalDependenciasBuscador {
+    position: relative;
+}
+
+.modalDependenciasResultados {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--dashboard-fondoTerciario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: var(--dashboard-radioSutil);
+    z-index: 10;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.modalDependenciasResultado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--dashboard-transicionRapida);
+    color: var(--dashboard-textoNormal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.modalDependenciasResultado:hover {
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoActivo);
+}
+
+.modalDependenciasResultadoNombre {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: inherit;
+}
+
+.modalDependenciasResultadoTipo {
+    font-size: var(--dashboard-tamanoMuyPequeno);
+    text-transform: uppercase;
+    color: var(--dashboard-textoApagado);
+    background: var(--dashboard-fondoPrincipal);
+    padding: 2px 6px;
+    border-radius: var(--dashboard-radioXs);
+}
+
+/* Lista de dependencias actuales */
+.modalDependenciasLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.modalDependenciasItem {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoTerciario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioSutil);
+}
+
+.modalDependenciasItemNombre {
+    flex: 1;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoActivo);
+}
+
+.modalDependenciasItemTipo {
+    font-size: var(--dashboard-tamanoMuyPequeno);
+    text-transform: uppercase;
+    color: var(--dashboard-textoApagado);
+}
+
+.modalDependenciasItemEliminar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: var(--dashboard-radioXs);
+    transition: background var(--dashboard-transicionRapida), color var(--dashboard-transicionRapida);
+}
+
+.modalDependenciasItemEliminar:hover {
+    background: var(--dashboard-estadoAltaFondo);
+    color: var(--dashboard-estadoAlta);
+}
+
+/* Modo estricto/suave */
+.modalDependenciasItemModo {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+}
+
+.modalDependenciasModo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--dashboard-bordeSutil);
+    background: var(--dashboard-fondoPrincipal);
+    color: var(--dashboard-textoApagado);
+    border-radius: var(--dashboard-radioXs);
+    font-size: var(--dashboard-tamanoMuyPequeno);
+    cursor: pointer;
+    transition: background var(--dashboard-transicionRapida), color var(--dashboard-transicionRapida), border-color var(--dashboard-transicionRapida);
+}
+
+.modalDependenciasModo:hover {
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoNormal);
+}
+
+.modalDependenciasModoActivo {
+    background: var(--dashboard-colorPrimario);
+    border-color: var(--dashboard-colorPrimario);
+    color: var(--dashboard-fondoPrincipal);
+}
+
+.modalDependenciasModoActivo:hover {
+    background: var(--dashboard-colorPrimario);
+    color: var(--dashboard-fondoPrincipal);
+}
+
+.modalDependenciasVacio {
+    padding: var(--dashboard-espacioMd);
+    text-align: center;
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+/* Input de grupo de ejecución */
+.inputGrupoEjecucion {
+    width: 100%;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioSutil);
+    background: var(--dashboard-fondoPrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuentePrincipal);
+    outline: none;
+    transition: border-color var(--dashboard-transicionRapida);
+}
+
+.inputGrupoEjecucion:focus {
+    border-color: var(--dashboard-colorPrimario);
+}

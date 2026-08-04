@@ -96,7 +96,7 @@ export function generarPropsPanelEjecucion(
         opcionesFiltro: opciones.opcionesFiltro,
         opcionesOrdenTareas: opciones.opcionesOrdenTareas,
         esOrdenManual: ordenTareas.esOrdenManual,
-        onAbrirModalNuevaTarea: () => modales.abrirCreacionRapida('tarea'),
+        onAbrirModalNuevaTarea: (valoresIniciales?: {grupoEjecucion?: string | null}) => modales.abrirCreacionRapida('tarea', valoresIniciales),
         onAbrirModalCrearHabito: () => modales.abrirCreacionRapida('habito'),
         onAbrirModalConfigTareas: () => modales.abrirModalConfigGlobal('tareas'),
         onToggleTarea: manejarToggleTarea,
@@ -158,6 +158,7 @@ export function generarPropsPanelFocoPrioritario(
 
     return {
         habitos: ordenHabitos.habitosOrdenados,
+        tareas: dashboard.tareas,
         modoOrdenHabitos: ordenHabitos.modoActual,
         opcionesOrdenHabitos: opciones.opcionesOrdenHabitos,
         /* [218A-1] Orden manual para hábitos */

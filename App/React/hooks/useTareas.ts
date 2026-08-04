@@ -257,6 +257,7 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                     asignadoANombre: datos.asignadoANombre,
                     asignadoAAvatar: datos.asignadoAAvatar,
                     tags: datos.tags,
+                    grupoEjecucion: datos.grupoEjecucion,
                     /* [014A-19] Timestamp per-entity para resolución de conflictos */
                     updatedAt: Date.now()
                 };
@@ -350,7 +351,7 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                      * Crear objeto base excluyendo campos que pueden ser null o no pertenecen a Tarea
                      * Para prioridad/urgencia/asignadoA, null significa "quitar"
                      */
-                    const {prioridad: nuevaPrioridad, urgencia: nuevaUrgencia, configuracion: nuevaConfiguracion, asignadoA: nuevoAsignadoA, asignadoANombre, asignadoAAvatar, tags: nuevosTags, pospuestoHasta: nuevoPospuestoHasta, insertarDespuesDe: _, ...restoDatos} = datos;
+                    const {prioridad: nuevaPrioridad, urgencia: nuevaUrgencia, configuracion: nuevaConfiguracion, asignadoA: nuevoAsignadoA, asignadoANombre, asignadoAAvatar, tags: nuevosTags, pospuestoHasta: nuevoPospuestoHasta, grupoEjecucion: nuevoGrupoEjecucion, insertarDespuesDe: _, ...restoDatos} = datos;
 
                     const tareaActualizada: Tarea = {
                         ...t,
@@ -394,6 +395,18 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                         tareaActualizada.asignadoA = nuevoAsignadoA;
                         tareaActualizada.asignadoANombre = asignadoANombre;
                         tareaActualizada.asignadoAAvatar = asignadoAAvatar;
+                    }
+
+                    /* Dependencias condicionales */
+                    if ('dependencias' in datos) {
+                        tareaActualizada.dependencias = datos.dependencias;
+                    }
+
+                    /* Grupo de ejecución */
+                    if (nuevoGrupoEjecucion === null) {
+                        delete tareaActualizada.grupoEjecucion;
+                    } else if (nuevoGrupoEjecucion !== undefined) {
+                        tareaActualizada.grupoEjecucion = nuevoGrupoEjecucion;
                     }
 
                     /* Manejar configuracion: fusionar con existente o reemplazar */

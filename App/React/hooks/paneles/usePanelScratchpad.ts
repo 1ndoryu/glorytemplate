@@ -76,10 +76,9 @@ export function usePanelScratchpad(panelId: string = PANEL_SCRATCHPAD): UsePanel
 
     /*
      * Efecto 2: Restaurar última nota activa cuando las notas se cargan
-     * Solo para el panel base — los duplicados arrancan con nota nueva.
+     * [263A-12] Todos los paneles, incluyendo duplicados, intentan restaurar su nota guardada.
      */
     useEffect(() => {
-        if (panelId !== PANEL_SCRATCHPAD) return;
         if (notas.length > 0 && notaActiva.id === null && notaActiva.contenido === CONTENIDO_NOTA_NUEVA) {
             restaurarNotaActivaGuardada(panelId);
         }

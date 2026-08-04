@@ -7,7 +7,7 @@
 import React from 'react';
 import {Check, Trash2, Clock} from 'lucide-react';
 import {Boton} from '../../ui';
-import {Tarea, Proyecto, DatosEdicionTarea, DatosNuevoHabito, TareaHabito, esTareaHabito} from '../../../types/dashboard';
+import {Tarea, Proyecto, DatosEdicionTarea, DatosNuevoHabito, TareaHabito, esTareaHabito, Habito} from '../../../types/dashboard';
 import {TareaItem} from '../TareaItem';
 import {tieneSubtareas, contarSubtareas} from '../../../utils/jerarquiaTareas';
 import {SwipeableItem} from '../../shared/SwipeableItem';
@@ -59,9 +59,12 @@ interface TareaConColapsadorProps {
     onConfigurarSubHabito?: (habitoId: number, subHabitoId: number) => void;
     /* [218A-2] Ref para suprimir clicks posteriores a un drag */
     suprimirClickRef?: React.RefObject<boolean>;
+    /* Listado de tareas y hábitos para evaluar dependencias */
+    todasTareas?: Tarea[];
+    todosHabitos?: Habito[];
 }
 
-export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, esSubtarea, tareas, tareasExpandidas, onToggleExpandir, proyectos, modoCompacto, ocultarBadgeProyecto, mensajesNoLeidos, estaCompartida, onToggleTarea, onEditarTarea, onEliminarTarea, onIndent, onOutdent, onCrearNueva, onConfigurar, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, estaSeleccionada, onSeleccionMultiple, modoSeleccionActivo, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, suprimirClickRef}) => {
+export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, esSubtarea, tareas, tareasExpandidas, onToggleExpandir, proyectos, modoCompacto, ocultarBadgeProyecto, mensajesNoLeidos, estaCompartida, onToggleTarea, onEditarTarea, onEliminarTarea, onIndent, onOutdent, onCrearNueva, onConfigurar, onMoverProyecto, onCompartir, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, estaSeleccionada, onSeleccionMultiple, modoSeleccionActivo, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, suprimirClickRef, todasTareas = tareas, todosHabitos = []}) => {
     const {esMovil} = useEsMovil();
     const esHabito = esTareaHabito(tarea);
     const esColapsable = !esSubtarea && tieneSubtareas(tareas, tarea.id);
@@ -163,6 +166,9 @@ export const TareaConColapsador: React.FC<TareaConColapsadorProps> = ({tarea, es
             onPosponerSubHabitoConTiempo={onPosponerSubHabitoConTiempo}
             onActualizarSubHabito={onActualizarSubHabito}
             onConfigurarSubHabito={onConfigurarSubHabito}
+            /* Listado de tareas y hábitos para evaluar dependencias */
+            tareas={todasTareas}
+            habitos={todosHabitos}
             /* [218A-2] Suprimir click después de drag */
             suprimirClickRef={suprimirClickRef}
         />

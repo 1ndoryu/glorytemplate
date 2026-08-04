@@ -22,6 +22,7 @@ interface ValoresCreacionRapida {
     proyectoId?: number;
     prioridad?: string;
     urgencia?: string;
+    grupoEjecucion?: string | null;
 }
 
 interface UseModalesDashboardReturn {

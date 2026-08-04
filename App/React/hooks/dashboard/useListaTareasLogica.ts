@@ -100,7 +100,7 @@ export function useListaTareasLogica({tareas, proyectoId, onEditarTarea, onCrear
     );
 
     const guardarConfiguracion = useCallback(
-        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[]) => {
+        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null, tags?: string[], dependencias?: import('../../types/dashboard').ReferenciaDependencia[]) => {
             if (tareaConfigurando && onEditarTarea) {
                 onEditarTarea(tareaConfigurando.id, {
                     configuracion,
@@ -112,7 +112,8 @@ export function useListaTareasLogica({tareas, proyectoId, onEditarTarea, onCrear
                         asignadoANombre: asignacion.asignadoANombre,
                         asignadoAAvatar: asignacion.asignadoAAvatar
                     }),
-                    ...(tags && {tags})
+                    ...(tags && {tags}),
+                    ...(dependencias !== undefined && {dependencias})
                 });
             }
         },

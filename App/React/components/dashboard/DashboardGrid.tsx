@@ -59,14 +59,27 @@ export function DashboardGrid({ctx, esMovil = false, paginaMovilActiva = 'ejecuc
             props = generadorProps(propsContexto, renderHandleArrastre, handleMinimizarElement, esMovil);
         }
 
+        /* Inyectar panelId a todos los paneles para permitir estado por instancia */
+        props.panelId = panelId;
+
         /* [263A-3][263A-12] Inyectar props de duplicación a paneles scratchpad.
          * La nota se inicializa automáticamente al montar el nuevo panel (usePanelScratchpad). */
         if (baseId === 'scratchpad') {
-            props.panelId = panelId;
             props.onDuplicarPanel = () => {
                 layout.duplicarPanel(baseId);
             };
-            props.onCerrarPanel = panelId !== baseId ? () => layout.cerrarPanelDuplicado(panelId) : undefined;
+        }
+
+        /* Cerrar solo para paneles duplicados o divididos (ids con sufijo) */
+        if (panelId !== baseId) {
+            props.onCerrarPanel = () => layout.cerrarPanelDuplicado(panelId);
+        }
+
+        /* Inyectar opción de dividir panel para ejecución y scratchpad */
+        if (baseId === 'ejecucion' || baseId === 'scratchpad') {
+            props.onDividirPanel = () => {
+                layout.dividirPanel(baseId);
+            };
         }
 
         const Componente = definicionPanel.componente;
@@ -111,7 +124,47 @@ export function DashboardGrid({ctx, esMovil = false, paginaMovilActiva = 'ejecuc
         </PanelArrastrable>
     );
 
-    const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => layout.obtenerPanelesColumna(columna).filter(panelPuedeMostrarse).map(renderizarPanel);
+    const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => {
+        const ids = layout.obtenerPanelesColumna(columna).filter(panelPuedeMostrarse);
+        const orden = layout.ordenPaneles || [];
+
+        const resultados: JSX.Element[] = [];
+        let i = 0;
+        while (i < ids.length) {
+            const panelId = ids[i];
+            const config = orden.find(p => p.id === panelId);
+
+            /* Si tiene panelDivisionId, agrupar todos los paneles de esa división consecutivos */
+            if (config?.panelDivisionId) {
+                const miembros: PanelId[] = [panelId];
+                let j = i + 1;
+                while (j < ids.length) {
+                    const siguienteConfig = orden.find(p => p.id === ids[j]);
+                    if (siguienteConfig?.panelDivisionId === config.panelDivisionId) {
+                        miembros.push(ids[j]);
+                        j++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (miembros.length > 1) {
+                    resultados.push(
+                        <div key={`split-${config.panelDivisionId}`} className="dashboardPanelDivision">
+                            {miembros.map(id => renderizarPanel(id))}
+                        </div>
+                    );
+                    i = j;
+                    continue;
+                }
+            }
+
+            resultados.push(renderizarPanel(panelId));
+            i++;
+        }
+
+        return resultados;
+    };
 
     /*
      * MODO MÓVIL: Renderizamos solo el panel correspondiente a la página activa

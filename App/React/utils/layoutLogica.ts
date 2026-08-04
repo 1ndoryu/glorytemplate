@@ -155,15 +155,74 @@ export function crearDuplicadoPanel(
     };
 }
 
+/* [263A-3] Crear una división lado a lado de un panel dentro de la misma columna.
+ * Se comporta como duplicado pero marca ambos paneles con panelDivisionId. */
+export function crearDivisionPanel(prev: ConfiguracionLayout, baseId: string): ConfiguracionLayout {
+    const paneles = [...(prev.ordenPaneles || [])];
+    const panelOriginal = paneles.find(p => p.id === baseId);
+    if (!panelOriginal) return prev;
+
+    const divisionId = `${baseId}-split`;
+
+    /* Evitar múltiples divisiones del mismo panel */
+    const yaDividido = paneles.some(p => p.panelDivisionId === divisionId);
+    if (yaDividido) return prev;
+
+    const existentes = paneles
+        .filter(p => p.id.startsWith(baseId + '-'))
+        .map(p => {
+            const m = p.id.match(/-(\d+)$/);
+            return m ? parseInt(m[1], 10) : 0;
+        });
+    const siguienteNum = existentes.length > 0 ? Math.max(...existentes) + 1 : 1;
+    const nuevoId = `${baseId}-${siguienteNum}`;
+
+    const nuevaPosicion = panelOriginal.posicion + 1;
+    const panelesActualizados = paneles.map(p => {
+        if (p.columna === panelOriginal.columna && p.posicion >= nuevaPosicion) {
+            return {...p, posicion: p.posicion + 1};
+        }
+        return p;
+    });
+    panelesActualizados.push({
+        id: nuevoId,
+        columna: panelOriginal.columna,
+        posicion: nuevaPosicion,
+        dividido: true,
+        panelDivisionId: divisionId
+    });
+
+    /* Marcar también el original como dividido */
+    const conOriginalDividido = panelesActualizados.map(p =>
+        p.id === baseId ? {...p, dividido: true, panelDivisionId: divisionId} : p
+    );
+
+    return {
+        ...prev,
+        ordenPaneles: normalizarPosiciones(conOriginalDividido),
+        visibilidad: {...(prev.visibilidad || {}), [nuevoId]: true},
+        alturas: {...(prev.alturas || {}), [nuevoId]: prev.alturas?.[baseId] || 'auto'}
+    };
+}
+
 /* [263A-3] Eliminar un panel duplicado del layout */
 export function eliminarPanelDuplicado(prev: ConfiguracionLayout, instanceId: string): ConfiguracionLayout {
     const paneles = (prev.ordenPaneles || []).filter(p => p.id !== instanceId);
     const {[instanceId]: _vis, ...restoVisibilidad} = prev.visibilidad || {};
     const {[instanceId]: _alt, ...restoAlturas} = prev.alturas || {};
 
+    /* Limpiar flags de división si el panel cerrado era el último de su grupo */
+    const configEliminado = prev.ordenPaneles?.find(p => p.id === instanceId);
+    const divisionId = configEliminado?.panelDivisionId;
+    const hayMasDelGrupo = divisionId ? paneles.some(p => p.panelDivisionId === divisionId) : false;
+
+    const panelesLimpios = divisionId && !hayMasDelGrupo
+        ? paneles.map(p => (p.panelDivisionId === divisionId ? {...p, dividido: undefined, panelDivisionId: undefined} : p))
+        : paneles;
+
     return {
         ...prev,
-        ordenPaneles: normalizarPosiciones(paneles),
+        ordenPaneles: normalizarPosiciones(panelesLimpios),
         visibilidad: restoVisibilidad,
         alturas: restoAlturas
     };

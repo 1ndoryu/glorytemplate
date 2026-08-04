@@ -36,7 +36,30 @@
     min-height: 0; /* Eliminar min-height anterior */
 }
 
-/* Modo compacto - DEPRECADO (eliminado) */
+/* 
+ * VARIANTE CON TEXTO (compacto)
+ * Muestra el icono junto a un texto, con ancho automático
+ */
+.selectorBadgeBotonCompacto {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMini);
+    padding: 2px 8px;
+    min-height: 26px;
+    width: auto;
+    height: auto;
+    font-size: var(--dashboard-tamanoMuyPequeno);
+    color: var(--dashboard-textoApagado);
+    background-color: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioSm);
+}
+
+.selectorBadgeBotonCompacto:hover {
+    border-color: var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    background-color: var(--dashboard-fondoSecundario);
+}
 
 .selectorBadgeBoton:hover {
     border-color: var(--dashboard-bordePrincipal);

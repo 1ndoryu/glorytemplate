@@ -190,6 +190,8 @@ export const useHabitosStore = create<HabitosStore>()(
                         fechaCreacion: hoy,
                         /* TAREA 4: Incluir ventana de oportunidad si se definió */
                         ventanaOportunidad: datos.ventanaOportunidad,
+                        dependencias: datos.dependencias,
+                        grupoEjecucion: datos.grupoEjecucion,
                         /* [014A-19] Timestamp per-entity para resolución de conflictos */
                         updatedAt: Date.now()
                     };
@@ -210,7 +212,7 @@ export const useHabitosStore = create<HabitosStore>()(
                         state => ({
                             habitos: state.habitos.map(h => {
                                 if (h.id !== id) return h;
-                                return {
+                                const actualizado = {
                                     ...h,
                                     nombre: datos.nombre,
                                     importancia: datos.importancia,
@@ -218,9 +220,15 @@ export const useHabitosStore = create<HabitosStore>()(
                                     frecuencia: datos.frecuencia,
                                     /* TAREA 4: Incluir ventana de oportunidad */
                                     ventanaOportunidad: datos.ventanaOportunidad,
+                                    dependencias: datos.dependencias,
                                     /* [014A-19] Timestamp per-entity */
                                     updatedAt: Date.now()
                                 };
+                                /* Solo tocar grupoEjecucion si viene explicitamente */
+                                if (datos.grupoEjecucion !== undefined) {
+                                    (actualizado as typeof actualizado & {grupoEjecucion?: string | null}).grupoEjecucion = datos.grupoEjecucion;
+                                }
+                                return actualizado;
                             })
                         }),
                         false,
@@ -745,7 +753,8 @@ export const useHabitosStore = create<HabitosStore>()(
                                             nombre: datos.nombre ?? sh.nombre,
                                             importancia: datos.importancia ?? sh.importancia,
                                             frecuencia: datos.frecuencia ?? sh.frecuencia,
-                                            ventanaOportunidad: datos.ventanaOportunidad ?? sh.ventanaOportunidad
+                                            ventanaOportunidad: datos.ventanaOportunidad ?? sh.ventanaOportunidad,
+                                            dependencias: datos.dependencias ?? sh.dependencias
                                         };
                                     })
                                 };

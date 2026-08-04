@@ -88,6 +88,8 @@ export interface SubHabito {
     pospuestoHasta?: string;
     /* Ventana de oportunidad individual (hereda del padre si no se define) */
     ventanaOportunidad?: VentanaOportunidad;
+    /* Dependencias condicionales: elementos que deben cumplirse antes de marcar este subhabito */
+    dependencias?: ReferenciaDependencia[];
 }
 
 export interface Habito {
@@ -122,10 +124,14 @@ export interface Habito {
     /* [014A-19] Timestamp de última modificación local (ms). Usado para resolución de
      * conflictos per-entity: el backend rechaza writes con updatedAt menor al existente. */
     updatedAt?: number;
+    /* Dependencias condicionales: elementos que deben cumplirse antes de marcar este habito */
+    dependencias?: ReferenciaDependencia[];
     /* Orden manual para drag & drop (menor = primero). Igual patrón que Tarea.orden */
     orden?: number;
     /* Orden exclusivo para el panel de Ejecución, separado del panel de Hábitos */
     ordenEjecucion?: number;
+    /* Grupo de ejecución para organizar paneles de ejecución múltiples */
+    grupoEjecucion?: string | null;
 }
 
 /*
@@ -177,6 +183,18 @@ export interface Adjunto {
     fechaSubida: string;
     /* URL del thumbnail (sin cifrar, solo para imágenes) */
     thumbnailUrl?: string;
+}
+
+/*
+ * Referencia a otro elemento que actua como dependencia/requisito
+ */
+export interface ReferenciaDependencia {
+    tipo: 'tarea' | 'habito' | 'subhabito';
+    id: number;
+    padreId?: number;
+    nombreSnapshot?: string;
+    /* Modo de la dependencia: estricto se reinicia cada periodo, suave queda desbloqueado una vez cumplido */
+    modo?: 'estricto' | 'suave';
 }
 
 /*
@@ -270,6 +288,10 @@ export interface Tarea {
     pospuestoHasta?: string;
     /* [014A-19] Timestamp de última modificación local (ms) para resolución de conflictos. */
     updatedAt?: number;
+    /* Dependencias condicionales: elementos que deben cumplirse antes de marcar esta tarea */
+    dependencias?: ReferenciaDependencia[];
+    /* Grupo de ejecución para organizar paneles de ejecución múltiples */
+    grupoEjecucion?: string | null;
 }
 
 /*
@@ -372,6 +394,10 @@ export interface DatosNuevoHabito {
     colorIcono?: string;
     /* TAREA 4: Ventana de oportunidad */
     ventanaOportunidad?: VentanaOportunidad;
+    /* Dependencias condicionales para completar el hábito */
+    dependencias?: ReferenciaDependencia[];
+    /* Grupo de ejecución para organizar paneles de ejecución múltiples */
+    grupoEjecucion?: string | null;
 }
 
 /*
@@ -383,6 +409,8 @@ export interface DatosNuevoSubHabito {
     importancia: NivelImportancia;
     frecuencia?: FrecuenciaHabito;
     ventanaOportunidad?: VentanaOportunidad;
+    /* Dependencias condicionales para completar el subhábito */
+    dependencias?: ReferenciaDependencia[];
 }
 
 /*
@@ -424,6 +452,10 @@ export interface DatosEdicionTarea {
     tags?: string[];
     /* [2303A-41] Posponer tarea hasta fecha ISO. null = quitar posposición. */
     pospuestoHasta?: string | null;
+    /* Dependencias condicionales para completar la tarea */
+    dependencias?: ReferenciaDependencia[];
+    /* Grupo de ejecución para organizar paneles de ejecución múltiples */
+    grupoEjecucion?: string | null;
 }
 
 /*

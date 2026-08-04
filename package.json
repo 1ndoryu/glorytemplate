@@ -4,7 +4,18 @@
     "version": "1.0.0",
     "description": "Glory WordPress Theme - Comandos centralizados",
     "scripts": {
-        "dev": "npm run dev --prefix Glory/assets/react",
+        "dev": "node scripts/dev.mjs",
+        "dev:wp": "npm run wp:start && npm run wp:activate",
+        "dev:vite": "npm run dev --prefix Glory/assets/react",
+        "wp:start": "node scripts/wp-start.mjs",
+        "wp:stop": "npm exec -- wp-env stop",
+        "wp:status": "npm exec -- wp-env run cli wp core version",
+        "wp:activate": "npm exec -- wp-env run cli wp theme activate glorytemplate",
+        "wp:export": "node scripts/wp-export.mjs",
+        "wp:import": "node scripts/wp-import.mjs",
+        "wp:replace-url": "node scripts/wp-replace-url.mjs",
+        "wp:destroy": "npm exec -- wp-env destroy",
+        "infra:check": "node scripts/check-dev-infra.mjs",
         "build": "npm run install:glory && npm run build --prefix Glory/assets/react",
         "build:fast": "npm run install:glory && npm run build:fast --prefix Glory/assets/react",
         "prerender": "npm run install:glory && npm run prerender --prefix Glory/assets/react",
@@ -23,5 +34,8 @@
     },
     "dependencies": {
         "@measured/puck": "^0.20.2"
+    },
+    "devDependencies": {
+        "@wordpress/env": "11.12.0"
     }
 }

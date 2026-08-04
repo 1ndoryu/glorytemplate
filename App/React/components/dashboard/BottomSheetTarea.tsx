@@ -30,6 +30,7 @@ interface BottomSheetTareaProps {
         proyectoId?: number;
         prioridad?: string;
         urgencia?: string;
+        grupoEjecucion?: string | null;
     };
     /* Modo edición: si se pasa una tarea, se edita en lugar de crear */
     tareaExistente?: Tarea;
@@ -42,6 +43,7 @@ export interface DatosTarea {
     prioridad?: string;
     urgencia?: string;
     fecha?: string;
+    grupoEjecucion?: string | null;
     /* ID de tarea existente para edición */
     id?: number;
 }

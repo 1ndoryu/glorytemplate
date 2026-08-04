@@ -7,10 +7,14 @@
  * Reutiliza componentes de Fase 9.2 (CampoTituloLimpio, PropiedadesCompactas, etc.)
  */
 
+import {useState, useMemo} from 'react';
 import type {NivelPrioridad, NivelUrgencia, Participante, Proyecto, Adjunto, FrecuenciaHabito, CompaneroEquipo, RolCompartido, Tarea, DatosEdicionTarea} from '../../../types/dashboard';
-import {CampoTituloLimpio, CampoSubtituloLimpio, PropiedadesCompactas, SelectorEstadoPill, SelectorProyectoPill, SelectorRepeticionPill, FilaPropiedades, SelectorTags, SeccionResponsables} from '../../shared';
+import {useGruposEjecucion} from '../../../hooks/useGruposEjecucion';
+import {CampoTituloLimpio, CampoSubtituloLimpio, PropiedadesCompactas, SelectorEstadoPill, SelectorProyectoPill, SelectorRepeticionPill, FilaPropiedades, SelectorTags, SeccionResponsables, SelectorGrupo} from '../../shared';
+import {Boton} from '../../ui';
 import {SeccionAdjuntos} from '../SeccionAdjuntos';
 import {SelectorAsignado} from '../../compartidos/SelectorAsignado';
+import {ModalDependencias} from '../ModalDependencias';
 
 interface FormularioTareaModernoProps {
     /* Campos principales */
@@ -57,6 +61,14 @@ interface FormularioTareaModernoProps {
     /* Etiquetas (Fase 9.7.3) */
     tags?: string[];
     onTagsChange?: (tags: string[]) => void;
+    /* Grupo de ejecución */
+    grupoEjecucion?: string | null;
+    onGrupoEjecucionChange?: (grupo: string | null) => void;
+    /* Dependencias condicionales */
+    dependencias?: import('../../../types/dashboard').ReferenciaDependencia[];
+    onDependenciasChange?: (dependencias: import('../../../types/dashboard').ReferenciaDependencia[]) => void;
+    tareasParaDependencias?: import('../../../types/dashboard').Tarea[];
+    habitosParaDependencias?: import('../../../types/dashboard').Habito[];
     /* Subtareas */
     tareaId?: number;
     subtareas?: Tarea[];
@@ -73,8 +85,20 @@ interface FormularioTareaModernoProps {
 
 import {ListaSubtareas} from './ListaSubtareas';
 
-export function FormularioTareaModerno({texto, onTextoChange, descripcion, onDescripcionChange, completado, onCompletadoChange, prioridad, onPrioridadChange, urgencia, onUrgenciaChange, fechaLimite, onFechaLimiteChange, proyectoId, proyectos = [], onProyectoChange, tieneRepeticion, onTieneRepeticionChange, frecuencia, onFrecuenciaChange, participantes = [], asignadoA, asignadoANombre: _asignadoANombre, asignadoAAvatar: _asignadoAAvatar, onAsignacionChange, companeros = [], onAgregarParticipante, onRemoverParticipante, onCambiarRolParticipante, adjuntos = [], onAdjuntosChange, limiteAdjuntos = 0, onClickUpgrade, tags = [], onTagsChange, modoEdicion = false, errorTexto, tareaId, subtareas, onCrearSubtarea, onToggleSubtarea, onEliminarSubtarea, onConfigurarSubtarea, onEditarSubtarea, esSubtarea = false}: FormularioTareaModernoProps): JSX.Element {
+export function FormularioTareaModerno({texto, onTextoChange, descripcion, onDescripcionChange, completado, onCompletadoChange, prioridad, onPrioridadChange, urgencia, onUrgenciaChange, fechaLimite, onFechaLimiteChange, proyectoId, proyectos = [], onProyectoChange, tieneRepeticion, onTieneRepeticionChange, frecuencia, onFrecuenciaChange, participantes = [], asignadoA, asignadoANombre: _asignadoANombre, asignadoAAvatar: _asignadoAAvatar, onAsignacionChange, companeros = [], onAgregarParticipante, onRemoverParticipante, onCambiarRolParticipante, adjuntos = [], onAdjuntosChange, limiteAdjuntos = 0, onClickUpgrade, tags = [],        onTagsChange,
+        modoEdicion = false, errorTexto, tareaId, subtareas, onCrearSubtarea, onToggleSubtarea, onEliminarSubtarea, onConfigurarSubtarea, onEditarSubtarea, esSubtarea = false,
+        dependencias = [],
+        onDependenciasChange,
+        tareasParaDependencias = [],
+        habitosParaDependencias = [],
+        grupoEjecucion,
+        onGrupoEjecucionChange}: FormularioTareaModernoProps): JSX.Element {    const [modalDependenciasAbierto, setModalDependenciasAbierto] = useState(false);
+
+    /* Grupos de ejecución existentes para el selector */
+    const gruposDisponibles = useGruposEjecucion(tareasParaDependencias, habitosParaDependencias);
+
     /* Mostrar selector de proyecto solo si hay proyectos y callback */
+
     const mostrarProyecto = proyectos.length > 0 && onProyectoChange;
 
     /* Mostrar asignacion solo si hay participantes */
@@ -103,6 +127,36 @@ export function FormularioTareaModerno({texto, onTextoChange, descripcion, onDes
             <FilaPropiedades etiqueta="Propiedades">
                 <PropiedadesCompactas prioridad={prioridad || 'media'} onPrioridadChange={onPrioridadChange} urgencia={urgencia} onUrgenciaChange={onUrgenciaChange} fechaLimite={fechaLimite} onFechaLimiteChange={onFechaLimiteChange} mostrarEtiqueta={false} />
             </FilaPropiedades>
+
+            {/* Dependencias */}
+            {modoEdicion && onDependenciasChange && (
+                <FilaPropiedades etiqueta="Dependencias">
+                    <Boton
+                        type="button"
+                        variante="ghost"
+                        claseAdicional={`pillOpcion ${dependencias.length === 0 ? 'pillOpcion--vacio' : ''}`}
+                        onClick={() => setModalDependenciasAbierto(true)}
+                        title="Configurar dependencias">
+                        <span>{dependencias.length > 0 ? `${dependencias.length} dependencia(s)` : 'Sin dependencias'}</span>
+                    </Boton>
+                </FilaPropiedades>
+            )}
+
+            {modalDependenciasAbierto && onDependenciasChange && (
+                <ModalDependencias
+                    estaAbierto={modalDependenciasAbierto}
+                    onCerrar={() => setModalDependenciasAbierto(false)}
+                    tipoActual="tarea"
+                    idActual={tareaId || 0}
+                    nombreActual={texto || 'Tarea'}
+                    dependencias={dependencias}
+                    onGuardar={deps => {
+                        onDependenciasChange(deps);
+                    }}
+                    tareas={tareasParaDependencias}
+                    habitos={habitosParaDependencias}
+                />
+            )}
 
             {/* Proyecto - Solo si hay proyectos disponibles */}
             {mostrarProyecto && (
@@ -134,6 +188,19 @@ export function FormularioTareaModerno({texto, onTextoChange, descripcion, onDes
             {onTagsChange && (
                 <FilaPropiedades etiqueta="Etiquetas">
                     <SelectorTags tags={tags} onTagsChange={onTagsChange} />
+                </FilaPropiedades>
+            )}
+
+            {/* Grupo de ejecución */}
+            {onGrupoEjecucionChange && (
+                <FilaPropiedades etiqueta="Grupo">
+                    <SelectorGrupo
+                        grupos={gruposDisponibles}
+                        grupoActual={grupoEjecucion || null}
+                        onChange={onGrupoEjecucionChange}
+                        placeholder="Sin grupo"
+                        titulo="Grupo de ejecución"
+                    />
                 </FilaPropiedades>
             )}
 

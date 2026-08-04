@@ -154,6 +154,8 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
                      * se refleje correctamente al ordenar (useOrdenarTareas usa orden como desempate).
                      * Si existe un orden específico para Ejecución, lo usamos para no tocar el panel de Hábitos. */
                     orden: habito.ordenEjecucion ?? habito.orden,
+                    /* [grupo-ejecucion] Heredar grupo del hábito para filtrado en panel */
+                    grupoEjecucion: habito.grupoEjecucion,
                     /* Campos específicos de TareaHabito */
                     esHabito: true,
                     habitoId: habito.id,
@@ -224,6 +226,8 @@ export function useHabitosComoTareas({habitos, tareas, mostrarHabitos, onToggleH
                         parentId: tareaHabito.id,
                         /* Sin urgencia propia (heredada del hábito visual) */
                         urgencia: undefined,
+                        /* [grupo-ejecucion] Heredar grupo del hábito padre */
+                        grupoEjecucion: habito.grupoEjecucion,
                         /* [207A-3] Campos de TareaSubHabito para routing y actividad */
                         esSubHabito: true,
                         habitoPadreId: habito.id,

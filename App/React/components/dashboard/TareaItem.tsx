@@ -1,8 +1,10 @@
 import {useCallback, type ChangeEvent} from 'react';
-import {Check, Play, Square} from 'lucide-react';
+import {Check, Play, Square, Lock} from 'lucide-react';
 import {Input} from '../ui';
-import type {TareaHabito} from '../../types/dashboard';
+import type {Habito, Tarea, TareaHabito} from '../../types/dashboard';
 import {esTareaHabito, esTareaSubHabito} from '../../types/dashboard';
+import {useDependenciasElemento} from '../../hooks/useDependenciasElemento';
+import {useDependenciasUIStore} from '../../stores/dependenciasUIStore';
 import {MenuContextualAdaptivo} from '../shared/MenuContextualAdaptivo';
 import {BadgeGroup} from '../shared/BadgeInfo';
 import {AccionesItem} from '../shared/AccionesItem';
@@ -16,7 +18,7 @@ import {useShallow} from 'zustand/react/shallow';
 import type {TareaItemProps} from './tarea-item/types';
 
 export function TareaItem(props: TareaItemProps): JSX.Element {
-    const {tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy = false, habitoPausado = false, habitoPospuestoHoy = false, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito, onConfigurarSubHabito, tieneSubtareas = false, modoCompacto = false, estaSeleccionada = false, onSeleccionMultiple, modoSeleccionActivo = false, suprimirClickRef} = props;
+    const {tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onToggleHabito, onPosponerHabito, onPosponerHabitoConTiempo, onPausarHabito, onActualizarHabito, habitoCompletadoHoy = false, habitoPausado = false, habitoPospuestoHoy = false, onToggleSubHabito, onEliminarSubHabito, onPosponerSubHabitoConTiempo, onActualizarSubHabito,    onConfigurarSubHabito, tieneSubtareas = false, modoCompacto = false, estaSeleccionada = false, onSeleccionMultiple, modoSeleccionActivo = false, suprimirClickRef, tareas = [], habitos = []} = props;
 
     /* Detectar si es una tarea-hábito virtual */
     const esHabito = esTareaHabito(tarea);
@@ -129,6 +131,21 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
         [iniciarEdicion, onSeleccionMultiple, tarea, modoSeleccionActivo, esHabito, onEditarHabito, onConfigurarSubHabito, suprimirClickRef]
     );
 
+    const {bloqueado, nombresBloqueantes} = useDependenciasElemento('tarea', tarea.id, undefined, tarea, tareas, habitos);
+    const [destello, activarDestello] = [useDependenciasUIStore(s => s.destello), useDependenciasUIStore(s => s.activarDestello)];
+    const esDestello = destello?.tipo === 'tarea' && destello.id === tarea.id;
+
+    const manejarToggleConDependencias = useCallback((e?: React.MouseEvent | React.PointerEvent) => {
+        if (bloqueado) {
+            e?.stopPropagation();
+            e?.preventDefault();
+            activarDestello({tipo: 'tarea', id: tarea.id});
+            alert(nombresBloqueantes.join(', '));
+            return;
+        }
+        onToggle?.();
+    }, [bloqueado, nombresBloqueantes, activarDestello, tarea.id, onToggle]);
+
     if (editando) {
         return (
             <div className={`tareaItem tareaItemEditando ${esSubtarea ? 'tareaItemSubtarea' : ''} ${modoCompacto ? 'tareaItem--compacto' : ''}`}>
@@ -142,14 +159,19 @@ export function TareaItem(props: TareaItemProps): JSX.Element {
 
     return (
         <>
-            <div className={`tareaItem ${esSubtarea ? 'tareaItemSubtarea' : ''} ${tieneSubtareas ? 'tareaItem--conSubtareas' : ''} ${modoCompacto ? 'tareaItem--compacto' : ''} ${estaSeleccionada ? 'tareaItem--seleccionada' : ''}`} onContextMenu={manejarClickDerecho}>
-                <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`} onClick={onToggle} onPointerDown={e => e.stopPropagation()}>
+            <div className={`tareaItem ${esSubtarea ? 'tareaItemSubtarea' : ''} ${tieneSubtareas ? 'tareaItem--conSubtareas' : ''} ${modoCompacto ? 'tareaItem--compacto' : ''} ${estaSeleccionada ? 'tareaItem--seleccionada' : ''} ${bloqueado ? 'dependenciaBloqueada' : ''}`} onContextMenu={manejarClickDerecho}>
+                <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''} ${esDestello ? 'dependenciaDestello' : ''}`} onClick={manejarToggleConDependencias} onPointerDown={e => e.stopPropagation()}>
                     {tarea.completado && <Check size={8} color="white" />}
                 </div>
                 <div className="tareaContenido" onClick={manejarClickContenido}>
                     <div className="tareaTextoWrapper">
                         <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''} ${modoCompacto ? 'tareaTexto--compacto' : ''}`}>{tarea.texto}</p>
                         <BadgeGroup>
+                            {tarea.dependencias && tarea.dependencias.length > 0 && (
+                                <span className="dependenciaBadge" title={nombresBloqueantes.join(', ')}>
+                                    <Lock size={10} />
+                                </span>
+                            )}
                             <TareaBadges tarea={tarea} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIconoProyecto} estaCompartida={estaCompartida} mensajesNoLeidos={mensajesNoLeidos} onConfigurar={onConfigurar} />
                         </BadgeGroup>
                     </div>

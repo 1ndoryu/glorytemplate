@@ -19,6 +19,7 @@ export interface DatosCreacionRapida {
     urgencia?: NivelUrgencia;
     fecha?: string; /* Clave de fecha rápida: 'hoy' | 'manana' | 'semana' */
     adjuntos?: Adjunto[];
+    grupoEjecucion?: string | null;
     /* Campos para hábitos */
     frecuencia?: TipoFrecuencia;
     importancia?: NivelImportancia;
@@ -32,4 +33,5 @@ export interface ValoresCreacionRapida {
     proyectoId?: number;
     prioridad?: string;
     urgencia?: string;
+    grupoEjecucion?: string | null;
 }
