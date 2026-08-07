@@ -141,13 +141,13 @@
 }
 
 .modalDependenciasModoActivo {
-    background: var(--dashboard-colorPrimario);
-    border-color: var(--dashboard-colorPrimario);
+    background: var(--dashboard-primario);
+    border-color: var(--dashboard-primario);
     color: var(--dashboard-fondoPrincipal);
 }
 
 .modalDependenciasModoActivo:hover {
-    background: var(--dashboard-colorPrimario);
+    background: var(--dashboard-primario);
     color: var(--dashboard-fondoPrincipal);
 }
 
@@ -167,11 +167,11 @@
     background: var(--dashboard-fondoPrincipal);
     color: var(--dashboard-textoNormal);
     font-size: var(--dashboard-tamanoPequeno);
-    font-family: var(--dashboard-fuentePrincipal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
     outline: none;
     transition: border-color var(--dashboard-transicionRapida);
 }
 
 .inputGrupoEjecucion:focus {
-    border-color: var(--dashboard-colorPrimario);
+    border-color: var(--dashboard-primario);
 }

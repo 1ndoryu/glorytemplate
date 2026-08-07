@@ -5,7 +5,7 @@
  * Variante "badge" para headers de panel (igual que SelectorBadge)
  */
 
-import {useState, useRef, useCallback, useMemo} from 'react';
+import {useState, useRef, useCallback} from 'react';
 import {FolderOpen, Plus, Folder} from 'lucide-react';
 import {createPortal} from 'react-dom';
 import type {Ref} from 'react';
@@ -135,7 +135,7 @@ export function SelectorGrupo({
         registrarYNotificar(valor || null);
     }, [registrarYNotificar]);
 
-    const {menuAbierto, contenedorRef, menuRef, opcionActual, toggleMenu, seleccionarOpcion, cerrarMenu} = useSelectorBadge({
+    const {menuAbierto, contenedorRef, menuRef, toggleMenu, seleccionarOpcion, cerrarMenu} = useSelectorBadge({
         opciones,
         valorActual: grupoActual || '',
         onChange: manejarCambio

@@ -36,7 +36,10 @@ class WacliService
         $tempDir = $this->obtenerDirectorioTemp();
         if (!is_dir($tempDir)) {
             wp_mkdir_p($tempDir);
-            @file_put_contents($tempDir . '/.htaccess', "Deny from all\n");
+            /* [SEC-007] Sin @: verificar el resultado en vez de silenciar el warning */
+            if (file_put_contents($tempDir . '/.htaccess', "Deny from all\n") === false) {
+                error_log('[WacliService] No se pudo escribir .htaccess en ' . $tempDir);
+            }
         }
         /* Limpiar archivos con más de 1 hora */
         $this->limpiarArchivosViejos($tempDir, 3600);
@@ -54,7 +57,9 @@ class WacliService
         $now = time();
         foreach ($files as $file) {
             if (is_file($file) && ($now - filemtime($file)) > $maxAgeSecs) {
-                @unlink($file);
+                if (!unlink($file)) {
+                    error_log('[WacliService] No se pudo limpiar temporal: ' . $file);
+                }
             }
         }
     }
@@ -352,7 +357,9 @@ class WacliService
         }
 
         if (filesize($tmpFile) === 0) {
-            @unlink($tmpFile);
+            if (!unlink($tmpFile)) {
+                error_log('[WacliService] No se pudo limpiar media temporal: ' . $tmpFile);
+            }
             throw new \RuntimeException('descargarMediaDirecto: archivo temporal vacío tras descifrar.');
         }
 
@@ -380,7 +387,7 @@ class WacliService
     }
 
     /**
-     * [125B-1] Ejecuta un array de argumentos wacli con proc_open (env-based, legacy).
+     * [125B-1] Ejecuta un array de argumentos wacli como proceso externo (env-based, legacy).
      * Para multi-account, usar ejecutarComoUsuario().
      */
     private function ejecutarWacli(array $args, int $timeoutSeconds): array
@@ -407,7 +414,7 @@ class WacliService
     }
 
     /**
-     * [125B-1] Núcleo de ejecución proc_open compartido entre env-based y multi-account.
+     * [125B-1] Núcleo de ejecución del proceso compartido entre env-based y multi-account.
      * Maneja pipes, timeout, y parseo de salida. Lanza RuntimeException si falla.
      *
      * @param array $parts          Array de argumentos (bin + args)
@@ -426,6 +433,10 @@ class WacliService
             2 => ['pipe', 'w'],
         ];
 
+        /* proc_open en forma array ($parts) nunca invoca shell (PHP 7.4+); la regla no
+         * puede verificar que $parts es un array porque llega como variable. $bin se
+         * valida en comandoDisponible() y el resto de argumentos son valores tipados. */
+        /* sentinel-disable-next-line exec-sin-escapeshellarg */
         $process = proc_open($parts, $descriptorSpec, $pipes);
         if (!is_resource($process)) {
             throw new \RuntimeException('No se pudo iniciar wacli.');

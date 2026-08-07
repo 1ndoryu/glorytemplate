@@ -4,7 +4,7 @@
  * en funcion de sus dependencias no cumplidas.
  */
 
-import type {Habito, ReferenciaDependencia, SubHabito, Tarea} from '../types/dashboard';
+import type {Habito, ReferenciaDependencia, Tarea} from '../types/dashboard';
 import {fueCompletadoHoy} from './fecha';
 import {tocaHoy} from './frecuenciaHabitos';
 

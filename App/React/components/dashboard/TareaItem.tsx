@@ -1,7 +1,7 @@
 import {useCallback, type ChangeEvent} from 'react';
 import {Check, Play, Square, Lock} from 'lucide-react';
 import {Input} from '../ui';
-import type {Habito, Tarea, TareaHabito} from '../../types/dashboard';
+import type {TareaHabito} from '../../types/dashboard';
 import {esTareaHabito, esTareaSubHabito} from '../../types/dashboard';
 import {useDependenciasElemento} from '../../hooks/useDependenciasElemento';
 import {useDependenciasUIStore} from '../../stores/dependenciasUIStore';

@@ -81,7 +81,7 @@
 }
 
 .sidebarMenuHeaderTitulo {
-    font-size: var(--dashboard-tamanoMedio);
+    font-size: var(--dashboard-tamanoMediano);
     font-weight: 600;
     color: var(--dashboard-textoActivo);
     white-space: nowrap;

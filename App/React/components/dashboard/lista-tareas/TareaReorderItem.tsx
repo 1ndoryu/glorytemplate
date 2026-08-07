@@ -15,9 +15,9 @@ interface TareaReorderItemProps {
     tareaArrastrandoId: number | null;
     esGestoSubtarea: boolean;
     UMBRAL_INDENT: number;
-    seArrastroRef: React.RefObject<boolean>;
-    dragStartXRef: React.RefObject<number>;
-    dragCurrentXRef: React.RefObject<number>;
+    seArrastroRef: React.MutableRefObject<boolean>;
+    dragStartXRef: React.MutableRefObject<number>;
+    dragCurrentXRef: React.MutableRefObject<number>;
     setEsGestoSubtarea: (valor: boolean) => void;
     handleDragStart: (tareaId: number, evento: React.PointerEvent) => void;
     handleDragEnd: () => void;

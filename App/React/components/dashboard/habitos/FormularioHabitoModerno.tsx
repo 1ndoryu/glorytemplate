@@ -13,7 +13,7 @@
  */
 
 import {Pause, Play} from 'lucide-react';
-import {useState, useMemo} from 'react';
+import {useState} from 'react';
 import type {NivelImportancia, FrecuenciaHabito, Habito, SubHabito, DatosNuevoSubHabito, VentanaOportunidad, Tarea, DatosEdicionTarea, ReferenciaDependencia} from '../../../types/dashboard';
 import {useGruposEjecucion} from '../../../hooks/useGruposEjecucion';
 import {CampoTituloLimpio, CampoSubtituloLimpio, SelectorIconoProyecto, SelectorEstadoHabitoPill, SelectorImportanciaPill, SelectorFrecuenciaPill, FilaPropiedades, SelectorVentanaOportunidad, SelectorGrupo} from '../../shared';
@@ -85,7 +85,7 @@ interface FormularioHabitoModernoProps {
     onEditarTareaHabito?: (id: number, datos: DatosEdicionTarea) => void;
 }
 
-export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, onDescripcionChange, icono, colorIcono, onIconoChange, importancia, onImportanciaChange, frecuencia, onFrecuenciaChange, ventanaOportunidad, onVentanaOportunidadChange, estadoHoy, onEstadoChange, onPausarHabito, habito, modoEdicion = false, errorNombre, nombreBloqueado = false, onCrearSubHabito, onEditarSubHabito, onEliminarSubHabito, onToggleSubHabito, onConfigurarSubHabito, subHabito, onMarcarDiaSubHabito, onDesmarcarDiaSubHabito, dependencias = [], onDependenciasChange, tareasParaDependencias = [], habitosParaDependencias = [], elementoId, padreId, tipoElemento = 'habito', grupoEjecucion, onGrupoEjecucionChange}: FormularioHabitoModernoProps): JSX.Element {
+export function FormularioHabitoModerno({nombre, onNombreChange, descripcion, onDescripcionChange, icono, colorIcono, onIconoChange, importancia, onImportanciaChange, frecuencia, onFrecuenciaChange, ventanaOportunidad, onVentanaOportunidadChange, estadoHoy, onEstadoChange, onPausarHabito, habito, modoEdicion = false, errorNombre, nombreBloqueado = false, onCrearSubHabito, onEditarSubHabito, onEliminarSubHabito, onToggleSubHabito, onConfigurarSubHabito, subHabito, onMarcarDiaSubHabito, onDesmarcarDiaSubHabito, dependencias = [], onDependenciasChange, tareasParaDependencias = [], habitosParaDependencias = [], padreId, tipoElemento = 'habito', grupoEjecucion, onGrupoEjecucionChange}: FormularioHabitoModernoProps): JSX.Element {
     const estaPausado = habito?.pausado ?? false;
     const [modalDependenciasAbierto, setModalDependenciasAbierto] = useState(false);
 

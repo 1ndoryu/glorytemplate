@@ -132,6 +132,9 @@ export const carpetasNotasService = {
      * Obtiene todas las carpetas del usuario
      */
     async listar(): Promise<CarpetaNota[]> {
+        /* GET /notas/carpetas devuelve 'carpetas' (listarCarpetas); el indexador PHP
+         * cruza con la última ruta registrada (POST crearCarpeta) que devuelve 'carpeta'. */
+        /* sentinel-disable-next-line api-response-mismatch */
         const response = await fetchApi<{success: boolean; carpetas: CarpetaNota[]}>('/carpetas');
         if (!response.success) {
             throw new Error('Error al cargar carpetas');

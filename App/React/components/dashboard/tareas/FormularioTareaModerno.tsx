@@ -7,7 +7,7 @@
  * Reutiliza componentes de Fase 9.2 (CampoTituloLimpio, PropiedadesCompactas, etc.)
  */
 
-import {useState, useMemo} from 'react';
+import {useState} from 'react';
 import type {NivelPrioridad, NivelUrgencia, Participante, Proyecto, Adjunto, FrecuenciaHabito, CompaneroEquipo, RolCompartido, Tarea, DatosEdicionTarea} from '../../../types/dashboard';
 import {useGruposEjecucion} from '../../../hooks/useGruposEjecucion';
 import {CampoTituloLimpio, CampoSubtituloLimpio, PropiedadesCompactas, SelectorEstadoPill, SelectorProyectoPill, SelectorRepeticionPill, FilaPropiedades, SelectorTags, SeccionResponsables, SelectorGrupo} from '../../shared';

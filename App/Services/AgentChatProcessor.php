@@ -1,5 +1,5 @@
 <?php
-/* sentinel-disable-file limite-lineas
+/* sentinel-disable-file limite-lineas limite-lineas-nivel-2 limite-lineas-nivel-3 limite-lineas-nivel-4
  * Justificación: motor central del agente con ~30 action cases en ejecutarAccion()
  * — equivalente a un REST controller con muchas rutas. Dividir requirería extraer
  * AgentActionExecutor con toda la inyección de dependencias; pendiente como tarea separada. */

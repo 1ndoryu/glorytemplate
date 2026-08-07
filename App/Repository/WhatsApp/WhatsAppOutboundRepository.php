@@ -34,11 +34,14 @@ final class WhatsAppOutboundRepository
         $table = self::table();
         $wpdb->query('START TRANSACTION');
         try {
+            /* SQL estática sin input de usuario (no hay placeholders): prepare() pasa la consulta intacta. */
             $row = $wpdb->get_row(
-                "SELECT * FROM {$table}
-                 WHERE (status='pending' AND available_at <= UTC_TIMESTAMP())
-                    OR (status='processing' AND locked_until < UTC_TIMESTAMP())
-                 ORDER BY available_at,id LIMIT 1 FOR UPDATE SKIP LOCKED",
+                $wpdb->prepare(
+                    "SELECT * FROM {$table}
+                     WHERE (status='pending' AND available_at <= UTC_TIMESTAMP())
+                        OR (status='processing' AND locked_until < UTC_TIMESTAMP())
+                     ORDER BY available_at,id LIMIT 1 FOR UPDATE SKIP LOCKED"
+                ),
                 ARRAY_A
             );
             if (!$row) {

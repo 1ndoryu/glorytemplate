@@ -56,7 +56,7 @@
 
 .recordatoriosImagenItem:hover {
     transform: scale(1.05);
-    box-shadow: var(--dashboard-sombraMediana);
+    box-shadow: var(--dashboard-sombraMedia);
 }
 
 .recordatoriosImagenItem img {

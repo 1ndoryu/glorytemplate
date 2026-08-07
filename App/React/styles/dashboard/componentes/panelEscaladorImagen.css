@@ -98,6 +98,6 @@
 }
 
 .escaladorCostoValor {
-    color: var(--dashboard-texto);
+    color: var(--dashboard-textoNormal);
     font-weight: 500;
 }

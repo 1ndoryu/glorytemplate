@@ -34,7 +34,6 @@ export function usePanelRecordatorios() {
     const mostrarSiguiente = useRecordatoriosStore(s => s.mostrarSiguiente);
     const eliminar = useRecordatoriosStore(s => s.eliminar);
     const restaurar = useRecordatoriosStore(s => s.restaurar);
-    const cambiarIntervalo = useRecordatoriosStore(s => s.cambiarIntervalo);
     const cambiarIntervaloMs = useRecordatoriosStore(s => s.cambiarIntervaloMs);
     const cambiarTamanoFuente = useRecordatoriosStore(s => s.cambiarTamanoFuente);
     const actualizarConfig = useRecordatoriosStore(s => s.actualizarConfig);
