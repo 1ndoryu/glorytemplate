@@ -6,6 +6,8 @@ wp-content/updraft/*.log
 
 # Runtime data
 wp-content/upgrade/
+
+# Datos locales de wp-env (setup Docker retirado; uploads/backups locales no se versionan)
 .wp-env/
 .wp-env.override.json
 
@@ -44,6 +46,7 @@ node_modules/
 composer.lock
 
 # NPM
+
 npm-debug.log
 grunt
 .history/
@@ -123,3 +126,7 @@ target/
 # Freebuff desktop (local DB, no versionar)
 .freebuff/
 App/React/nul
+
+# Quality gate (Glory Sentinel + VarSense)
+.quality-reports/
+.sentinel/

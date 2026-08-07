@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "scope": {
+    "include": [
+      "./App",
+      "./Glory",
+      "./functions.php",
+      "./header.php",
+      "./footer.php",
+      "./index.php",
+      "./style.css",
+      "./TemplateGlory.php",
+      "./TemplateReact.php"
+    ],
+    "stacks": {
+      "frontend": [
+        "App/React/",
+        "Glory/assets/",
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".css",
+        ".scss",
+        ".vue",
+        ".mjs"
+      ],
+      "docs": [".md", "docs/", "roadmap.md", "PLAN_", "README.md"],
+      "php": [
+        ".php",
+        "App/",
+        "Glory/",
+        "functions.php",
+        "header.php",
+        "footer.php",
+        "index.php",
+        "TemplateGlory.php",
+        "TemplateReact.php"
+      ]
+    }
+  },
+  "profiles": {
+    "default": {
+      "stages": ["sentinel", "varsense", "stack"]
+    }
+  },
+  "modes": {
+    "local-light": {
+      "stack": "affected",
+      "heavy": false
+    },
+    "full": {
+      "stack": "all",
+      "heavy": true
+    },
+    "ci": {
+      "stack": "all",
+      "heavy": true
+    }
+  },
+  "timeouts": {
+    "analyzerMs": 300000,
+    "varsenseMs": 300000,
+    "stackMs": 600000
+  },
+  "budgets": {
+    "maxErrors": 0,
+    "maxWarnings": null
+  },
+  "retention": {
+    "reports": 30,
+    "logs": 14
+  },
+  "heavyRun": {
+    "cooldownMinutes": 180,
+    "allowHeavyFlag": "--allow-heavy",
+    "processPerProject": true,
+    "sharedTestKeys": ["cargo test", "npm test"]
+  },
+  "guard": {
+    "blockedProbes": ["type-check"],
+    "freeProbes": ["dev"]
+  }
+}

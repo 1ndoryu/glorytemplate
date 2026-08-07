@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "mode": "enforce",
+  "project": {
+    "primaryBranch": "glory-react-logic"
+  },
+  "gate": {
+    "command": ["sentinel", "check", "--"],
+    "taskIdRequired": true
+  },
+  "guard": {
+    "directCommands": {
+      "npmScripts": [
+        "__sentinel_guard_probe__",
+        "test",
+        "test:changed",
+        "test:full",
+        "test:file",
+        "test:watch",
+        "type-check",
+        "lint",
+        "check",
+        "check:back",
+        "check:front",
+        "fmt",
+        "fmt:check",
+        "build"
+      ],
+      "npxTools": ["vitest", "tsc", "eslint", "prettier", "rustfmt"],
+      "cargoSubcommands": ["check", "clippy", "test", "bench", "fmt"],
+      "tools": ["vitest", "tsc", "eslint", "prettier", "rustfmt"]
+    }
+  },
+  "runtime": {
+    "minimumVersion": "0.5.0",
+    "protocolVersion": 2,
+    "lockFile": "sentinel.lock.json"
+  },
+  "analyzers": {
+    "sentinel": {
+      "enabled": true,
+      "profile": "default",
+      "config": {
+        "includePatterns": [
+          "**/*.php",
+          "**/*.ts",
+          "**/*.tsx",
+          "**/*.js",
+          "**/*.jsx",
+          "**/*.css",
+          "**/*.scss"
+        ],
+        "excludePatterns": [
+          "**/node_modules/**",
+          "**/vendor/**",
+          "**/dist/**",
+          "**/_generated/**",
+          "**/out/**",
+          "**/build/**",
+          "**/target/**",
+          "**/.agent/**",
+          "**/scripts/**",
+          "**/.git/**",
+          "temp/**",
+          "**/.vitepress/**"
+        ],
+        "directoryExceptions": [],
+        "portableBoundaries": {
+          "dom": [],
+          "window": [],
+          "services": [],
+          "loggerModules": []
+        }
+      }
+    }
+  }
+}

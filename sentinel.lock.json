@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "analyzers": {
+    "sentinel": {
+      "version": "0.5.0",
+      "commit": "20c13a216e879303fcf5be7469a2821391b2ec0d"
+    },
+    "varsense": {
+      "version": "2.2.0",
+      "commit": "e8360927ee92c4067f1f501dd77b951c8bc4f61d"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "variableFiles": ["**/*.css", "**/*.scss"],
+  "includePatterns": ["**/*.css", "**/*.scss", "**/*.ts", "**/*.tsx"],
+  "excludePatterns": [
+    "**/node_modules/**",
+    "**/vendor/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/build/**",
+    "**/target/**",
+    "**/.agent/**",
+    "**/.git/**",
+    "temp/**",
+    "**/.vitepress/**",
+    "Glory/**"
+  ],
+  "scanAllFiles": false,
+  "hardcodedDetection": {
+    "enabled": true,
+    "severity": "warning",
+    "properties": {
+      "color": true,
+      "background-color": true,
+      "font-size": true,
+      "background": true,
+      "border-color": true
+    },
+    "allowedValues": [
+      "0",
+      "auto",
+      "inherit",
+      "initial",
+      "unset",
+      "none",
+      "100%",
+      "50%",
+      "transparent",
+      "currentColor"
+    ]
+  },
+  "inlineDetection": {
+    "enabled": false,
+    "severity": "warning"
+  },
+  "bannedProperties": {
+    "enabled": true,
+    "severity": "error",
+    "properties": []
+  },
+  "orphanClassDetection": {
+    "minClassLength": 4,
+    "excludeClassPatterns": [],
+    "severity": "warning"
+  },
+  "tokenDetection": {
+    "duplicate": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "unused": {
+      "enabled": true,
+      "severity": "warning"
+    }
+  }
+}
