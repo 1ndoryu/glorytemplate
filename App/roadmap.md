@@ -16,6 +16,11 @@
 
 ## Tareas pendientes
 
+### 0. Migración de WordPress a Glory RS manteniendo el frontend
+> Plan: `PLAN_MIGRACION_GLORY_RS.md` — **Activo: Fase 0, inventario y decisiones bloqueantes**
+
+Reemplazar progresivamente WordPress/PHP por un monolito Rust/Axum + PostgreSQL, conservando el frontend React actual. La primera fase debe producir el catálogo de 141 rutas, DTOs, permisos, consumidores, tablas y dependencias, y resolver la estrategia de identidad/sesión antes de implementar.
+
 ### 1. Dependencias condicionales entre tareas, hábitos y subhábitos
 > Plan: `PLAN_DEPENDENCIAS.md`
 
