@@ -92,6 +92,36 @@ const legalSections: LegalSection[] = [
         )
     },
     {
+        icon: Database,
+        title: 'Uso de Google Drive en automatizaciones internas',
+        content: (
+            <>
+                <p className="mb-4">
+                    La aplicación <strong>N8N Cloud - Presentaciones PDF IA</strong>, administrada por Guillermo García, utiliza la API de Google Drive mediante la plataforma de automatización n8n Cloud.
+                </p>
+                <p className="mb-4">
+                    Su finalidad es descargar presentaciones PDF previamente seleccionadas y adjuntarlas automáticamente a correos electrónicos comerciales, utilizando un documento diferente según el sector del destinatario.
+                </p>
+                <p className="mb-4">
+                    La aplicación solicita permisos de acceso a Google Drive que pueden permitir consultar y gestionar archivos de la cuenta autorizada. No obstante, la automatización descrita está configurada para descargar únicamente las presentaciones utilizadas en este proceso.
+                </p>
+                <p className="mb-4">
+                    Los documentos descargados se procesan a través de n8n Cloud y se adjuntan a los correos dirigidos a los destinatarios seleccionados. Los datos de las ejecuciones pueden conservarse en el historial de n8n conforme a la configuración de retención establecida.
+                </p>
+                <p className="mb-4">
+                    Los datos obtenidos de Google Drive no se utilizan para publicidad personalizada basada en información de la cuenta de Google ni se venden a terceros.
+                </p>
+                <p className="text-sm">
+                    Para consultas relacionadas con esta integración o el tratamiento de datos, puedes escribir a{' '}
+                    <a href="mailto:guillermo.autoia@gmail.com" className="text-[var(--color-accent-primary)] hover:underline">
+                        guillermo.autoia@gmail.com
+                    </a>
+                    .
+                </p>
+            </>
+        )
+    },
+    {
         icon: Clock,
         title: 'Cuánto tiempo los conservo',
         content: (
