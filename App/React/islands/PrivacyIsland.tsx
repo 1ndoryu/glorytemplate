@@ -33,7 +33,10 @@ const legalSections: LegalSection[] = [
                 <p className="mb-4">
                     <strong>Nombre:</strong> Guillermo Garcia
                     <br />
-                    <strong>Email de contacto:</strong> contacto@[dominio].com
+                    <strong>Email de contacto:</strong>{' '}
+                    <a href="mailto:guillermo.autoia@gmail.com" className="text-[var(--color-accent-primary)] hover:underline">
+                        guillermo.autoia@gmail.com
+                    </a>
                     <br />
                     <strong>Actividad:</strong> Consultoria de chatbots y automatizacion para empresas
                 </p>
@@ -169,9 +172,9 @@ const legalSections: LegalSection[] = [
                     </li>
                 </ul>
                 <p className="text-sm">
-                    Para ejercer estos derechos, escribeme a{' '}
-                    <a href="mailto:contacto@dominio.com" className="text-[var(--color-accent-primary)] hover:underline">
-                        contacto@[dominio].com
+                    Para ejercer estos derechos, escríbeme a{' '}
+                    <a href="mailto:guillermo.autoia@gmail.com" className="text-[var(--color-accent-primary)] hover:underline">
+                        guillermo.autoia@gmail.com
                     </a>
                     . Si no estás satisfecho, puedes reclamar ante la{' '}
                     <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent-primary)] hover:underline">
